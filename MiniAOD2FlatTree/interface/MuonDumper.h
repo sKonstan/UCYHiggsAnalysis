@@ -15,10 +15,10 @@
 
 #include "TTree.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
-#include "HiggsAnalysis/MiniAOD2FlatTree/interface/BaseDumper.h"
+#include "UCYHiggsAnalysis/MiniAOD2FlatTree/interface/BaseDumper.h"
 
 #include "DataFormats/PatCandidates/interface/Muon.h"
-#include "HiggsAnalysis/MiniAOD2FlatTree/interface/FourVectorDumper.h"
+#include "UCYHiggsAnalysis/MiniAOD2FlatTree/interface/FourVectorDumper.h"
 
 namespace reco {
   class Vertex;

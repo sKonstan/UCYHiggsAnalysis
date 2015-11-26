@@ -17,7 +17,7 @@
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 
-#include "HiggsAnalysis/MiniAOD2FlatTree/interface/BaseDumper.h"
+#include "UCYHiggsAnalysis/MiniAOD2FlatTree/interface/BaseDumper.h"
 
 namespace reco {
   class Vertex;

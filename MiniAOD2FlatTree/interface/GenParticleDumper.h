@@ -17,8 +17,8 @@
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 
-#include "HiggsAnalysis/MiniAOD2FlatTree/interface/BaseDumper.h"
-#include "HiggsAnalysis/MiniAOD2FlatTree/interface/FourVectorDumper.h"
+#include "UCYHiggsAnalysis/MiniAOD2FlatTree/interface/BaseDumper.h"
+#include "UCYHiggsAnalysis/MiniAOD2FlatTree/interface/FourVectorDumper.h"
 
 class GenParticleDumper : public BaseDumper {
 public:

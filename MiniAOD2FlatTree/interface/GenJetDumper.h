@@ -16,7 +16,7 @@
 #include "TTree.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
 
-#include "HiggsAnalysis/MiniAOD2FlatTree/interface/BaseDumper.h"
+#include "UCYHiggsAnalysis/MiniAOD2FlatTree/interface/BaseDumper.h"
 #include "DataFormats/JetReco/interface/GenJet.h"
 
 class GenJetDumper : public BaseDumper {

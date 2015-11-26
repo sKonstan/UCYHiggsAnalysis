@@ -15,10 +15,10 @@
 
 #include "TTree.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
-#include "HiggsAnalysis/MiniAOD2FlatTree/interface/BaseDumper.h"
+#include "UCYHiggsAnalysis/MiniAOD2FlatTree/interface/BaseDumper.h"
 
 #include "DataFormats/PatCandidates/interface/Electron.h"
-#include "HiggsAnalysis/MiniAOD2FlatTree/interface/FourVectorDumper.h"
+#include "UCYHiggsAnalysis/MiniAOD2FlatTree/interface/FourVectorDumper.h"
 
 class ElectronDumper : public BaseDumper {
     public:
