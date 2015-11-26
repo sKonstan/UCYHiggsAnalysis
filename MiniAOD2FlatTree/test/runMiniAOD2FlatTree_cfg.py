@@ -3,8 +3,8 @@
 # For miniAOD instructions see: https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookMiniAOD2015 
 #================================================================================================
 import FWCore.ParameterSet.Config as cms
-import HiggsAnalysis.MiniAOD2FlatTree.tools.git as git
-from HiggsAnalysis.MiniAOD2FlatTree.tools.dataOptions import getOptionsDataVersion
+import UCYHiggsAnalysis.MiniAOD2FlatTree.tools.git as git
+from UCYHiggsAnalysis.MiniAOD2FlatTree.tools.dataOptions import getOptionsDataVersion
 
 #================================================================================================
 # Options
@@ -53,7 +53,7 @@ process.MessageLogger.cerr.FwkReport.reportEvery = iReportEvery
 #================================================================================================
 # Define the input files 
 #================================================================================================
-import HiggsAnalysis.MiniAOD2FlatTree.tools.datasetsHelper as datasetsHelper
+import UCYHiggsAnalysis.MiniAOD2FlatTree.tools.datasetsHelper as datasetsHelper
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(iMaxEvents) )
 process.source    = cms.Source("PoolSource",
                                #fileNames = datasetsHelper.GetEosRootFilesForDataset("RunIISpring15DR74_ttHJetToNonbb_M125_13TeV_MINIAODSIM"),
@@ -75,12 +75,12 @@ print "=== runMiniAOD2FlatTree_cfg.py:\n\t GlobalTag = \"%s\"" % (dataVersion.ge
 #================================================================================================
 # Set up Flat-Tree dumper
 #================================================================================================
-process.load("HiggsAnalysis/MiniAOD2FlatTree/PUInfo_cfi")
-process.load("HiggsAnalysis/MiniAOD2FlatTree/Tau_cfi")
-process.load("HiggsAnalysis/MiniAOD2FlatTree/Electron_cfi")
-process.load("HiggsAnalysis/MiniAOD2FlatTree/Muon_cfi")
-process.load("HiggsAnalysis/MiniAOD2FlatTree/Jet_cfi")
-process.load("HiggsAnalysis/MiniAOD2FlatTree/MET_cfi")
+process.load("UCYHiggsAnalysis/MiniAOD2FlatTree/PUInfo_cfi")
+process.load("UCYHiggsAnalysis/MiniAOD2FlatTree/Tau_cfi")
+process.load("UCYHiggsAnalysis/MiniAOD2FlatTree/Electron_cfi")
+process.load("UCYHiggsAnalysis/MiniAOD2FlatTree/Muon_cfi")
+process.load("UCYHiggsAnalysis/MiniAOD2FlatTree/Jet_cfi")
+process.load("UCYHiggsAnalysis/MiniAOD2FlatTree/MET_cfi")
 
 ### Fixme
 TrgResultsSource = "TriggerResults::PAT"
@@ -283,7 +283,7 @@ process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
 #================================================================================================
 # Setup customizations
 #================================================================================================
-from HiggsAnalysis.MiniAOD2FlatTree.CommonFragments import produceCustomisations
+from UCYHiggsAnalysis.MiniAOD2FlatTree.CommonFragments import produceCustomisations
 produceCustomisations(process) # This produces process.CustomisationsSequence which needs to be included to path
 
 

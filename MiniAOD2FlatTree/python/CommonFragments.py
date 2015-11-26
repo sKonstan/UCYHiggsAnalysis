@@ -9,7 +9,7 @@ Usage Instructions:
 Example:
 process.myEDFilter = cms.EDFilter('MyEDFilter')
 
-from HiggsAnalysis.MiniAOD2FlatTree.CommonFragments import produceCustomisations
+from UCYHiggsAnalysis.MiniAOD2FlatTree.CommonFragments import produceCustomisations
 produceCustomisations(process) 
 process.runEDFilter = cms.Path(process.CustomisationsSequence * process.myEDFilter)
 

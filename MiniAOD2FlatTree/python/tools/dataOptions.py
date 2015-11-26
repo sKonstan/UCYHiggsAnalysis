@@ -1,5 +1,5 @@
 import FWCore.ParameterSet.VarParsing as VarParsing
-from HiggsAnalysis.MiniAOD2FlatTree.tools.dataVersion import DataVersion
+from UCYHiggsAnalysis.MiniAOD2FlatTree.tools.dataVersion import DataVersion
 import sys
 
 # Set global variables
