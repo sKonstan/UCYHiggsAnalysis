@@ -22,5 +22,5 @@
 <use name="RecoBTag/Records"/>
 <use name="HLTrigger/HLTcore"/>
 <export>
-  <lib name="HiggsAnalysisMiniAOD2FlatTree"/>
+  <lib name="UCYHiggsAnalysisMiniAOD2FlatTree"/>
 </export>

@@ -4,7 +4,7 @@
 <use   name="FWCore/ParameterSet"/>
 <use   name="DataFormats/PatCandidates"/>
 <use   name="root"/> 
-<use   name="HiggsAnalysis/MiniAOD2FlatTree"/>
+<use   name="UCYHiggsAnalysis/MiniAOD2FlatTree"/>
 <library name="HiggsAnalysisMiniAOD2FlatTreePlugins" file="*.cc">
 </library>
 
