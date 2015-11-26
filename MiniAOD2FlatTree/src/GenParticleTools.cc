@@ -1,4 +1,4 @@
-#include "HiggsAnalysis/MiniAOD2FlatTree/interface/GenParticleTools.h"
+#include "UCYHiggsAnalysis/MiniAOD2FlatTree/interface/GenParticleTools.h"
 
 namespace GenParticleTools {  
   std::vector<const reco::Candidate*> findParticles(edm::Handle<reco::GenParticleCollection>& handle, int pID) {

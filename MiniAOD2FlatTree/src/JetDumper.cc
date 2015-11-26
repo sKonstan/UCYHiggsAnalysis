@@ -1,11 +1,11 @@
-#include "HiggsAnalysis/MiniAOD2FlatTree/interface/JetDumper.h"
+#include "UCYHiggsAnalysis/MiniAOD2FlatTree/interface/JetDumper.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
 #include "JetMETCorrections/Objects/interface/JetCorrectionsRecord.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/EventSetup.h"
 
 #include "DataFormats/JetReco/interface/PileupJetIdentifier.h"
-#include "HiggsAnalysis/MiniAOD2FlatTree/interface/NtupleAnalysis_fwd.h"
+#include "UCYHiggsAnalysis/MiniAOD2FlatTree/interface/NtupleAnalysis_fwd.h"
 
 JetDumper::JetDumper(edm::ConsumesCollector&& iConsumesCollector, std::vector<edm::ParameterSet>& psets){
     inputCollections = psets;
