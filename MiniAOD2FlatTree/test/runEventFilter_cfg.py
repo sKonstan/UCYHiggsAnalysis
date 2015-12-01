@@ -3,8 +3,8 @@
 # For miniAOD instructions see: https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookMiniAOD2015 
 #================================================================================================
 import FWCore.ParameterSet.Config as cms
-import HiggsAnalysis.MiniAOD2FlatTree.tools.git as git
-from HiggsAnalysis.MiniAOD2FlatTree.tools.dataOptions import getOptionsDataVersion
+import UCYHiggsAnalysis.MiniAOD2FlatTree.tools.git as git
+from UCYHiggsAnalysis.MiniAOD2FlatTree.tools.dataOptions import getOptionsDataVersion
 
 process = cms.Process("SkimFile")
 
@@ -12,7 +12,7 @@ process = cms.Process("SkimFile")
 # Options
 #================================================================================================
 bDebug        = False
-iMaxEvents    = 1000
+iMaxEvents    = 10
 iReportEvery  = 10
 
 #================================================================================================
@@ -31,7 +31,7 @@ process.MessageLogger.cerr.FwkReport.reportEvery = iReportEvery
 #================================================================================================
 # Define the input files 
 #================================================================================================
-import HiggsAnalysis.MiniAOD2FlatTree.tools.datasetsHelper as datasetsHelper
+import UCYHiggsAnalysis.MiniAOD2FlatTree.tools.datasetsHelper as datasetsHelper
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(iMaxEvents) )
 process.source    = cms.Source("PoolSource",
                                fileNames = datasetsHelper.GetEosRootFilesForDataset("RunIISpring15DR74_ttHJetToNonbb_M125_13TeV_MINIAODSIM"),

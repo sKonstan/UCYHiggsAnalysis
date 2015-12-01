@@ -56,12 +56,12 @@ void GenJetDumper::book(TTree* tree){
     tree->Branch( ( cfg_branchName + "_phi").c_str(), &phi[i] );
     tree->Branch( ( cfg_branchName + "_e")  .c_str(), &e[i]   );
     // Other essential variables    
-    tree->Branch( ( cfg_branchName + "charge")          .c_str(), &charge[i]           );
-    tree->Branch( ( cfg_branchName + "emEnergy")        .c_str(), &emEnergy[i]         );
-    tree->Branch( ( cfg_branchName + "hadEnergy")       .c_str(), &hadEnergy[i]        );
-    tree->Branch( ( cfg_branchName + "auxEnergy")       .c_str(), &auxEnergy[i]        );
-    tree->Branch( ( cfg_branchName + "invisEnergy")     .c_str(), &invisEnergy[i]      );
-    tree->Branch( ( cfg_branchName + "nGenConstituents").c_str(), &nGenConstituents[i] );
+    tree->Branch( ( cfg_branchName + "_charge")          .c_str(), &charge[i]           );
+    tree->Branch( ( cfg_branchName + "_emEnergy")        .c_str(), &emEnergy[i]         );
+    tree->Branch( ( cfg_branchName + "_hadEnergy")       .c_str(), &hadEnergy[i]        );
+    tree->Branch( ( cfg_branchName + "_auxEnergy")       .c_str(), &auxEnergy[i]        );
+    tree->Branch( ( cfg_branchName + "_invisEnergy")     .c_str(), &invisEnergy[i]      );
+    tree->Branch( ( cfg_branchName + "_nGenConstituents").c_str(), &nGenConstituents[i] );
     
   }// for(size_t i = 0; i < inputCollections.size(); ++i){
     

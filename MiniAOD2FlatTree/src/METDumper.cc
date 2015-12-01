@@ -2,93 +2,254 @@
 
 #include "TMath.h"
 
-METDumper::METDumper(edm::ConsumesCollector&& iConsumesCollector, std::vector<edm::ParameterSet>& psets, bool isMC = true){
-    inputCollections = psets;
-    booked           = false;
-    ismc             = isMC;
+METDumper::METDumper(edm::ConsumesCollector&& iConsumesCollector, std::vector<edm::ParameterSet>& psets, bool bIsMC = true){
+  inputCollections = psets;
+  booked           = false;
+  isMC             = bIsMC;
 
-    MET_x = new double[inputCollections.size()];
-    MET_y = new double[inputCollections.size()];
-    METsignificance = new double[inputCollections.size()];
+  // For each collection
+  MET               = new double[inputCollections.size()];
+  MET_x             = new double[inputCollections.size()];
+  MET_y             = new double[inputCollections.size()];
+  MET_significance  = new double[inputCollections.size()];
+  MET_isCaloMET     = new bool[inputCollections.size()];
+  MET_isPFMET       = new bool[inputCollections.size()];
+  MET_isRecoMET     = new bool[inputCollections.size()];
 
-    token = new edm::EDGetTokenT<edm::View<pat::MET>>[inputCollections.size()];
+  // Other auxiliary variables
+  width = 18;
+  token = new edm::EDGetTokenT<edm::View<pat::MET>>[inputCollections.size()];
 
-    for(size_t i = 0; i < inputCollections.size(); ++i){
-        edm::InputTag inputtag = inputCollections[i].getParameter<edm::InputTag>("src");
-        token[i] = iConsumesCollector.consumes<edm::View<pat::MET>>(inputtag);
-    }
+  // For-loop: All input collections 
+  for(size_t i = 0; i < inputCollections.size(); ++i){
+    edm::InputTag inputtag = inputCollections[i].getParameter<edm::InputTag>("src");
+    token[i] = iConsumesCollector.consumes<edm::View<pat::MET>>(inputtag);
+  }
     
-    useFilter = false;
-    for(size_t i = 0; i < inputCollections.size(); ++i){
-        if(inputCollections[i].getUntrackedParameter<bool>("filter",false)) useFilter = true;
-    }
+  useFilter = false;
+  // For-loop: All input collections 
+  for(size_t i = 0; i < inputCollections.size(); ++i){
+    if(inputCollections[i].getUntrackedParameter<bool>("filter",false)) useFilter = true;
+  }
 }
+
+
 METDumper::~METDumper(){}
 
+
 void METDumper::book(TTree* tree){
-    booked = true;
-    for(size_t i = 0; i < inputCollections.size(); ++i){
-	std::string name = inputCollections[i].getUntrackedParameter<std::string>("branchname","");
-	if(name.length() == 0) name = inputCollections[i].getParameter<edm::InputTag>("src").label();
-	  //tree->Branch((name+"_p4").c_str(),&MET_p4[i]);
-        tree->Branch((name+"_x").c_str(),&MET_x[i]);
-        tree->Branch((name+"_y").c_str(),&MET_y[i]);
-        tree->Branch((name+"_significance").c_str(),&METsignificance[i]);
-    }
-    tree->Branch("CaloMET_x",&caloMET_x);
-    tree->Branch("CaloMET_y",&caloMET_y);
-    if(ismc){
-        tree->Branch("GenMET_x",&GenMET_x);
-        tree->Branch("GenMET_y",&GenMET_y);
-    }
+  booked = true;
+    
+  // For-loop: All input collections 
+  for(size_t i = 0; i < inputCollections.size(); ++i){
+      
+    // Input parameters/flags
+    cfg_branchName  = inputCollections[i].getUntrackedParameter<std::string>("branchName","");
+      
+    if(cfg_branchName.length() == 0) cfg_branchName = inputCollections[i].getParameter<edm::InputTag>("src").label();
+    // For each collection
+    tree->Branch( (cfg_branchName)                  .c_str(), &MET[i]              );
+    tree->Branch( (cfg_branchName + "_x")           .c_str(), &MET_x[i]            );
+    tree->Branch( (cfg_branchName + "_y")           .c_str(), &MET_y[i]            );
+    tree->Branch( (cfg_branchName + "_significance").c_str(), &MET_significance[i] );
+    tree->Branch( (cfg_branchName + "_isCaloMET")   .c_str(), &MET_isCaloMET[i]    );
+    tree->Branch( (cfg_branchName + "_isPFMET")     .c_str(), &MET_isPFMET[i]      );
+    tree->Branch( (cfg_branchName + "_isRecoMET")   .c_str(), &MET_isRecoMET[i]    );
+  }
+
+  // CaloMET
+  tree->Branch("CaloMET"  , &caloMET  );
+  tree->Branch("CaloMET_x", &caloMET_x);
+  tree->Branch("CaloMET_y", &caloMET_y);
+  std::cout << "ADD ME To print outs!" << std::endl;
+
+  // GenMET
+  if(isMC){
+    tree->Branch("GenMET"                     , &GenMET                      );
+    tree->Branch("GenMET_x"                   , &GenMET_x                    );
+    tree->Branch("GenMET_y"                   , &GenMET_y                    );
+    tree->Branch("GenMET_phi"                 , &GenMET_phi                  );
+    tree->Branch("GenMET_NeutralEMEtFraction" , &GenMET_NeutralEMEtFraction  );
+    tree->Branch("GenMET_NeutralEMEt"         , &GenMET_NeutralEMEt          );
+    tree->Branch("GenMET_ChargedMEtFraction"  , &GenMET_ChargedEMEtFraction  );
+    tree->Branch("GenMET_ChargedEMEt"         , &GenMET_ChargedEMEt          );
+    tree->Branch("GenMET_NeutralHadEtFraction", &GenMET_NeutralHadEtFraction );
+    tree->Branch("GenMET_NeutralHadEt"        , &GenMET_NeutralHadEt         );
+    tree->Branch("GenMET_ChargedHadEtFraction", &GenMET_ChargedHadEtFraction );
+    tree->Branch("GenMET_ChargedHadEt"        , &GenMET_ChargedHadEt         );
+    tree->Branch("GenMET_MuonEtFraction"      , &GenMET_MuonEtFraction       );
+    tree->Branch("GenMET_MuonEt"              , &GenMET_MuonEt               );
+    tree->Branch("GenMET_InvisibleEtFraction" , &GenMET_InvisibleEtFraction  );
+    tree->Branch("GenMET_InvisibleEt"         , &GenMET_InvisibleEt          );
+  }
+
+  return;
 }
+
 
 bool METDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
-    if (!booked) return true;
+  if (!booked) return true;
 
-    for(size_t i = 0; i < inputCollections.size(); ++i){
-	
-	edm::Handle<edm::View<pat::MET>> handle;
-        iEvent.getByToken(token[i], handle);
-	if(handle.isValid()){
+  const int index   = 0;
+  // For-loop: All input collections
+  for(size_t i = 0; i < inputCollections.size(); ++i){
+    if (inputCollections[0].getUntrackedParameter<bool>("debugMode")) 
+      {
+	cfg_debugMode = true;
+	break;
+      }
+  }
 
-	    MET_x[i] = handle->ptrAt(0)->p4().px();
-	    MET_y[i] = handle->ptrAt(0)->p4().py();
-            METsignificance[i] = handle->ptrAt(0)->metSignificance();
-	    if(handle->ptrAt(0)->genMET()){
-              GenMET_x = handle->ptrAt(0)->genMET()->px();
-              GenMET_y = handle->ptrAt(0)->genMET()->py();
-	    }
-	    // Member ftion caloMETPt() returns caloMET only for slimmedMETs, for MET_Type1_NoHF and Puppi it seems to return the PFMET.
-	    // Fixed by hard coding the caloMET to use slimmedMETs
-	    // 05112015/SL
-	    if(inputCollections[i].getParameter<edm::InputTag>("src").label() == "slimmedMETs" && handle->ptrAt(0)->caloMETPt()){
-              caloMET_x = handle->ptrAt(0)->caloMETPt() * TMath::Cos(handle->ptrAt(0)->caloMETPhi());
-              caloMET_y = handle->ptrAt(0)->caloMETPt() * TMath::Sin(handle->ptrAt(0)->caloMETPhi());
-            }
-	}else{
-	  throw cms::Exception("config") << "Cannot find MET collection! " << inputCollections[i].getParameter<edm::InputTag>("src").label();
-	}
+
+  if (cfg_debugMode){
+    // std::cout << "\n" << std::setw(width*6) << cfg_branchName << std::endl;
+    std::cout << std::string(width*10, '=') << std::endl;
+    std::cout << std::setw(5)     << "Index"    << std::setw(width) << "Name"    << std::setw(width) << "MET"
+	      << std::setw(width) << "MET_x"    << std::setw(width) << "MET_y"   << std::setw(width) << "MET_sig" 
+	      << std::setw(width) << "isCaloMET"<< std::setw(width) << "isPFMET" << std::setw(width) << "isRecoMET"
+	      << std::endl;
+    std::cout << std::string(width*10, '=') << std::endl;
+  }
+
+
+  // For-loop: All input collections
+  for(size_t i = 0; i < inputCollections.size(); ++i){
+
+    // Input parameters/flags
+    // cfg_debugMode   = inputCollections[i].getUntrackedParameter<bool>("debugMode");
+    cfg_branchName  = inputCollections[i].getUntrackedParameter<std::string>("branchName","");
+
+    // Create edm handle and get the GenMetCollection
+    edm::Handle<edm::View<pat::MET>> handle;
+    iEvent.getByToken(token[i], handle);
+
+    // Sanity check
+    if(handle.isValid()){
+  
+      // Get the pat::MET object
+      const edm::Ptr<pat::MET> patMET = handle->ptrAt(index);
+      
+      // For each collection
+      MET[i]              = patMET->p4().Et();
+      MET_x[i]            = patMET->p4().px();
+      MET_y[i]            = patMET->p4().py();
+      MET_significance[i] = patMET->metSignificance();
+      MET_isCaloMET[i]    = patMET->isCaloMET();
+      MET_isPFMET[i]      = patMET->isPFMET();
+      MET_isRecoMET[i]    = patMET->isRecoMET();
+      
+      if (cfg_debugMode){
+	std::cout << std::setw(5)     << index            << std::setw(width) << cfg_branchName << std::setw(width) << MET[i]
+		  << std::setw(width) << MET_x[i]         << std::setw(width) << MET_y[i]       << std::setw(width) << MET_significance[i] 
+		  << std::setw(width) << MET_isCaloMET[i] << std::setw(width) << MET_isPFMET[i] << std::setw(width) << MET_isRecoMET[i]
+		  << std::endl;
+      }
+
+
+      // GenMET
+      const reco::GenMET *genMET = handle->ptrAt(index)->genMET();
+      if(genMET){
+	GenMET                      = genMET->et();
+	GenMET_x                    = genMET->px();
+	GenMET_y                    = genMET->py();
+	GenMET_phi                  = genMET->phi();
+	GenMET_NeutralEMEtFraction  = genMET->NeutralEMEtFraction();
+	GenMET_NeutralEMEt          = genMET->NeutralEMEt();
+	GenMET_ChargedEMEtFraction  = genMET->ChargedEMEtFraction();
+	GenMET_ChargedEMEt          = genMET->ChargedEMEt();
+	GenMET_NeutralHadEtFraction = genMET->NeutralHadEtFraction();
+	GenMET_NeutralHadEt         = genMET->NeutralHadEt();
+	GenMET_ChargedHadEtFraction = genMET->ChargedHadEtFraction();
+	GenMET_ChargedHadEt         = genMET->ChargedHadEt();
+	GenMET_MuonEtFraction       = genMET->MuonEtFraction();
+	GenMET_MuonEt               = genMET->MuonEt();
+	GenMET_InvisibleEtFraction  = genMET->InvisibleEtFraction();
+	GenMET_InvisibleEt          = genMET->InvisibleEt();
+      }
+
+      // NOTE: Member function caloMETPt() returns caloMET only for slimmedMETs, for MET_Type1_NoHF and Puppi it seems to return the PFMET.
+      // Fixed by hard coding the caloMET to use slimmedMETs
+      if(inputCollections[i].getParameter<edm::InputTag>("src").label() == "slimmedMETs" && handle->ptrAt(index)->caloMETPt()){
+	caloMET   = handle->ptrAt(index)->caloMETPt();
+	caloMET_x = handle->ptrAt(index)->caloMETPt() * TMath::Cos(handle->ptrAt(index)->caloMETPhi());
+	caloMET_y = handle->ptrAt(index)->caloMETPt() * TMath::Sin(handle->ptrAt(index)->caloMETPhi());
+      }
+    }else{
+      throw cms::Exception("config") << "Cannot find MET collection! " << inputCollections[i].getParameter<edm::InputTag>("src").label();
     }
-    return filter();
+  }
+
+  
+// Print debugging info?
+if (cfg_debugMode * isMC){
+  std::cout << "\n" << std::setw(width*6) << "GenMET" << std::endl;
+  std::cout << std::string(width*10, '=') << std::endl;
+  std::cout << std::setw(5)     << "Index"               << std::setw(width) << "GenMET" 
+  	    << std::setw(width) << "EM Et Frac (0)"  << std::setw(width) << "EM Et (0)"         
+	    << std::setw(width) << "EM Et Frac (+)"  << std::setw(width) << "EM Et (+)"
+	    << std::setw(width) << "Had Et Frac (0)" << std::setw(width) << "Had Et (0)"
+	    << std::setw(width) << "Had Et Frac (+)" << std::setw(width) << "Had Et (+)"
+  	    << std::endl;
+  std::cout << std::string(width*10, '=') << std::endl;
+
+  std::cout << std::setw(5)     << index                       << std::setw(width) << GenMET	   
+	    << std::setw(width) << GenMET_NeutralEMEtFraction  << std::setw(width) << GenMET_NeutralEMEt         
+	    << std::setw(width) << GenMET_ChargedEMEtFraction  << std::setw(width) << GenMET_ChargedEMEt         
+	    << std::setw(width) << GenMET_NeutralHadEtFraction << std::setw(width) << GenMET_NeutralHadEt
+	    << std::setw(width) << GenMET_ChargedHadEtFraction << std::setw(width) << GenMET_ChargedHadEt
+	    << std::endl;
+ }
+ 
+  return filter();
 }
+
 
 bool METDumper::filter(){
-    if(!useFilter) return true;
+  if(!useFilter) return true;
 
-    return true;
+  return true;
 }
 
+
 void METDumper::reset(){
-    if(booked){
-      for(size_t i = 0; i < inputCollections.size(); ++i){
-	MET_x[i] = 0;
-	MET_y[i] = 0;
-        METsignificance[i] = 0;
-      }
-      caloMET_x = 0;
-      caloMET_y = 0;
-      GenMET_x = 0;
-      GenMET_y = 0;
+  if(booked){
+    
+    // For-loop: All input collections 
+    for(size_t i = 0; i < inputCollections.size(); ++i){
+
+      // For each collection
+      MET[i]              = 0.0;
+      MET_x[i]            = 0.0;
+      MET_y[i]            = 0.0;
+      MET_significance[i] = 0.0;
+      MET_isCaloMET[i]    = false;
+      MET_isPFMET[i]      = false;
+      MET_isRecoMET[i]    = false;
     }
+    
+    // CaloMET
+    caloMET   = 0.0;
+    caloMET_x = 0.0;
+    caloMET_y = 0.0;
+    
+    // GenMET
+    GenMET                      = 0.0;
+    GenMET_x                    = 0.0;
+    GenMET_y                    = 0.0;
+    GenMET_phi                  = 0.0;
+    GenMET_NeutralEMEtFraction  = 0.0;
+    GenMET_NeutralEMEt          = 0.0;
+    GenMET_ChargedEMEtFraction  = 0.0;
+    GenMET_ChargedEMEt          = 0.0;
+    GenMET_NeutralHadEtFraction = 0.0;
+    GenMET_NeutralHadEt         = 0.0;        
+    GenMET_ChargedHadEtFraction = 0.0;
+    GenMET_ChargedHadEt         = 0.0;        
+    GenMET_MuonEtFraction       = 0.0;      
+    GenMET_MuonEt               = 0.0;              
+    GenMET_InvisibleEtFraction  = 0.0; 
+    GenMET_InvisibleEt          = 0.0;         
+  }
+
+  return;
 }

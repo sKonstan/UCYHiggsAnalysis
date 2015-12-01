@@ -97,7 +97,7 @@ MiniAOD2FlatTreeFilter::MiniAOD2FlatTreeFilter(const edm::ParameterSet& iConfig)
   metDumper = 0;
   if (iConfig.exists("METs")) {
     metCollections = iConfig.getParameter<std::vector<edm::ParameterSet>>("METs");
-    metDumper = new METDumper(consumesCollector(), metCollections, this->isMC());
+    metDumper = new METDumper(consumesCollector(), metCollections, this->isMC()); //if isMC()=true will also fill GenMET variables 
     metDumper->book(Events);
   } else {
     std::cout << "Config: METDumper ignored, because 'METs' is missing from config" << std::endl;

@@ -37,9 +37,26 @@ class GenMETDumper {
 
 	std::vector<edm::ParameterSet> inputCollections;
 	edm::EDGetTokenT<edm::View<reco::GenMET>> *token;
+	int width;
+	bool cfg_debugMode;
+	std::string cfg_branchName;
 
         double GenMET;
         double GenMET_phi;
-
+	double GenMET_auxEnergy;
+	double GenMET_ChargedEMEt;
+	double GenMET_ChargedMEtFraction;
+	double GenMET_ChargedHadEt;
+	double GenMET_ChargedHadEtFraction;
+	double GenMET_emEnergy;
+	double GenMET_hadEnergy;
+	double GenMET_invisEnergy;
+	double GenMET_invisEt;
+	double GenMET_MuonEt;
+	double GenMET_MuonEtFraction;
+	double GenMET_NeutralEMEt;
+	double GenMET_NeutralEMEtFraction;
+	double GenMET_NeutralHadEt;
+	double GenMET_NeutralHadEtFraction;
 };
 #endif

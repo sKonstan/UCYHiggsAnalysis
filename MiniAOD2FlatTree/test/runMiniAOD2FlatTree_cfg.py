@@ -218,6 +218,7 @@ process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
                                 hbheIsoNoiseTokenSource = cms.InputTag('HBHENoiseFilterResultProducer','HBHEIsoNoiseFilterResult'),
                             ),
 
+                            # Imported from _cff.py files
                             Taus      = process.Taus,
                             Electrons = process.Electrons,
                             Muons     = process.Muons,
@@ -232,19 +233,20 @@ process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
                                 )
                             ),
 
-                            GenMETs = cms.VPSet(
-                                cms.PSet(                                                                                                                                     
-                                    branchname = cms.untracked.string("GenMET"),
-                                    src = cms.InputTag("genMetTrue"),
-                                    filter = cms.untracked.bool(False)
-                                )                                                                                                               
-                            ),
+                            #GenMETs = cms.VPSet(
+                            #    cms.PSet(                                                                                                                                     
+                            #        branchName = cms.untracked.string("GenMET"),
+                            #        src        = cms.InputTag("genMetTrue"),
+                            #        debugMode  = cms.untracked.bool(True),
+                            #        filter     = cms.untracked.bool(False)
+                            #    )                                                                                                               
+                            #),
                             
                             GenJets = cms.VPSet(      
                                 cms.PSet(
                                     branchName = cms.untracked.string("GenJets"),
                                     src        = cms.InputTag("slimmedGenJets"), # ak4
-                                    debugMode  = cms.untracked.bool(True),
+                                    debugMode  = cms.untracked.bool(bDebug)
                                 )
                             ),
 
@@ -257,7 +259,7 @@ process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
                                     saveGenElectrons    = cms.untracked.bool(False),
                                     saveGenMuons        = cms.untracked.bool(False),
                                     saveGenTaus         = cms.untracked.bool(False),
-                                    saveGenNeutrinos    = cms.untracked.bool(False),
+                                    saveGenNeutrinos    = cms.untracked.bool(False)
                                 )
                             ),
 
