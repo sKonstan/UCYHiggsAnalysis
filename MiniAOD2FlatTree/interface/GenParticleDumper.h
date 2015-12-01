@@ -31,20 +31,28 @@ public:
    
 private:
   bool filter();
-  /// Saves lepton four-momenta
   void saveLeptons(edm::Handle<reco::GenParticleCollection>& handle, FourVectorDumper& dumper, int pID);
-  /// Saves tau helicity related information
   void saveHelicityInformation(math::XYZTLorentzVector& visibleTau, const std::vector<const reco::Candidate*>& offspring, const size_t index);
-  /// Prints the descendants
   void printDescendants(edm::Handle<reco::GenParticleCollection>& handle, const reco::Candidate* p);
   
 private:  
   //edm::Handle<reco::GenParticleCollection> *handle;
   edm::EDGetTokenT<reco::GenParticleCollection> *token;
   
+  // Input parameters/flags
+  bool   cfg_debugMode;
+  std::string cfg_branchName;
+
   // General particle list
-  std::vector<short> *mother;
-  
+  std::vector<double> *mass;
+  std::vector<double> *vertexX;
+  std::vector<double> *vertexY;
+  std::vector<double> *vertexZ;
+  std::vector<short>  *charge;
+  std::vector<short>  *status;
+  std::vector< std::vector<unsigned short> > *mothers;
+  std::vector< std::vector<unsigned short> > *daughters;
+
   // MC electrons
   FourVectorDumper *electrons;
   
@@ -57,7 +65,7 @@ private:
   std::vector<short> *tauNcharged;
   std::vector<short> *tauNPi0;
   std::vector<double> *tauRtau;
-  short *tauAssociatedWithHpm;
+  short *tauAssociatedWithHiggs;
   std::vector<short> *tauMother;
   std::vector<bool> *tauDecaysToElectron;
   std::vector<bool> *tauDecaysToMuon;
@@ -66,21 +74,9 @@ private:
   
   // Neutrinos
   FourVectorDumper *neutrinos;
-  
-  // Top info
-  FourVectorDumper *top;
-  std::vector<short> *topDecayMode;
-  FourVectorDumper *topBQuark;
-  std::vector<bool> *topBJetContainsLeptons;
-  FourVectorDumper *topBNeutrinos;
-  
-  // W info
-  FourVectorDumper *W;
-  std::vector<short> *WDecayMode;
-  FourVectorDumper *WNeutrinos;
-  
-  // H+ info
-  FourVectorDumper *Hplus;
-  FourVectorDumper *HplusNeutrinos;
+
+  // Other auxiliary variables
+  int width;
+
 };
 #endif

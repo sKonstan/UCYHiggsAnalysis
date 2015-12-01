@@ -32,6 +32,17 @@ class GenJetDumper : public BaseDumper {
 	bool filter();
         edm::EDGetTokenT<reco::GenJetCollection> *genJetToken;
 
-        std::vector<short> *status;
+	// Input parameters/flags
+	bool   cfg_debugMode;
+	std::string cfg_branchName;
+	int width;
+	std::vector<short>  *charge;
+	std::vector<double> *emEnergy;
+	std::vector<double> *hadEnergy;
+	std::vector<double> *auxEnergy;
+	std::vector<double> *invisEnergy;
+	std::vector<short>  *nGenConstituents;
+	// std::vector< std::vector<unsigned short> > *genConstituents;
+
 };
 #endif

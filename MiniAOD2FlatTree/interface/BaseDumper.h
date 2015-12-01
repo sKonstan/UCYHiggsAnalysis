@@ -42,9 +42,8 @@ class BaseDumper {
         std::vector<double> *phi;
         std::vector<double> *e;
 	std::vector<double> *et;
-
-//	std::vector<reco::Candidate::LorentzVector> *p4;
 	std::vector<short> *pdgId;
+	// std::vector<reco::Candidate::LorentzVector> *p4;
 
 	int nDiscriminators;
 	std::vector<bool> *discriminators;

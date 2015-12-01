@@ -14,7 +14,8 @@ bSummary     = False
 bDependencies= False
 
 dataVersion  = "74Xmc" #"74Xdata"
-iMaxEvents   = 1000
+dataset      = "RunIISpring15MiniAODv2_ttHJetToNonbb_M125_13TeV_MINIAODSIM"
+iMaxEvents   = 100
 iReportEvery = 10
 
 
@@ -55,12 +56,7 @@ process.MessageLogger.cerr.FwkReport.reportEvery = iReportEvery
 #================================================================================================
 import UCYHiggsAnalysis.MiniAOD2FlatTree.tools.datasetsHelper as datasetsHelper
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(iMaxEvents) )
-process.source    = cms.Source("PoolSource",
-                               #fileNames = datasetsHelper.GetEosRootFilesForDataset("RunIISpring15DR74_ttHJetToNonbb_M125_13TeV_MINIAODSIM"),
-                               fileNames = cms.untracked.vstring(
-                                   "/store/mc/RunIISpring15MiniAODv2/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/74X_mcRun2_asymptotic_v2-v3/60000/00372E76-286A-E511-B90C-0025905A60D2.root"
-                               )
-)
+process.source    = cms.Source("PoolSource", fileNames = datasetsHelper.GetEosRootFilesForDataset(dataset) )
 
 
 #================================================================================================
@@ -246,23 +242,22 @@ process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
                             
                             GenJets = cms.VPSet(      
                                 cms.PSet(
-                                    branchname = cms.untracked.string("GenJets"),
+                                    branchName = cms.untracked.string("GenJets"),
                                     src        = cms.InputTag("slimmedGenJets"), # ak4
+                                    debugMode  = cms.untracked.bool(True),
                                 )
                             ),
 
                             GenParticles = cms.VPSet(      
                                 cms.PSet(
-                                    branchname          = cms.untracked.string("genParticles"),
+                                    branchName          = cms.untracked.string("GenParticles"),
                                     src                 = cms.InputTag("prunedGenParticles"),
-                                    saveAllGenParticles = cms.untracked.bool(False),
-                                    saveGenElectrons    = cms.untracked.bool(True),
-                                    saveGenMuons        = cms.untracked.bool(True),
-                                    saveGenTaus         = cms.untracked.bool(True),
-                                    saveGenNeutrinos    = cms.untracked.bool(True),
-                                    saveTopInfo         = cms.untracked.bool(True),
-                                    saveWInfo           = cms.untracked.bool(True),
-                                    saveHplusInfo       = cms.untracked.bool(True),
+                                    debugMode           = cms.untracked.bool(bDebug),
+                                    saveAllGenParticles = cms.untracked.bool(True),
+                                    saveGenElectrons    = cms.untracked.bool(False),
+                                    saveGenMuons        = cms.untracked.bool(False),
+                                    saveGenTaus         = cms.untracked.bool(False),
+                                    saveGenNeutrinos    = cms.untracked.bool(False),
                                 )
                             ),
 

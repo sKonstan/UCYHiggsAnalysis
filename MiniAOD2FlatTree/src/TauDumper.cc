@@ -270,7 +270,7 @@ void TauDumper::fillMCMatchInfo(size_t ic, edm::Handle<reco::GenParticleCollecti
           std::vector<const reco::Candidate*> ancestry = GenParticleTools::findAncestry(genParticles, &(genParticles->at(iMC)));
           for (auto& pa: ancestry) {
             int absPid = std::abs(pa->pdgId());
-            if (absPid == kFromZ || absPid == kFromW || absPid == kFromHplus) {
+            if (absPid == kFromZ || absPid == kFromW || absPid == kFromHiggs) {
               tauOrigin = absPid;
             }
           }
