@@ -45,6 +45,8 @@ class ElectronDumper : public BaseDumper {
         
         std::vector<float> *relIsoDeltaBetaCorrected;
 	std::vector<bool> *isPF;
+	std::vector<float> *ecalIso;
+	std::vector<float> *hcalIso;
 	std::vector<float> *caloIso;    // sum of ecalIso() and hcalIso()
 	std::vector<float> *trackIso;   // summed track pt in a cone of deltaR<0.4
         

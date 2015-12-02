@@ -15,6 +15,8 @@ ElectronDumper::ElectronDumper(edm::ConsumesCollector&& iConsumesCollector, std:
   // Other essential variables
   relIsoDeltaBetaCorrected = new std::vector<float>[inputCollections.size()];
   isPF                     = new std::vector<bool>[inputCollections.size()];
+  ecalIso                  = new std::vector<float>[inputCollections.size()];
+  hcalIso                  = new std::vector<float>[inputCollections.size()];
   caloIso                  = new std::vector<float>[inputCollections.size()];
   trackIso                 = new std::vector<float>[inputCollections.size()];
 
@@ -29,9 +31,9 @@ ElectronDumper::ElectronDumper(edm::ConsumesCollector&& iConsumesCollector, std:
   rhoToken         = new edm::EDGetTokenT<double>[inputCollections.size()];
 
   // Other auxiliary variables
-  width = 12;
-  cfg_debugMode    = false;
-  cfg_branchName   = "";
+  width          = 12;
+  cfg_debugMode  = false;
+  cfg_branchName = "";
 
   // For-loop: All input collections
   for(size_t i = 0; i < inputCollections.size(); ++i){
@@ -79,9 +81,11 @@ void ElectronDumper::book(TTree* tree){
     tree->Branch( (cfg_branchName + "_phi").c_str(), &phi[i] );
     tree->Branch( (cfg_branchName + "_e")  .c_str(), &e[i]   );
 
-    // Other essential variables (with fixed initial size)
+    // Other essential variables
     tree->Branch( (cfg_branchName + "_relIsoDeltaBeta").c_str(), &relIsoDeltaBetaCorrected[i] );
     tree->Branch( (cfg_branchName + "_isPF")           .c_str(), &isPF[i]                     );
+    tree->Branch( (cfg_branchName + "_ecalIso")        .c_str(), &ecalIso[i]                  );
+    tree->Branch( (cfg_branchName + "_hcalIso")        .c_str(), &hcalIso[i]                  );
     tree->Branch( (cfg_branchName + "_caloIso")        .c_str(), &caloIso[i]                  );
     tree->Branch( (cfg_branchName + "_trackIso")       .c_str(), &trackIso[i]                 );
 
@@ -171,6 +175,8 @@ bool ElectronDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
 	// Other essential variables
 	relIsoDeltaBetaCorrected[ic].push_back(relIso);
 	isPF[ic]    .push_back( obj.isPF()     );
+	ecalIso[ic] .push_back( obj.ecalIso()  );
+	hcalIso[ic] .push_back( obj.hcalIso()  );
 	caloIso[ic] .push_back( obj.caloIso()  );
 	trackIso[ic].push_back( obj.trackIso() );
                 
@@ -179,7 +185,6 @@ bool ElectronDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
 	for(size_t iDiscr = 0; iDiscr < discriminatorNames.size(); ++iDiscr) {
 	  discriminators[inputCollections.size()*iDiscr+ic].push_back((*(IDhandles[iDiscr]))[gsfHandle->ptrAt(i)]);
 	}
-
 
 	// Print debugging info?
 	if (cfg_debugMode){
@@ -260,6 +265,8 @@ void ElectronDumper::reset(){
       // Other essential variables
       relIsoDeltaBetaCorrected[ic].clear();
       isPF[ic]      .clear();
+      ecalIso[ic]   .clear();
+      hcalIso[ic]   .clear();
       caloIso[ic]   .clear();
       trackIso[ic]  .clear();
       MCelectron[ic].reset();

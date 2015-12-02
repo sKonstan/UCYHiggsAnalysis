@@ -232,7 +232,6 @@ bool GenParticleDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
 	  }// for(size_t iDau = 0; iDau < gp.numberOfDaughters(); iDau++){
 	  daughters[ic].push_back( daughters_tmp );
-
 	  
 	  // Print debugging info?
 	  if (cfg_debugMode){
