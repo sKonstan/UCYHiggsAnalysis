@@ -32,15 +32,23 @@ class ElectronDumper : public BaseDumper {
     private:
 	void fillMCMatchInfo(size_t ic, edm::Handle<reco::GenParticleCollection>& genParticles, const pat::Electron& ele);
         
+	// EDGetToken is used to quickly retrieve data from the edm::Event, edm::LuminosityBlock or edm::Run.
         edm::EDGetTokenT<edm::View<pat::Electron>> *electronToken;
         edm::EDGetTokenT<edm::View<reco::GsfElectron>> *gsfElectronToken;
         edm::EDGetTokenT<double> *rhoToken;
         edm::EDGetTokenT<reco::GenParticleCollection> genParticleToken;
         edm::EDGetTokenT<edm::ValueMap<bool>> *electronIDToken;
+
+	int width;
+        bool cfg_debugMode;
+	std::string cfg_branchName;
         
         std::vector<float> *relIsoDeltaBetaCorrected;
+	std::vector<bool> *isPF;
+	std::vector<float> *caloIso;    // sum of ecalIso() and hcalIso()
+	std::vector<float> *trackIso;   // summed track pt in a cone of deltaR<0.4
         
-        // 4-vector for generator electron
+        // 4-vector for generator electrons  (MC-matched to pat::Electrons)
         FourVectorDumper *MCelectron;
 };
 #endif

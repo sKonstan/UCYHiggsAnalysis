@@ -42,16 +42,20 @@ GenParticleDumper::GenParticleDumper(edm::ConsumesCollector&& iConsumesCollector
   tauDecaysToElectron    = new std::vector<bool>[inputCollections.size()];
   tauDecaysToMuon        = new std::vector<bool>[inputCollections.size()];
   tauSpinEffects         = new std::vector<double>[inputCollections.size()];
-  tauNeutrinos           = new FourVectorDumper[inputCollections.size()];
-  
+  tauNeutrinos           = new FourVectorDumper[inputCollections.size()];  
+
   // Neutrinos
   neutrinos = new FourVectorDumper[inputCollections.size()];
+
+  // Tokens
+  token = new edm::EDGetTokenT<reco::GenParticleCollection>[inputCollections.size()];
+  // handle = new edm::Handle<reco::GenParticleCollection>[inputCollections.size()];
   
   // Other auxiliary variables
   width = 14;
-  token = new edm::EDGetTokenT<reco::GenParticleCollection>[inputCollections.size()];
-  // handle = new edm::Handle<reco::GenParticleCollection>[inputCollections.size()];
-
+  cfg_branchName = "";
+  cfg_debugMode  = false;
+	
   // For-loop: All input collections
   for(size_t i = 0; i < inputCollections.size(); ++i){
     edm::InputTag inputtag = inputCollections[i].getParameter<edm::InputTag>("src");
