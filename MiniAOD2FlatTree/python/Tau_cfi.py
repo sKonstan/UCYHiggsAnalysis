@@ -1,8 +1,9 @@
 import FWCore.ParameterSet.Config as cms
 Taus = cms.VPSet(
     cms.PSet(
-        branchname     = cms.untracked.string("Taus"),
+        branchName     = cms.untracked.string("Taus"),
         src            = cms.InputTag("slimmedTaus"),
+        debugMode      = cms.untracked.bool(True),
         discriminators = cms.vstring(
             'againstElectronLooseMVA5',
             'againstElectronMVA5category',

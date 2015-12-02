@@ -138,7 +138,7 @@ bool MuonDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
       // For-loop: All muons
       for(size_t i=0; i<muonHandle->size(); ++i) {
 
-	// Get the pat::Electron 
+	// Get the pat::Muon
 	const pat::Muon& obj = muonHandle->at(i);
 
 	// Four-vector variables
@@ -230,7 +230,6 @@ void MuonDumper::fillMCMatchInfo(size_t ic, edm::Handle<reco::GenParticleCollect
               << std::setw(width)   << p4BestMatch.energy() << std::endl;
   }
   
-
   // Add the best match
   MCmuon[ic].add(p4BestMatch.pt(), p4BestMatch.eta(), p4BestMatch.phi(), p4BestMatch.energy());
   

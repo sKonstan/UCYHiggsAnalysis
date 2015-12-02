@@ -50,16 +50,16 @@ class TauDumper : public BaseDumper {
         std::vector<short> *pdgTauOrigin;
         std::vector<short> *MCNProngs;
         std::vector<short> *MCNPiZeros;
-        // 4-vector for generator visible tau
-        FourVectorDumper *MCtau;
-        // 4-vector for matching jet
-        FourVectorDumper *matchingJet;
-        
-        // Systematics variations for tau 4-vector
-        FourVectorDumper *systTESup;
-        FourVectorDumper *systTESdown;
-        FourVectorDumper *systExtremeTESup;
-        FourVectorDumper *systExtremeTESdown;
-        
+
+        FourVectorDumper *MCtau;               // 4-vector for generator visible tau
+        FourVectorDumper *matchingJet;         // 4-vector for matching jet       
+        FourVectorDumper *systTESup;           // Systematics variations for tau 4-vector (up)
+        FourVectorDumper *systTESdown;         // Systematics variations for tau 4-vector (down)
+        FourVectorDumper *systExtremeTESup;    // Extreme Systematics variations for tau 4-vector (up)
+        FourVectorDumper *systExtremeTESdown;  // Extreme Systematics variations for tau 4-vector (down)
+
+	int width;
+        bool cfg_debugMode;
+	std::string cfg_branchName;        
 };
 #endif
