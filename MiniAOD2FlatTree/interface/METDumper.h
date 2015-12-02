@@ -50,10 +50,12 @@ class METDumper {
 	bool   *MET_isPFMET;
 	bool   *MET_isRecoMET;
 
-	// For single collection
+	// For single collection (raw calo MET)
         double caloMET;
         double caloMET_x;
         double caloMET_y;
+        // double caloMET_phi;
+        double caloMET_sumEt;
 
         // GenMET (https://cmssdt.cern.ch/SDT/doxygen/CMSSW_5_3_14/doc/html/df/dd8/GenMET_8h_source.html
 	double GenMET;

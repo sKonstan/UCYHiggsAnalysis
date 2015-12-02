@@ -57,11 +57,12 @@ void METDumper::book(TTree* tree){
     tree->Branch( (cfg_branchName + "_isRecoMET")   .c_str(), &MET_isRecoMET[i]    );
   }
 
-  // CaloMET
-  tree->Branch("CaloMET"  , &caloMET  );
-  tree->Branch("CaloMET_x", &caloMET_x);
-  tree->Branch("CaloMET_y", &caloMET_y);
-  std::cout << "ADD ME To print outs!" << std::endl;
+  // Raw calo MET
+  tree->Branch("CaloMET"      , &caloMET      );
+  tree->Branch("CaloMET_x"    , &caloMET_x    );
+  tree->Branch("CaloMET_y"    , &caloMET_y    );
+  // tree->Branch("CaloMET_phi"  , &caloMET_phi  );
+  tree->Branch("CaloMET_sumEt", &caloMET_sumEt);
 
   // GenMET
   if(isMC){
@@ -104,9 +105,9 @@ bool METDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
   if (cfg_debugMode){
     // std::cout << "\n" << std::setw(width*6) << cfg_branchName << std::endl;
     std::cout << std::string(width*10, '=') << std::endl;
-    std::cout << std::setw(5)     << "Index"    << std::setw(width) << "Name"    << std::setw(width) << "MET"
-	      << std::setw(width) << "MET_x"    << std::setw(width) << "MET_y"   << std::setw(width) << "MET_sig" 
-	      << std::setw(width) << "isCaloMET"<< std::setw(width) << "isPFMET" << std::setw(width) << "isRecoMET"
+    std::cout << "\n" << std::setw(5)  << "Index"    << std::setw(width) << "Name"    << std::setw(width) << "MET"
+	      << std::setw(width)      << "MET_x"    << std::setw(width) << "MET_y"   << std::setw(width) << "MET_sig" 
+	      << std::setw(width)      << "isCaloMET"<< std::setw(width) << "isPFMET" << std::setw(width) << "isRecoMET"
 	      << std::endl;
     std::cout << std::string(width*10, '=') << std::endl;
   }
@@ -139,9 +140,9 @@ bool METDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
       MET_isRecoMET[i]    = patMET->isRecoMET();
       
       if (cfg_debugMode){
-	std::cout << std::setw(5)     << index            << std::setw(width) << cfg_branchName << std::setw(width) << MET[i]
-		  << std::setw(width) << MET_x[i]         << std::setw(width) << MET_y[i]       << std::setw(width) << MET_significance[i] 
-		  << std::setw(width) << MET_isCaloMET[i] << std::setw(width) << MET_isPFMET[i] << std::setw(width) << MET_isRecoMET[i]
+	std::cout << std::setw(5)     << index               << std::setw(width) << cfg_branchName    << std::setw(width) << patMET->p4().Et()
+		  << std::setw(width) << patMET->p4().px()   << std::setw(width) << patMET->p4().py() << std::setw(width) << patMET->metSignificance()
+		  << std::setw(width) << patMET->isCaloMET() << std::setw(width) << patMET->isPFMET() << std::setw(width) << patMET->isRecoMET()
 		  << std::endl;
       }
 
@@ -170,9 +171,11 @@ bool METDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
       // NOTE: Member function caloMETPt() returns caloMET only for slimmedMETs, for MET_Type1_NoHF and Puppi it seems to return the PFMET.
       // Fixed by hard coding the caloMET to use slimmedMETs
       if(inputCollections[i].getParameter<edm::InputTag>("src").label() == "slimmedMETs" && handle->ptrAt(index)->caloMETPt()){
-	caloMET   = handle->ptrAt(index)->caloMETPt();
-	caloMET_x = handle->ptrAt(index)->caloMETPt() * TMath::Cos(handle->ptrAt(index)->caloMETPhi());
-	caloMET_y = handle->ptrAt(index)->caloMETPt() * TMath::Sin(handle->ptrAt(index)->caloMETPhi());
+	caloMET       = handle->ptrAt(index)->caloMETPt();
+	caloMET_x     = handle->ptrAt(index)->caloMETPt() * TMath::Cos(handle->ptrAt(index)->caloMETPhi());
+	caloMET_y     = handle->ptrAt(index)->caloMETPt() * TMath::Sin(handle->ptrAt(index)->caloMETPhi());
+	// caloMET_phi   = handle->ptrAt(index)->caloMETPhi();
+	caloMET_sumEt = handle->ptrAt(index)->caloMETSumEt();
       }
     }else{
       throw cms::Exception("config") << "Cannot find MET collection! " << inputCollections[i].getParameter<edm::InputTag>("src").label();
@@ -228,9 +231,11 @@ void METDumper::reset(){
     }
     
     // CaloMET
-    caloMET   = 0.0;
-    caloMET_x = 0.0;
-    caloMET_y = 0.0;
+    caloMET       = 0.0;
+    caloMET_x     = 0.0;
+    caloMET_y     = 0.0;
+    // caloMET_phi   = 0.0;
+    caloMET_sumEt = 0.0;
     
     // GenMET
     GenMET                      = 0.0;
