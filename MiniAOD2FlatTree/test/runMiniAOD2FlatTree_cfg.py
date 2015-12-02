@@ -15,7 +15,7 @@ bDependencies= False
 
 dataVersion  = "74Xmc" #"74Xdata"
 dataset      = "RunIISpring15MiniAODv2_ttHJetToNonbb_M125_13TeV_MINIAODSIM"
-iMaxEvents   = 10000
+iMaxEvents   = 50000 #10000
 iReportEvery = 10
 
 

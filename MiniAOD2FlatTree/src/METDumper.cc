@@ -6,6 +6,8 @@ METDumper::METDumper(edm::ConsumesCollector&& iConsumesCollector, std::vector<ed
   inputCollections = psets;
   booked           = false;
   isMC             = bIsMC;
+  cfg_debugMode    = false;
+  cfg_branchName   = "";
 
   // For each collection
   MET               = new double[inputCollections.size()];
@@ -94,20 +96,17 @@ bool METDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
   const int index   = 0;
   // For-loop: All input collections
   for(size_t i = 0; i < inputCollections.size(); ++i){
-    if (inputCollections[0].getUntrackedParameter<bool>("debugMode")) 
-      {
-	cfg_debugMode = true;
-	break;
-      }
+    if (inputCollections[i].getUntrackedParameter<bool>("debugMode")){
+      cfg_debugMode = true;
+      break;
+    }
   }
-
-
+  
   if (cfg_debugMode){
-    // std::cout << "\n" << std::setw(width*6) << cfg_branchName << std::endl;
-    std::cout << std::string(width*10, '=') << std::endl;
-    std::cout << "\n" << std::setw(5)  << "Index"    << std::setw(width) << "Name"    << std::setw(width) << "MET"
-	      << std::setw(width)      << "MET_x"    << std::setw(width) << "MET_y"   << std::setw(width) << "MET_sig" 
-	      << std::setw(width)      << "isCaloMET"<< std::setw(width) << "isPFMET" << std::setw(width) << "isRecoMET"
+    std::cout << "\n" << std::string(width*10, '=') << std::endl;
+    std::cout << std::setw(5)     << "Index"    << std::setw(width) << "Name"    << std::setw(width) << "MET"
+	      << std::setw(width) << "MET_x"    << std::setw(width) << "MET_y"   << std::setw(width) << "MET_sig" 
+	      << std::setw(width) << "isCaloMET"<< std::setw(width) << "isPFMET" << std::setw(width) << "isRecoMET"
 	      << std::endl;
     std::cout << std::string(width*10, '=') << std::endl;
   }
@@ -194,7 +193,6 @@ if (cfg_debugMode * isMC){
 	    << std::setw(width) << "Had Et Frac (+)" << std::setw(width) << "Had Et (+)"
   	    << std::endl;
   std::cout << std::string(width*10, '=') << std::endl;
-
   std::cout << std::setw(5)     << index                       << std::setw(width) << GenMET	   
 	    << std::setw(width) << GenMET_NeutralEMEtFraction  << std::setw(width) << GenMET_NeutralEMEt         
 	    << std::setw(width) << GenMET_ChargedEMEtFraction  << std::setw(width) << GenMET_ChargedEMEt         
