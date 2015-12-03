@@ -47,6 +47,7 @@ void GenJetDumper::book(TTree* tree){
   // For-loop: All input collections
   for(size_t i = 0; i < inputCollections.size(); ++i){
       
+    // Input parameters/flags
     cfg_branchName = inputCollections[i].getUntrackedParameter<std::string>("branchName","");
     if(cfg_branchName.length() == 0) cfg_branchName = inputCollections[i].getParameter<edm::InputTag>("src").label();
       
@@ -111,7 +112,7 @@ bool GenJetDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
 	phi[ic].push_back( gj.phi()    );
 	e[ic]  .push_back( gj.energy() );
 
-	// Other essential variables  
+	// Other essential variables [https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookMiniAOD2015#GenJets]
 	charge[ic]          .push_back( gj.charge()          );
 	emEnergy[ic]        .push_back( gj.emEnergy()        );
 	hadEnergy[ic]       .push_back( gj.hadEnergy()       );

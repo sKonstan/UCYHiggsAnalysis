@@ -154,13 +154,15 @@ bool GenParticleDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
     // Print debugging info?
     if (cfg_debugMode){
       std::cout << std::setw(width*6) << cfg_branchName << std::endl;
-      std::cout << std::string(width*13, '=') << std::endl;
+      std::cout << std::string(width*11, '=') << std::endl;
       std::cout << std::setw(5)     << "Index"
 		<< std::setw(width) << "Pt"        << std::setw(width) << "Eta"   << std::setw(width) << "Phi" << std::setw(width) << "E"
 		<< std::setw(width) << "Status"    << std::setw(width) << "PdgId" << std::setw(width) << "Moms"  
 		<< std::setw(width) << "Daughters" << std::setw(width) << "Mass"  << std::setw(width) << "Charge" 
-		<< std::setw(width) << "Vtx-X"     << std::setw(width) << "Vtx-Y" << std::setw(width) << "Vtx-Z" << std::endl;
-      std::cout << std::string(width*13, '=') << std::endl;
+	// << std::setw(width) << "Vtx-X"     << std::setw(width) << "Vtx-Y" << std::setw(width) << "Vtx-Z" << std::endl;
+		<< std::setw(width) << "Vtx-Z"
+		<< std::endl;
+      std::cout << std::string(width*11, '=') << std::endl;
     }
     
     // Sanity check
@@ -239,7 +241,8 @@ bool GenParticleDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
 		      << std::setw(width) << gp.pt()                << std::setw(width) << gp.eta()   << std::setw(width) << gp.phi()  << std::setw(width) << gp.energy()
 		      << std::setw(width) << gp.status()            << std::setw(width) << gp.pdgId() << std::setw(width) << gp.numberOfMothers()  
 		      << std::setw(width) << gp.numberOfDaughters() << std::setw(width) << gp.mass()  << std::setw(width) << gp.charge()
-		      << std::setw(width) << gp.vx()                << std::setw(width) << gp.vy()    << std::setw(width) << gp.vz() << std::endl;
+	      // << std::setw(width) << gp.vx()                << std::setw(width) << gp.vy()    << std::setw(width) << gp.vz() << std::endl;
+		      << std::setw(width) << gp.vz() << std::endl;
 	  }
   
         }//for(size_t i = 0; i < handle->size(); ++i) {

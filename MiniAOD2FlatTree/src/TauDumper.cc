@@ -93,7 +93,7 @@ void TauDumper::book(TTree* tree){
     tree->Branch( ( cfg_branchName + "_lChTrkEta")   .c_str(), &lChTrackEta[i]    );
     tree->Branch( ( cfg_branchName + "_lNeutrTrkPt") .c_str(), &lNeutrTrackPt[i]  );
     tree->Branch( ( cfg_branchName + "_lNeutrTrkEta").c_str(), &lNeutrTrackEta[i] );
-    tree->Branch( ( cfg_branchName + "_decayMode")   .c_str(), &decayMode[i]      );
+    tree->Branch( ( cfg_branchName + "_decay")       .c_str(), &decayMode[i]      );
     tree->Branch( ( cfg_branchName + "_IPxy")        .c_str(), &ipxy[i]           );
     tree->Branch( ( cfg_branchName + "_IPxySignif")  .c_str(), &ipxySignif[i]     );
     tree->Branch( ( cfg_branchName + "_nProngs")     .c_str(), &nProngs[i]        );
@@ -141,9 +141,9 @@ bool TauDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
       std::cout << "\n" << std::setw(width*8) << cfg_branchName << std::endl;
       std::cout << std::string(width*17, '=') << std::endl;
       std::cout << std::setw(5)       << "Index"
-                << std::setw(width)   << "Pt"             << std::setw(width) << "Eta"      << std::setw(width) << "Phi"      << std::setw(width) << "E"
-		<< std::setw(width)   << "decayMode"      << std::setw(width) << "dxy"      << std::setw(width) << "dxy_sig"  << std::setw(width) << "nProngs"
-                << std::setw(width*2) << "deltaR"         << std::setw(width) << "Pt"       << std::setw(width) << "Eta"      << std::setw(width) << "Phi"
+                << std::setw(width)   << "Pt"             << std::setw(width)   << "Eta"  << std::setw(width)   << "Phi"      << std::setw(width) << "E"
+		<< std::setw(width)   << "decayMode"      << std::setw(width*2) << "dxy"  << std::setw(width*2) << "dxy_sig"  << std::setw(width) << "nProngs"
+                << std::setw(width*2) << "deltaR"         << std::setw(width)   << "Pt"   << std::setw(width)   << "Eta"      << std::setw(width) << "Phi"
                 << std::setw(width)   << "E"
                 << std::endl;
       std::cout << std::string(width*17, '=') << std::endl;
@@ -208,8 +208,8 @@ bool TauDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
 	// Print debugging info?
         if(cfg_debugMode){
 	  std::cout << std::setw(5)     << i
-                    << std::setw(width) << tau.p4().pt()    << std::setw(width) << tau.p4().eta() << std::setw(width) << tau.p4().phi() << std::setw(width) << tau.p4().energy()
-		    << std::setw(width) << tau.decayMode()  << std::setw(width) << tau.dxy()      << std::setw(width) << tau.dxy_Sig()  
+                    << std::setw(width) << tau.p4().pt()    << std::setw(width)   << tau.p4().eta() << std::setw(width)   << tau.p4().phi() << std::setw(width) << tau.p4().energy()
+		    << std::setw(width) << tau.decayMode()  << std::setw(width*2) << tau.dxy()      << std::setw(width*2) << tau.dxy_Sig()  
 		    << std::setw(width) << tau.signalChargedHadrCands().size();
 	}
 
@@ -370,12 +370,23 @@ void TauDumper::fillMCMatchInfo(size_t ic, edm::Handle<reco::GenParticleCollecti
     // Need to do actual matching in ntuple reader
     tauPid = -1;
   }
-  
+
+  // Print debugging info?
+  if (cfg_debugMode){
+    std::cout << std::setw(width*2) << deltaRBestTau
+              << std::setw(width)   << p4BestTau.pt()     << std::setw(width) << p4BestTau.eta() << std::setw(width) << p4BestTau.phi()
+              << std::setw(width)   << p4BestTau.energy() << std::endl;
+  }
+
+  // Save variables
   pdgId[ic]       .push_back(tauPid);
   pdgTauOrigin[ic].push_back(tauOrigin);
   MCNProngs[ic]   .push_back(simulatedNProngs);
   MCNPiZeros[ic]  .push_back(simulatedNPizeros);
-  MCtau[ic]       .add(p4BestTau.pt(), p4BestTau.eta(), p4BestTau.phi(), p4BestTau.energy());
+
+
+  // Add the best match
+  MCtau[ic].add(p4BestTau.pt(), p4BestTau.eta(), p4BestTau.phi(), p4BestTau.energy());
   
   return;
 }

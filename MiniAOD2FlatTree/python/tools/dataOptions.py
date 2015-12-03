@@ -33,13 +33,13 @@ def getOptions(options=None, bDebug=True):
                      -1.0, # default value
                      options.multiplicity.singleton, # singleton or list
                      options.varType.float,          # string, int, or float
-                     "Cross section of the dataset stored to histograms ROOT file (default: \"-1.0\"")
+                     "Cross section of the dataset stored to histograms ROOT file (default: \"-1.0\")")
 
     options.register("luminosity",
                      -1.0, # default value
                      options.multiplicity.singleton, # singleton or list
                      options.varType.float,          # string, int, or float
-                     "Integrated luminosity of the dataset stored to histograms ROOT file (default: \"-1.0\"")
+                     "Integrated luminosity of the dataset stored to histograms ROOT file (default: \"-1.0\")")
 
     options.register("dataVersion",
                      "",
@@ -50,17 +50,17 @@ def getOptions(options=None, bDebug=True):
     options.register("trigger",
                      [],
                      options.multiplicity.list, options.varType.string,
-                     "Triggers to use logical OR if multiple given (default: \"[]\"")
+                     "Triggers to use logical OR if multiple given (default: \"[]\")")
 
     options.register("someList",
                      [],
                      options.multiplicity.list, options.varType.string,
-                     "Example list (default: \"[]\"")
+                     "Example list (default: \"[]\")")
 
     options.register("anotherList",
                      [],
                      options.multiplicity.list, options.varType.string,
-                     "Another example list (default: \"[]\"")
+                     "Another example list (default: \"[]\")")
 
     options.register("doHLTMatching",
                      1,
@@ -84,13 +84,13 @@ def getOptions(options=None, bDebug=True):
                      0,
                      options.multiplicity.singleton,
                      options.varType.int,
-                     "Set to 1 if job will be run with crab. Typically you don't have to set it by yourself, since it is set in crab.cfg/multicrab.cfg (default: \"0\"")
+                     "Set to 1 if job will be run with crab. Typically you don't have to set it by yourself, since it is set in crab.cfg/multicrab.cfg (default: \"0\")")
 
     options.register("energy",
                      0,
                      options.multiplicity.singleton,
                      options.varType.int, # Use integer for now, if we later need e.g. 12.5 TeV, let's use string then
-                     "Centre-of-mass energy in TeV (default: \"0\"")
+                     "Centre-of-mass energy in TeV (default: \"0\")")
 
     options.register("sample",
                      "",

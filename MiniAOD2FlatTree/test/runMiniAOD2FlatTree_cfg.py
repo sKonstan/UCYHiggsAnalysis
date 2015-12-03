@@ -219,7 +219,7 @@ process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
                             ),
 
                             # Imported from _cff.py files
-                            Taus      = process.Taus,
+                            Taus      = process.Taus,                             
                             Electrons = process.Electrons,
                             Muons     = process.Muons,
                             Jets      = process.Jets,

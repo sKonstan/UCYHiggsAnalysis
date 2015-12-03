@@ -11,64 +11,82 @@ JetDumper::JetDumper(edm::ConsumesCollector&& iConsumesCollector, std::vector<ed
     inputCollections = psets;
     booked           = false;
 
+    // Four-vector variables
     pt  = new std::vector<double>[inputCollections.size()];
     eta = new std::vector<double>[inputCollections.size()];    
     phi = new std::vector<double>[inputCollections.size()];    
     e   = new std::vector<double>[inputCollections.size()];    
 
-    //p4 = new std::vector<reco::Candidate::LorentzVector>[inputCollections.size()];
-    pdgId = new std::vector<short>[inputCollections.size()];
+    // Other essential variables
+    pdgId         = new std::vector<short>[inputCollections.size()];
     hadronFlavour = new std::vector<int>[inputCollections.size()];
     partonFlavour = new std::vector<int>[inputCollections.size()];
 
     nDiscriminators = inputCollections[0].getParameter<std::vector<std::string> >("discriminators").size();
-    discriminators = new std::vector<float>[inputCollections.size()*nDiscriminators];
-    nUserfloats = inputCollections[0].getParameter<std::vector<std::string> >("userFloats").size();
-    userfloats = new std::vector<double>[inputCollections.size()*nUserfloats];
-    jetToken = new edm::EDGetTokenT<edm::View<pat::Jet> >[inputCollections.size()];
+    discriminators  = new std::vector<float>[inputCollections.size()*nDiscriminators];
+    nUserfloats     = inputCollections[0].getParameter<std::vector<std::string> >("userFloats").size();
+    userfloats      = new std::vector<double>[inputCollections.size()*nUserfloats];
+    jetToken        = new edm::EDGetTokenT<edm::View<pat::Jet> >[inputCollections.size()];
+
+    // Other auxiliary variables
+    width          = 12;
+    cfg_debugMode  = false;
+    cfg_branchName = "";
+
+    // For-loop: All input collections
     for(size_t i = 0; i < inputCollections.size(); ++i){
         edm::InputTag inputtag = inputCollections[i].getParameter<edm::InputTag>("src");
         jetToken[i] = iConsumesCollector.consumes<edm::View<pat::Jet>>(inputtag);
     }
     
     useFilter = false;
+    // For-loop: All input collections
     for(size_t i = 0; i < inputCollections.size(); ++i){
 	bool param = inputCollections[i].getUntrackedParameter<bool>("filter",false);
         if(param) useFilter = true;
     }
 
-    jetIDloose = new std::vector<bool>[inputCollections.size()];
-    jetIDtight = new std::vector<bool>[inputCollections.size()];
+    jetIDloose           = new std::vector<bool>[inputCollections.size()];
+    jetIDtight           = new std::vector<bool>[inputCollections.size()];
     jetIDtightLeptonVeto = new std::vector<bool>[inputCollections.size()];
+    jetPUIDloose         = new std::vector<bool>[inputCollections.size()];
+    jetPUIDmedium        = new std::vector<bool>[inputCollections.size()];
+    jetPUIDtight         = new std::vector<bool>[inputCollections.size()];
+    MCjet                = new FourVectorDumper[inputCollections.size()];
 
-    jetPUIDloose = new std::vector<bool>[inputCollections.size()];
-    jetPUIDmedium = new std::vector<bool>[inputCollections.size()];
-    jetPUIDtight = new std::vector<bool>[inputCollections.size()];
-    
-    MCjet = new FourVectorDumper[inputCollections.size()];
-    
-    systJESup = new FourVectorDumper[inputCollections.size()];
+    // Systematics variations for tau 4-vector
+    systJESup   = new FourVectorDumper[inputCollections.size()];
     systJESdown = new FourVectorDumper[inputCollections.size()];
-    systJERup = new FourVectorDumper[inputCollections.size()];
+    systJERup   = new FourVectorDumper[inputCollections.size()];
     systJERdown = new FourVectorDumper[inputCollections.size()];
 
 }
 
+
 JetDumper::~JetDumper(){}
+
 
 void JetDumper::book(TTree* tree){
   booked = true;
+
+  // For-loop: All input collections
   for(size_t i = 0; i < inputCollections.size(); ++i){
-    std::string name = inputCollections[i].getUntrackedParameter<std::string>("branchname","");
-    if(name.length() == 0) name = inputCollections[i].getParameter<edm::InputTag>("src").label();
-    tree->Branch((name+"_pt").c_str(),&pt[i]);
-    tree->Branch((name+"_eta").c_str(),&eta[i]);
-    tree->Branch((name+"_phi").c_str(),&phi[i]);
-    tree->Branch((name+"_e").c_str(),&e[i]);    
-    //tree->Branch((name+"_p4").c_str(),&p4[i]);
-    tree->Branch((name+"_pdgId").c_str(),&pdgId[i]);
-    tree->Branch((name+"_hadronFlavour").c_str(),&hadronFlavour[i]);
-    tree->Branch((name+"_partonFlavour").c_str(),&partonFlavour[i]);
+
+    // Input parameters/flags
+    cfg_debugMode  = inputCollections[i].getUntrackedParameter<bool>("debugMode");
+    cfg_branchName = inputCollections[i].getUntrackedParameter<std::string>("branchName","");
+    if( cfg_branchName.length() == 0) cfg_branchName = inputCollections[i].getParameter<edm::InputTag>("src").label();
+
+    // Four-vector variables
+    tree->Branch( (cfg_branchName + "_pt") .c_str(), &pt[i]  );
+    tree->Branch( (cfg_branchName + "_eta").c_str(), &eta[i] );
+    tree->Branch( (cfg_branchName + "_phi").c_str(), &phi[i] );
+    tree->Branch( (cfg_branchName + "_e")  .c_str(), &e[i]   );
+    
+    // Other essential variables
+    tree->Branch( (cfg_branchName + "_pdgId")        .c_str(), &pdgId[i]         );
+    tree->Branch( (cfg_branchName + "_hadronFlavour").c_str(), &hadronFlavour[i] );
+    tree->Branch( (cfg_branchName + "_partonFlavour").c_str(), &partonFlavour[i] );
 
     std::vector<std::string> discriminatorNames = inputCollections[i].getParameter<std::vector<std::string> >("discriminators");
     for(size_t iDiscr = 0; iDiscr < discriminatorNames.size(); ++iDiscr) {

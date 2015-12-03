@@ -15,7 +15,7 @@ public:
   FourVectorDumper();
   ~FourVectorDumper();
 
-  virtual void book(TTree* tree, const std::string& name, const std::string& postfix);
+  virtual void book(TTree* tree, const std::string& branchName, const std::string& postfix);
   virtual bool fill(edm::Event&, const edm::EventSetup&);
   virtual void add(const double _pt, const double _eta, const double _phi, const double _e);
   virtual void reset();

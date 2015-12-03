@@ -37,13 +37,15 @@ ElectronDumper::ElectronDumper(edm::ConsumesCollector&& iConsumesCollector, std:
 
   // For-loop: All input collections
   for(size_t i = 0; i < inputCollections.size(); ++i){
-    edm::InputTag inputtag = inputCollections[i].getParameter<edm::InputTag>("src");
-    electronToken[i] = iConsumesCollector.consumes<edm::View<pat::Electron>>(inputtag);
-    gsfElectronToken[i] = iConsumesCollector.consumes<edm::View<reco::GsfElectron>>(inputtag);
+    edm::InputTag inputtag  = inputCollections[i].getParameter<edm::InputTag>("src");
+    electronToken[i]        = iConsumesCollector.consumes<edm::View<pat::Electron>>(inputtag);
+    gsfElectronToken[i]     = iConsumesCollector.consumes<edm::View<reco::GsfElectron>>(inputtag);
     edm::InputTag rhoSource = inputCollections[i].getParameter<edm::InputTag>("rhoSource");
-    rhoToken[i] = iConsumesCollector.consumes<double>(rhoSource);
-    std::string IDprefix = inputCollections[i].getParameter<std::string>("IDprefix");
+    rhoToken[i]             = iConsumesCollector.consumes<double>(rhoSource);
+    std::string IDprefix    = inputCollections[i].getParameter<std::string>("IDprefix");
     std::vector<std::string> discriminatorNames = inputCollections[i].getParameter<std::vector<std::string> >("discriminators");
+    
+    // For-loop: All discriminators
     for (size_t j = 0; j < discriminatorNames.size(); ++j) {
       edm::InputTag discrTag(IDprefix, discriminatorNames[j]);
       electronIDToken[i*discriminatorNames.size()+j] = iConsumesCollector.consumes<edm::ValueMap<bool>>(discrTag);

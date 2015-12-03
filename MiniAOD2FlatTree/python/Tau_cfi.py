@@ -3,7 +3,7 @@ Taus = cms.VPSet(
     cms.PSet(
         branchName     = cms.untracked.string("Taus"),
         src            = cms.InputTag("slimmedTaus"),
-        debugMode      = cms.untracked.bool(True),
+        debugMode      = cms.untracked.bool(False),
         discriminators = cms.vstring(
             'againstElectronLooseMVA5',
             'againstElectronMVA5category',

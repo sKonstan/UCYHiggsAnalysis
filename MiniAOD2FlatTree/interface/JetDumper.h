@@ -53,6 +53,10 @@ class JetDumper : public BaseDumper {
 	std::vector<bool> *jetPUIDmedium;
 	std::vector<bool> *jetPUIDtight;
 
+	int width;
+        bool cfg_debugMode;
+	std::string cfg_branchName;
+
         // 4-vector for generator jet
         FourVectorDumper *MCjet;
         
