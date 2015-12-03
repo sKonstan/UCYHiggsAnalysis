@@ -39,6 +39,11 @@ class EventInfoDumper {
         edm::EDGetTokenT<LHEEventProduct> lheToken;
         edm::EDGetTokenT<edm::View<reco::Vertex> > vertexToken;
         
+	// Input parameters/flags
+        bool cfg_debugMode;
+	std::string cfg_branchName;
+        int width;
+
 	unsigned long long event;
 	unsigned int run,lumi;
         float prescale;

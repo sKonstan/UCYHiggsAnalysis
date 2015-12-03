@@ -36,6 +36,7 @@ class GenJetDumper : public BaseDumper {
 	bool   cfg_debugMode;
 	std::string cfg_branchName;
 	int width;
+
 	std::vector<short>  *charge;
 	std::vector<double> *emEnergy;
 	std::vector<double> *hadEnergy;

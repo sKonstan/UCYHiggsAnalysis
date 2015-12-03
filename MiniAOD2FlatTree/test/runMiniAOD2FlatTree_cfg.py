@@ -15,7 +15,7 @@ bDependencies= False
 
 dataVersion  = "74Xmc" #"74Xdata"
 dataset      = "RunIISpring15MiniAODv2_ttHJetToNonbb_M125_13TeV_MINIAODSIM"
-iMaxEvents   = 100 #10000
+iMaxEvents   = 10000 #10000
 iReportEvery = 10
 
 
@@ -100,8 +100,10 @@ process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
 
                             EventInfo = cms.PSet(
                                 PileupSummaryInfoSrc    = process.PUInfo.PileupSummaryInfoSrc, 
-	                        LHESrc                  = cms.untracked.InputTag("externalLHEProducer"), #fixme
+	                        LHESrc                  = cms.untracked.InputTag("externalLHEProducer"),
 	                        OfflinePrimaryVertexSrc = cms.InputTag("offlineSlimmedPrimaryVertices"),
+                                branchName              = cms.untracked.string("EventInfo"),
+                                debugMode               = cms.untracked.bool(True)
                             ),
                             
                             Trigger = cms.PSet(
