@@ -128,7 +128,7 @@ void JetDumper::book(TTree* tree){
 
     tree->Branch( ( cfg_branchName + "_neutralHadronEnergyFraction").c_str(), &neutralHadronEnergyFraction[i] );
     tree->Branch( ( cfg_branchName + "_neutralEmEnergyFraction")    .c_str(), &neutralEmEnergyFraction[i]     );
-    tree->Branch( ( cfg_branchName + "_nConstituents ")             .c_str(), &nConstituents[i]               );
+    tree->Branch( ( cfg_branchName + "_nConstituents")              .c_str(), &nConstituents[i]               );
     tree->Branch( ( cfg_branchName + "_chargedHadronMultiplicity")  .c_str(), &chargedHadronMultiplicity[i]   );
     
     MCjet[i].book(tree, cfg_branchName, "MCjet");
@@ -333,11 +333,11 @@ void JetDumper::reset(){
     isCaloJet[ic]    .clear();
     isJPTJet[ic]     .clear();
     isPFJet[ic]      .clear();
+
     neutralHadronEnergyFraction[ic].clear();
     neutralEmEnergyFraction[ic]    .clear();
     nConstituents[ic]              .clear();
     chargedHadronMultiplicity[ic]  .clear();
-
 
     MCjet[ic].reset();
 
@@ -371,20 +371,20 @@ bool JetDumper::passJetID(int id, const pat::Jet& jet) {
     // Neutral EM Fraction     < 0.99  < 0.90  < 0.90
     // Number of Constituents  > 1     > 1     > 1
     // Muon Fraction           -       -       < 0.8
-    int nConstituents = jet.chargedMultiplicity() + jet.electronMultiplicity() + jet.muonMultiplicity() + jet.neutralMultiplicity();
+    int nJetConstituents = jet.chargedMultiplicity() + jet.electronMultiplicity() + jet.muonMultiplicity() + jet.neutralMultiplicity();
 
     if (id == kJetIDLoose) {
       if (!(jet.neutralHadronEnergyFraction() < 0.99)) return false;
       if (!(jet.neutralEmEnergyFraction()     < 0.99)) return false;
-      if (!(nConstituents                     > 1   )) return false;
+      if (!(nJetConstituents                  > 1   )) return false;
     } else if (id == kJetIDTight) {
       if (!(jet.neutralHadronEnergyFraction() < 0.90)) return false;
       if (!(jet.neutralEmEnergyFraction()     < 0.90)) return false;
-      if (!(nConstituents                     > 1   )) return false;      
+      if (!(nJetConstituents                  > 1   )) return false;      
     } else if (id == kJetIDTightLepVeto) {
       if (!(jet.neutralHadronEnergyFraction() < 0.90)) return false;
       if (!(jet.neutralEmEnergyFraction()     < 0.90)) return false;
-      if (!(nConstituents                     > 1   )) return false;      
+      if (!(nJetConstituents                   > 1   )) return false;      
       if (!(jet.muonEnergyFraction()          < 0.80)) return false;
     }// if (eta < 3.0) {
 
