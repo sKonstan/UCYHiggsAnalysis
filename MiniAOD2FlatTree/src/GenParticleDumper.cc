@@ -86,7 +86,8 @@ void GenParticleDumper::book(TTree* tree){
     
     if(cfg_branchName.length() == 0) cfg_branchName = inputCollections[i].getParameter<edm::InputTag>("src").label();
 
-    // Save GenParticles?
+    // Save GenParticles. Note that the genParticle information stored in the miniAOD samples is skimmed! See link below
+    // https://cmssdt.cern.ch/SDT/doxygen/CMSSW_7_5_2/doc/html/d1/d1f/prunedGenParticles__cfi_8py_source.html
     if (inputCollections[i].getUntrackedParameter<bool>("saveAllGenParticles", false)) {
 
       // Four-vector variables
@@ -115,17 +116,19 @@ void GenParticleDumper::book(TTree* tree){
 
     // Save taus?    
     if (inputCollections[i].getUntrackedParameter<bool>("saveGenTaus", false)) {
+
       taus[i].book(tree, cfg_branchName, "Taus");
       visibleTaus[i].book(tree, cfg_branchName, "VisibleTau");
-      tree->Branch( ( cfg_branchName + "_TauProngs").c_str(),&tauNcharged[i]);
-      tree->Branch( ( cfg_branchName + "_TauNpi0").c_str(),&tauNPi0[i]);
-      tree->Branch( ( cfg_branchName + "_TauRtau").c_str(),&tauRtau[i]);
-      tree->Branch( ( cfg_branchName + "_TauAssociatedWithHiggs").c_str(),&tauAssociatedWithHiggs[i]);
-      tree->Branch( ( cfg_branchName + "_TauMother").c_str(),&tauMother[i]);
-      tree->Branch( ( cfg_branchName + "_TauDecaysToElectron").c_str(),&tauDecaysToElectron[i]);
-      tree->Branch( ( cfg_branchName + "_TauDecaysToMuon").c_str(),&tauDecaysToMuon[i]);
-      tree->Branch( ( cfg_branchName + "_TauSpinEffects").c_str(),&tauSpinEffects[i]);
+      tree->Branch( ( cfg_branchName + "_TauProngs")             .c_str(), &tauNcharged[i]            );
+      tree->Branch( ( cfg_branchName + "_TauNpi0")               .c_str(), &tauNPi0[i]                );
+      tree->Branch( ( cfg_branchName + "_TauRtau")               .c_str(), &tauRtau[i]                );
+      tree->Branch( ( cfg_branchName + "_TauAssociatedWithHiggs").c_str(), &tauAssociatedWithHiggs[i] );
+      tree->Branch( ( cfg_branchName + "_TauMother")             .c_str(), &tauMother[i]              );
+      tree->Branch( ( cfg_branchName + "_TauDecaysToElectron")   .c_str(), &tauDecaysToElectron[i]    );
+      tree->Branch( ( cfg_branchName + "_TauDecaysToMuon")       .c_str(), &tauDecaysToMuon[i]        );
+      tree->Branch( ( cfg_branchName + "_TauSpinEffects")        .c_str(), &tauSpinEffects[i]         );
       tauNeutrinos[i].book(tree, cfg_branchName, "TauNeutrinos");
+
     }
 
     // Save neutrinos?

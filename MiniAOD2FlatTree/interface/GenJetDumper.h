@@ -35,6 +35,7 @@ class GenJetDumper : public BaseDumper {
 	// Input parameters/flags
 	bool   cfg_debugMode;
 	std::string cfg_branchName;
+	bool cfg_saveGenJetConstituents;
 	int width;
 
 	std::vector<short>  *charge;
@@ -43,7 +44,17 @@ class GenJetDumper : public BaseDumper {
 	std::vector<double> *auxEnergy;
 	std::vector<double> *invisEnergy;
 	std::vector<short>  *nGenConstituents;
-	// std::vector< std::vector<unsigned short> > *genConstituents;
+
+	std::vector< std::vector<double> >  *genConstituentsPt;
+	std::vector< std::vector<double> >  *genConstituentsEta;    
+	std::vector< std::vector<double> >  *genConstituentsPhi;   
+	std::vector< std::vector<double> >  *genConstituentsE;   
+	std::vector< std::vector<short> >   *genConstituentsPdgId;
+	std::vector< std::vector<short> >   *genConstituentsStatus; 
+	std::vector< std::vector<short> >   *genConstituentsCharge;
+	std::vector< std::vector<double> >  *genConstituentsVertexX;
+	std::vector< std::vector<double> >  *genConstituentsVertexY;
+	std::vector< std::vector<double> >  *genConstituentsVertexZ;
 
 };
 #endif

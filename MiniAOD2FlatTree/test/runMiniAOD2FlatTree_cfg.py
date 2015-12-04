@@ -15,7 +15,7 @@ bDependencies= False
 
 dataVersion  = "74Xmc" #"74Xdata"
 dataset      = "RunIISpring15MiniAODv2_ttHJetToNonbb_M125_13TeV_MINIAODSIM"
-iMaxEvents   = 10000 #10000
+iMaxEvents   = 100 #10000
 iReportEvery = 10
 
 
@@ -246,9 +246,10 @@ process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
                             
                             GenJets = cms.VPSet(      
                                 cms.PSet(
-                                    branchName = cms.untracked.string("GenJets"),
-                                    src        = cms.InputTag("slimmedGenJets"), # ak4
-                                    debugMode  = cms.untracked.bool(bDebug)
+                                    branchName             = cms.untracked.string("GenJets"),
+                                    src                    = cms.InputTag("slimmedGenJets"), # ak4 (anti-kT, R=0.4)
+                                    debugMode              = cms.untracked.bool(bDebug),
+                                    saveGenJetConstituents = cms.untracked.bool(False),
                                 )
                             ),
 

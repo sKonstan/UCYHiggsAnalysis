@@ -18,8 +18,24 @@ GenJetDumper::GenJetDumper(edm::ConsumesCollector&& iConsumesCollector, std::vec
   invisEnergy      = new std::vector<double>[inputCollections.size()];
   nGenConstituents = new std::vector<short>[inputCollections.size()];
 
+  // GenJet Constituents (Optional)
+  genConstituentsPt      = new std::vector< std::vector<double> >;
+  genConstituentsEta     = new std::vector< std::vector<double> >;
+  genConstituentsPhi     = new std::vector< std::vector<double> >;
+  genConstituentsE       = new std::vector< std::vector<double> >;
+  genConstituentsPdgId   = new std::vector< std::vector<short> >;
+  genConstituentsStatus  = new std::vector< std::vector<short> >;
+  genConstituentsCharge  = new std::vector< std::vector<short> >;
+  genConstituentsVertexX = new std::vector< std::vector<double> >;
+  genConstituentsVertexY = new std::vector< std::vector<double> >;
+  genConstituentsVertexZ = new std::vector< std::vector<double> >;
+
   // Other auxiliary variables 
   width = 14;
+  cfg_debugMode = false;
+  cfg_branchName = "";
+  cfg_saveGenJetConstituents = false;
+
   genJetToken = new edm::EDGetTokenT<reco::GenJetCollection>[inputCollections.size()];
 
   // For-loop: All input collections
@@ -48,7 +64,8 @@ void GenJetDumper::book(TTree* tree){
   for(size_t i = 0; i < inputCollections.size(); ++i){
       
     // Input parameters/flags
-    cfg_branchName = inputCollections[i].getUntrackedParameter<std::string>("branchName","");
+    cfg_branchName             = inputCollections[i].getUntrackedParameter<std::string>("branchName","");
+    cfg_saveGenJetConstituents = inputCollections[i].getUntrackedParameter<bool>("saveGenJetConstituents","");
     if(cfg_branchName.length() == 0) cfg_branchName = inputCollections[i].getParameter<edm::InputTag>("src").label();
       
     // Four-vector variables   
@@ -64,6 +81,20 @@ void GenJetDumper::book(TTree* tree){
     tree->Branch( ( cfg_branchName + "_invisEnergy")     .c_str(), &invisEnergy[i]      );
     tree->Branch( ( cfg_branchName + "_nGenConstituents").c_str(), &nGenConstituents[i] );
     
+    // GenJet Constituents (Optional)
+    if(cfg_saveGenJetConstituents){
+      tree->Branch( ( cfg_branchName + "_genConstituentsPt" )   .c_str(), &genConstituentsPt[i]      );
+      tree->Branch( ( cfg_branchName + "_genConstituentsEta")   .c_str(), &genConstituentsEta[i]     );
+      tree->Branch( ( cfg_branchName + "_genConstituentsPhi")   .c_str(), &genConstituentsPhi[i]     );
+      tree->Branch( ( cfg_branchName + "_genConstituentsE")     .c_str(), &genConstituentsE[i]       );
+      tree->Branch( ( cfg_branchName + "_genConstituentsPdgId") .c_str(), &genConstituentsPdgId[i]   );
+      tree->Branch( ( cfg_branchName + "_genConstituentsStatus").c_str(), &genConstituentsStatus[i]  );
+      tree->Branch( ( cfg_branchName + "_genConstituentsCharge").c_str(), &genConstituentsCharge[i]  );
+      tree->Branch( ( cfg_branchName + "_genConstituentsVerteX").c_str(), &genConstituentsVertexX[i] );
+      tree->Branch( ( cfg_branchName + "_genConstituentsVerteY").c_str(), &genConstituentsVertexY[i] );
+      tree->Branch( ( cfg_branchName + "_genConstituentsVerteZ").c_str(), &genConstituentsVertexZ[i] );
+    }
+
   }// for(size_t i = 0; i < inputCollections.size(); ++i){
     
   return;
@@ -121,6 +152,53 @@ bool GenJetDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
 	// Get the GenJet constituents (alternative)
 	nGenConstituents[ic].push_back( gj.numberOfDaughters() );
 
+	// Save the genJet constituents? Since the genParticles are filtered (pruned) then these might not be available otherwise!
+	if(cfg_saveGenJetConstituents){
+
+	  std::vector<double>  genConstituentsPt_tmp;
+	  std::vector<double>  genConstituentsEta_tmp;
+	  std::vector<double>  genConstituentsPhi_tmp;
+	  std::vector<double>  genConstituentsE_tmp;
+	  std::vector<short>   genConstituentsPdgId_tmp;
+	  std::vector<short>   genConstituentsStatus_tmp;
+	  std::vector<short>   genConstituentsCharge_tmp;
+	  std::vector<double>  genConstituentsVertexX_tmp;
+	  std::vector<double>  genConstituentsVertexY_tmp;
+	  std::vector<double>  genConstituentsVertexZ_tmp;
+	  
+	  // For-loop: All daughters (constituents) of genJet
+	  for(Size_t idau=0; idau<gj.numberOfDaughters(); idau++){
+	    
+	    // Get the reco::Candidate daughter
+	    const reco::Candidate* Dau = gj.daughter(idau);
+
+	    // Fill temporary containers
+	    genConstituentsPt_tmp     .push_back( Dau->pt()     );
+	    genConstituentsEta_tmp    .push_back( Dau->eta()    );
+	    genConstituentsPhi_tmp    .push_back( Dau->phi()    );
+	    genConstituentsE_tmp      .push_back( Dau->energy() );
+	    genConstituentsPdgId_tmp  .push_back( Dau->pdgId()  );
+	    genConstituentsStatus_tmp .push_back( Dau->status() );
+	    genConstituentsCharge_tmp .push_back( Dau->charge() );
+	    genConstituentsVertexX_tmp.push_back( Dau->vx()     );
+	    genConstituentsVertexY_tmp.push_back( Dau->vy()     );
+	    genConstituentsVertexZ_tmp.push_back( Dau->vz()     );
+	  }
+	  
+	  genConstituentsPt[ic]     .push_back( genConstituentsPt_tmp      );
+	  genConstituentsEta[ic]    .push_back( genConstituentsEta_tmp     );
+	  genConstituentsPhi[ic]    .push_back( genConstituentsPhi_tmp     );
+	  genConstituentsE[ic]      .push_back( genConstituentsE_tmp       );
+	  genConstituentsPdgId[ic]  .push_back( genConstituentsPdgId_tmp   );
+	  genConstituentsStatus[ic] .push_back( genConstituentsStatus_tmp  );
+	  genConstituentsCharge[ic] .push_back( genConstituentsCharge_tmp  );
+	  genConstituentsVertexX[ic].push_back( genConstituentsVertexX_tmp );
+	  genConstituentsVertexY[ic].push_back( genConstituentsVertexY_tmp );
+	  genConstituentsVertexZ[ic].push_back( genConstituentsVertexZ_tmp );
+
+	}// if(cfg_saveGenJetConstituents){
+
+
 	// NOTE: The method getGenConstituents() does not work on MiniAOD since the
 	// constituents are of type pat::PackedGenParticle in MiniAOD (https://hypernews.cern.ch/HyperNews/CMS/get/physTools/3326/1.html)
 	// Instead, the methods numberOfDaughters() and daughterPtr(index) work & return the packed PF Candidates.
@@ -175,6 +253,19 @@ void GenJetDumper::reset(){
       auxEnergy[ic]       .clear();
       invisEnergy[ic]     .clear();
       nGenConstituents[ic].clear();
+
+      if(cfg_saveGenJetConstituents){
+	genConstituentsPt[ic]     .clear();
+	genConstituentsEta[ic]    .clear();
+	genConstituentsPhi[ic]    .clear();
+	genConstituentsE[ic]      .clear();
+	genConstituentsPdgId[ic]  .clear();
+	genConstituentsStatus[ic] .clear();
+	genConstituentsCharge[ic] .clear();
+	genConstituentsVertexX[ic].clear();
+	genConstituentsVertexY[ic].clear();
+	genConstituentsVertexZ[ic].clear();
+      }
 
     }// for(size_t ic = 0; ic < inputCollections.size(); ++ic){
     
