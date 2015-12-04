@@ -11,39 +11,60 @@ SkimDumper::SkimDumper(edm::ConsumesCollector&& iConsumesCollector, const edm::P
       token[i] = iConsumesCollector.consumes<edm::MergeableCounter, edm::InLumi>(tags[i]);
     }
 }
+
+
 SkimDumper::~SkimDumper(){}
+
 
 void SkimDumper::book(){
     booked = true;
     std::vector<edm::InputTag> tags = inputCollection.getParameter<std::vector<edm::InputTag> >("Counters");
     hCounter = new TH1F("SkimCounter","",tags.size(),0,tags.size());
+
+    // For-loop: All skim counters
     for(size_t i = 0; i < tags.size(); ++i){
 	hCounter->GetXaxis()->SetBinLabel(i+1,tags[i].label().c_str());
     }
+
+    return;
 }
+
 
 #include "DataFormats/Common/interface/MergeableCounter.h"
 bool SkimDumper::fill(const edm::LuminosityBlock& iLumi, const edm::EventSetup& iSetup){
     if (!booked) return true;
 
     std::vector<edm::InputTag> tags = inputCollection.getParameter<std::vector<edm::InputTag> >("Counters");
+    
+    // For-loop: All skim counters
     for(size_t i = 0; i < tags.size(); ++i){
-//      std::cout << "check counters " << tags[i].label() << std::endl;
+      
+      // std::cout << "check tags["<<i<<"] = " << tags[i].label() << std::endl;
       edm::Handle<edm::MergeableCounter> count;
+      
+      // One Luminosity block is a time interval whose length is equal to 2^18 orbits (~23,3 seconds)
+      // The Luminosity block counter is reset at the beginning of each run. The average amount of pileup interactions (num of PVs) 
+      // decreases exponentially with time (or lumi block number) due to the loss of protons in the beam. 
       iLumi.getByToken(token[i], count);
-
-      if(count.isValid()){
-        hCounter->Fill(i,count->value);
-//	std::cout << "check count " << count->value << std::endl;
+      
+      // Sanity check
+      if( count.isValid() ){
+	hCounter->Fill(i,count->value);
+	// std::cout << "check count-value = " << count->value << std::endl;
       }
-    }
+
+    }// for(size_t i = 0; i < tags.size(); ++i){
     return true;
 }
+
 
 void SkimDumper::reset(){
     if(booked){
     }
+
+    return;
 }
+
 
 TH1F* SkimDumper::getCounter(){
     return hCounter;

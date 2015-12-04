@@ -37,7 +37,16 @@ class TrackDumper : public BaseDumper {
 	edm::EDGetTokenT<edm::View<pat::PackedCandidate>> *token;
         edm::EDGetTokenT<edm::View<reco::Vertex>> *vertexToken;
         
-        std::vector<float> *fIPTwrtPV;
+	// Input parameters/flags
+	bool   cfg_debugMode;
+	std::string cfg_branchName;
+	double cfg_ptCut;
+	double cfg_etaCut;
+	bool cfg_saveOnlyChargedParticles;
+	double cfg_IPvsPVzCut;
+        int width;
+	
+	std::vector<float> *fIPTwrtPV;
         std::vector<float> *fIPzwrtPV;
         std::vector<float> *fIPTSignif;
         std::vector<float> *fIPzSignif;

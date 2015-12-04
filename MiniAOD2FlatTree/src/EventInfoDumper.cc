@@ -113,7 +113,7 @@ bool EventInfoDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
     pvY = hoffvertex->at(0).y()*10.0;
     pvZ = hoffvertex->at(0).z()*10.0;
 
-    // If more than 1 good offline PV's
+    // If more than 1 good offline PV: Look how often one misses the hard PV because of PU
     if (nGoodOfflinePV > 1) {
       distanceToNextPV = std::fabs(hoffvertex->at(0).z() - hoffvertex->at(1).z());
 
@@ -127,16 +127,14 @@ bool EventInfoDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
       }// for (size_t i = 1; i < hoffvertex->size(); ++i) {
 
 
-      // For-loop: All tracks associated to PV (sumPt sorted)
+      // For-loop: All tracks associated to PV (sumPt sorted). 
+      // NOTE: Tracks are NOT saved in miniAOD [https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookMiniAOD2015#Primary_vertices_and_BeamSpot]
       std::vector<reco::TrackBaseRef>::const_iterator tracks_pv0;
-      std::cout << " hoffvertex->at(0).tracks_begin() = " <<  hoffvertex->at(0).tracksSize() << std::endl;
-      std::cout << " hoffvertex->at(1).tracks_begin() = " <<  hoffvertex->at(1).tracksSize() << std::endl;
-
       for (tracks_pv0 = hoffvertex->at(0).tracks_begin(); tracks_pv0 != hoffvertex->at(0).tracks_end(); tracks_pv0++) {
 	
 	// Calculate sum of track pT^2 over all tracks associated with this vertex
 	ptSum0 += hoffvertex->at(0).trackWeight(*tracks_pv0) * (*tracks_pv0)->pt() * (*tracks_pv0)->pt();
-	std::cout << "sumPt0 =  " << hoffvertex->at(0).trackWeight(*tracks_pv0) << " * " <<  (*tracks_pv0)->pt()*(*tracks_pv0)->pt() << " = " << ptSum1 << std::endl;
+	// std::cout << "sumPt0 =  " << hoffvertex->at(0).trackWeight(*tracks_pv0) << " * " <<  (*tracks_pv0)->pt()*(*tracks_pv0)->pt() << " = " << ptSum1 << std::endl;
       }
 
 
@@ -146,7 +144,7 @@ bool EventInfoDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
 	// Calculate sum of track pT^2 over all tracks associated with this vertex
 	ptSum1 += hoffvertex->at(1).trackWeight(*tracks_pv1) * (*tracks_pv1)->pt() * (*tracks_pv1)->pt();
-	std::cout << "sumPt1 =  " << hoffvertex->at(1).trackWeight(*tracks_pv1) << " * " <<  (*tracks_pv1)->pt() * (*tracks_pv1)->pt() << " = " << ptSum1 << std::endl;
+	//std::cout << "sumPt1 =  " << hoffvertex->at(1).trackWeight(*tracks_pv1) << " * " <<  (*tracks_pv1)->pt() * (*tracks_pv1)->pt() << " = " << ptSum1 << std::endl;
       }
 
       // Calculate the ratio of the ptSum of the PV to that of the second-in-rank PV

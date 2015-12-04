@@ -15,7 +15,7 @@ bDependencies= False
 
 dataVersion  = "74Xmc" #"74Xdata"
 dataset      = "RunIISpring15MiniAODv2_ttHJetToNonbb_M125_13TeV_MINIAODSIM"
-iMaxEvents   = 100 #10000
+iMaxEvents   = 1000 #10000
 iReportEvery = 10
 
 
@@ -92,7 +92,7 @@ process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
                             DataVersion         = cms.string(str(dataVersion.version)),
                             CMEnergy            = cms.int32(13),
                             Skim                = cms.PSet(
-                                Counters = cms.VInputTag( #the counters are read from lumiblock instead of event
+                                Counters = cms.VInputTag( #the counters are read from lumiblock1 instead of events!
 	                            "skimCounterAll",
                                     "skimCounterPassed"
                                 ),
@@ -103,7 +103,7 @@ process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
 	                        LHESrc                  = cms.untracked.InputTag("externalLHEProducer"),
 	                        OfflinePrimaryVertexSrc = cms.InputTag("offlineSlimmedPrimaryVertices"),
                                 branchName              = cms.untracked.string("EventInfo"),
-                                debugMode               = cms.untracked.bool(True)
+                                debugMode               = cms.untracked.bool(bDebug)
                             ),
                             
                             Trigger = cms.PSet(
@@ -266,17 +266,18 @@ process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
                                 )
                             ),
 
-                            Tracks =  cms.VPSet(      
+                            Tracks = cms.VPSet(
                                 cms.PSet(
-                                    branchname               = cms.untracked.string("PFcandidates"),
+                                    branchName               = cms.untracked.string("PFcandidates"),
                                     src                      = cms.InputTag("packedPFCandidates"),
                                     OfflinePrimaryVertexSrc  = cms.InputTag("offlineSlimmedPrimaryVertices"),
-                                    ptCut                    = cms.untracked.double(0.0), # pt < value
+                                    ptCut                    = cms.untracked.double(0.0), # pt < value [GeV/c]
                                     etaCut                   = cms.untracked.double(2.5), # abs(eta) < value
+                                    IPvsPVz                  = cms.untracked.double(5), # abs(IPz-PVz) < value
                                     saveOnlyChargedParticles = cms.untracked.bool(True),
-                                    IPvsPVz = cms.untracked.double(5), # abs(IPz-PVz) < value
-                                )
-                            ),
+                                    debugMode                = cms.untracked.bool(True),
+                                    )
+                                ),
 )
 
 
