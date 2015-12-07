@@ -53,5 +53,11 @@ private:
   
   // Data objects for ttree
   bool *bFilters;
+
+  int width;
+  bool cfg_debugMode;
+  std::string cfg_branchName;
+
+
 };
 #endif

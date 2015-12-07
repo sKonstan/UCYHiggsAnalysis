@@ -84,5 +84,9 @@ class TriggerDumper {
 
         int nTrgDiscriminators;
         std::vector<bool> *trgdiscriminators;
+
+        int width;
+        bool cfg_debugMode;
+
 };
 #endif

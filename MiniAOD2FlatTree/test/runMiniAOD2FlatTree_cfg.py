@@ -198,18 +198,19 @@ process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
                                     "HLT_Ele23_CaloIdM_TrackIdM_PFJet30_v",
                                     "HLT_Ele33_CaloIdM_TrackIdM_PFJet30_v",
                                 ),
-                                
 	                        L1Extra        = cms.InputTag("l1extraParticles:MET"),
 	                        TriggerObjects = cms.InputTag("selectedPatTrigger"),
                                 TriggerMatch   = cms.untracked.vstring(
-                                    "LooseIsoPFTau50_Trk30_eta2p1", #fixme: what is this? 
+                                    "LooseIsoPFTau50_Trk30_eta2p1",
                                 ),
-	                        filter = cms.untracked.bool(False)#filter according to trigger bits
+                                debugMode      = cms.untracked.bool(bDebug),
+	                        filter         = cms.untracked.bool(False) #filter according to trigger bits
                             ),
 
-                            METNoiseFilter = cms.PSet( #fixme: what is this for?
-                                triggerResults = cms.InputTag(TrgResultsSource),
-                                printTriggerResultsList = cms.untracked.bool(False),
+                            METNoiseFilter = cms.PSet(
+                                triggerResults            = cms.InputTag(TrgResultsSource),
+                                printTriggerResultsList   = cms.untracked.bool(True),
+                                debugMode                 = cms.untracked.bool(bDebug),
                                 filtersFromTriggerResults = cms.vstring(
                                     "Flag_CSCTightHaloFilter",
                                     "Flag_goodVertices",
@@ -217,7 +218,7 @@ process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
                                 ),
                                 hbheNoiseTokenRun2LooseSource = cms.InputTag('HBHENoiseFilterResultProducer','HBHENoiseFilterResultRun2Loose'),
                                 hbheNoiseTokenRun2TightSource = cms.InputTag('HBHENoiseFilterResultProducer','HBHENoiseFilterResultRun2Tight'),
-                                hbheIsoNoiseTokenSource = cms.InputTag('HBHENoiseFilterResultProducer','HBHEIsoNoiseFilterResult'),
+                                hbheIsoNoiseTokenSource       = cms.InputTag('HBHENoiseFilterResultProducer','HBHEIsoNoiseFilterResult'),
                             ),
 
                             # Imported from _cff.py files
@@ -229,20 +230,12 @@ process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
 
                             GenWeights = cms.VPSet(
                                 cms.PSet(
-                                    branchname = cms.untracked.string("GenWeights"),
-                                    src = cms.InputTag("generator"),
-                                    filter = cms.untracked.bool(False)
+                                    branchName = cms.untracked.string("GenWeights"),
+                                    src        = cms.InputTag("generator"),
+                                    debugMode  = cms.untracked.bool(False),
+                                    filter     = cms.untracked.bool(False)
                                 )
                             ),
-
-                            #GenMETs = cms.VPSet(
-                            #    cms.PSet(                                                                                                                                     
-                            #        branchName = cms.untracked.string("GenMET"),
-                            #        src        = cms.InputTag("genMetTrue"),
-                            #        debugMode  = cms.untracked.bool(True),
-                            #        filter     = cms.untracked.bool(False)
-                            #    )                                                                                                               
-                            #),
                             
                             GenJets = cms.VPSet(      
                                 cms.PSet(
@@ -275,9 +268,18 @@ process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
                                     etaCut                   = cms.untracked.double(2.5), # abs(eta) < value
                                     IPvsPVz                  = cms.untracked.double(5), # abs(IPz-PVz) < value
                                     saveOnlyChargedParticles = cms.untracked.bool(True),
-                                    debugMode                = cms.untracked.bool(True),
+                                    debugMode                = cms.untracked.bool(False),
                                     )
                                 ),
+
+                            #GenMETs = cms.VPSet( #obsolete
+                            #    cms.PSet(                                                                                                                                     
+                            #        branchName = cms.untracked.string("GenMET"),
+                            #        src        = cms.InputTag("genMetTrue"),
+                            #        debugMode  = cms.untracked.bool(True),
+                            #        filter     = cms.untracked.bool(False)
+                            #    )                                                                                                               
+                            #),
 )
 
 

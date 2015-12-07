@@ -39,5 +39,8 @@ class GenWeightDumper {
 	edm::EDGetTokenT<GenEventInfoProduct> *token;
 
         double GenWeight;
+	int width;
+        bool cfg_debugMode;
+	std::string cfg_branchName;
 };
 #endif

@@ -17,7 +17,7 @@ TrackDumper::TrackDumper(edm::ConsumesCollector&& iConsumesCollector, std::vecto
   fIPzSignif = new std::vector<float>[inputCollections.size()];
     
   // Tokens
-  token = new edm::EDGetTokenT<edm::View<pat::PackedCandidate>>[inputCollections.size()];
+  token       = new edm::EDGetTokenT<edm::View<pat::PackedCandidate>>[inputCollections.size()];
   vertexToken = new edm::EDGetTokenT<edm::View<reco::Vertex>>[inputCollections.size()];
 
   // Other auxiliary variables
@@ -109,9 +109,9 @@ bool TrackDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
       std::cout << "\n" << std::setw(width*8) << cfg_branchName << std::endl;
       std::cout << std::string(width*14, '=') << std::endl;
       std::cout << std::setw(5)       << "Index"
-                << std::setw(width)   << "Pt"         << std::setw(width) << "Eta"          << std::setw(width)   << "Phi"        << std::setw(width) << "E"
-                << std::setw(width)   << "pdgId"      << std::setw(width) << "IPTwrtPV"     << std::setw(width) << "IPTwrtPV_Sig" 
-                << std::setw(width)   << "IPZwrtPV"   << std::setw(width) << "IPZwrtPV_Sig"
+                << std::setw(width)   << "Pt"         << std::setw(width)   << "Eta"          << std::setw(width)   << "Phi"        << std::setw(width) << "E"
+                << std::setw(width)   << "pdgId"      << std::setw(width)   << "IPTwrtPV"     << std::setw(width+4) << "IPTwrtPV_Sig" 
+                << std::setw(width)   << "IPZwrtPV"   << std::setw(width+4) << "IPZwrtPV_Sig"
                 << std::endl;
       std::cout << std::string(width*14, '=') << std::endl;
     }
@@ -158,8 +158,8 @@ bool TrackDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
 	if (cfg_debugMode){
 	  std::cout << std::setw(5)     << i
 		    << std::setw(width) << cand.p4().pt()  << std::setw(width) << cand.p4().eta() << std::setw(width) << cand.p4().phi() << std::setw(width) << cand.p4().energy()
-		    << std::setw(width) << cand.pdgId()    << std::setw(width) << dxy             << std::setw(width) << IPTSignif
-		    << std::setw(width) << dz              << std::setw(width) << IPzSignif
+		    << std::setw(width) << cand.pdgId()    << std::setw(width) << dxy             << std::setw(width+4) << IPTSignif
+		    << std::setw(width) << dz              << std::setw(width+4) << IPzSignif
 		    << std::endl;
 	}
 	
