@@ -129,13 +129,17 @@ def GetTaskDirName(datasetList, skimType, version):
     return taskDirName
 
 
-def CreateMulticrabDir(taskDirName):
+def CreateCrabTask(taskDirName):
     '''
+    Creates a directory which will be used as the CRAB task directory.
+    Also copies all available information from git regarding the current status of the code, 
+    including the unique "commit id", "git diff" and "git status".   
     '''
     # If the task directory does not exist create it
     if not os.path.exists(taskDirName):
         os.mkdir(taskDirName)
-
+    print "=== multicrabCreate.py:\n\t Created CRAB task directory \"%s\"" % (taskDirName)
+        
     # Copy file to be used (and others to be tracked) to the task directory
     cmd = "cp %s %s" %(PSET, taskDirName)
     os.system(cmd)
@@ -206,7 +210,7 @@ def GetDatasetCfgFilename(dataset):
 
     # Finally, replace dashes with underscores 
     runAndDatasetName = runAndDatasetName.replace("-","_")
-    outfilePath = os.path.join(taskDirName, "crabConfig_" + runAndDatasetName+".py")
+    outfilePath = os.path.join(taskDirName, "crabConfig_" + runAndDatasetName + ".py")
 
     return runAndDatasetName, outfilePath
 
@@ -224,29 +228,32 @@ def EnsurePathDoesNotExit(taskDirName, runAndDatasetName):
 
     return
 
-    
-def CreateCfgfileForDataset(outfilePath, infilePath = "crabConfig.py"):
 
+def CreateCfgfile(taskDirName, outfilePath, infilePath = "crabConfig.py"):
+    '''
+    Creates a CRAB-specific configuration file which will be used in the submission
+    of a job. The function uses as input a generic cfg file which is then customised
+    based on the dataset type used.
+    '''
+    
     # Check that file does not already exist
     EnsurePathDoesNotExit(taskDirName, outfilePath)
     
     # Open input file (read mode) and output file (write mode)
-    #fileIN  = open(infilePath , "r")
-    print fileOUT
+    fileIN  = open(infilePath , "r")
     fileOUT = open(outfilePath, "w")
-    exit(0)
+    print "=== multicrabCreate.py:\n\t Created CRAB cfg file \"%s\"" % (fileOUT.name)
     
     # For each CRAB cfg-file field create a compiled regular expression object 
-    crab_requestName_re = re.compile("config.General.requestName")
-    crab_workArea_re    = re.compile("config.General.workArea"   )
-    crab_pset_re        = re.compile("config.JobType.psetName"   )
-    crab_psetParams_re  = re.compile("config.JobType.pyCfgParams")
-    crab_dataset_re     = re.compile("config.Data.inputDataset"  )
-    crab_split_re       = re.compile("config.Data.splitting"     )
-    crab_splitunits_re  = re.compile("config.Data.unitsPerJob"   )
-    crab_dbs_re         = re.compile("config.Data.inputDBS"      )
+    crab_requestName_re = re.compile( "config.General.requestName" )
+    crab_workArea_re    = re.compile( "config.General.workArea"    )
+    crab_pset_re        = re.compile( "config.JobType.psetName"    )
+    crab_psetParams_re  = re.compile( "config.JobType.pyCfgParams" )
+    crab_dataset_re     = re.compile( "config.Data.inputDataset"   )
+    crab_split_re       = re.compile( "config.Data.splitting"      )
+    crab_splitunits_re  = re.compile( "config.Data.unitsPerJob"    )
+    crab_dbs_re         = re.compile( "config.Data.inputDBS"       )
 
-    
     # For-loop: All line of input fine
     for line in fileIN:
 
@@ -307,6 +314,24 @@ def CreateCfgfileForDataset(outfilePath, infilePath = "crabConfig.py"):
     fileOUT.close()
     fileIN.close()
 
+    print "=== multicrabCreate.py:\n\t Finished CRAB cfg file \"%s\"" % (fileOUT.name)
+
+    return
+
+
+def SubmitCrabTask(taskDirName, cfgName):
+    '''
+    Submit a given CRAB task using the specific cfg file.
+    '''
+
+    cmd_submit = "crab submit " + cfgName
+    print "=== multicrabCreate.py:\n\t ", cmd_submit
+    os.system(cmd_submit)
+    
+    cmd_mv = "mv "+os.path.join(taskDirName,"crab_" + cfgName)+ " " + os.path.join(taskDirName, cfgName)
+    print "=== multicrabCreate.py:\n\t ", cmd_mv
+    os.system(cmd_mv)
+
     return
 
 
@@ -342,30 +367,19 @@ datasetList = GetDatasetList(skimType)
 # Get the task directory name
 taskDirName = GetTaskDirName(datasetList, skimType, version)
 
-
 # Create CRAB task diractory
-CreateMulticrabDir(taskDirName)
-
+CreateCrabTask(taskDirName)
 
 # For-loop: All datasets
 for dataset in datasetList:
 
     # Create CRAB configuration file for each dataset
-    cfgName, outfilePath = GetDatasetCfgFilename(dataset)
+    outfilePath, cfgName = GetDatasetCfgFilename(dataset)
     
-    # xenios - new function
-    CreateCfgfileForDataset(taskDirName, cfgName + ".py")
-    
+    # Create a CRAB cfg file for each dataset
+    CreateCfgfile(taskDirName, cfgName)
 
-    exit(0)    
-    cmd = "crab submit -c " + outfilePath
-    print "=== multicrabCreate.py:\n\t cmd = \"%s\"" % (cmd)
-    
-    cmd = "crab submit "+outfilePath
-    os.system(cmd)
-    print "=== multicrabCreate.py:\n\t cmd = \"%s\"" % (cmd)
-    
-    mv = "mv "+os.path.join(taskDirName,"crab_" + cfgName)+ " " + os.path.join(taskDirName, cfgName)
-    print "=== multicrabCreate.py:\n\t mv = \"%s\"" % (mv)
-    os.system(mv)
-            
+    # Sumbit job for CRAB cfg file            
+    SubmitCrabTask(taskDirName, cfgName)
+
+    break

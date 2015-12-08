@@ -19,10 +19,10 @@ config.General.transferLogs    = True
 # JobType Section: Contains all the parameters of the user job type and related configurables
 #================================================================================================
 config.section_("JobType")
-config.JobType.pluginName      = 'Analysis'
-config.JobType.psetName        = 'runMiniAOD2FlatTree_cfg.py'
-config.JobType.pyCfgParams     = ''
-config.JobType.outputFiles     = ['miniAOD2FlatTree.root']
+config.JobType.pluginName  = 'Analysis'
+config.JobType.psetName    = 'runMiniAOD2FlatTree_cfg.py'
+config.JobType.pyCfgParams = ''
+config.JobType.outputFiles = ['miniAOD2FlatTree.root']
 # config.JobType.generator
 # config.JobType.inputFiles
 # config.JobType.disableAutomaticOutputCollection
@@ -41,12 +41,12 @@ config.JobType.outputFiles     = ['miniAOD2FlatTree.root']
 # Data Section: Contains all parameters related to the data to be analyzed (incl. splitting params)
 #================================================================================================
 config.section_("Data")
-config.Data.inputDataset       = dataset
-config.Data.inputDBS           = 'global' #'phys03'
-config.Data.splitting          = 'FileBased'
-config.Data.unitsPerJob        = 5
-config.Data.publication        = False
-config.Data.outLFNDirBase      = '/store/user/%s/' % (getUsernameFromSiteDB())
+config.Data.inputDataset  = dataset
+config.Data.inputDBS      = 'global' #'phys03'
+config.Data.splitting     = 'FileBased'
+config.Data.unitsPerJob   = 5
+config.Data.publication   = False
+config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
 # config.Data.allowNonValidInputDatase
 # config.Data.outputPrimaryDataset
 # config.Data.inputDBS
