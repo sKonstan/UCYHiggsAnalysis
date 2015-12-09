@@ -104,4 +104,4 @@ def writeCodeGitInfo(taskDirName, bVerbose=True):
     if(bVerbose):
         print "=== git.py:\n\t Copied %s to '%s'." % ("'" + "', '".join(gitFileList) + "'", taskDirName)
 
-    return
+    return gitFileList

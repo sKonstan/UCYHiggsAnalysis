@@ -110,7 +110,6 @@ def GetTaskDirName(datasetList, skimType, version):
     taskDirName += "_CMSSW" + version
     taskDirName += "_"  + skimType
 
-
     # Add dataset-specific info, like bunch-crossing 
     bx_re = re.compile("\S+(?P<bx>\d\dns)_\S+")
     match = bx_re.search(datasetList[0].URL)
@@ -145,12 +144,13 @@ def CreateCrabTask(taskDirName):
     os.system(cmd)
 
     # Write the commit id, "git status", "git diff" command output the directory created for the multicrab task.
-    git.writeCodeGitInfo(taskDirName, True)
-    
+    gitFileList = git.writeCodeGitInfo(taskDirName, False)
+    print "=== multicrabCreate.py:\n\t Copied %s to '%s'." % ("'" + "', '".join(gitFileList) + "'", taskDirName)
+
     return
 
 
-def GetDatasetCfgFilename(dataset):
+def GetRequestName(dataset):
     '''
     Return the file name and path to an (empty) crabConfig_*.py file where "*" 
     contains the dataset name and other information such as tune, COM, Run number etc..
@@ -164,62 +164,55 @@ def GetDatasetCfgFilename(dataset):
     datadataset_re = re.compile("^/(?P<name>\S+?)/(?P<run>Run\S+?)/")
     mcdataset_re   = re.compile("^/(?P<name>\S+?)/")
     
+    # Scan through the string 'dataset.URL' & look for any location where the compiled RE 'mcdataset_re' matches
+    match = mcdataset_re.search(dataset.URL)
     if dataset.isData():
-
-        # Scan through the string 'dataset.URL' & look for any location where the compiled RE 'datadataset_re' matches
 	match = datadataset_re.search(dataset.URL)
+    if match:
+        # Append the dataset name
+        requestName = match.group("name")
 
-        # Sanity check
-        if not match:
-            raise Exception("Unexpected error for dataset '%s'. It must either be data or MC" %dataset)
-        
         # Append the Run number (for Data samples only)
-        runAndDatasetName  = match.group("name")
-        runAndDatasetName += "_"
-        runAndDatasetName += match.group("run")
-
-        # Append the Run Range (for Data samples only)
-        runRangeMatch = runRange_re.search(dataset.lumiMask)
-	if runRangeMatch:
-	    runRange           = runRangeMatch.group("RunRange")
-	    runRange           = runRange.replace("-","_")
-	    bunchSpacing       = runRangeMatch.group("BunchSpacing")
-	    runAndDatasetName += "_"+ runRange + bunchSpacing
-            Ag                 = runRangeMatch.group("Silver") #Ag is symbol for chemical element of silver
-            if Silver == "_Silver":
-                runAndDatasetName += Ag                
-    else: #MC samples
-
-        # Scan through the string 'dataset.URL' & look for any location where the compiled RE 'mcdataset_re' matches
-        match = mcdataset_re.search(dataset.URL)
-
-        # Sanity check
-        if not match:
-            raise Exception("=== multicrabCreate.py:\n\t Unexpected error for dataset '%s'. It must either be data or MC" %dataset)
+        if dataset.isData():
+            requestName += "_"
+            requestName += match.group("run")
 
         # Append the MC-tune (for MC samples only)
-        runAndDatasetName  = match.group("name")
-        tune_match = tune_re.search(runAndDatasetName)
+        requestName = match.group("name")
+        tune_match  = tune_re.search(requestName)
         if tune_match:
-	    runAndDatasetName += tune_match.group("name")
+	    requestName = tune_match.group("name")
 
         # Append the COM Energy (for MC samples only)
-        tev_match = tev_re.search(runAndDatasetName)
+        tev_match = tev_re.search(requestName)
         if tev_match:
-            runAndDatasetName += tev_match.group("name")
+            requestName = tev_match.group("name")
+
+        # Append the Run Range (for Data samples only)
+        if dataset.isData():
+            runRangeMatch = runRange_re.search(dataset.lumiMask)
+	    if runRangeMatch:
+	        runRange           = runRangeMatch.group("RunRange")
+	        runRange           = runRange.replace("-","_")
+	        bunchSpacing       = runRangeMatch.group("BunchSpacing")
+	        requestName += "_"+ runRange + bunchSpacing
+                Ag                 = runRangeMatch.group("Silver") #Ag is symbol for chemical element of silver
+                if Silver == "_Silver":
+                    requestName += Ag                
+    else:
+        raise Exception("=== multicrabCreate.py:\n\t Unexpected error for dataset '%s'. It must either be data or MC" %dataset)
 
     # Finally, replace dashes with underscores 
-    runAndDatasetName = runAndDatasetName.replace("-","_")
-    outfilePath = os.path.join(taskDirName, "crabConfig_" + runAndDatasetName + ".py")
+    requestName = requestName.replace("-","_")
 
-    return runAndDatasetName, outfilePath
+    return requestName
 
 
-def EnsurePathDoesNotExit(taskDirName, runAndDatasetName):
+def EnsurePathDoesNotExit(taskDirName, requestName):
     '''
     Ensures that file does not already exist
     '''
-    filePath = os.path.join(taskDirName, runAndDatasetName)
+    filePath = os.path.join(taskDirName, requestName)
     
     if not os.path.exists(filePath):
         return
@@ -229,20 +222,21 @@ def EnsurePathDoesNotExit(taskDirName, runAndDatasetName):
     return
 
 
-def CreateCfgfile(taskDirName, outfilePath, infilePath = "crabConfig.py"):
+def CreateCfgFile(dataset, taskDirName, requestName, infilePath = "crabConfig.py"):
     '''
     Creates a CRAB-specific configuration file which will be used in the submission
     of a job. The function uses as input a generic cfg file which is then customised
     based on the dataset type used.
     '''
     
+    outfilePath = os.path.join(taskDirName, "crabConfig_" + requestName + ".py")
+
     # Check that file does not already exist
     EnsurePathDoesNotExit(taskDirName, outfilePath)
     
     # Open input file (read mode) and output file (write mode)
     fileIN  = open(infilePath , "r")
     fileOUT = open(outfilePath, "w")
-    print "=== multicrabCreate.py:\n\t Created CRAB cfg file \"%s\"" % (fileOUT.name)
     
     # For each CRAB cfg-file field create a compiled regular expression object 
     crab_requestName_re = re.compile( "config.General.requestName" )
@@ -269,12 +263,12 @@ def CreateCfgfile(taskDirName, outfilePath, infilePath = "crabConfig.py"):
         # Set the "requestName" field which specifies the request/task name. Used by CRAB to create a project directory (named crab_<requestName>)
         match = crab_requestName_re.search(line)
         if match:
-            line = "config.General.requestName = '" + cfgName + "'\n"
+            line = "config.General.requestName = '" + requestName + "'\n"
 
         # Set the "workArea" field which specifies the (full or relative path) where to create the CRAB project directory. 
         match = crab_workArea_re.search(line)
         if match:
-            line = "config.General.workArea = '"+taskDirName + "'\n"
+            line = "config.General.workArea = '" + taskDirName + "'\n"
 
         # Set the "psetName" field which specifies the name of the CMSSW pset_cfg.py file that will be run via cmsRun.
         match = crab_pset_re.search(line)
@@ -313,39 +307,28 @@ def CreateCfgfile(taskDirName, outfilePath, infilePath = "crabConfig.py"):
     # Close input and output files
     fileOUT.close()
     fileIN.close()
-
-    print "=== multicrabCreate.py:\n\t Finished CRAB cfg file \"%s\"" % (fileOUT.name)
+    print "=== multicrabCreate.py:\n\t Created CRAB cfg file \"%s\"" % (fileOUT.name)
 
     return
 
 
-def SubmitCrabTask(taskDirName, cfgName):
+def SubmitCrabTask(taskDirName, requestName):
     '''
     Submit a given CRAB task using the specific cfg file.
     '''
 
-    cmd_submit = "crab submit " + cfgName
+    outfilePath = os.path.join(taskDirName, "crabConfig_" + requestName + ".py")
+
+    # Submit the CRAB task
+    cmd_submit = "crab submit " + outfilePath
     print "=== multicrabCreate.py:\n\t ", cmd_submit
     os.system(cmd_submit)
-    
-    cmd_mv = "mv "+os.path.join(taskDirName,"crab_" + cfgName)+ " " + os.path.join(taskDirName, cfgName)
+
+    # Rename the CRAB task directory (remove "crab_" from its name)
+    cmd_mv = "mv " + os.path.join(taskDirName, "crab_" + requestName) + " " + os.path.join(taskDirName, requestName)
     print "=== multicrabCreate.py:\n\t ", cmd_mv
     os.system(cmd_mv)
 
-    return
-
-
-def Pause(listToPrint):
-    '''
-    '''
-
-    print "=== multicrabCreate.py:"
-    for w in listToPrint:
-        print "\t ", w
-        
-    keystroke = raw_input("Press anything but '0' to exit: ")
-    if(keystroke != "0"):
-        sys.exit(0)
     return
 
 
@@ -374,12 +357,12 @@ CreateCrabTask(taskDirName)
 for dataset in datasetList:
 
     # Create CRAB configuration file for each dataset
-    outfilePath, cfgName = GetDatasetCfgFilename(dataset)
+    requestName = GetRequestName(dataset)
     
     # Create a CRAB cfg file for each dataset
-    CreateCfgfile(taskDirName, cfgName)
+    CreateCfgFile(dataset, taskDirName, requestName)
 
     # Sumbit job for CRAB cfg file            
-    SubmitCrabTask(taskDirName, cfgName)
+    SubmitCrabTask(taskDirName, requestName)
 
     break
