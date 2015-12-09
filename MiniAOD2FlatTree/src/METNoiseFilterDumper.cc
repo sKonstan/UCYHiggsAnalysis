@@ -89,8 +89,10 @@ bool METNoiseFilterDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetu
 	// Store results
         bFilters[i] = trgResults->accept(j);
 
-	std::cout << std::setw(5) << i << std::setw(width*5) << triggerNames.triggerName(j) << std::setw(width*4)  << fFilters[i]  
-		  << std::setw(width)  << trgResults->accept(j) << std::endl;	
+	if (cfg_debugMode){ 
+	  std::cout << std::setw(5) << i << std::setw(width*5) << triggerNames.triggerName(j) << std::setw(width*4)  << fFilters[i]  
+		    << std::setw(width)  << trgResults->accept(j) << std::endl;	
+	}
       }
 
     }// for (size_t j = 0; j < trgResults->size(); ++j) {

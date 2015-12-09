@@ -77,7 +77,8 @@ def GetSkimType(PSet):
     else:
         print "=== multicrabCreate.py:\n\t Could not determine the skim type for PSet \"%s\". EXIT." % (PSet)
         sys.exit()
-        
+
+    print "=== multicrabCreate.py:\n\t Will create CRAB task using PSet \"%s\"." % (PSet)
     return skimType
 
 
@@ -87,14 +88,20 @@ def GetDatasetList(skimType):
     This will be used to setup the multicrab job accordingly.
     '''
     datasetList = []
-    
-    if skimType == "Default":
-        datasetList.extend(datasetsMiniAODv2_WJets)
+    myDatasets  = Datasets(False)
+
+    if skimType == "Default":        
+        # For-loop: All MC Datasets (MiniAOD_v2)
+        for dataset in myDatasets.McDatasets_MiniAODv2:
+            datasetList.append( myDatasets.GetDatasetObject(dataset) )
+            break
+        #datasetList.extend(datasetsMiniAODv2_WJets)
         #datasetList.extend(datasetsTauData)
     else:
         print "=== multicrabCreate.py:\n\t Unknown skim type '%s'." % (skimType), ". EXIT"
         sys.exit()
 
+    print "=== multicrabCreate.py:\n\t Creating CRAB Tasks for the following datasets:\n\t\t", "\n\t\t".join(str(d.DAS) for d in datasetList)
     return datasetList
 
     
@@ -112,7 +119,7 @@ def GetTaskDirName(datasetList, skimType, version):
 
     # Add dataset-specific info, like bunch-crossing 
     bx_re = re.compile("\S+(?P<bx>\d\dns)_\S+")
-    match = bx_re.search(datasetList[0].URL)
+    match = bx_re.search(datasetList[0].DAS)
     if match:
         taskDirName+= "_" + match.group("bx")
 
@@ -164,10 +171,10 @@ def GetRequestName(dataset):
     datadataset_re = re.compile("^/(?P<name>\S+?)/(?P<run>Run\S+?)/")
     mcdataset_re   = re.compile("^/(?P<name>\S+?)/")
     
-    # Scan through the string 'dataset.URL' & look for any location where the compiled RE 'mcdataset_re' matches
-    match = mcdataset_re.search(dataset.URL)
+    # Scan through the string 'dataset.DAS' & look for any location where the compiled RE 'mcdataset_re' matches
+    match = mcdataset_re.search(dataset.DAS)
     if dataset.isData():
-	match = datadataset_re.search(dataset.URL)
+	match = datadataset_re.search(dataset.DAS)
     if match:
         # Append the dataset name
         requestName = match.group("name")
@@ -258,7 +265,7 @@ def CreateCfgFile(dataset, taskDirName, requestName, infilePath = "crabConfig.py
         # Set the "inputDataset" field which specifies the name of the dataset. Can be official CMS dataset or a dataset produced by a user.
         match = crab_dataset_re.search(line)
         if match:
-            line = "config.Data.inputDataset = '" + dataset.URL + "'\n"
+            line = "config.Data.inputDataset = '" + dataset.DAS + "'\n"
 
         # Set the "requestName" field which specifies the request/task name. Used by CRAB to create a project directory (named crab_<requestName>)
         match = crab_requestName_re.search(line)
@@ -324,11 +331,28 @@ def SubmitCrabTask(taskDirName, requestName):
     print "=== multicrabCreate.py:\n\t ", cmd_submit
     os.system(cmd_submit)
 
+    '''
+    Removed this because I did not inform CRAB that the directories were changing path. 
+    So it gave an error when it looked for it when executing crab status
+    '''
     # Rename the CRAB task directory (remove "crab_" from its name)
-    cmd_mv = "mv " + os.path.join(taskDirName, "crab_" + requestName) + " " + os.path.join(taskDirName, requestName)
-    print "=== multicrabCreate.py:\n\t ", cmd_mv
-    os.system(cmd_mv)
+    # cmd_mv = "mv " + os.path.join(taskDirName, "crab_" + requestName) + " " + os.path.join(taskDirName, requestName)
+    # print "=== multicrabCreate.py:\n\t ", cmd_mv
+    # os.system(cmd_mv)
 
+    return
+
+def AbortCrabTask(keystroke):
+    '''
+    Give user last chance to abort CRAB task creation.
+    '''
+    message  =  "=== multicrabCreate.py:\n\t Press \"%s\" to abort, any other key to proceed: " % (keystroke)
+    response = raw_input(message)
+    if (response!= keystroke):
+        return
+    else:
+        message  =  "=== multicrabCreate.py:\n\t EXIT"
+        sys.exit()
     return
 
 
@@ -346,6 +370,9 @@ skimType = GetSkimType(PSET)
 
 # Get the datasets
 datasetList = GetDatasetList(skimType)
+
+# Give user last chance to abort
+AbortCrabTask(keystroke="q")
 
 # Get the task directory name
 taskDirName = GetTaskDirName(datasetList, skimType, version)

@@ -65,7 +65,6 @@ config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
 # config.Data.ignoreLocality
 # config.Data.userInputFiles
 
-
 #================================================================================================
 # Site Section: Contains the Grid site parameters (incl. stage out information)
 #================================================================================================

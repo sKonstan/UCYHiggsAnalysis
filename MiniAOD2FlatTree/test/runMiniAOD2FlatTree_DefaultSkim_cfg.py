@@ -232,7 +232,7 @@ process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
                                 cms.PSet(
                                     branchName = cms.untracked.string("GenWeights"),
                                     src        = cms.InputTag("generator"),
-                                    debugMode  = cms.untracked.bool(False),
+                                    debugMode  = cms.untracked.bool(bDebug),
                                     filter     = cms.untracked.bool(False)
                                 )
                             ),
@@ -268,7 +268,7 @@ process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
                                     etaCut                   = cms.untracked.double(2.5), # abs(eta) < value
                                     IPvsPVz                  = cms.untracked.double(5), # abs(IPz-PVz) < value
                                     saveOnlyChargedParticles = cms.untracked.bool(True),
-                                    debugMode                = cms.untracked.bool(False),
+                                    debugMode                = cms.untracked.bool(bDebug),
                                     )
                                 ),
 

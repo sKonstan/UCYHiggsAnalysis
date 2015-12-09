@@ -10,7 +10,11 @@ import FWCore.ParameterSet.Config as cms
 ###############################################################
 def GetEosRootFilesForDataset(dataset):
     
-    allDatasets = ["RunIISpring15DR74_ttHJetToNonbb_M125_13TeV_MINIAODSIM",
+    allDatasets = []
+    datasets_v1 = ["RunIISpring15DR74_ttHJetToNonbb_M125_13TeV_MINIAODSIM",
+                   "RunIIWinter15GS_ttHJetToNonbb_M125_13TeV_GEN-SIM"]
+
+    datasets_v2 = ["RunIISpring15DR74_ttHJetToNonbb_M125_13TeV_MINIAODSIM",
                    "RunIIWinter15GS_ttHJetToNonbb_M125_13TeV_GEN-SIM",
                    "RunIISpring15MiniAODv2_ttHJetToNonbb_M125_13TeV_MINIAODSIM",
                    "RunIISpring15MiniAODv2_TTWJetsToLNu_TuneCUETP8M1_13TeV_MINIAODSIM",
@@ -23,6 +27,9 @@ def GetEosRootFilesForDataset(dataset):
                    "RunIISpring15MiniAODv2_ST_tW_top_5f_inclusiveDecays_13TeV_MINIAODSIM",
                    "RunIISpring15MiniAODv2_ST_tW_antitop_5f_inclusiveDecays_13TeV_MINIAODSIM",
                    "RunIISpring15MiniAODv2_ST_t-channel_4f_leptonDecays_13TeV-MINIAODSIM"]
+
+    allDatasets.extend(datasets_v1)
+    allDatasets.extend(datasets_v2)
 
     # Ensure that dataset is valid/supported
     if dataset not in allDatasets:

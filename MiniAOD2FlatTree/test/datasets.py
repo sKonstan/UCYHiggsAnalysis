@@ -1,153 +1,178 @@
-# CRAB3 Advanced Tutorial (26 June 2014): https://indico.cern.ch/event/389464/
-# Running CMSSW code on the Grid using CRAB3: https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookCRAB3Tutorial
+#!/usr/bin/env python
+'''
+CRAB3 Advanced Tutorial: https://indico.cern.ch/event/389464/
+Running CMSSW on Grid for CRAB3: https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookCRAB3Tutorial
+'''
 
+#================================================================================================
+# Import modules
+#================================================================================================
+import sys
+import UCYHiggsAnalysis.MiniAOD2FlatTree.tools.datasetsHelper as datasetsHelper
+
+
+#================================================================================================
+# Global declarations
+#================================================================================================
 lumiMask50ns       = "/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/Cert_246908-255031_13TeV_PromptReco_Collisions15_50ns_JSON_v2.txt"
 lumiMask25ns       = "/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/Cert_246908-260426_13TeV_PromptReco_Collisions15_25ns_JSON.txt"
 lumiMask25nsSilver = "/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/Cert_246908-260426_13TeV_PromptReco_Collisions15_25ns_JSON_Silver.txt"
 
-class Dataset :
-    def __init__(self, url, dbs="global", dataVersion="74Xmc", lumiMask=lumiMask25ns):
-        self.URL = url
-        self.DBS = dbs
+
+#================================================================================================
+# Class  declaration
+#================================================================================================
+class Dataset:
+    def __init__(self, url, dbs="global", dataVersion="74Xmc", lumiMask=lumiMask25ns, fileList = []):
+        self.DAS         = url
+        self.DBS         = dbs
         self.dataVersion = dataVersion
-        self.lumiMask = lumiMask
+        self.lumiMask    = lumiMask
+        self.fileList    = fileList
 
     def isData(self):
+        '''
+        Tells you if dataset is real data or not (isMC).
+        '''
         if "data" in self.dataVersion:
             return True
         return False
+    
 
-datasetsTauData = []
-datasetsTauData.append( Dataset('/Tau/Run2015C-23Sep2015-v1/MINIAOD' , dataVersion="74Xdata", lumiMask=lumiMask25ns)       )
-datasetsTauData.append( Dataset('/Tau/Run2015D-PromptReco-v3/MINIAOD', dataVersion="74Xdata", lumiMask=lumiMask25ns)       )
-datasetsTauData.append( Dataset('/Tau/Run2015D-PromptReco-v4/MINIAOD', dataVersion="74Xdata", lumiMask=lumiMask25ns)       )
-datasetsTauData.append( Dataset('/Tau/Run2015D-PromptReco-v3/MINIAOD', dataVersion="74Xdata", lumiMask=lumiMask25nsSilver) )
-datasetsTauData.append( Dataset('/Tau/Run2015D-PromptReco-v4/MINIAOD', dataVersion="74Xdata", lumiMask=lumiMask25nsSilver) )
+#================================================================================================
+# Class  declaration
+#================================================================================================
+class Datasets:
+    def __init__(self, debugMode=False):
+        self.bDebugMode               = debugMode
+        self.DataDatasets_MiniAODv2   = []
+        self.McDatasets_MiniAODv2     = []
+        self.AllDatasets_MiniAODv2    = []
+        self.DatasetObjects_MiniAODv2 = []
+        self.CreateDatasets_MiniAODv2()
+        #self.CreateDatasetObjectLists()
 
-datasetsMuonData = []
-datasetsMuonData.append( Dataset('/SingleMuon/Run2015C-PromptReco-v1/MINIAOD', dataVersion="74Xdata", lumiMask=lumiMask50ns)       )
-datasetsMuonData.append( Dataset('/SingleMuon/Run2015C-PromptReco-v1/MINIAOD', dataVersion="74Xdata", lumiMask=lumiMask25ns)       )
-datasetsMuonData.append( Dataset('/SingleMuon/Run2015D-PromptReco-v3/MINIAOD', dataVersion="74Xdata", lumiMask=lumiMask25ns)       )
-datasetsMuonData.append( Dataset('/SingleMuon/Run2015D-PromptReco-v4/MINIAOD', dataVersion="74Xdata", lumiMask=lumiMask25ns)       )
-datasetsMuonData.append( Dataset('/SingleMuon/Run2015D-PromptReco-v3/MINIAOD', dataVersion="74Xdata", lumiMask=lumiMask25nsSilver) )
-datasetsMuonData.append( Dataset('/SingleMuon/Run2015D-PromptReco-v4/MINIAOD', dataVersion="74Xdata", lumiMask=lumiMask25nsSilver) )
-
-datasetsMiniAODv2_Top = []
-datasetsMiniAODv2_Top.append( Dataset('/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v3/MINIAODSIM')                         )
-datasetsMiniAODv2_Top.append( Dataset('/ST_tW_antitop_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM')     )
-datasetsMiniAODv2_Top.append( Dataset('/ST_tW_top_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v2/MINIAODSIM')         )
-datasetsMiniAODv2_Top.append( Dataset('/ST_t-channel_top_4f_leptonDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM')     )
-datasetsMiniAODv2_Top.append( Dataset('/ST_t-channel_antitop_4f_leptonDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM') )
-datasetsMiniAODv2_Top.append( Dataset('/ST_s-channel_4f_leptonDecays_13TeV-amcatnlo-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM')       )
-                            
-datasetsMiniAODv2_DY = []
-datasetsMiniAODv2_DY.append( Dataset('/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM')        )
-datasetsMiniAODv2_DY.append( Dataset('/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM')            )
-datasetsMiniAODv2_DY.append( Dataset('/DYJetsToLL_M-50_HT-100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM') )
-datasetsMiniAODv2_DY.append( Dataset('/DYJetsToLL_M-50_HT-200to400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM') )
-datasetsMiniAODv2_DY.append( Dataset('/DYJetsToLL_M-50_HT-400to600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v2/MINIAODSIM') )
-datasetsMiniAODv2_DY.append( Dataset('/DYJetsToLL_M-50_HT-600toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM') )
-
-datasetsMiniAODv1_H125 = []
-datasetsMiniAODv1_H125.append( Dataset('/GluGluHToTauTau_M125_13TeV_powheg_pythia8/manzoni-RunIISpring15DR74-AsymptFlat10to50bx25Raw_MCRUN2_74_V9-v1_25ns14e33_HLT_v4p0_L1_v5_1oct15-9aee7f6aa9ee774a3ecb4dd6367feac8/USER', dbs='phys03') )
-
-datasetsMiniAODv2_H125 = []
-datasetsMiniAODv2_H125.append( Dataset('/GluGluHToTauTau_M125_13TeV_powheg_pythia8/bluj-crab_GGHToTauTau_HLTfrozen2015-25ns14e33-v4p4-v2_MiniAODv2_v1-096c4eb4d31e5f979893d55253665f08/USER', dbs='phys03') )
-
-datasetsMiniAODv2_Diboson = []
-datasetsMiniAODv2_Diboson.append( Dataset('/WW_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM') )
-datasetsMiniAODv2_Diboson.append( Dataset('/WZ_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM') )
-datasetsMiniAODv2_Diboson.append( Dataset('/ZZ_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM') )
-
-datasetsMiniAODv2_WJets = []                                                           
-datasetsMiniAODv2_WJets.append( Dataset('/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM')              )
-datasetsMiniAODv2_WJets.append( Dataset('/WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM')   )
-datasetsMiniAODv2_WJets.append( Dataset('/WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM')   )
-datasetsMiniAODv2_WJets.append( Dataset('/WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM')   )
-datasetsMiniAODv2_WJets.append( Dataset('/WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM')   )
-datasetsMiniAODv2_WJets.append( Dataset('/WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM')  )
-datasetsMiniAODv2_WJets.append( Dataset('/WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM') )
-datasetsMiniAODv2_WJets.append( Dataset('/WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM')  )
-                                                                                                                                                    
-datasetsMiniAODv2_QCD = []
-datasetsMiniAODv2_QCD.append( Dataset('/QCD_Pt_30to50_TuneCUETP8M1_13TeV_pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM')     )
-datasetsMiniAODv2_QCD.append( Dataset('/QCD_Pt_50to80_TuneCUETP8M1_13TeV_pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM')     )
-datasetsMiniAODv2_QCD.append( Dataset('/QCD_Pt_80to120_TuneCUETP8M1_13TeV_pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM')    )
-datasetsMiniAODv2_QCD.append( Dataset('/QCD_Pt_120to170_TuneCUETP8M1_13TeV_pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM')   )
-datasetsMiniAODv2_QCD.append( Dataset('/QCD_Pt_170to300_TuneCUETP8M1_13TeV_pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM')   )
-datasetsMiniAODv2_QCD.append( Dataset('/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM')   )
-datasetsMiniAODv2_QCD.append( Dataset('/QCD_Pt_470to600_TuneCUETP8M1_13TeV_pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM')   )
-datasetsMiniAODv2_QCD.append( Dataset('/QCD_Pt_600to800_TuneCUETP8M1_13TeV_pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM')   )
-datasetsMiniAODv2_QCD.append( Dataset('/QCD_Pt_800to1000_TuneCUETP8M1_13TeV_pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM')  )
-datasetsMiniAODv2_QCD.append( Dataset('/QCD_Pt_1000to1400_TuneCUETP8M1_13TeV_pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM') )
-datasetsMiniAODv2_QCD.append( Dataset('/QCD_Pt_1400to1800_TuneCUETP8M1_13TeV_pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM') )
-datasetsMiniAODv2_QCD.append( Dataset('/QCD_Pt_1800to2400_TuneCUETP8M1_13TeV_pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM') )
-datasetsMiniAODv2_QCD.append( Dataset('/QCD_Pt_2400to3200_TuneCUETP8M1_13TeV_pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM') )
-datasetsMiniAODv2_QCD.append( Dataset('/QCD_Pt_3200toInf_TuneCUETP8M1_13TeV_pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM')  )
-                                                                                                                                                    
-datasetsMiniAODv2_QCDMuEnriched = []
-datasetsMiniAODv2_QCDMuEnriched.append( Dataset('/QCD_Pt-50to80_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM')   )
-datasetsMiniAODv2_QCDMuEnriched.append( Dataset('/QCD_Pt-80to120_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM')  )
-datasetsMiniAODv2_QCDMuEnriched.append( Dataset('/QCD_Pt-120to170_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM') )
-datasetsMiniAODv2_QCDMuEnriched.append( Dataset('/QCD_Pt-170to300_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM') )
-datasetsMiniAODv2_QCDMuEnriched.append( Dataset('/QCD_Pt-300to470_MuEnrichedPt5_TuneCUETP8M1_13TeV_pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM') )
-                                                                                                                                                                                  
-datasets25ns = []
-datasets25ns.append( Dataset('/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/MINIAODSIM'))
-
-datasets25ns.append( Dataset('/ST_tW_antitop_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/MINIAODSIM')     )
-datasets25ns.append( Dataset('/ST_tW_top_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/MINIAODSIM' )        )
-datasets25ns.append( Dataset('/ST_t-channel_top_4f_leptonDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/MINIAODSIM')     )
-datasets25ns.append( Dataset('/ST_t-channel_antitop_4f_leptonDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/MINIAODSIM') )
-datasets25ns.append( Dataset('/ST_s-channel_4f_leptonDecays_13TeV-amcatnlo-pythia8_TuneCUETP8M1/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/MINIAODSIM')       )
-
-datasets25ns.append( Dataset('/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/MINIAODSIM') )
-datasets25ns.append( Dataset('/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v3/MINIAODSIM')     )
-
-datasets25ns.append( Dataset('/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/MINIAODSIM')              )
-datasets25ns.append( Dataset('/WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/MINIAODSIM')   )
-datasets25ns.append( Dataset('/WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/MINIAODSIM')   )
-datasets25ns.append( Dataset('/WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v3/MINIAODSIM')   )
-datasets25ns.append( Dataset('/WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v2/MINIAODSIM')   )
-datasets25ns.append( Dataset('/WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/MINIAODSIM')  )
-datasets25ns.append( Dataset('/WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/MINIAODSIM') )
-datasets25ns.append( Dataset('/WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v2/MINIAODSIM')  )
-
-datasets25ns.append( Dataset('/WW_TuneCUETP8M1_13TeV-pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/MINIAODSIM') )
-datasets25ns.append( Dataset('/WZ_TuneCUETP8M1_13TeV-pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/MINIAODSIM') )
-datasets25ns.append( Dataset('/ZZ_TuneCUETP8M1_13TeV-pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v3/MINIAODSIM') )
-
-datasets25ns.append( Dataset('/QCD_Pt_30to50_TuneCUETP8M1_13TeV_pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v2/MINIAODSIM')     )
-datasets25ns.append( Dataset('/QCD_Pt_50to80_TuneCUETP8M1_13TeV_pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v2/MINIAODSIM')     )
-datasets25ns.append( Dataset('/QCD_Pt_80to120_TuneCUETP8M1_13TeV_pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/MINIAODSIM')    )
-datasets25ns.append( Dataset('/QCD_Pt_120to170_TuneCUETP8M1_13TeV_pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/MINIAODSIM')   )
-datasets25ns.append( Dataset('/QCD_Pt_170to300_TuneCUETP8M1_13TeV_pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v2/MINIAODSIM')   )
-datasets25ns.append( Dataset('/QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/MINIAODSIM')   )
-datasets25ns.append( Dataset('/QCD_Pt_470to600_TuneCUETP8M1_13TeV_pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v2/MINIAODSIM')   )
-datasets25ns.append( Dataset('/QCD_Pt_600to800_TuneCUETP8M1_13TeV_pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v3/MINIAODSIM')   )
-datasets25ns.append( Dataset('/QCD_Pt_800to1000_TuneCUETP8M1_13TeV_pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v2/MINIAODSIM')  )
-datasets25ns.append( Dataset('/QCD_Pt_1000to1400_TuneCUETP8M1_13TeV_pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/MINIAODSIM') )
-datasets25ns.append( Dataset('/QCD_Pt_1400to1800_TuneCUETP8M1_13TeV_pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/MINIAODSIM') )
-datasets25ns.append( Dataset('/QCD_Pt_1800to2400_TuneCUETP8M1_13TeV_pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/MINIAODSIM') )
-datasets25ns.append( Dataset('/QCD_Pt_2400to3200_TuneCUETP8M1_13TeV_pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/MINIAODSIM') )
-datasets25ns.append( Dataset('/QCD_Pt_3200toInf_TuneCUETP8M1_13TeV_pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/MINIAODSIM')  )
-
-datasets25nsTau = []
-datasets25nsTau.append( Dataset('/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v1/MINIAODSIM') )
-datasets25nsTau.append( Dataset('/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v3/MINIAODSIM')     )
-
-datasets25nsTau.append( Dataset('/TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v2/MINIAODSIM') )
-datasets25nsTau.append( Dataset('/GluGluHToTauTau_M125_13TeV_powheg_pythia8/manzoni-RunIISpring15DR74-AsymptFlat10to50bx25Raw_MCRUN2_74_V9-v1_25ns14e33_HLT_v4p0_L1_v5_1oct15-9aee7f6aa9ee774a3ecb4dd6367feac8/USER', dbs='phys03') )
+    def DebugMode(self, messageList=None):
+        '''
+        Custome made verbose system. Will print all messages in the messageList
+        only if the verbosity boolean is set to true.
+        '''
+        if self.bDebugMode == False:
+            return
+        
+        print "%s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+        if messageList==None:
+            return
+        else:
+            for message in messageList:
+                print "\t", message
+        return
 
 
-datasets50ns = []
-datasets50ns.append( Dataset('/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v1/MINIAODSIM') )
+    def Print(self, messageList=[""]):
+        '''
+        Custome made print system. Will print all messages in the messageList
+        even if the verbosity boolean is set to false.
+        '''
 
-datasets50ns.append( Dataset('/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v1/MINIAODSIM') )
-datasets50ns.append( Dataset('/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v2/MINIAODSIM')     )
+        self.MsgCounter = self.MsgCounter  + 1
+        print "[%s] %s:" % (self.MsgCounter, self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+        for message in messageList:
+            print "\t", message
+        return
 
-datasets50ns.append( Dataset('/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v1/MINIAODSIM') )
 
-datasets50ns.append( Dataset('/WW_TuneCUETP8M1_13TeV-pythia8/RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v1/MINIAODSIM') )
-datasets50ns.append( Dataset('/WZ_TuneCUETP8M1_13TeV-pythia8/RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v2/MINIAODSIM') )
-datasets50ns.append( Dataset('/ZZ_TuneCUETP8M1_13TeV-pythia8/RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v2/MINIAODSIM') )
+    def CreateDatasets_MiniAODv2(self):
+        '''
+        Create all Dataset objects for the MiniAODv2 version and save them all in a deducated list.
+        '''
+        self.DebugMode()
+
+        self.DataDatasets_MiniAODv2 = []
+        self.McDatasets_MiniAODv2   = [
+            '/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v3/MINIAODSIM'                        ,
+            '/ST_tW_antitop_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'    ,
+            '/ST_tW_top_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v2/MINIAODSIM'        ,
+            '/ST_t-channel_top_4f_leptonDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'    ,
+            '/ST_t-channel_antitop_4f_leptonDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
+            '/ST_s-channel_4f_leptonDecays_13TeV-amcatnlo-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'      ,
+            '/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'       ,
+            '/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'           ,
+            '/DYJetsToLL_M-50_HT-100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
+            '/DYJetsToLL_M-50_HT-200to400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
+            '/DYJetsToLL_M-50_HT-400to600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v2/MINIAODSIM',
+            '/DYJetsToLL_M-50_HT-600toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
+            '/WW_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
+            '/WZ_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
+            '/ZZ_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
+            '/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'             ,
+            '/WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'  ,
+            '/WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'  ,
+            '/WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'  ,
+            '/WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'  ,
+            '/WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM' ,
+            '/WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
+            '/WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM' ,
+            ]           
+
+        # Merge MC and Data Dataset lists
+        self.AllDatasets_MiniAODv2.extend(self.McDatasets_MiniAODv2)
+        self.AllDatasets_MiniAODv2.extend(self.DataDatasets_MiniAODv2)
+
+        # For-loop: All MC datasets
+        for dataset in self.McDatasets_MiniAODv2:
+            self.DatasetObjects_MiniAODv2.append( Dataset( dataset) )
+
+        # For-loop: All Data datasets
+        for dataset in self.DataDatasets_MiniAODv2:
+            self.Print(["This is still under construction. Need to decide how to assign lumiMask to each dataset. EXIT"])
+            exit(0)
+            self.DatasetObjects_MiniAODv2.append( Dataset( dataset, dataVersion="74Xdata", lumiMask=lumiMask25ns) )
+            self.DatasetObjects_MiniAODv2.append( Dataset( dataset, dataVersion="74Xdata", lumiMask=lumiMask25nsSilver) )
+            self.DatasetObjects_MiniAODv2.append( Dataset( dataset, dataVersion="74Xdata", lumiMask=lumiMask25nsSilver) )
+        return
+
+
+    def GetDatasetObject(self, dataset):
+        '''
+        '''
+        self.DebugMode()
+
+        for d in self.DatasetObjects_MiniAODv2:
+            if d.DAS == dataset:
+                return d
+        raise Exception("The dataset '%s' is not valid. Please select one of the following options:\n\t%s" % (dataset, "\n\t".join(self.AllDatasets_MiniAODv2)) )
+    
+
+#    def CreateDatasetObjectLists(self):
+#        '''
+#        '''
+#        self.DebugMode()
+#        
+#        self.McDatasets_MiniAODv2_Top.append(GetDatasetObject('/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v3/MINIAODSIM'                        ) )
+#        self.McDatasets_MiniAODv2_Top.append(GetDatasetObject('/ST_tW_antitop_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'    ) )
+#        self.McDatasets_MiniAODv2_Top.append(GetDatasetObject('/ST_tW_top_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v2/MINIAODSIM'        ) )
+#        self.McDatasets_MiniAODv2_Top.append(GetDatasetObject('/ST_t-channel_top_4f_leptonDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'    ) )
+#        self.McDatasets_MiniAODv2_Top.append(GetDatasetObject('/ST_t-channel_antitop_4f_leptonDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM') )
+#        self.McDatasets_MiniAODv2_Top.append(GetDatasetObject('/ST_s-channel_4f_leptonDecays_13TeV-amcatnlo-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'      ) )
+#
+#        
+#            GetDatasetObject('/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'       ) )
+#            GetDatasetObject('/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'           ) )
+#            GetDatasetObject('/DYJetsToLL_M-50_HT-100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM') )
+#            GetDatasetObject('/DYJetsToLL_M-50_HT-200to400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM') )
+#            GetDatasetObject('/DYJetsToLL_M-50_HT-400to600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v2/MINIAODSIM') )
+#            GetDatasetObject('/DYJetsToLL_M-50_HT-600toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM') )
+#            GetDatasetObject('/WW_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM') )
+#            GetDatasetObject('/WZ_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM') )
+#            GetDatasetObject('/ZZ_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM') )
+#            GetDatasetObject('/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'             ) )
+#            GetDatasetObject('/WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'  ) )
+#            GetDatasetObject('/WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'  ) )
+#            GetDatasetObject('/WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'  ) )
+#            GetDatasetObject('/WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'  ) )
+#            GetDatasetObject('/WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM' ) )
+#            GetDatasetObject('/WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM') )
+#            GetDatasetObject('/WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM' ) )
+#
+#        return
