@@ -13,6 +13,8 @@ bDebug       = False
 bSummary     = False
 bDependencies= False
 
+bRunSkim     = True
+bRunPileup   = True
 dataVersion  = "74Xmc" #"74Xdata"
 dataset      = "RunIISpring15MiniAODv2_ttHJetToNonbb_M125_13TeV_MINIAODSIM"
 iMaxEvents   = 1000 #10000
@@ -71,7 +73,8 @@ print "=== runMiniAOD2FlatTree_cfg.py:\n\t GlobalTag = \"%s\"" % (dataVersion.ge
 #================================================================================================
 # Set up Flat-Tree dumper
 #================================================================================================
-process.load("UCYHiggsAnalysis/MiniAOD2FlatTree/PUInfo_cfi")
+if(bRunPileup):
+    process.load("UCYHiggsAnalysis/MiniAOD2FlatTree/PUInfo_cfi")
 process.load("UCYHiggsAnalysis/MiniAOD2FlatTree/Tau_cfi")
 process.load("UCYHiggsAnalysis/MiniAOD2FlatTree/Electron_cfi")
 process.load("UCYHiggsAnalysis/MiniAOD2FlatTree/Muon_cfi")
@@ -266,7 +269,7 @@ process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
                                     OfflinePrimaryVertexSrc  = cms.InputTag("offlineSlimmedPrimaryVertices"),
                                     ptCut                    = cms.untracked.double(0.0), # pt < value [GeV/c]
                                     etaCut                   = cms.untracked.double(2.5), # abs(eta) < value
-                                    IPvsPVz                  = cms.untracked.double(5), # abs(IPz-PVz) < value
+                                    IPvsPVz                  = cms.untracked.double(5),   # abs(IPz-PVz) < value
                                     saveOnlyChargedParticles = cms.untracked.bool(True),
                                     debugMode                = cms.untracked.bool(bDebug),
                                     )
@@ -284,6 +287,15 @@ process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
 
 
 #================================================================================================
+# Setup skim counters
+#================================================================================================ 
+if (bRunSkim):
+    process.load("UCYHiggsAnalysis.MiniAOD2FlatTree.DefaultSkim_cfi")
+    process.skimCounterAll    = cms.EDProducer("EventCountProducer")
+    process.skimCounterPassed = cms.EDProducer("EventCountProducer")
+
+
+#================================================================================================
 # Setup customizations
 #================================================================================================
 from UCYHiggsAnalysis.MiniAOD2FlatTree.CommonFragments import produceCustomisations
@@ -293,7 +305,19 @@ produceCustomisations(process) # This produces process.CustomisationsSequence wh
 #===============================================================================================
 # Module Execution
 #================================================================================================
-process.runEDFilter = cms.Path(process.CustomisationsSequence * process.dump)
+#process.runEDFilter = cms.Path(process.CustomisationsSequence * process.dump) #original (works!)
+
+#if (bRunSkim):
+#    process.runEDFilter = cms.Path(process.PUInfo * process.skimCounterAll * process.skim * process.skimCounterPassed * process.CustomisationsSequence * process.dump)
+#if(bRunPileup*):
+#    process.runEDFilter = cms.Path(process.PUInfo * process.skimCounterAll * process.skim * process.skimCounterPassed * process.CustomisationsSequence * process.dump)
+#else:
+#    process.runEDFilter = cms.Path(process.PUInfo * process.skimCounterAll * process.skimCounterPassed * process.CustomisationsSequence * process.dump)
+
+process.runEDFilter = cms.Path(process.PUInfo * process.skimCounterAll * process.skim * process.skimCounterPassed * process.CustomisationsSequence * process.dump)
+
+
+#process.runEDFilter = cms.Path(process.PUInfo * process.skimCounterAll * process.skim * process.skimCounterPassed * process.CustomisationsSequence * process.dump)
 
 
 #===============================================================================================
