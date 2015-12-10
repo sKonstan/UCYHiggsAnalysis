@@ -9,15 +9,15 @@ from UCYHiggsAnalysis.MiniAOD2FlatTree.tools.dataOptions import getOptionsDataVe
 #================================================================================================
 # Options
 #================================================================================================
-bDebug       = False
-bSummary     = False
-bDependencies= False
+bDebug           = False #Default is "False"
+bSummary         = False #Default is "False"
+bDependencies    = False #Default is "False" 
+bDumpCollections = False #Default is "False"
 
-bRunSkim     = True
-bRunPileup   = True
+skimType     = "DefaultSkim" #None #"Trigger"
 dataVersion  = "74Xmc" #"74Xdata"
 dataset      = "RunIISpring15MiniAODv2_ttHJetToNonbb_M125_13TeV_MINIAODSIM"
-iMaxEvents   = 100 #10000
+iMaxEvents   = 1000 #10000
 iReportEvery = 10
 
 
@@ -73,13 +73,12 @@ print "=== runMiniAOD2FlatTree_cfg.py:\n\t GlobalTag = \"%s\"" % (dataVersion.ge
 #================================================================================================
 # Set up Flat-Tree dumper
 #================================================================================================
-if(bRunPileup):
-    process.load("UCYHiggsAnalysis/MiniAOD2FlatTree/PUInfo_cfi")
-process.load("UCYHiggsAnalysis/MiniAOD2FlatTree/Tau_cfi")
 process.load("UCYHiggsAnalysis/MiniAOD2FlatTree/Electron_cfi")
-process.load("UCYHiggsAnalysis/MiniAOD2FlatTree/Muon_cfi")
 process.load("UCYHiggsAnalysis/MiniAOD2FlatTree/Jet_cfi")
 process.load("UCYHiggsAnalysis/MiniAOD2FlatTree/MET_cfi")
+process.load("UCYHiggsAnalysis/MiniAOD2FlatTree/Muon_cfi")
+process.load("UCYHiggsAnalysis/MiniAOD2FlatTree/PUInfo_cfi") 
+process.load("UCYHiggsAnalysis/MiniAOD2FlatTree/Tau_cfi")
 
 ### Fixme
 TrgResultsSource = "TriggerResults::PAT"
@@ -112,95 +111,26 @@ process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
                             Trigger = cms.PSet(
 	                        TriggerResults = cms.InputTag("TriggerResults::HLT"),
 	                        TriggerBits    = cms.vstring(
-                                    "HLT_LooseIsoPFTau50_Trk30_eta2p1_MET80_v",
-                                    "HLT_LooseIsoPFTau50_Trk30_eta2p1_MET80_JetIdCleaned_v",
-                                    "HLT_DoubleEle24_22_eta2p1_WPLoose_Gsf_v",
-                                    "HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_MW_v",
-                                    "HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_v",
-                                    "HLT_DoubleMu33NoFiltersNoVtx_v",
-                                    "HLT_DoubleMu38NoFiltersNoVtx_v",
-                                    "HLT_Ele22_eta2p1_WPLoose_Gsf_v",
                                     "HLT_Ele22_eta2p1_WPTight_Gsf_v",
                                     "HLT_Ele22_eta2p1_WP75_Gsf_v",
-                                    "HLT_Ele23_WPLoose_Gsf_v",
-                                    "HLT_Ele23_WP75_Gsf_v",
-                                    "HLT_Ele27_eta2p1_WP75_Gsf_v",
-                                    "HLT_Ele27_eta2p1_WPLoose_Gsf_CentralPFJet30_BTagCSV07_v",
-                                    "HLT_Ele27_eta2p1_WPLoose_Gsf_v",
-                                    "HLT_Ele27_eta2p1_WPTight_Gsf_v",
-                                    "HLT_Ele32_eta2p1_WPLoose_Gsf_CentralPFJet30_BTagCSV07_v",
-                                    "HLT_Ele32_eta2p1_WPLoose_Gsf_v",
-                                    "HLT_Ele32_eta2p1_WPTight_Gsf_v",
-                                    "HLT_Ele105_CaloIdVT_GsfTrkIdT_v",
-                                    "HLT_Ele115_CaloIdVT_GsfTrkIdT_v",
+                                    "HLT_Ele22_eta2p1_WPLoose_Gsf_v",
                                     "HLT_IsoMu17_eta2p1_v",
-                                    "HLT_DoubleIsoMu17_eta2p1_v",
                                     "HLT_IsoMu18_v",
-                                    "HLT_IsoMu20_eta2p1_CentralPFJet30_BTagCSV07_v",
                                     "HLT_IsoMu20_v",
                                     "HLT_IsoMu20_eta2p1_v",
-                                    "HLT_IsoMu24_eta2p1_CentralPFJet30_BTagCSV07_v",
-                                    "HLT_IsoMu24_eta2p1_v",
-                                    "HLT_IsoMu27_v",
-                                    "HLT_IsoTkMu20_v",
-                                    "HLT_IsoTkMu20_eta2p1_v",
-                                    "HLT_IsoTkMu24_eta2p1_v",
-                                    "HLT_IsoTkMu27_v",
-                                    "HLT_Mu17_Mu8_v",
-                                    "HLT_Mu17_Mu8_DZ_v",
-                                    "HLT_Mu17_Mu8_SameSign_DZ_v",
-                                    "HLT_Mu20_Mu10_v",
-                                    "HLT_Mu20_Mu10_DZ_v",
-                                    "HLT_Mu20_Mu10_SameSign_DZ_v",
-                                    "HLT_Mu17_TkMu8_DZ_v",
-                                    "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v",
-                                    "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",
-                                    "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v",
-                                    "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",
-                                    "HLT_Mu27_TkMu8_v",
-                                    "HLT_Mu30_TkMu11_v",
-                                    "HLT_Mu40_TkMu11_v",
-                                    "HLT_Mu20_v",
-                                    "HLT_TkMu20_v",
-                                    "HLT_Mu24_eta2p1_v",
-                                    "HLT_TkMu24_eta2p1_v",
-                                    "HLT_Mu27_v",
-                                    "HLT_TkMu27_v",
-                                    "HLT_Mu50_v",
-                                    "HLT_Mu55_v",
-                                    "HLT_Mu45_eta2p1_v",
-                                    "HLT_Mu50_eta2p1_v",
-                                    "HLT_Mu8_TrkIsoVVL_v",
-                                    "HLT_Mu17_TrkIsoVVL_v",
-                                    "HLT_Mu24_TrkIsoVVL_v",
-                                    "HLT_Mu34_TrkIsoVVL_v",
-                                    "HLT_Ele12_CaloIdL_TrackIdL_IsoVL_PFJet30_v",
-                                    "HLT_Ele18_CaloIdL_TrackIdL_IsoVL_PFJet30_v",
-                                    "HLT_Ele23_CaloIdL_TrackIdL_IsoVL_PFJet30_v",
-                                    "HLT_Ele33_CaloIdL_TrackIdL_IsoVL_PFJet30_v",
-                                    "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",
-                                    "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",
-                                    "HLT_Ele16_Ele12_Ele8_CaloIdL_TrackIdL_v",
-                                    "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v",
-                                    "HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v",
-                                    "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",
-                                    "HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",
-                                    "HLT_Mu30_Ele30_CaloIdL_GsfTrkIdVL_v",
-                                    "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_v",
-                                    "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_v",
-                                    "HLT_Ele17_CaloIdL_TrackIdL_IsoVL_v",
-                                    "HLT_Ele23_CaloIdL_TrackIdL_IsoVL_v",
-                                    "HLT_Ele12_CaloIdL_TrackIdL_IsoVL_v",
                                     "HLT_Mu8_v",
                                     "HLT_Mu17_v",
                                     "HLT_Mu24_v",
                                     "HLT_Mu34_v",
-                                    "HLT_Ele8_CaloIdM_TrackIdM_PFJet30_v",
-                                    "HLT_Ele12_CaloIdM_TrackIdM_PFJet30_v",
-                                    "HLT_Ele18_CaloIdM_TrackIdM_PFJet30_v",
-                                    "HLT_Ele23_CaloIdM_TrackIdM_PFJet30_v",
-                                    "HLT_Ele33_CaloIdM_TrackIdM_PFJet30_v",
-                                ),
+                                    "HLT_Dimuon13_PsiPrime_v",
+                                    "HLT_Dimuon13_Upsilon_v",
+                                    "HLT_Dimuon20_Jpsi_v",
+                                    "HLT_Dimuon16_Jpsi_v",
+                                    "HLT_Dimuon10_Jpsi_Barrel_v",
+                                    "HLT_Dimuon8_PsiPrime_Barrel_v",
+                                    "HLT_Dimuon8_Upsilon_Barrel_v",
+                                    "HLT_Dimuon0_Phi_Barrel_v",
+                                    ),
 	                        L1Extra        = cms.InputTag("l1extraParticles:MET"),
 	                        TriggerObjects = cms.InputTag("selectedPatTrigger"),
                                 TriggerMatch   = cms.untracked.vstring(
@@ -289,41 +219,35 @@ process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
 #================================================================================================
 # Setup skim counters
 #================================================================================================ 
-if (bRunSkim):
-    process.load("UCYHiggsAnalysis.MiniAOD2FlatTree.DefaultSkim_cfi")
-    process.skimCounterAll    = cms.EDProducer("EventCountProducer")
-    process.skimCounterPassed = cms.EDProducer("EventCountProducer")
+if (skimType != None):
+    process.load("UCYHiggsAnalysis.MiniAOD2FlatTree.%s_cfi" % (skimType))
+process.skimCounterAll    = cms.EDProducer("EventCountProducer")
+process.skimCounterPassed = cms.EDProducer("EventCountProducer")
 
 
 #================================================================================================
-# Setup customizations
+# Setup customizations (produces process.CustomisationsSequence which needs to be included to path)
 #================================================================================================
 from UCYHiggsAnalysis.MiniAOD2FlatTree.CommonFragments import produceCustomisations
-produceCustomisations(process) # This produces process.CustomisationsSequence which needs to be included to path
+produceCustomisations(process)
 
 
 #===============================================================================================
 # Module Execution
 #================================================================================================
-#process.runEDFilter = cms.Path(process.CustomisationsSequence * process.dump) #original (works!)
-
-#if (bRunSkim):
-#    process.runEDFilter = cms.Path(process.PUInfo * process.skimCounterAll * process.skim * process.skimCounterPassed * process.CustomisationsSequence * process.dump)
-#if(bRunPileup*):
-#    process.runEDFilter = cms.Path(process.PUInfo * process.skimCounterAll * process.skim * process.skimCounterPassed * process.CustomisationsSequence * process.dump)
-#else:
-#    process.runEDFilter = cms.Path(process.PUInfo * process.skimCounterAll * process.skimCounterPassed * process.CustomisationsSequence * process.dump)
-process.runEDFilter = cms.Path(process.PUInfo * process.skimCounterAll * process.skim * process.skimCounterPassed * process.CustomisationsSequence * process.dump)
+if (skimType == "Trigger"):
+    process.runEDFilter = cms.Path(process.PUInfo * process.skimCounterAll * process.skim * process.skimCounterPassed * process.CustomisationsSequence * process.dump)
+else:
+    process.runEDFilter = cms.Path(process.CustomisationsSequence * process.dump)
 
 
 #===============================================================================================
 # Dumps all the collections stored
 # [EndPath defines group of modules which are to run after all other labelled Paths have been run]
 #================================================================================================ 
-#process.output = cms.OutputModule("PoolOutputModule",
-#   outputCommands = cms.untracked.vstring(
-#       "keep *",
-#   ),
-#   fileName = cms.untracked.string("miniAOD.root")
-#)
-#process.out_step = cms.EndPath(process.output)
+if (bDumpCollections):
+    process.output = cms.OutputModule("PoolOutputModule",
+                                      outputCommands = cms.untracked.vstring("keep *", ),
+                                      fileName       = cms.untracked.string("miniAOD.root")
+                                      )
+    process.out_step = cms.EndPath(process.output)
