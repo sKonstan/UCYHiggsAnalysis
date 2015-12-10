@@ -17,7 +17,7 @@ bRunSkim     = True
 bRunPileup   = True
 dataVersion  = "74Xmc" #"74Xdata"
 dataset      = "RunIISpring15MiniAODv2_ttHJetToNonbb_M125_13TeV_MINIAODSIM"
-iMaxEvents   = 1000 #10000
+iMaxEvents   = 100 #10000
 iReportEvery = 10
 
 
@@ -313,11 +313,7 @@ produceCustomisations(process) # This produces process.CustomisationsSequence wh
 #    process.runEDFilter = cms.Path(process.PUInfo * process.skimCounterAll * process.skim * process.skimCounterPassed * process.CustomisationsSequence * process.dump)
 #else:
 #    process.runEDFilter = cms.Path(process.PUInfo * process.skimCounterAll * process.skimCounterPassed * process.CustomisationsSequence * process.dump)
-
 process.runEDFilter = cms.Path(process.PUInfo * process.skimCounterAll * process.skim * process.skimCounterPassed * process.CustomisationsSequence * process.dump)
-
-
-#process.runEDFilter = cms.Path(process.PUInfo * process.skimCounterAll * process.skim * process.skimCounterPassed * process.CustomisationsSequence * process.dump)
 
 
 #===============================================================================================

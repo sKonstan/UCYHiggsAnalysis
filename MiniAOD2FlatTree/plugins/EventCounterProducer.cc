@@ -1,6 +1,15 @@
-// -*- C++ -*-
-// Description: An event counter that stores the sum of positive and negative events counts into the lumi block
-// Modified from CommonTools/​UtilAlgos/​plugins/​EventCountProducer.cc
+/** \class EventCountProducer
+ *
+ * 
+ * An event counter that stores the sum of positive
+ * and negative events counts into the lumi block
+ * 
+ * \original author Sami Lehti  -  HIP Helsinki
+ * \editor Alexandros Attikis   -  UCY
+ * 
+ * 
+ * Modified from CommonTools/​UtilAlgos/​plugins/​EventCountProducer.cc
+ */
 
 #include <memory>
 #include <vector>
