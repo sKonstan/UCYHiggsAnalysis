@@ -17,7 +17,17 @@ bDumpCollections = False #Default is "False"
 skimType     = "DefaultSkim" #None #"Trigger"
 dataVersion  = "74Xmc" #"74Xdata"
 dataset      = "RunIISpring15MiniAODv2_ttHJetToNonbb_M125_13TeV_MINIAODSIM"
-iMaxEvents   = 1000 #10000
+# dataset      = "RunIISpring15MiniAODv2_TTWJetsToLNu_TuneCUETP8M1_13TeV_MINIAODSIM"
+# dataset      = "RunIISpring15MiniAODv2_TTZToLLNuNu_M-10_TuneCUETP8M1_13TeV_MINIAODSIM"
+# dataset      = "RunIISpring15MiniAODv2_TTJets_TuneCUETP8M1_13TeV_MINIAODSIM"
+# dataset      = "RunIISpring15MiniAODv2_DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV_MINIAODSIM"
+# dataset      = "RunIISpring15MiniAODv2_DYJetsToLL_M-50_TuneCUETP8M1_13TeV_MINIAODSIM"
+# dataset      = "RunIISpring15MiniAODv2_ZZ_TuneCUETP8M1_13TeV_MINIAODSIM"
+# dataset      = "RunIISpring15MiniAODv2_WZ_TuneCUETP8M1_13TeV_MINIAODSIM"
+# dataset      = "RunIISpring15MiniAODv2_ST_tW_top_5f_inclusiveDecays_13TeV_MINIAODSIM"
+# dataset      = "RunIISpring15MiniAODv2_ST_tW_antitop_5f_inclusiveDecays_13TeV_MINIAODSIM"
+# dataset      = "RunIISpring15MiniAODv2_ST_s-channel_4f_leptonDecays_13TeV-MINIAODSIM"
+iMaxEvents   = 5000 #10000
 iReportEvery = 10
 
 

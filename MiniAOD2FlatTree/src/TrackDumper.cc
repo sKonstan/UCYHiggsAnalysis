@@ -9,7 +9,7 @@ TrackDumper::TrackDumper(edm::ConsumesCollector&& iConsumesCollector, std::vecto
   eta   = new std::vector<double>[inputCollections.size()];    
   phi   = new std::vector<double>[inputCollections.size()];    
   e     = new std::vector<double>[inputCollections.size()];    
-  pdgId = new std::vector<short>[inputCollections.size()];    
+  pdgId = new std::vector<int>[inputCollections.size()];    
 
   fIPTwrtPV  = new std::vector<float>[inputCollections.size()];
   fIPzwrtPV  = new std::vector<float>[inputCollections.size()];

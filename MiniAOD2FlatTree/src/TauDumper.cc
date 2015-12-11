@@ -16,7 +16,7 @@ TauDumper::TauDumper(edm::ConsumesCollector&& iConsumesCollector, std::vector<ed
   e     = new std::vector<double>[inputCollections.size()];    
 
   // Other essential variables
-  pdgId           = new std::vector<short>[inputCollections.size()];
+  pdgId           = new std::vector<int>[inputCollections.size()];
   nDiscriminators = inputCollections[0].getParameter<std::vector<std::string> >("discriminators").size();
   discriminators  = new std::vector<bool>[inputCollections.size()*nDiscriminators];
   lChTrackPt      = new std::vector<double>[inputCollections.size()];

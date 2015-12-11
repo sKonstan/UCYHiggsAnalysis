@@ -18,7 +18,7 @@ JetDumper::JetDumper(edm::ConsumesCollector&& iConsumesCollector, std::vector<ed
   e   = new std::vector<double>[inputCollections.size()];    
 
   // Other essential variables
-  pdgId         = new std::vector<short>[inputCollections.size()];
+  pdgId         = new std::vector<int>[inputCollections.size()];
   hadronFlavour = new std::vector<int>[inputCollections.size()];
   partonFlavour = new std::vector<int>[inputCollections.size()];
 

@@ -15,7 +15,7 @@ GenParticleDumper::GenParticleDumper(edm::ConsumesCollector&& iConsumesCollector
   phi       = new std::vector<double>[inputCollections.size()];    
   e         = new std::vector<double>[inputCollections.size()];    
   // Other essential variables (with fixed initial size)
-  pdgId     = new std::vector<short>[inputCollections.size()];
+  pdgId     = new std::vector<int>[inputCollections.size()];
   mass      = new std::vector<double>[inputCollections.size()];
   vertexX   = new std::vector<double>[inputCollections.size()];
   vertexY   = new std::vector<double>[inputCollections.size()];
