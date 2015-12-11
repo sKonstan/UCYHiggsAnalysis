@@ -82,6 +82,25 @@ class Datasets:
         return
 
 
+    def GetDatasetObjects(self, miniAODversion="RunIISpring15MiniAODv2"):
+        '''
+        Get all dataset objects for a given miniAOD verstions
+        '''
+        self.DebugMode()
+        
+        datasetObjects = []
+        datasetNames   = []
+        if miniAODversion=="RunIISpring15MiniAODv2":
+            datasetNames.extend(self.DataDatasets_MiniAODv2)
+            datasetNames.extend(self.McDatasets_MiniAODv2)        
+
+        # For-loop: All dataset names
+        for dataset in datasetNames:
+            datasetObjects.append(self.GetDatasetObject(dataset))
+
+        return datasetObjects
+
+        
     def CreateDatasets_MiniAODv2(self):
         '''
         Create all Dataset objects for the MiniAODv2 version and save them all in a deducated list.
@@ -90,6 +109,8 @@ class Datasets:
 
         self.DataDatasets_MiniAODv2 = []
         self.McDatasets_MiniAODv2   = [
+            '/ttHJetToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8_mWCutfix/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
+            '/ttHJetToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8_mWCutfix/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2_ext1-v1/MINIAODSIM',
             '/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v3/MINIAODSIM'                        ,
             '/ST_tW_antitop_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'    ,
             '/ST_tW_top_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v2/MINIAODSIM'        ,

@@ -91,12 +91,7 @@ def GetDatasetList(skimType):
     myDatasets  = Datasets(False)
 
     if skimType == "Default":        
-        # For-loop: All MC Datasets (MiniAOD_v2)
-        for dataset in myDatasets.McDatasets_MiniAODv2:
-            datasetList.append( myDatasets.GetDatasetObject(dataset) )
-            break
-        #datasetList.extend(datasetsMiniAODv2_WJets)
-        #datasetList.extend(datasetsTauData)
+        datasetList = myDatasets.GetDatasetObjects(miniAODversion="RunIISpring15MiniAODv2")
     else:
         print "=== multicrabCreate.py:\n\t Unknown skim type '%s'." % (skimType), ". EXIT"
         sys.exit()
@@ -391,5 +386,3 @@ for dataset in datasetList:
 
     # Sumbit job for CRAB cfg file            
     SubmitCrabTask(taskDirName, requestName)
-
-    break

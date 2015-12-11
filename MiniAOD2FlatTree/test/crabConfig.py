@@ -47,12 +47,12 @@ config.Data.splitting     = 'FileBased'
 config.Data.unitsPerJob   = 5
 config.Data.publication   = False
 config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
+config.Data.totalUnits    = 100000                # equivalnet to <Events> when "EventAwareLumiBased" is used
+config.Data.splitting     = "EventAwareLumiBased" # testing. please comment this and "config.Data.totalUnits" out
 # config.Data.allowNonValidInputDatase
 # config.Data.outputPrimaryDataset
 # config.Data.inputDBS
-# config.Data.splitting
 # config.Data.unitsPerJob
-# config.Data.totalUnits
 # config.Data.useParent
 # config.Data.secondaryInputDataset
 # config.Data.lumiMask
