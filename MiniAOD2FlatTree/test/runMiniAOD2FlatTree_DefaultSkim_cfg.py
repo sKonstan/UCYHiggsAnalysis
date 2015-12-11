@@ -27,7 +27,7 @@ dataset      = "RunIISpring15MiniAODv2_ttHJetToNonbb_M125_13TeV_MINIAODSIM"
 # dataset      = "RunIISpring15MiniAODv2_ST_tW_top_5f_inclusiveDecays_13TeV_MINIAODSIM"
 # dataset      = "RunIISpring15MiniAODv2_ST_tW_antitop_5f_inclusiveDecays_13TeV_MINIAODSIM"
 # dataset      = "RunIISpring15MiniAODv2_ST_s-channel_4f_leptonDecays_13TeV-MINIAODSIM"
-iMaxEvents   = 5000 #10000
+iMaxEvents   = 100 #10000
 iReportEvery = 10
 
 

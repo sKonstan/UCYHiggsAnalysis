@@ -22,7 +22,7 @@ Jets = cms.VPSet(
             "pfCombinedInclusiveSecondaryVertexBJetTags",
             #"combinedInclusiveSecondaryVertexV2BJetTags", # for 72x
             "pfCombinedInclusiveSecondaryVertexV2BJetTags", # for 74x
-            "pfCombinedMVABJetTag",
+            "pfCombinedMVABJetTags",
             ),
         userFloats = cms.vstring(
             "pileupJetId:fullDiscriminant"
@@ -41,7 +41,7 @@ Jets = cms.VPSet(
             "pfCombinedInclusiveSecondaryVertexBJetTags",
             #"combinedInclusiveSecondaryVertexV2BJetTags", # for 72x
             "pfCombinedInclusiveSecondaryVertexV2BJetTags", # for 74x
-            "pfCombinedMVABJetTag", # Does not work
+            "pfCombinedMVABJetTags",
             ),
         userFloats = cms.vstring(
             "pileupJetId:fullDiscriminant"
