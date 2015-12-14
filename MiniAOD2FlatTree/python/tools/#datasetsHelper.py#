@@ -168,6 +168,68 @@ def GetEosRootFilesForDataset(dataset):
         return dataset_py.readFiles
 
     elif dataset == "/SingleElectron/Run2015D-PromptReco-v4/MINIAOD":
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         import UCYHiggsAnalysis.MiniAOD2FlatTree.tools.SingleElectron_Run2015D_PromptReco_v4_MINIAOD as dataset_py
         return dataset_py.readFiles
 
