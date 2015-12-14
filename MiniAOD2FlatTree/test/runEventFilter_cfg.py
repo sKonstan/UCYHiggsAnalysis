@@ -14,6 +14,7 @@ process = cms.Process("SkimFile")
 bDebug        = False
 iMaxEvents    = 10
 iReportEvery  = 10
+dataset      = "/ttHJetToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8_mWCutfix/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
 
 #================================================================================================
 # For debugging purposes (Tells user what cmsRun is accessing) 
@@ -31,11 +32,12 @@ process.MessageLogger.cerr.FwkReport.reportEvery = iReportEvery
 #================================================================================================
 # Define the input files 
 #================================================================================================
-import UCYHiggsAnalysis.MiniAOD2FlatTree.tools.datasetsHelper as datasetsHelper
+import UCYHiggsAnalysis.MiniAOD2FlatTree.tools.datasets as datasets
+myDatasets  = datasets.Datasets(False)
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(iMaxEvents) )
-process.source    = cms.Source("PoolSource",
-                               fileNames = datasetsHelper.GetEosRootFilesForDataset("RunIISpring15DR74_ttHJetToNonbb_M125_13TeV_MINIAODSIM"),
-)
+process.source    = cms.Source("PoolSource", fileNames = myDatasets.GetDatasetObject(dataset).fileList)
+if (bDebug):
+    print "=== runEventFilter.py:\n\t", myDatasets.GetDatasetObject(dataset).fileList
 
 process.filter = cms.EDFilter('EventFilter')
 

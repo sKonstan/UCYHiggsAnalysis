@@ -15,19 +15,38 @@ bDependencies    = False #Default is "False"
 bDumpCollections = False #Default is "False"
 
 skimType     = "DefaultSkim" #None #"Trigger"
-dataVersion  = "74Xmc" #"74Xdata"
-dataset      = "RunIISpring15MiniAODv2_ttHJetToNonbb_M125_13TeV_MINIAODSIM"
-# dataset      = "RunIISpring15MiniAODv2_TTWJetsToLNu_TuneCUETP8M1_13TeV_MINIAODSIM"
-# dataset      = "RunIISpring15MiniAODv2_TTZToLLNuNu_M-10_TuneCUETP8M1_13TeV_MINIAODSIM"
-# dataset      = "RunIISpring15MiniAODv2_TTJets_TuneCUETP8M1_13TeV_MINIAODSIM"
-# dataset      = "RunIISpring15MiniAODv2_DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV_MINIAODSIM"
-# dataset      = "RunIISpring15MiniAODv2_DYJetsToLL_M-50_TuneCUETP8M1_13TeV_MINIAODSIM"
-# dataset      = "RunIISpring15MiniAODv2_ZZ_TuneCUETP8M1_13TeV_MINIAODSIM"
-# dataset      = "RunIISpring15MiniAODv2_WZ_TuneCUETP8M1_13TeV_MINIAODSIM"
-# dataset      = "RunIISpring15MiniAODv2_ST_tW_top_5f_inclusiveDecays_13TeV_MINIAODSIM"
-# dataset      = "RunIISpring15MiniAODv2_ST_tW_antitop_5f_inclusiveDecays_13TeV_MINIAODSIM"
-# dataset      = "RunIISpring15MiniAODv2_ST_s-channel_4f_leptonDecays_13TeV-MINIAODSIM"
-iMaxEvents   = 100 #10000
+dataVersion  = "74Xmc" #"74Xmc" #"74Xdata" #FIXME: automate
+#dataset      = "/ttHJetToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8_mWCutfix/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
+#dataset      = "/ttHJetToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8_mWCutfix/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2_ext1-v1/MINIAODSIM"
+#dataset      = "/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v3/MINIAODSIM"
+dataset      = "/ST_tW_antitop_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
+#dataset      = "/ST_tW_top_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v2/MINIAODSIM"
+#dataset      = "/ST_t-channel_top_4f_leptonDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
+#dataset      = "/ST_t-channel_antitop_4f_leptonDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
+#dataset      = "/ST_s-channel_4f_leptonDecays_13TeV-amcatnlo-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
+#dataset      = "/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
+#dataset      = "/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"        
+#dataset      = "/DYJetsToLL_M-50_HT-100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
+#dataset      = "/DYJetsToLL_M-50_HT-200to400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
+#dataset      = "/DYJetsToLL_M-50_HT-400to600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v2/MINIAODSIM"
+#dataset      = "/DYJetsToLL_M-50_HT-600toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
+#dataset      = "/WW_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
+#dataset      = "/WZ_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
+#dataset      = "/ZZ_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
+#dataset      = "/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
+#dataset      = "/WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
+#dataset      = "/WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
+#dataset      = "/WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
+#dataset      = "/WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
+#dataset      = "/WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
+#dataset      = "/WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
+#dataset      = "/WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
+#dataset      = "/DoubleMuon/Run2015D-PromptReco-v4/MINIAOD"
+#dataset      = "/DoubleEG/Run2015D-PromptReco-v4/MINIAOD"
+#dataset      = "/MuonEG/Run2015D-PromptReco-v4/MINIAOD"
+#dataset      = "/SingleMuon/Run2015D-PromptReco-v4/MINIAOD"
+#dataset      = "/SingleElectron/Run2015D-PromptReco-v4/MINIAOD"
+iMaxEvents   = 5000 #10000
 iReportEvery = 10
 
 
@@ -66,9 +85,12 @@ process.MessageLogger.cerr.FwkReport.reportEvery = iReportEvery
 #================================================================================================
 # Define the input files 
 #================================================================================================
-import UCYHiggsAnalysis.MiniAOD2FlatTree.tools.datasetsHelper as datasetsHelper
+import UCYHiggsAnalysis.MiniAOD2FlatTree.tools.datasets as datasets
+myDatasets  = datasets.Datasets(False)
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(iMaxEvents) )
-process.source    = cms.Source("PoolSource", fileNames = datasetsHelper.GetEosRootFilesForDataset(dataset) )
+process.source    = cms.Source("PoolSource", fileNames = myDatasets.GetDatasetObject(dataset).fileList)
+if (bDebug):
+    print "=== runMiniAOD2FlatTree_DefaultSkim_cfg.py:\n\t ", myDatasets.GetDatasetObject(dataset).fileList
 
 
 #================================================================================================
@@ -77,7 +99,7 @@ process.source    = cms.Source("PoolSource", fileNames = datasetsHelper.GetEosRo
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
 from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, str(dataVersion.getGlobalTag()), '')
-print "=== runMiniAOD2FlatTree_cfg.py:\n\t GlobalTag = \"%s\"" % (dataVersion.getGlobalTag())
+print "=== runMiniAOD2FlatTree_DefaultSkim_cfg.py:\n\t GlobalTag = \"%s\"" % (dataVersion.getGlobalTag())
 
 
 #================================================================================================
@@ -121,26 +143,37 @@ process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
                             Trigger = cms.PSet(
 	                        TriggerResults = cms.InputTag("TriggerResults::HLT"),
 	                        TriggerBits    = cms.vstring(
-                                    "HLT_Ele22_eta2p1_WPTight_Gsf_v",
-                                    "HLT_Ele22_eta2p1_WP75_Gsf_v",
-                                    "HLT_Ele22_eta2p1_WPLoose_Gsf_v",
-                                    "HLT_IsoMu17_eta2p1_v",
-                                    "HLT_IsoMu18_v",
-                                    "HLT_IsoMu20_v",
-                                    "HLT_IsoMu20_eta2p1_v",
-                                    "HLT_Mu8_v",
-                                    "HLT_Mu17_v",
-                                    "HLT_Mu24_v",
-                                    "HLT_Mu34_v",
-                                    "HLT_Dimuon13_PsiPrime_v",
-                                    "HLT_Dimuon13_Upsilon_v",
-                                    "HLT_Dimuon20_Jpsi_v",
-                                    "HLT_Dimuon16_Jpsi_v",
-                                    "HLT_Dimuon10_Jpsi_Barrel_v",
-                                    "HLT_Dimuon8_PsiPrime_Barrel_v",
-                                    "HLT_Dimuon8_Upsilon_Barrel_v",
-                                    "HLT_Dimuon0_Phi_Barrel_v",
-                                    ),
+            # Same-sign dilepton (==2 muons)
+            "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",
+            "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",            
+            "HLT_IsoMu20_v",
+            "HLT_IsoTkMu20_v",
+            # Same-sign dilepton (==2 electrons)
+            "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",
+            "HLT_Ele23_WPLoose_Gsf_v",
+            "HLT_Ele23_CaloIdL_TrackIdL_IsoVL_v", #MC
+            # Same-sign dilepton (==1 muon, ==1 electron)
+            "HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",
+            "HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v",
+            "HLT_IsoMu20_v",
+            "HLT_IsoTkMu20_v",
+            "HLT_Ele23_WPLoose_Gsf_v",
+            "HLT_Ele23_CaloIdL_TrackIdL_IsoVL_v", #MC
+            # Three lepton and Four lepton
+            "HLT_DiMu9_Ele9_CaloIdL_TrackIdL_v",
+            "HLT_Mu8_DiEle12_CaloIdL_TrackIdL_v",
+            "HLT_TripleMu_12_10_5_v",
+            "HLT_Ele16_Ele12_Ele8_CaloIdL_TrackIdL_v",
+            "HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",
+            "HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v",
+            "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",
+            "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",
+            "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",
+            "HLT_IsoMu20_v",
+            "HLT_IsoTkMu20_v",
+            "HLT_Ele23_WPLoose_Gsf_v",
+            "HLT_Ele23_CaloIdL_TrackIdL_IsoVL_v", #MC
+            ),
 	                        L1Extra        = cms.InputTag("l1extraParticles:MET"),
 	                        TriggerObjects = cms.InputTag("selectedPatTrigger"),
                                 TriggerMatch   = cms.untracked.vstring(

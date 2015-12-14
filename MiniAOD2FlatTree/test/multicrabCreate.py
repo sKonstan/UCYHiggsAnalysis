@@ -25,7 +25,8 @@ import sys
 import time
 import UCYHiggsAnalysis.MiniAOD2FlatTree.tools.git as git
 
-from datasets import *
+#from datasets import *
+from UCYHiggsAnalysis.MiniAOD2FlatTree.tools.datasets import *
 
 
 #================================================================================================
@@ -91,7 +92,8 @@ def GetDatasetList(skimType):
     myDatasets  = Datasets(False)
 
     if skimType == "Default":        
-        datasetList = myDatasets.GetDatasetObjects(miniAODversion="RunIISpring15MiniAODv2")
+        #datasetList = myDatasets.GetDatasetObjects(miniAODversion="RunIISpring15MiniAODv2")        
+        datasetList = [myDatasets.GetDatasetObject("/DoubleMuon/Run2015D-PromptReco-v4/MINIAOD")] #testing
     else:
         print "=== multicrabCreate.py:\n\t Unknown skim type '%s'." % (skimType), ". EXIT"
         sys.exit()
