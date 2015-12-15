@@ -8,7 +8,6 @@ Running CMSSW on Grid for CRAB3: https://twiki.cern.ch/twiki/bin/view/CMSPublic/
 # Import modules
 #================================================================================================
 import sys
-import UCYHiggsAnalysis.MiniAOD2FlatTree.tools.datasetsHelper as datasetsHelper
 
 
 #================================================================================================
@@ -159,7 +158,7 @@ class Datasets:
 
         # For-loop: All Data datasets
         for dataset in self.DataDatasets_MiniAODv2:
-            self.DatasetObjects_MiniAODv2.append( Dataset( dataset, dataVersion="74Xdata", lumiMask=lumiMask25nsSilver) )
+            self.DatasetObjects_MiniAODv2.append( Dataset( dataset, dataVersion="74Xdata", lumiMask=lumiMask25nsSilver, fileList=self.GetFileListFromCfiFile(dataset) ) )
         return
 
 

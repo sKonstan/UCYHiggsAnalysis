@@ -4,6 +4,7 @@
 *.root
 *.out
 *.pyc
+*.txt
 
 ############
 # Archives #

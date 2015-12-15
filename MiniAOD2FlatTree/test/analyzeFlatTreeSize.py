@@ -12,8 +12,11 @@ import math
 ###############################################################
 ### Options here
 ###############################################################
-filePath    = os.getcwd() + "/"
+filePath    = os.getcwd() + "/root/"
 datasets    = ["T_tW_antitop", "ST_tW_top", "WZ", "ZZ", "DYJetsToLL_M-50", "DYJetsToLL_M-10to50", "TTJets", "TTZToLLNuNu", "TTWJetsToLNu", "ttHJetToNonbb_M125"]
+datasets    = ["SingleElectron",  "ZZ", "ST_t-channel_top_4f_leptonDecays", "SingleMuon", "WZ", "ST_tW_top_5f_inclusiveDecays", "MuonEG",  "WW", 
+               "ST_tW_antitop_5f_inclusiveDecays", "DoubleEG", "DYJetsToLL_M-10to50", "TTJets", "DoubleMuon", "ST_s-channel_4f_leptonDecays", 
+               "ttHJetToNonbb_M125_ext1", "WJetsToLNu", "ST_t-channel_antitop_4f_leptonDecays", "ttHJetToNonbb_M125"]
 outFileName = "treeInfo.log"
 treeName    = "Events"
 
@@ -63,6 +66,7 @@ if __name__ == "__main__":
         inFileName  = "miniAOD2FlatTree_%s.root" % (dataset)
 
         # Open ROOT file
+        print "=== analyzeFlatTreeSize.py:\n\t Opening ROOT file \"%s\"" % (filePath + inFileName)
         fileIn = OpenTFile(filePath, inFileName, "READ")
 
         # Get the TTree    

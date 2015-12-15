@@ -201,7 +201,7 @@ def GetRequestName(dataset):
 	        bunchSpacing       = runRangeMatch.group("BunchSpacing")
 	        requestName += "_"+ runRange + bunchSpacing
                 Ag                 = runRangeMatch.group("Silver") #Ag is symbol for chemical element of silver
-                if Silver == "_Silver":
+                if Ag == "_Silver":
                     requestName += Ag                
     else:
         raise Exception("=== multicrabCreate.py:\n\t Unexpected error for dataset '%s'. It must either be data or MC" %dataset)
