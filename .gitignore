@@ -5,6 +5,7 @@
 *.out
 *.pyc
 *.txt
+multicrab_CMSSW*_Default_*201*_*h*m*s/
 
 ############
 # Archives #
