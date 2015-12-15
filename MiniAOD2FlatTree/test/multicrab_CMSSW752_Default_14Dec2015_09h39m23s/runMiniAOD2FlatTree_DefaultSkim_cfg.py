@@ -13,12 +13,22 @@ bDebug           = False #Default is "False"
 bSummary         = False #Default is "False"
 bDependencies    = False #Default is "False" 
 bDumpCollections = False #Default is "False"
-skimType         = "DefaultSkim" #None #"Trigger"
-dataset          = "/ttHJetToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8_mWCutfix/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
-#dataset          = "/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v3/MINIAODSIM"
-#dataset          = "/DoubleMuon/Run2015D-PromptReco-v4/MINIAOD"
-iMaxEvents       = 5000 #10000
-iReportEvery     = 10
+
+skimType     = "DefaultSkim" #None #"Trigger"
+dataVersion  = "74Xmc" #"74Xdata"
+dataset      = "RunIISpring15MiniAODv2_ttHJetToNonbb_M125_13TeV_MINIAODSIM"
+# dataset      = "RunIISpring15MiniAODv2_TTWJetsToLNu_TuneCUETP8M1_13TeV_MINIAODSIM"
+# dataset      = "RunIISpring15MiniAODv2_TTZToLLNuNu_M-10_TuneCUETP8M1_13TeV_MINIAODSIM"
+# dataset      = "RunIISpring15MiniAODv2_TTJets_TuneCUETP8M1_13TeV_MINIAODSIM"
+# dataset      = "RunIISpring15MiniAODv2_DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV_MINIAODSIM"
+# dataset      = "RunIISpring15MiniAODv2_DYJetsToLL_M-50_TuneCUETP8M1_13TeV_MINIAODSIM"
+# dataset      = "RunIISpring15MiniAODv2_ZZ_TuneCUETP8M1_13TeV_MINIAODSIM"
+# dataset      = "RunIISpring15MiniAODv2_WZ_TuneCUETP8M1_13TeV_MINIAODSIM"
+# dataset      = "RunIISpring15MiniAODv2_ST_tW_top_5f_inclusiveDecays_13TeV_MINIAODSIM"
+# dataset      = "RunIISpring15MiniAODv2_ST_tW_antitop_5f_inclusiveDecays_13TeV_MINIAODSIM"
+# dataset      = "RunIISpring15MiniAODv2_ST_s-channel_4f_leptonDecays_13TeV-MINIAODSIM"
+iMaxEvents   = 100 #10000
+iReportEvery = 10
 
 
 #================================================================================================
@@ -40,6 +50,13 @@ if (bDebug):
 
 
 #================================================================================================
+# Get Dataset version and options. Inform use of dataVersion configurations
+#================================================================================================
+options, dataVersion = getOptionsDataVersion(dataVersion)
+dataVersion.PrintConfig()
+
+
+#================================================================================================
 # Message Logger
 #================================================================================================
 process.load("FWCore/MessageService/MessageLogger_cfi")
@@ -49,19 +66,9 @@ process.MessageLogger.cerr.FwkReport.reportEvery = iReportEvery
 #================================================================================================
 # Define the input files 
 #================================================================================================
-import UCYHiggsAnalysis.MiniAOD2FlatTree.tools.datasets as datasets
-myDatasets  = datasets.Datasets(False)
+import UCYHiggsAnalysis.MiniAOD2FlatTree.tools.datasetsHelper as datasetsHelper
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(iMaxEvents) )
-process.source    = cms.Source("PoolSource", fileNames = myDatasets.GetDatasetObject(dataset).fileList)
-if (bDebug):
-    print "=== runMiniAOD2FlatTree_DefaultSkim_cfg.py:\n\t ", myDatasets.GetDatasetObject(dataset).fileList
-
-
-#================================================================================================
-# Get Dataset version and options. Inform use of dataVersion configurations
-#================================================================================================
-options, dataVersion = getOptionsDataVersion( myDatasets.GetDatasetObject(dataset), useDefaultSignalTrigger=True, bDebug=bDebug)
-dataVersion.PrintConfig()
+process.source    = cms.Source("PoolSource", fileNames = datasetsHelper.GetEosRootFilesForDataset(dataset) )
 
 
 #================================================================================================
@@ -70,8 +77,7 @@ dataVersion.PrintConfig()
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
 from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, str(dataVersion.getGlobalTag()), '')
-if (bDebug):
-    print "=== runMiniAOD2FlatTree_DefaultSkim_cfg.py:\n\t GlobalTag = \"%s\"" % (dataVersion.getGlobalTag())
+print "=== runMiniAOD2FlatTree_cfg.py:\n\t GlobalTag = \"%s\"" % (dataVersion.getGlobalTag())
 
 
 #================================================================================================
@@ -88,8 +94,7 @@ process.load("UCYHiggsAnalysis/MiniAOD2FlatTree/Tau_cfi")
 TrgResultsSource = "TriggerResults::PAT"
 if dataVersion.isData():
     TrgResultsSource = "TriggerResults::RECO"
-if (bDebug):
-    print "=== runMiniAOD2FlatTree_cfg.py:\n\t Trigger source has been set to \"%s\"" % (TrgResultsSource)
+print "=== runMiniAOD2FlatTree_cfg.py:\n\t Trigger source has been set to \"%s\"" % (TrgResultsSource)
 
 
 process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
@@ -116,78 +121,38 @@ process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
                             Trigger = cms.PSet(
 	                        TriggerResults = cms.InputTag("TriggerResults::HLT"),
 	                        TriggerBits    = cms.vstring(
-            # Same-sign dilepton (==2 muons)
-            "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",
-            "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",            
-            "HLT_IsoMu20_v",
-            "HLT_IsoTkMu20_v",
-            # Same-sign dilepton (==2 electrons)
-            "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",
-            "HLT_Ele23_WPLoose_Gsf_v",
-            "HLT_Ele23_CaloIdL_TrackIdL_IsoVL_v", #MC
-            # Same-sign dilepton (==1 muon, ==1 electron)
-            "HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",
-            "HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v",
-            "HLT_IsoMu20_v",
-            "HLT_IsoTkMu20_v",
-            "HLT_Ele23_WPLoose_Gsf_v",
-            "HLT_Ele23_CaloIdL_TrackIdL_IsoVL_v", #MC
-            # Three lepton and Four lepton
-            "HLT_DiMu9_Ele9_CaloIdL_TrackIdL_v",
-            "HLT_Mu8_DiEle12_CaloIdL_TrackIdL_v",
-            "HLT_TripleMu_12_10_5_v",
-            "HLT_Ele16_Ele12_Ele8_CaloIdL_TrackIdL_v",
-            "HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",
-            "HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v",
-            "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",
-            "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",
-            "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",
-            "HLT_IsoMu20_v",
-            "HLT_IsoTkMu20_v",
-            "HLT_Ele23_WPLoose_Gsf_v",
-            "HLT_Ele23_CaloIdL_TrackIdL_IsoVL_v", #MC
-            ),
+                                    "HLT_Ele22_eta2p1_WPTight_Gsf_v",
+                                    "HLT_Ele22_eta2p1_WP75_Gsf_v",
+                                    "HLT_Ele22_eta2p1_WPLoose_Gsf_v",
+                                    "HLT_IsoMu17_eta2p1_v",
+                                    "HLT_IsoMu18_v",
+                                    "HLT_IsoMu20_v",
+                                    "HLT_IsoMu20_eta2p1_v",
+                                    "HLT_Mu8_v",
+                                    "HLT_Mu17_v",
+                                    "HLT_Mu24_v",
+                                    "HLT_Mu34_v",
+                                    "HLT_Dimuon13_PsiPrime_v",
+                                    "HLT_Dimuon13_Upsilon_v",
+                                    "HLT_Dimuon20_Jpsi_v",
+                                    "HLT_Dimuon16_Jpsi_v",
+                                    "HLT_Dimuon10_Jpsi_Barrel_v",
+                                    "HLT_Dimuon8_PsiPrime_Barrel_v",
+                                    "HLT_Dimuon8_Upsilon_Barrel_v",
+                                    "HLT_Dimuon0_Phi_Barrel_v",
+                                    ),
 	                        L1Extra        = cms.InputTag("l1extraParticles:MET"),
 	                        TriggerObjects = cms.InputTag("selectedPatTrigger"),
                                 TriggerMatch   = cms.untracked.vstring(
-            # Same-sign dilepton (==2 muons)
-            "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",
-            "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",            
-            "HLT_IsoMu20_v",
-            "HLT_IsoTkMu20_v",
-            # Same-sign dilepton (==2 electrons)
-            "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",
-            "HLT_Ele23_WPLoose_Gsf_v",
-            "HLT_Ele23_CaloIdL_TrackIdL_IsoVL_v", #MC
-            # Same-sign dilepton (==1 muon, ==1 electron)
-            "HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",
-            "HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v",
-            "HLT_IsoMu20_v",
-            "HLT_IsoTkMu20_v",
-            "HLT_Ele23_WPLoose_Gsf_v",
-            "HLT_Ele23_CaloIdL_TrackIdL_IsoVL_v", #MC
-            # Three lepton and Four lepton
-            "HLT_DiMu9_Ele9_CaloIdL_TrackIdL_v",
-            "HLT_Mu8_DiEle12_CaloIdL_TrackIdL_v",
-            "HLT_TripleMu_12_10_5_v",
-            "HLT_Ele16_Ele12_Ele8_CaloIdL_TrackIdL_v",
-            "HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",
-            "HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v",
-            "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",
-            "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",
-            "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",
-            "HLT_IsoMu20_v",
-            "HLT_IsoTkMu20_v",
-            "HLT_Ele23_WPLoose_Gsf_v",
-            "HLT_Ele23_CaloIdL_TrackIdL_IsoVL_v", #MC
-            ),
+                                    "LooseIsoPFTau50_Trk30_eta2p1",
+                                ),
                                 debugMode      = cms.untracked.bool(bDebug),
 	                        filter         = cms.untracked.bool(False) #filter according to trigger bits
                             ),
 
                             METNoiseFilter = cms.PSet(
                                 triggerResults            = cms.InputTag(TrgResultsSource),
-                                printTriggerResultsList   = cms.untracked.bool(False),
+                                printTriggerResultsList   = cms.untracked.bool(True),
                                 debugMode                 = cms.untracked.bool(bDebug),
                                 filtersFromTriggerResults = cms.vstring(
                                     "Flag_CSCTightHaloFilter",

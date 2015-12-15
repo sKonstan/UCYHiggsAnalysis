@@ -3,6 +3,8 @@
 ############
 *.root
 *.out
+*.pyc
+*.txt
 
 ############
 # Archives #
@@ -64,4 +66,3 @@ Thumbs.db
 .settings
 .project
 .cprogect
-

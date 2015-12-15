@@ -5,19 +5,16 @@ For production processing use either CRAB or explicit file names in PoolSource.
 
 triggerProcess....: the process containing the HLT information
 filePath_EOS......: default input file path for files stored at EOS
-filePath_CASTOR...: default input file path for files stored at CASTOR
-filePath_LXPLUS...: default input file path for files stored at LXPLUS
 '''
 
 # Global dictionaries
 config = {
     "74Xdata": {
 	"triggerProcess": "HLT", 
-	"recoProcess"    : "RECO",
-        "globalTag"      : "74X_dataRun2_Prompt_v4", # recommendation from https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC
-        #"filePath_EOS"   : "",
-        #"filePath_CASTOR": "",
-        #"filePath_LXPLUS": "",
+	"recoProcess"   : "RECO",
+        "globalTag"     : "74X_dataRun2_Prompt_v4", # recommendation from https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC
+        "fileList"      : [],
+        "filesPath"     : ""
         },
     "74Xmc": {
         "simProcess"     : "SIM",
@@ -25,20 +22,23 @@ config = {
         "recoProcess"    : "RECO",
         "globalTag"      : "74X_mcRun2_asymptotic_v4", #"74X_mcRun2_asymptotic_v2",
         "signalTrigger"  : "HLT_LooseIsoPFTau35_Trk20_Prong1_MET70_v6",
-        "filePath_EOS"   : "/store/mc/RunIISpring15DR74/ttHJetToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8_mWCutfix/MINIAODSIM/Asympt25ns_MCRUN2_74_V9-v1/20000/", #example
-        #"filePath_CASTOR": "",
-        #"filePath_LXPLUS": "",
+        "fileList"       : [],
+        "filesPath"      : ""
         }
     }
 
 
 class DataVersion:
-    def __init__(self, dataVersion):
+    def __init__(self, DatasetObject):
+
+        # Get the dataset version
+        dataVersion = DatasetObject.dataVersion
         if not dataVersion in config:
             names = config.keys()
             names.sort()
             raise Exception("Unknown dataVersion '%s',  allowed versions are %s" % (dataVersion, ", ".join(names)))
 
+        # Get the configuration according to the data version
         conf = config[dataVersion]
 
         # Set values
@@ -47,27 +47,26 @@ class DataVersion:
         self.simProcess  = conf.get("simProcess" , None)
         self.version     = dataVersion
         self.globalTag   = conf["globalTag"]
+        self.fileList    = DatasetObject.fileList
+        self.filePath    = DatasetObject.fileList[0].rsplit("/", 1)[0]+"/"
 
-        # If any of these paths are defined assign them to values (value of "f" in loop will be assigned to class variable "self.f")
-        for f in ["filePath_EOS", "filePath_CASTOR", "filePath_LXPLUS"]: 
-            if f in conf:
-                setattr(self, f, conf[f])
-
-        # Collision data
+        # Collision or MC data?
         if "data" in dataVersion:
             self.is_data = True
-        # MC
         else: 
             self.is_data = False                
             try:
                 self.signalTrigger = conf["signalTrigger"]
             except KeyError:
                 pass
-                
-    def PrintConfig(self):
+        
+
+    def PrintConfig(self, bFileList=False):
         print "=== dataVersion.py:"
         d = self.__dict__
         for key in d:
+            if (key == "fileList") and (bFileList==False):
+                continue
             print "\t\"%s\" = \"%s\"" % (key, d[key])
         return
 
@@ -103,21 +102,3 @@ class DataVersion:
 
     def getGlobalTag(self):
         return self.globalTag
-
-    def getDefaultFileEOS(self):
-        if not hasattr(self, "filePath_EOS"):
-            print "No default file in EOS for dataVersion " + self.version
-            return ""
-        return self.filePath_EOS
-
-    def getDefaultFileCASTOR(self):
-        if not hasattr(self, "filePath_CASTOR"):
-            print "No default file in CASTOR for dataVersion " + self.version
-            return ""
-        return self.filePath_CASTOR
-
-    def getDefaultFileLXPLUS(self):
-        if not hasattr(self, "filePath_LXPLUS"):
-            print "No default file in LXPLUS for dataVersion " + self.version
-            return ""
-        return self.filePath_LXPLUS

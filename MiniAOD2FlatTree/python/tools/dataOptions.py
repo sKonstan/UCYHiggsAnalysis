@@ -3,7 +3,6 @@ from UCYHiggsAnalysis.MiniAOD2FlatTree.tools.dataVersion import DataVersion
 import sys
 
 # Set global variables
-bDebug = False 
 validSampleValues = [
     "WJets",
     "W1Jets",
@@ -23,7 +22,8 @@ def getOptions(options=None, bDebug=True):
 
     cmsRun runMiniAOD2FlatTree_cfg.py \dataVersion=74X_dataRun2_Prompt_v4
     '''
-    print "=== dataOptions.py:\n\t Registering predefined default values for options"
+    if (bDebug):
+        print "=== dataOptions.py:\n\t Registering predefined default values for options"
 
     if options == None:
         options = VarParsing.VarParsing()
@@ -56,11 +56,6 @@ def getOptions(options=None, bDebug=True):
                      [],
                      options.multiplicity.list, options.varType.string,
                      "Example list (default: \"[]\")")
-
-    options.register("anotherList",
-                     [],
-                     options.multiplicity.list, options.varType.string,
-                     "Another example list (default: \"[]\")")
 
     options.register("doHLTMatching",
                      1,
@@ -98,8 +93,8 @@ def getOptions(options=None, bDebug=True):
                      options.varType.string,
                      "Sample name for specific weighting schemes. Valid values are: " + ", ".join(validSampleValues) + " (default: \"\")")
     
-    if (bDebug):
-        print "=== dataOptions.py:\n\t options:\n", options
+    if(bDebug):
+        print "=== dataOptions.py:\n\t ARE THESE OBSOLETE?", options
 
     # Protection in case sys.argv is missing due to various edm tools
     if not hasattr(sys, "argv"):
@@ -119,22 +114,23 @@ def getOptions(options=None, bDebug=True):
     return options
 
 
-def getOptionsDataVersion(dataVersion, options=None, useDefaultSignalTrigger=True):
+def getOptionsDataVersion(DatasetObject, options=None, useDefaultSignalTrigger=True, bDebug=True):
     '''
     Module returns values for options related to the data version selected. 
     Uses information from the auxiliary file DataVersion.py
     '''
-    print "=== dataOptions.py:\n\tSetting values to dataVersion related options"
+    if (bDebug):
+        print "=== dataOptions.py:\n\tSetting values to dataVersion related options"
     
     # First get default options
-    options = getOptions(options)
+    options = getOptions(options, bDebug)
 
     # Check that dataversion is not the default (empt string) value
     if options.dataVersion != "":
         dataVersion = options.dataVersion
 
     # Initialise dataVersion object
-    dataVersion = DataVersion(dataVersion)
+    dataVersion = DataVersion(DatasetObject)
 
     # Set the trigger depending on the dataset version & type (MC or Data)
     if useDefaultSignalTrigger and len(options.trigger) == 0 and dataVersion.isMC():
