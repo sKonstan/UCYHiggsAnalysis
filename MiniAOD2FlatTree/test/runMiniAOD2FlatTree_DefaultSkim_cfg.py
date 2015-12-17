@@ -116,70 +116,36 @@ process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
                             Trigger = cms.PSet(
 	                        TriggerResults = cms.InputTag("TriggerResults::HLT"),
 	                        TriggerBits    = cms.vstring(
-            # Same-sign dilepton (==2 muons)
             "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",
             "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",            
             "HLT_IsoMu20_v",
             "HLT_IsoTkMu20_v",
-            # Same-sign dilepton (==2 electrons)
             "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",
             "HLT_Ele23_WPLoose_Gsf_v",
             "HLT_Ele23_CaloIdL_TrackIdL_IsoVL_v", #MC
-            # Same-sign dilepton (==1 muon, ==1 electron)
             "HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",
             "HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v",
-            "HLT_IsoMu20_v",
-            "HLT_IsoTkMu20_v",
-            "HLT_Ele23_WPLoose_Gsf_v",
-            "HLT_Ele23_CaloIdL_TrackIdL_IsoVL_v", #MC
-            # Three lepton and Four lepton
             "HLT_DiMu9_Ele9_CaloIdL_TrackIdL_v",
             "HLT_Mu8_DiEle12_CaloIdL_TrackIdL_v",
             "HLT_TripleMu_12_10_5_v",
             "HLT_Ele16_Ele12_Ele8_CaloIdL_TrackIdL_v",
-            "HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",
-            "HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v",
-            "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",
-            "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",
-            "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",
-            "HLT_IsoMu20_v",
-            "HLT_IsoTkMu20_v",
-            "HLT_Ele23_WPLoose_Gsf_v",
-            "HLT_Ele23_CaloIdL_TrackIdL_IsoVL_v", #MC
             ),
 	                        L1Extra        = cms.InputTag("l1extraParticles:MET"),
 	                        TriggerObjects = cms.InputTag("selectedPatTrigger"),
                                 TriggerMatch   = cms.untracked.vstring(
-            # Same-sign dilepton (==2 muons)
             "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",
             "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",            
             "HLT_IsoMu20_v",
             "HLT_IsoTkMu20_v",
-            # Same-sign dilepton (==2 electrons)
             "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",
             "HLT_Ele23_WPLoose_Gsf_v",
             "HLT_Ele23_CaloIdL_TrackIdL_IsoVL_v", #MC
-            # Same-sign dilepton (==1 muon, ==1 electron)
             "HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",
             "HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v",
-            "HLT_IsoMu20_v",
-            "HLT_IsoTkMu20_v",
-            "HLT_Ele23_WPLoose_Gsf_v",
-            "HLT_Ele23_CaloIdL_TrackIdL_IsoVL_v", #MC
-            # Three lepton and Four lepton
             "HLT_DiMu9_Ele9_CaloIdL_TrackIdL_v",
             "HLT_Mu8_DiEle12_CaloIdL_TrackIdL_v",
             "HLT_TripleMu_12_10_5_v",
             "HLT_Ele16_Ele12_Ele8_CaloIdL_TrackIdL_v",
-            "HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",
-            "HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v",
-            "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",
-            "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",
-            "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",
-            "HLT_IsoMu20_v",
-            "HLT_IsoTkMu20_v",
-            "HLT_Ele23_WPLoose_Gsf_v",
-            "HLT_Ele23_CaloIdL_TrackIdL_IsoVL_v", #MC
             ),
                                 debugMode      = cms.untracked.bool(bDebug),
 	                        filter         = cms.untracked.bool(False) #filter according to trigger bits
