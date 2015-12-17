@@ -55,7 +55,7 @@ class EventInfoDumper {
         float pvZ;
         float distanceToNextPV;
         float distanceToClosestPV;
-        float ptSumRatio; // Ratio of track pt sum of first and second vertex
+        float ptSumRatio; // Ratio of track pt sum of first and second vertex (experimental variable)
 
 };
 #endif

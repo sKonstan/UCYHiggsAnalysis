@@ -82,8 +82,8 @@ void METDumper::book(TTree* tree){
     tree->Branch("GenMET_ChargedHadEt"        , &GenMET_ChargedHadEt         );
     tree->Branch("GenMET_MuonEtFraction"      , &GenMET_MuonEtFraction       );
     tree->Branch("GenMET_MuonEt"              , &GenMET_MuonEt               );
-    tree->Branch("GenMET_InvisibleEtFraction" , &GenMET_InvisibleEtFraction  );
-    tree->Branch("GenMET_InvisibleEt"         , &GenMET_InvisibleEt          );
+    // tree->Branch("GenMET_InvisibleEtFraction" , &GenMET_InvisibleEtFraction  );
+    // tree->Branch("GenMET_InvisibleEt"         , &GenMET_InvisibleEt          );
   }
 
   return;
@@ -163,8 +163,8 @@ bool METDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
 	GenMET_ChargedHadEt         = genMET->ChargedHadEt();
 	GenMET_MuonEtFraction       = genMET->MuonEtFraction();
 	GenMET_MuonEt               = genMET->MuonEt();
-	GenMET_InvisibleEtFraction  = genMET->InvisibleEtFraction();
-	GenMET_InvisibleEt          = genMET->InvisibleEt();
+	// GenMET_InvisibleEtFraction  = genMET->InvisibleEtFraction();
+	// GenMET_InvisibleEt          = genMET->InvisibleEt();
       }
 
       // NOTE: Member function caloMETPt() returns caloMET only for slimmedMETs, for MET_Type1_NoHF and Puppi it seems to return the PFMET.
@@ -250,8 +250,8 @@ void METDumper::reset(){
     GenMET_ChargedHadEt         = 0.0;        
     GenMET_MuonEtFraction       = 0.0;      
     GenMET_MuonEt               = 0.0;              
-    GenMET_InvisibleEtFraction  = 0.0; 
-    GenMET_InvisibleEt          = 0.0;         
+    // GenMET_InvisibleEtFraction  = 0.0; 
+    // GenMET_InvisibleEt          = 0.0;         
   }
 
   return;

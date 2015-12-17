@@ -37,7 +37,7 @@ void EventInfoDumper::book(TTree* tree){
   tree->Branch( (cfg_branchName + "_pvZ"                      ).c_str(), &pvZ                 );
   tree->Branch( (cfg_branchName + "_pvDistanceToNextVertex"   ).c_str(), &distanceToNextPV    );
   tree->Branch( (cfg_branchName + "_pvDistanceToClosestVertex").c_str(), &distanceToClosestPV );
-  tree->Branch( (cfg_branchName + "_pvPtSumRatioToNext"       ).c_str(), &ptSumRatio          );
+  // tree->Branch( (cfg_branchName + "_pvPtSumRatioToNext"       ).c_str(), &ptSumRatio          );
   
   return;
 }

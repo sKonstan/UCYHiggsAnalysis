@@ -92,6 +92,7 @@ class Datasets:
             datasetNames.extend(self.DataDatasets_MiniAODv2)
             datasetNames.extend(self.McDatasets_MiniAODv2)        
 
+        datasetTypes = ["All", "Signal", "Background"]
         # For-loop: All dataset names
         for dataset in datasetNames:
             if datasetType == "All":
@@ -102,6 +103,8 @@ class Datasets:
             elif datasetType == "Background":
                 if "/ttHJetToNonbb" not in dataset:
                     datasetObjects.append(self.GetDatasetObject(dataset))
+            else:
+                raise Exception("Couldnot determine datasets for dataset type '%s'. Please select one of the following:\n\t%s" % (datasetType, "\n\t".join(datasetTypes)) )
 
         return datasetObjects
 
@@ -146,7 +149,8 @@ class Datasets:
             '/WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM' ,
             '/WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
             '/WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM' ,
-            ]           
+            ]
+
 
         # Merge MC and Data Dataset lists
         self.AllDatasets_MiniAODv2.extend(self.McDatasets_MiniAODv2)

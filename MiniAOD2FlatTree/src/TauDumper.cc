@@ -101,7 +101,7 @@ void TauDumper::book(TTree* tree){
     MCtau[i]      .book(tree, cfg_branchName, "MCVisibleTau");
     matchingJet[i].book(tree, cfg_branchName, "matchingJet");
 
-    // For-loop: All discriminators
+    // For-loop: All discriminators [https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuidePFTauID]
     std::vector<std::string> discriminatorNames = inputCollections[i].getParameter<std::vector<std::string> >("discriminators");
     for(size_t iDiscr = 0; iDiscr < discriminatorNames.size(); ++iDiscr) {
       tree->Branch( ( cfg_branchName + "_"+discriminatorNames[iDiscr]).c_str(),&discriminators[inputCollections.size()*iDiscr+i]);
@@ -186,8 +186,8 @@ bool TauDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
           lNeutrTrackEta[ic].push_back(-10.0);
         }
       
-	// Other essential variables [https://cmssdt.cern.ch/SDT/doxygen/CMSSW_7_5_2/doc/html/d1/de9/classpat_1_1Tau.html]
-        decayMode[ic] .push_back( tau.decayMode() );
+	// Other essential variables1 [https://cmssdt.cern.ch/SDT/doxygen/CMSSW_7_5_2/doc/html/d1/de9/classpat_1_1Tau.html]
+        decayMode[ic] .push_back( tau.decayMode() ); //See "hadronicDecayMode" [https://cmssdt.cern.ch/SDT/doxygen/CMSSW_5_3_14/doc/html/dd/d63/classreco_1_1PFTau.html]
         ipxy[ic]      .push_back( tau.dxy()       );
         ipxySignif[ic].push_back( tau.dxy_Sig()   );
         nProngs[ic]   .push_back( tau.signalChargedHadrCands().size() );

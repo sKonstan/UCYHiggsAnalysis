@@ -46,8 +46,13 @@ class TrackDumper : public BaseDumper {
 	double cfg_IPvsPVzCut;
         int width;
 	
+	std::vector<short> *sNumOfHits;
+	std::vector<short> *sNumOfPixHits;
+
 	std::vector<float> *fIPTwrtPV;
+	std::vector<float> *fIPTwrtPVError;
         std::vector<float> *fIPzwrtPV;
+        std::vector<float> *fIPzwrtPVError;
         std::vector<float> *fIPTSignif;
         std::vector<float> *fIPzSignif;
 };

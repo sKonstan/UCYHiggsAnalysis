@@ -11,10 +11,14 @@ TrackDumper::TrackDumper(edm::ConsumesCollector&& iConsumesCollector, std::vecto
   e     = new std::vector<double>[inputCollections.size()];    
   pdgId = new std::vector<int>[inputCollections.size()];    
 
-  fIPTwrtPV  = new std::vector<float>[inputCollections.size()];
-  fIPzwrtPV  = new std::vector<float>[inputCollections.size()];
-  fIPTSignif = new std::vector<float>[inputCollections.size()];
-  fIPzSignif = new std::vector<float>[inputCollections.size()];
+  sNumOfHits     = new std::vector<short>[inputCollections.size()];
+  sNumOfPixHits  = new std::vector<short>[inputCollections.size()];
+  fIPTwrtPV      = new std::vector<float>[inputCollections.size()];
+  fIPTwrtPVError = new std::vector<float>[inputCollections.size()];
+  fIPzwrtPV      = new std::vector<float>[inputCollections.size()];
+  fIPzwrtPVError = new std::vector<float>[inputCollections.size()];
+  fIPTSignif     = new std::vector<float>[inputCollections.size()];
+  fIPzSignif     = new std::vector<float>[inputCollections.size()];
     
   // Tokens
   token       = new edm::EDGetTokenT<edm::View<pat::PackedCandidate>>[inputCollections.size()];
@@ -69,11 +73,15 @@ void TrackDumper::book(TTree* tree){
     tree->Branch( (cfg_branchName + "_phi")  .c_str(), &phi[i]   );
     tree->Branch( (cfg_branchName + "_e")    .c_str(), &e[i]     );
     tree->Branch( (cfg_branchName + "_pdgId").c_str(), &pdgId[i] );
-      
-    tree->Branch( (cfg_branchName + "_IPTwrtPV")       .c_str(), &fIPTwrtPV[i]  );
-    tree->Branch( (cfg_branchName + "_IPzwrtPV")       .c_str(), &fIPzwrtPV[i]  );
-    tree->Branch( (cfg_branchName + "_IPTSignificance").c_str(), &fIPTSignif[i] );
-    tree->Branch( (cfg_branchName + "_IPzSignificance").c_str(), &fIPzSignif[i] );
+
+    tree->Branch( (cfg_branchName + "_NumOfHits")      .c_str(), &sNumOfHits[i]     );
+    tree->Branch( (cfg_branchName + "_NumOfPixHits")   .c_str(), &sNumOfPixHits[i]  );
+    tree->Branch( (cfg_branchName + "_IPTwrtPV")       .c_str(), &fIPTwrtPV[i]      );
+    tree->Branch( (cfg_branchName + "_IPTwrtPVError")  .c_str(), &fIPTwrtPVError[i] );
+    tree->Branch( (cfg_branchName + "_IPzwrtPV")       .c_str(), &fIPzwrtPV[i]      );
+    tree->Branch( (cfg_branchName + "_IPzwrtPVError")  .c_str(), &fIPzwrtPVError[i] );
+    tree->Branch( (cfg_branchName + "_IPTSignificance").c_str(), &fIPTSignif[i]     );
+    tree->Branch( (cfg_branchName + "_IPzSignificance").c_str(), &fIPzSignif[i]     );
 
   }// for(size_t i = 0; i < inputCollections.size(); ++i){
 
@@ -138,21 +146,23 @@ bool TrackDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
 	// Sanity check
 	if (!hoffvertex->size()) continue; 
-
-	// Convert vertex dimensions into mm
+      
+      	// Convert vertex dimensions into mm
 	math::XYZPoint pv(hoffvertex->at(0).x()*10.0, hoffvertex->at(0).y()*10.0, hoffvertex->at(0).z()*10.0);
-	float dxy = cand.dxy(pv);
-	float dz  = cand.dz(pv);
+	float dxy      = cand.dxy(pv);
+	float dxyError = cand.dxyError();
+	float dz       = cand.dz(pv);
+	float dzError  = cand.dzError();
 
 	// Save only those particles, which are within 5 mm from PV
 	if (std::fabs(dz) > cfg_IPvsPVzCut) continue;
 
 	// Calculate IP significances
 	float IPTSignif = 0.0;
-	if (dxy > 0.0) IPTSignif = dxy / cand.dxyError();
+	if (dxy > 0.0) IPTSignif = dxy / dxyError;
 
 	float IPzSignif = 0.0;
-	if (dz > 0.0) IPzSignif = dz / cand.dzError();
+	if (dz > 0.0) IPzSignif = dz / dzError;
 
 	// Print debugging info?
 	if (cfg_debugMode){
@@ -170,10 +180,23 @@ bool TrackDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
 	e[ic]    .push_back(cand.p4().energy());
 	pdgId[ic].push_back(cand.pdgId());
                 
-	fIPTwrtPV[ic] .push_back(dxy);
-	fIPzwrtPV[ic] .push_back(dz);
-	fIPTSignif[ic].push_back(IPTSignif);
-	fIPzSignif[ic].push_back(IPzSignif);
+	sNumOfHits[ic]    .push_back(cand.numberOfHits());
+	sNumOfPixHits[ic] .push_back(cand.numberOfPixelHits());
+	fIPTwrtPV[ic]     .push_back(dxy);
+	fIPTwrtPVError[ic].push_back(dxyError);
+	fIPzwrtPV[ic]     .push_back(dz);
+	fIPzwrtPVError[ic].push_back(dzError);
+	fIPTSignif[ic]    .push_back(IPTSignif);
+	fIPzSignif[ic]    .push_back(IPzSignif);
+
+	/*
+	// Future additions: The track [https://cmssdt.cern.ch/SDT/doxygen/CMSSW_7_5_2/doc/html/d8/df2/classreco_1_1TrackBase.html]
+	reco::Track track = cand.pseudoTrack();
+	
+	// Future additions: The track hit-pattern [https://cmssdt.cern.ch/SDT/doxygen/CMSSW_7_5_2/doc/html/d3/dcb/classreco_1_1HitPattern.html]
+	reco::HitPattern hitPattern = track.hitPattern();
+	std::cout << "hitPattern.numberOfBadHits()  = " << hitPattern.numberOfBadHits() << std::endl;
+	*/
 
       }// for(size_t i=0; i<handle->size(); ++i) {
     }// if(handle.isValid()){
@@ -201,11 +224,15 @@ void TrackDumper::reset(){
       e[ic]    .clear();
       pdgId[ic].clear();
         
-      fIPTwrtPV[ic] .clear();
-      fIPzwrtPV[ic] .clear();
-      fIPTSignif[ic].clear();
-      fIPzSignif[ic].clear();
-
+      sNumOfHits[ic]    .clear();
+      sNumOfPixHits[ic] .clear();
+      fIPTwrtPV[ic]     .clear();
+      fIPTwrtPVError[ic].clear();
+      fIPzwrtPV[ic]     .clear();
+      fIPzwrtPVError[ic].clear();
+      fIPTSignif[ic]    .clear();
+      fIPzSignif[ic]    .clear();
+ 
     }// for(size_t ic = 0; ic < inputCollections.size(); ++ic){
 
   }// if(booked){

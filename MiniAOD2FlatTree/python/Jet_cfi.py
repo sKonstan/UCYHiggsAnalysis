@@ -16,12 +16,16 @@ Jets = cms.VPSet(
         src            = cms.InputTag("slimmedJets"), #patJetsReapplyJECAK4CHS # made from ak4PFJetsCHS
         jecPayload     = JECpayloadAK4PFchs.payload,
         discriminators = cms.vstring(
+            "combinedSecondaryVertexBJetTags",
             "pfJetBProbabilityBJetTags",
-            "pfJetProbabilityBJetTags",
-            "pfCombinedSecondaryVertexBJetTags",
-            "pfCombinedInclusiveSecondaryVertexBJetTags",
-            #"combinedInclusiveSecondaryVertexV2BJetTags", # for 72x
-            "pfCombinedInclusiveSecondaryVertexV2BJetTags", # for 74x
+            "pfJetProbabilityBJetTags", 
+            "pfTrackCountingHighPurBJetTags",
+            "pfTrackCountingHighEffBJetTags",
+            "pfSimpleSecondaryVertexHighEffBJetTags", 
+            "pfSimpleSecondaryVertexHighPurBJetTags", 
+            "pfCombinedSecondaryVertexV2BJetTags",
+            "pfCombinedInclusiveSecondaryVertexV2BJetTags",
+            "pfCombinedSecondaryVertexSoftLeptonBJetTags", #empty?
             "pfCombinedMVABJetTags",
             ),
         userFloats = cms.vstring(
@@ -35,12 +39,16 @@ Jets = cms.VPSet(
         src            = cms.InputTag("slimmedJetsPuppi"), #patJetsReapplyJECPuppi # made from ak4PFJets
         jecPayload     = JECpayloadAK4PFPuppi.payload,
         discriminators = cms.vstring(
+            "combinedSecondaryVertexBJetTags",
             "pfJetBProbabilityBJetTags",
-            "pfJetProbabilityBJetTags",
-            "pfCombinedSecondaryVertexBJetTags",
-            "pfCombinedInclusiveSecondaryVertexBJetTags",
-            #"combinedInclusiveSecondaryVertexV2BJetTags", # for 72x
-            "pfCombinedInclusiveSecondaryVertexV2BJetTags", # for 74x
+            "pfJetProbabilityBJetTags", 
+            "pfTrackCountingHighPurBJetTags",
+            "pfTrackCountingHighEffBJetTags",
+            "pfSimpleSecondaryVertexHighEffBJetTags", 
+            "pfSimpleSecondaryVertexHighPurBJetTags", 
+            "pfCombinedSecondaryVertexV2BJetTags",
+            "pfCombinedInclusiveSecondaryVertexV2BJetTags",
+            "pfCombinedSecondaryVertexSoftLeptonBJetTags", #empty?
             "pfCombinedMVABJetTags",
             ),
         userFloats = cms.vstring(

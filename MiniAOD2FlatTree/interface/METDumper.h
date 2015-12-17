@@ -72,8 +72,8 @@ class METDumper {
 	double GenMET_ChargedHadEt;         // Charged Had Et 
 	double GenMET_MuonEtFraction;       // Muon Et Fraction 
 	double GenMET_MuonEt;               // Muon Et 	
-	double GenMET_InvisibleEtFraction;  // Invisible Et Fraction 
-	double GenMET_InvisibleEt;          // Invisible Et  
+	// double GenMET_InvisibleEtFraction;  // Invisible Et Fraction 
+	// double GenMET_InvisibleEt;          // Invisible Et  
 
 };
 #endif
