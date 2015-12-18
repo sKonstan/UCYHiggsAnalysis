@@ -120,6 +120,9 @@ def reproduceMETNoiseFilters(process):
     
     For more details see:
     https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2
+
+    For the code snippet see:
+    https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2#snippet_on_how_to_re_run_HBHE_ba
     '''
     print "=== CommonFragments.py:\n\tReproducing HBHE noise filter"
     
@@ -129,6 +132,17 @@ def reproduceMETNoiseFilters(process):
     process.HBHENoiseFilterResultProducer.defaultDecision = cms.string("HBHENoiseFilterResultRun2Loose")
 
     # Do not apply EDfilters for HBHE noise, the discriminators for them are saved into the ttree
+    #process.ApplyBaselineHBHENoiseFilter = cms.EDFilter('BooleanFlagFilter',
+    #                                                    inputLabel = cms.InputTag('HBHENoiseFilterResultProducer','HBHENoiseFilterResult'),
+    #                                                    reverseDecision = cms.bool(False)
+    #                                                     )
+
+    # Do not apply EDfilters for HBHE iso noise, the discriminators for them are saved into the ttreea
+    #process.ApplyBaselineHBHEIsoNoiseFilter = cms.EDFilter('BooleanFlagFilter',
+    #                                                       inputLabel = cms.InputTag('HBHENoiseFilterResultProducer','HBHEIsoNoiseFilterResult'),
+    #                                                       reverseDecision = cms.bool(False)
+    #                                                       )
+
     # Add process to the sequence 
     process.CustomisationsSequence += process.HBHENoiseFilterResultProducer
 

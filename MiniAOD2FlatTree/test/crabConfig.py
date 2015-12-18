@@ -69,9 +69,10 @@ config.Data.splitting     = "EventAwareLumiBased" # testing. please comment this
 # Site Section: Contains the Grid site parameters (incl. stage out information)
 #================================================================================================
 config.section_("Site")
-config.Site.storageSite   = 'T2_CH_CERN' 
-# config.Site.whitelistlist = ['T2_CH_CERN', 'T2_FI_HIP']
-# config.Site.blacklistlist = ['T2_IT_Bari']
+config.Site.storageSite = 'T2_CH_CERN' 
+config.Site.blacklist   = ['T2_US_Florida'] #suspicious
+# config.Site.whitelist = ['T2_CH_CERN', 'T2_FI_HIP']
+
 
 
 #================================================================================================

@@ -9,18 +9,26 @@ from UCYHiggsAnalysis.MiniAOD2FlatTree.tools.dataOptions import getOptionsDataVe
 #================================================================================================
 # Options
 #================================================================================================
-bDebug           = False #Default is "False"
 bSummary         = False #Default is "False"
 bDependencies    = False #Default is "False" 
 bDumpCollections = False #Default is "False"
+iMaxEvents       = -1
+iReportEvery     = 10
 skimType         = "DefaultSkim" #None #"Trigger"
-#dataset          = "/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
 #dataset          = "/ttHJetToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8_mWCutfix/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
 #dataset          = "/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v3/MINIAODSIM"
-dataset          = "/DoubleMuon/Run2015D-PromptReco-v4/MINIAOD"
-iMaxEvents       = 1000 #10000
-iReportEvery     = 10
+#dataset          = "/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
+dataset          = "/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
+#dataset          = "/DoubleMuon/Run2015D-PromptReco-v4/MINIAOD"
 
+# For Debugging Purposes:
+bDebug      = False   #Default is "False"
+RunNum_1    = 1       #Default is "None"
+LumiBlock_1 = 2       #Default is "None"
+EvtNum_1    = 240     #Default is "None" 
+RunNum_2    = 1       #Default is "None"
+LumiBlock_2 = 2       #Default is "None"
+EvtNum_2    = 260     #Default is "None"
 
 #================================================================================================
 # Setup the process
@@ -51,12 +59,16 @@ process.MessageLogger.cerr.FwkReport.reportEvery = iReportEvery
 # Define the input files 
 #================================================================================================
 import UCYHiggsAnalysis.MiniAOD2FlatTree.tools.datasets as datasets
-myDatasets  = datasets.Datasets(False)
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(iMaxEvents) )
-process.source    = cms.Source("PoolSource", fileNames = myDatasets.GetDatasetObject(dataset).fileList)
+myDatasets = datasets.Datasets(False)
 if (bDebug):
     print "=== runMiniAOD2FlatTree_DefaultSkim_cfg.py:\n\t ", myDatasets.GetDatasetObject(dataset).fileList
 
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(iMaxEvents) )
+process.source    = cms.Source("PoolSource",
+                               fileNames       = myDatasets.GetDatasetObject(dataset).fileList,
+                               #fileNames = cms.untracked.vstring("/store/mc/RunIISpring15MiniAODv2/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/74X_mcRun2_asymptotic_v2-v1/40000/90A2FB38-586D-E511-B2EF-0025905B85AA.root"),
+                               #eventsToProcess = cms.untracked.VEventRange('%s:%s:%s-%s:%s:%s' % (RunNum_1, LumiBlock_1, EvtNum_1, RunNum_2, LumiBlock_2, EvtNum_2) ),
+                               )
 
 #================================================================================================
 # Get Dataset version and options. Inform use of dataVersion configurations
@@ -157,9 +169,14 @@ process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
                                 printTriggerResultsList   = cms.untracked.bool(False),
                                 debugMode                 = cms.untracked.bool(bDebug),
                                 filtersFromTriggerResults = cms.vstring(
-                                    "Flag_CSCTightHaloFilter",
-                                    "Flag_goodVertices",
-                                    "Flag_eeBadScFilter",
+            #"Flag_CSCTightHaloFilter", # HIP
+            #"Flag_goodVertices",       # HIP
+            #"Flag_eeBadScFilter",      # HIP
+            "Flag_HBHENoiseFilter",
+            "Flag_HBHENoiseIsoFilter",
+            "Flag_CSCTightHaloFilter", #crash
+            "Flag_goodVertices",
+            "Flag_eeBadScFilter",
                                 ),
                                 hbheNoiseTokenRun2LooseSource = cms.InputTag('HBHENoiseFilterResultProducer','HBHENoiseFilterResultRun2Loose'),
                                 hbheNoiseTokenRun2TightSource = cms.InputTag('HBHENoiseFilterResultProducer','HBHENoiseFilterResultRun2Tight'),
