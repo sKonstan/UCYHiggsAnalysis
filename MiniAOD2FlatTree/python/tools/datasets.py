@@ -103,6 +103,9 @@ class Datasets:
             elif datasetType == "Background":
                 if "/ttHJetToNonbb" not in dataset:
                     datasetObjects.append(self.GetDatasetObject(dataset))
+            elif datasetType == "CollisionData":
+                if self.GetDatasetObject(dataset).isData():
+                    datasetObjects.append(self.GetDatasetObject(dataset))
             else:
                 raise Exception("Couldnot determine datasets for dataset type '%s'. Please select one of the following:\n\t%s" % (datasetType, "\n\t".join(datasetTypes)) )
 
