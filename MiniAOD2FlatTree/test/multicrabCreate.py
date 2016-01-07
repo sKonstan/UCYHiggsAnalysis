@@ -336,7 +336,6 @@ def SubmitCrabTask(taskDirName, requestName):
     '''
     Submit a given CRAB task using the specific cfg file.
     '''
-
     outfilePath = os.path.join(taskDirName, "crabConfig_" + requestName + ".py")
 
     # Submit the CRAB task
@@ -344,14 +343,18 @@ def SubmitCrabTask(taskDirName, requestName):
     print "=== multicrabCreate.py:\n\t ", cmd_submit
     os.system(cmd_submit)
 
-    '''
-    Removed this because I did not inform CRAB that the directories were changing path. 
-    So it gave an error when it looked for it when executing crab status
-    '''
     # Rename the CRAB task directory (remove "crab_" from its name)
-    # cmd_mv = "mv " + os.path.join(taskDirName, "crab_" + requestName) + " " + os.path.join(taskDirName, requestName)
-    # print "=== multicrabCreate.py:\n\t ", cmd_mv
-    # os.system(cmd_mv)
+    cmd_mv = "mv " + os.path.join(taskDirName, "crab_" + requestName) + " " + os.path.join(taskDirName, requestName)
+    print "=== multicrabCreate.py:\n\t ", cmd_mv
+    os.system(cmd_mv)
+
+    # Small hack. By calling 'crab status' for all tasks prevents it from crashing when calling 'crab status' once the
+    # jobs are submitted. This is caused because I RENAME the CRAB tasks with the previous command "os.system(cmd_mv)". 
+    import time
+    time.sleep(1)
+    cmd_status = "crab status --dir=" + os.path.join(taskDirName, requestName)
+    print "=== multicrabCreate.py:\n\t ", cmd_status
+    os.system(cmd_status)
 
     return
 
