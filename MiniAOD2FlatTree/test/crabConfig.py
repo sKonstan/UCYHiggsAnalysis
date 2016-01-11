@@ -46,7 +46,7 @@ config.Data.inputDBS      = 'global' #'phys03'
 config.Data.splitting     = 'FileBased'
 config.Data.unitsPerJob   = 5
 config.Data.publication   = False
-config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
+config.Data.outLFNDirBase = '/store/user/%s/CRAB3' % (getUsernameFromSiteDB())
 #config.Data.totalUnits    = -1 #10000 #testing
 #config.Data.splitting     = "EventAwareLumiBased" # testing. please comment this and "config.Data.totalUnits" out
 # config.Data.allowNonValidInputDatase
