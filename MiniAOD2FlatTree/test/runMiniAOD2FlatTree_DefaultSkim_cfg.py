@@ -12,7 +12,7 @@ from UCYHiggsAnalysis.MiniAOD2FlatTree.tools.dataOptions import getOptionsDataVe
 bSummary         = False #Default is "False"
 bDependencies    = False #Default is "False" 
 bDumpCollections = False #Default is "False"
-iMaxEvents       = 5000
+iMaxEvents       = 1000
 iReportEvery     = 10
 skimType         = "NoSkim" #"NoSkim #"Trigger" #"DefaultSkim"
 #dataset          = "/ttHJetToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8_mWCutfix/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"

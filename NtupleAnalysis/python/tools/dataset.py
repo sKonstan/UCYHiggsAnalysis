@@ -1,10 +1,15 @@
-## \package dataset
-# Dataset utilities and classes
-#
-# This package contains classes and utilities for dataset management.
-# There are also some functions and classes not directly related to
-# dataset management, but are placed here due to some dependencies.
+'''
+\package dataset
+Dataset utilities and classes
 
+This package contains classes and utilities for dataset management.
+There are also some functions and classes not directly related to
+dataset management, but are placed here due to some dependencies.
+'''
+
+#================================================================================================ 
+# Imports
+#================================================================================================ 
 import glob, os, sys, re
 import math
 import copy
@@ -288,8 +293,13 @@ def addOptions(parser, analysisName=None, searchMode=None, dataEra=None, optimiz
     parser.add_option("--counterDir", "-c", dest="counterDir", type="string", default=None,
                       help="TDirectory name containing the counters, relative to the analysis directory (default: analysisDirectory+'/counters')")
 
-## Generic settings class
+#================================================================================================ 
+# Class Definition
+#================================================================================================ 
 class Settings:
+    '''
+    Generic settings class
+    '''
     def __init__(self, **defaults):
         self.data = copy.deepcopy(defaults)
 
@@ -320,9 +330,14 @@ class Settings:
     def clone(self, **kwargs):
         return copy.deepcopy(self)
 
-## Represents counter count value with uncertainty.
+
+#================================================================================================ 
+# Class Definition
+#================================================================================================ 
 class Count:
-    ## Constructor
+    '''
+    Represents counter count value with uncertainty.
+    '''
     def __init__(self, value, uncertainty=0.0, systUncertainty=0.0):
         self._value = value
         self._uncertainty = uncertainty
@@ -382,8 +397,14 @@ class Count:
     ## \var _systUncertainty
     # Systematic uncertainty of the count
 
-## Represents counter count value with asymmetric uncertainties.
+
+#================================================================================================ 
+# Class Definition
+#================================================================================================ 
 class CountAsymmetric:
+    '''
+    Represents counter count value with asymmetric uncertainties.
+    '''
     def __init__(self, value, uncertaintyLow, uncertaintyHigh):
         self._value = value
         self._uncertaintyLow = uncertaintyLow
@@ -611,37 +632,45 @@ def _mergeStackHelper(datasetList, nameList, task, allowMissingDatasets=False):
     return (selected, notSelected, firstIndex)
 
 
-## Helper class for obtaining histograms from TTree
-#
-# This class provides an easy way to get a histogram from a TTree. It
-# is inteded to be used with dataset.Dataset.getDatasetRootHisto()
-# such that instead of giving the name of the histogram, an object of
-# this class is given instead. dataset.Dataset.getDatasetRootHisto()
-# will then call the draw() method of this class for actually
-# producing the histogram.
-#
-# TreeDraw objects can easily be cloned from existing TreeDraw object
-# with the clone() method. This method allows overriding the
-# parameters given in constructor.
-#
-# Note that TreeDraw does not hold any results or TTree objects, only
-# the recipe to produce a histogram from a TTree.
+#================================================================================================ 
+# Class Definition
+#================================================================================================ 
 class TreeDraw:
-    ## Constructor
-    #
-    # \param tree       Path to the TTree object in a file
-    # \param varexp     Expression for the variable, if given it should also include the histogram name and binning explicitly.
-    # \param selection  Draw only those entries passing this selection
-    # \param weight     Weight the entries with this weight
-    # \param binLabelsX X-axis bin labels (optional)
-    # \param binLabelsY Y-axis bin labels (optional)
-    # \param binLabelsZ Z-axis bin labels (optional)
-    #
-    # If varexp is not given, the number of entries passing selection
-    # is counted (ignoring weight). In this case the returned TH1 has
-    # 1 bin, which contains the event count and the uncertainty of the
-    # event count (calculated as sqrt(N)).
+    '''
+    Helper class for obtaining histograms from TTree.
+
+    This class provides an easy way to get a histogram from a TTree. It
+    is inteded to be used with dataset.Dataset.getDatasetRootHisto()
+    such that instead of giving the name of the histogram, an object of
+    this class is given instead. dataset.Dataset.getDatasetRootHisto()
+    will then call the draw() method of this class for actually
+    producing the histogram.
+    
+    TreeDraw objects can easily be cloned from existing TreeDraw object
+    with the clone() method. This method allows overriding the
+    parameters given in constructor.
+    
+    Note that TreeDraw does not hold any results or TTree objects, only
+    the recipe to produce a histogram from a TTree.
+    '''
+
     def __init__(self, tree, varexp="", selection="", weight="", binLabelsX=None, binLabelsY=None, binLabelsZ=None):
+        '''
+        Constructor
+        
+        \param tree       Path to the TTree object in a file
+        \param varexp     Expression for the variable, if given it should also include the histogram name and binning explicitly.
+        \param selection  Draw only those entries passing this selection
+        \param weight     Weight the entries with this weight
+        \param binLabelsX X-axis bin labels (optional)
+        \param binLabelsY Y-axis bin labels (optional)
+        \param binLabelsZ Z-axis bin labels (optional)
+        
+        If varexp is not given, the number of entries passing selection
+        is counted (ignoring weight). In this case the returned TH1 has
+        1 bin, which contains the event count and the uncertainty of the
+        event count (calculated as sqrt(N)).
+        '''
         self.tree = tree
         self.varexp = varexp
         self.selection = selection
@@ -650,16 +679,19 @@ class TreeDraw:
         self.binLabelsX = binLabelsX
         self.binLabelsY = binLabelsY
         self.binLabelsZ = binLabelsZ
+        return
 
-    ## Clone a TreeDraw
-    #
-    # <b>Keyword arguments</b> are the same as for the constructor (__init__())
-    #
-    # If any of the values of the keyword arguments is a function (has
-    # attribute __call__), the function is called with the current
-    # value as an argument, and the return value is assigned to the
-    # corresponding name.
     def clone(self, **kwargs):
+        '''
+        Clone a TreeDraw
+        
+        <b>Keyword arguments</b> are the same as for the constructor (__init__())
+        
+        If any of the values of the keyword arguments is a function (has
+        attribute __call__), the function is called with the current
+        value as an argument, and the return value is assigned to the
+        corresponding name.
+        '''
         args = {"tree": self.tree,
                 "varexp": self.varexp,
                 "selection": self.selection,
@@ -669,7 +701,7 @@ class TreeDraw:
                 "binLabelsZ": self.binLabelsZ,
                 }
         args.update(kwargs)
-
+        
         # Allow modification functions
         for name, value in args.items():
             if hasattr(value, "__call__"):
@@ -677,12 +709,15 @@ class TreeDraw:
 
         return TreeDraw(**args)
 
-    ## Prodouce TH1 from a file
-    #
-    # \param dataset      Dataset, the output TH1 contains the dataset name
-    #                     in the histogram name. Mainly needed for compatible interface with
-    #                     dataset.TreeDrawCompound
+
     def draw(self, dataset):
+        '''
+        Prodouce TH1 from a file
+        
+        \param dataset      Dataset, the output TH1 contains the dataset name
+        in the histogram name. Mainly needed for compatible interface with
+        dataset.TreeDrawCompound        
+        '''
         if self.varexp != "" and not ">>" in self.varexp:
             raise Exception("varexp should include explicitly the histogram binning (%s)"%self.varexp)
 
@@ -750,20 +785,27 @@ class TreeDraw:
     ## \var weight
     # Weight the entries with this weight
 
-## Helper class for running code for selected TTree entries
-#
-# A function is given to the constructor, the function is called for
-# each TTree entry passing the selection. The TTree object is given as
-# a parameter, leaf/branch data can then be read from it.
-#
-# Main use case: producing pickEvents list from a TTree
+#================================================================================================ 
+# Class Definition
+#================================================================================================ 
 class TreeScan:
-    ## Constructor
-    #
-    # \param tree       Path to the TTree object in a file
-    # \param function   Function to call for each TTree entry
-    # \param selection  Select only these TTree entries
+    '''
+    Helper class for running code for selected TTree entries
+    
+     A function is given to the constructor, the function is called for
+     each TTree entry passing the selection. The TTree object is given as
+     a parameter, leaf/branch data can then be read from it.
+     
+     Main use case: producing pickEvents list from a TTree
+     '''
     def __init__(self, tree, function, selection=""):
+        '''
+        Constructor
+        
+        \param tree       Path to the TTree object in a file
+        \param function   Function to call for each TTree entry
+        \param selection  Select only these TTree entries
+        '''
         self.tree = tree
         self.function = function
         self.selection = selection
@@ -775,11 +817,13 @@ class TreeScan:
         args.update(kwargs)
         return TreeScan(**args)
 
-    ## Process TTree
-    #
-    # \param datasetName  Dataset object. Only needed for compatible interface with
-    #                     dataset.TreeDrawCompound
     def draw(self, dataset):
+        '''
+        Process TTree
+        
+        \param datasetName  Dataset object. Only needed for compatible interface with
+        dataset.TreeDrawCompound
+        '''
         rootFile = dataset.getRootFile()
         tree = rootFile.Get(self.tree)
         if tree == None:
@@ -787,6 +831,8 @@ class TreeScan:
 
         tree.Draw(">>elist", self.selection)
         elist = ROOT.gDirectory.Get("elist")
+        
+        # For-loop: All entries
         for ientry in xrange(elist.GetN()):
             tree.GetEntry(elist.GetEntry(ientry))
             self.function(tree)
@@ -802,6 +848,9 @@ class TreeScan:
 #
 # One specifies a default dataset.TreeDraw, and the exceptions for that with a
 # map from string to dataset.TreeDraw.
+#================================================================================================ 
+# Class Definition
+#================================================================================================ 
 class TreeDrawCompound:
     ## Constructor
     #
@@ -878,6 +927,9 @@ def treeDrawToNumEntries(treeDraw):
         return _treeDrawToNumEntriesSingle(treeDraw)
 
 
+#================================================================================================ 
+# Class Definition
+#================================================================================================ 
 ## Class to encapsulate shape/normalization systematics for plot creation
 class Systematics:
     class OnlyForMC:
@@ -976,6 +1028,9 @@ class Systematics:
 #
 # The object should be created with Systematics.histogram(), i.e. not
 # directly.
+#================================================================================================ 
+# Class Definition
+#================================================================================================ 
 class SystematicsHelper:
     ## Constructor
     #
@@ -1106,6 +1161,9 @@ class SystematicsHelper:
 ## Class to encapsulate a ROOT histogram with a bunch of uncertainties
 #
 # Looks almost as TH1, except holds bunch of uncertainties; the histograms contained are clones and therefore owned by the class
+#================================================================================================ 
+# Class Definition
+#================================================================================================ 
 class RootHistoWithUncertainties:
     def __init__(self, rootHisto):
         self._rootHisto = None
@@ -1764,6 +1822,9 @@ class RootHistoWithUncertainties:
 #
 # The histogram wrapper classes also abstract the signel histogram, and
 # mergeddata and MC histograms behind a common interface.
+#================================================================================================ 
+# Class Definition
+#================================================================================================ 
 class DatasetRootHistoBase:
     def __init__(self, dataset):
         self.dataset = dataset
@@ -1823,6 +1884,9 @@ class DatasetRootHistoBase:
     # Multiplication factor to be applied after normalization (if None, not applied)
 
 ## Wrapper for a single TH1 histogram and the corresponding Dataset.
+#================================================================================================ 
+# Class Definition
+#================================================================================================ 
 class DatasetRootHisto(DatasetRootHistoBase):
     ## Constructor.
     # 
@@ -1924,6 +1988,9 @@ class DatasetRootHisto(DatasetRootHistoBase):
 
 
 ## Base class for merged data/Mc histograms and the corresponding datasets
+#================================================================================================ 
+# Class Definition
+#================================================================================================ 
 class DatasetRootHistoCompoundBase(DatasetRootHistoBase):
     ## Constructor.
     # 
@@ -1985,6 +2052,9 @@ class DatasetRootHistoCompoundBase(DatasetRootHistoBase):
 # The merged data histograms can only be normalized 'to one'.
 #
 # \see dataset.DatasetRootHisto class.
+#================================================================================================ 
+# Class Definition
+#================================================================================================ 
 class DatasetRootHistoMergedData(DatasetRootHistoCompoundBase):
     ## Constructor.
     # 
@@ -2066,6 +2136,9 @@ class DatasetRootHistoMergedData(DatasetRootHistoCompoundBase):
 # from pseudo datasets.
 #
 # \see dataset.DatasetRootHisto class.
+#================================================================================================ 
+# Class Definition
+#================================================================================================ 
 class DatasetRootHistoMergedPseudo(DatasetRootHistoMergedData):
     ## Constructor.
     #
@@ -2087,6 +2160,9 @@ class DatasetRootHistoMergedPseudo(DatasetRootHistoMergedData):
 ## Wrapper for a merged TH1 histograms from MC and the corresponding Datasets.
 # 
 # See also the documentation of DatasetRootHisto class.
+#================================================================================================ 
+# Class Definition
+#================================================================================================ 
 class DatasetRootHistoMergedMC(DatasetRootHistoCompoundBase):
     ## Constructor.
     # 
@@ -2222,6 +2298,9 @@ class DatasetRootHistoMergedMC(DatasetRootHistoCompoundBase):
 # into two datasets.
 # 
 # See also the documentation of DatasetRootHisto class.
+#================================================================================================ 
+# Class Definition
+#================================================================================================ 
 class DatasetRootHistoAddedMC(DatasetRootHistoCompoundBase):
     ## Constructor.
     # 
@@ -2355,10 +2434,16 @@ class DatasetRootHistoAddedMC(DatasetRootHistoCompoundBase):
     ## \var normalization
     # String representing the current normalization scheme
 
+#================================================================================================ 
+# Class Definition
+#================================================================================================ 
 class AnalysisNotFoundException(Exception):
     def __init__(self, message):
         Exception.__init__(self, message)
 
+#================================================================================================ 
+# Class Definition
+#================================================================================================ 
 class HistogramNotFoundException(Exception):
     def __init__(self, message):
         Exception.__init__(self, message)
@@ -2375,6 +2460,9 @@ class HistogramNotFoundException(Exception):
 # \see dataset.DatasetMerged for merging multiple Dataset objects
 # (either data or MC) to one logical dataset (e.g. all data datasets
 # to one dataset, all QCD pThat bins to one dataset)
+#================================================================================================ 
+# Class Definition
+#================================================================================================ 
 class Dataset:
     ## Constructor.
     # 
@@ -3047,6 +3135,9 @@ class Dataset:
 ## Dataset class for histogram access for a dataset merged from Dataset objects.
 # 
 # The merged datasets are required to be either MC, data, or pseudo
+#================================================================================================ 
+# Class Definition
+#================================================================================================ 
 class DatasetMerged:
     ## Constructor.
     # 
@@ -3258,6 +3349,9 @@ class DatasetMerged:
 ## Dataset class for histogram access for a dataset added from Dataset objects.
 # 
 # The added datasets are required to be MC
+#================================================================================================ 
+# Class Definition
+#================================================================================================ 
 class DatasetAddedMC(DatasetMerged):
     ## Constructor.
     # 
@@ -3371,6 +3465,9 @@ class DatasetAddedMC(DatasetMerged):
 # name), with the possibility that user can easily modify the names of
 # data/MC histograms. This would bring more flexibility on that front,
 # and easier customization when necessary.
+#================================================================================================ 
+# Class Definition
+#================================================================================================ 
 class DatasetManager:
     ## Constructor
     #
@@ -3804,10 +3901,15 @@ class DatasetManager:
     # Directory (absolute/relative to current working directory) where
     # the luminosity JSON file is located (see loadLuminosities())
 
-## Precursor dataset, helper class for DatasetManagerCreator
-#
-# This holds the name, ROOT file, and data/MC status of a dataset.
+
+#================================================================================================ 
+# Class Definition
+#================================================================================================ 
 class DatasetPrecursor:
+    '''
+    Precursor dataset, helper class for DatasetManagerCreator
+    This holds the name, ROOT file, and data/MC status of a dataset.
+    '''
     def __init__(self, name, filenames):
         self._name = name
         if isinstance(filenames, basestring):
@@ -3815,46 +3917,53 @@ class DatasetPrecursor:
         else:
             self._filenames = filenames
 
-        self._rootFiles = []
+        # Initialise variables
+        self._rootFiles   = []
         self._dataVersion = None
-        self._pileup = None
-        self._nAllEvents = 0.0
+        self._pileup      = None
+        self._nAllEvents  = 0.0
 
+        # For-loop: All ROOT file names
         for name in self._filenames:
-            rf = ROOT.TFile.Open(name)
-            # Below is important to use '==' instead of 'is' to check for
-            # null file
-            if rf == None:
-                raise Exception("Unable to open ROOT file '%s' for dataset '%s'" % (name, self._name))
-            self._rootFiles.append(rf)
+            rootFile = ROOT.TFile.Open(name)
 
-            dv = aux.Get(rf, "configInfo/dataVersion")
-            if dv == None:
-                print "Unable to find 'configInfo/dataVersion' from ROOT file '%s', I have no idea if this file is data, MC, or pseudo" % name
+            # Below is important to use '==' instead of 'is' to check for null file
+            if rootFile == None:
+                raise Exception("=== dataset.py:\n\t Unable to open ROOT file '%s' for dataset '%s'" % (name, self._name))
+            self._rootFiles.append(rootFile)
+
+            # Get the data version
+            dataVersion = aux.Get(rootFile, "configInfo/dataVersion")
+            if dataVersion == None:
+                print "=== dataset.py:\n\tUnable to find 'configInfo/dataVersion' from ROOT file '%s', I have no idea if this file is data, MC, or pseudo" % name
                 continue
-                
+            
             if self._dataVersion is None:
-                self._dataVersion = dv.GetTitle()
+                self._dataVersion = dataVersion.GetTitle()
             else:
-                if self._dataVersion != dv.GetTitle():
-                    raise Exception("Mismatch in dataVersion when creating multi-file DatasetPrecursor, got %s from file %s, and %s from %s" % (dataVersion, self._filenames[0], dv.GetTitle(), name))
+                if self._dataVersion != dataVersion.GetTitle():
+                    raise Exception("=== dataset.py:\n\t Mismatch in dataVersion when creating multi-file DatasetPrecursor, got '%s' from file '%s', and '%s' from '%s'" % (dataVersion, self._filenames[0], dataVersion.GetTitle(), name))
 
-            isTree = aux.Get(rf, "Events") != None
+            # Get the Events Tree
+            treeName = "Events"
+            isTree   = aux.Get(rootFile, treeName) != None
             if isTree:
-                pileup = aux.Get(rf, "pileup")
+                pileup = aux.Get(rootFile, "pileup")
                 if pileup == None:
-                    pileup = aux.Get(rf, "configInfo/pileup")
+                    pileup = aux.Get(rootFile, "configInfo/pileup")
                     if pileup == None:
-                        print "Unable to find 'pileup' or 'configInfo/pileup' from ROOT file '%s'" % name
+                        print "=== dataset.py:\n\y Unable to find 'pileup' or 'configInfo/pileup' from ROOT file '%s'" % name
                 if self._pileup is None:
                     if pileup != None:
                         self._pileup = pileup
                 else:
                     self._pileup.Add(pileup)
-            
+            else:
+                raise Exception("=== dataset.py:\n\t Could not find TTree with name '%s' from ROOT file '%s'" % (treeName, rootFile.GetName()))
+
             # Obtain nAllEvents
             if isTree:
-                counters = aux.Get(rf, "configInfo/SkimCounter")
+                counters = aux.Get(rootFile, "configInfo/SkimCounter")
                 if counters != None:
                     if counters.GetNbinsX() > 0:
                         if not "All" in counters.GetXaxis().GetBinLabel(1):
@@ -3863,14 +3972,15 @@ class DatasetPrecursor:
                 if self._nAllEvents == 0.0:
                     print "Warning (DatasetPrecursor): N(allEvents) = 0 !!!"
 
+        # Set the correct values for _isData, _isMC, _isPseudo
         if self._dataVersion is None:
-            self._isData = False
+            self._isData   = False
             self._isPseudo = False
-            self._isMC = False
+            self._isMC     = False
         else:
-            self._isData = "data" in self._dataVersion
+            self._isData   = "data" in self._dataVersion
             self._isPseudo = "pseudo" in self._dataVersion
-            self._isMC = not (self._isData or self._isPseudo)
+            self._isMC     = not (self._isData or self._isPseudo)
 
     def getName(self):
         return self._name
@@ -3901,14 +4011,17 @@ class DatasetPrecursor:
 
     ## Close the ROOT files
     def close(self):
-        for f in self._rootFiles:
+        # For-loop: All ROOT files
+        for f in self._rootFiles:            
+            print "=== dataset.py:\n\t Closing file '%s'" % ( f.GetName() )
             f.Close("R")
             f.Delete()
         self._rootFiles = []
+        return
 
 _analysisNameSkipList = [re.compile("^SystVar"), re.compile("configInfo"), re.compile("PUWeightProducer")]
-_analysisSearchModes = re.compile("_\d+to\d+_")
-_dataDataEra_re = re.compile("_Run201\d\S_")
+_analysisSearchModes  = re.compile("_\d+to\d+_")
+_dataDataEra_re       = re.compile("_Run201\d\S_")
 
 ## Class for listing contents of multicrab dirs, dataset ROOT files, and creating DatasetManager
 #
@@ -3916,6 +4029,9 @@ _dataDataEra_re = re.compile("_Run201\d\S_")
 # multicrab directory, and then create one or many DatasetManagers,
 # which then correspond to a single analysis directory within the ROOT
 # files.
+#================================================================================================ 
+# Class Definition
+#================================================================================================ 
 class DatasetManagerCreator:
     ## Constructor
     #
@@ -4250,6 +4366,9 @@ class DatasetManagerCreator:
 #
 # User should not construct an object by herself, but use
 # NtupleCahce.histogram()
+#================================================================================================ 
+# Class Definition
+#================================================================================================ 
 class NtupleCacheDrawer:
     ## Constructor
     #
@@ -4273,6 +4392,9 @@ class NtupleCacheDrawer:
 ## Ntuple processing with C macro and caching the result histograms
 #
 # 
+#================================================================================================ 
+# Class Definition
+#================================================================================================ 
 class NtupleCache:
     ## Constructor
     #
@@ -4479,6 +4601,9 @@ class NtupleCache:
         return NtupleCacheDrawer(self, histoName, selectorName)
 
 
+#================================================================================================ 
+# Class Definition
+#================================================================================================ 
 class SelectorArgs:
     def __init__(self, optionsDefaultValues, **kwargs):
         self.optionsDefaultValues = optionsDefaultValues

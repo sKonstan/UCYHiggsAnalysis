@@ -67,7 +67,8 @@ class DataVersion:
         for key in d:
             if (key == "fileList") and (bFileList==False):
                 continue
-            print "\t\"%s\" = \"%s\"" % (key, d[key])
+            config = '{:<15} {:<2} {:<40}'.format("\t " + key, ": ", d[key])
+            print config
         return
 
     def isData(self):

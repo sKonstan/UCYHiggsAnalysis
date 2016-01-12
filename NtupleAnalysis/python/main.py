@@ -39,7 +39,8 @@ _debugPUreweighting = False
 class PSet:
     def __init__(self, **kwargs):
         self.__dict__["_data"] = copy.deepcopy(kwargs)
-
+        return
+    
     def clone(self, **kwargs):
         pset = PSet(**self._data)
         for key, value in kwargs.iteritems():
@@ -54,6 +55,7 @@ class PSet:
 
     def __setattr__(self, name, value):
         self.__dict__["_data"][name] = value
+        return
 
     def _asDict(self):
         data = {}
@@ -87,14 +89,13 @@ class PSet:
 def File(fileName):
     fullpath = os.path.join(aux.higgsAnalysisPath(), fileName)
     if not os.path.exists(fullpath):
-        raise Exception("=== main.py:\n\t The file \"%s\" does not exist" % self._fullpath)
+        raise Exception("=== main.py:\n\t The file '%s' does not exist" % self._fullpath)
     return fullpath
 
 #================================================================================================
 # Class Definition
 #================================================================================================
 class Analyzer:
-    print "=== main.py:\n\t class Analyzer"
     def __init__(self, className, **kwargs):
         self.__dict__["_className"] = className
         silentStatus = True
@@ -137,7 +138,6 @@ class Analyzer:
 # Class Definition
 #================================================================================================
 class AnalyzerWithIncludeExclude:
-    print "=== main.py:\n\t class AnalyzerWithIncludeExclude"
 
     def __init__(self, analyzer, **kwargs):
         self._analyzer = analyzer
@@ -160,7 +160,6 @@ class AnalyzerWithIncludeExclude:
 # Class Definition
 #================================================================================================
 class DataVersion:
-    print "=== main.py:\n\t class DataVersion"
 
     def __init__(self, dataVersion):
         self._version = dataVersion
@@ -191,8 +190,6 @@ class DataVersion:
 # Class Definition
 #================================================================================================
 class Dataset:
-    print "=== main.py:\n\t class Dataset"
-
     def __init__(self, name, files, dataVersion, lumiFile, pileup, nAllEvents):
         self._name = name
         self._files = files
@@ -224,55 +221,80 @@ class Dataset:
 # Class Definition
 #================================================================================================
 class Process:
-    print "=== main.py:\n\t class Process"
 
     def __init__(self, outputPrefix="analysis", outputPostfix="", maxEvents=-1):
+        print "=== main.py:\n\t Process __init__()"
         ROOT.gSystem.Load("libHPlusAnalysis.so") #attikis
 
-        self._outputPrefix = outputPrefix
+        self._outputPrefix  = outputPrefix
         self._outputPostfix = outputPostfix
 
-        self._datasets = []
+        self._datasets  = []
         self._analyzers = {}
         self._maxEvents = maxEvents
-        self._options = PSet()
-
+        self._options   = PSet()
         return
 
     def addDataset(self, name, files=None, dataVersion=None, lumiFile=None):
-        #print "=== main.py:\n\t Adding dataset "
+        '''
+        Adds dataset and stores its attributes (name, files, dataVersion,
+        and associated luminosity file). All dataset properties are also
+        determined (PileUp, nEvts).
+        '''
+
+        # Get the files
         if files is None:
             files = datasetsTest.getFiles(name)
 
-        prec = dataset.DatasetPrecursor(name, files)
+        # Get precursor for dataset
+        precursor = dataset.DatasetPrecursor(name, files)
+
+        # Get the dataset version
         if dataVersion is None:
-            dataVersion = prec.getDataVersion()
-        pileUp = prec.getPileUp()
-        nAllEvents = prec.getNAllEvents()
-        prec.close()
+            dataVersion = precursor.getDataVersion()
+
+        # Get dataset properties
+        pileUp     = precursor.getPileUp()
+        nAllEvents = precursor.getNAllEvents()
+        precursor.close()
+
+        # Append the dataset
         self._datasets.append( Dataset(name, files, dataVersion, lumiFile, pileUp, nAllEvents) )
         return
 
-    def addDatasets(self, names): # no explicit files possible here
+    def addDatasets(self, names):
+        '''
+        No explicit files possible here
+        '''       
         for name in names:
+            print "=== main.py:\n\t Adding dataset '%s'" % (name)
             self.addDataset(name)
+        return
 
     def addDatasetsFromMulticrab(self, directory, *args, **kwargs):
         dataset._optionDefaults["input"] = "miniAOD2FlatTree*.root"
-        #dataset._optionDefaults["input"] = "histograms-*.root"
         dsetMgrCreator = dataset.readFromMulticrabCfg(directory=directory, *args, **kwargs)
-        dsets = dsetMgrCreator.getDatasetPrecursors()
+        datasets = dsetMgrCreator.getDatasetPrecursors()
         dsetMgrCreator.close()
 
-        for dset in dsets:
-            self.addDataset(dset.getName(), dset.getFileNames(), dataVersion=dset.getDataVersion(), lumiFile=dsetMgrCreator.getLumiFile())
+        # For-loop: All datasets
+        for dset in datasets:
+            name        = dset.getName()
+            fileNames   = dset.getFileNames()
+            dataVer     = dset.getDataVersion()
+            lumi        = dsetMgrCreator.getLumiFile()
 
+            print "=== main.py:\n\t Adding dataset '%s' with following attributes:" % (name)
+            attr = '{:<15} {:<40}\n {:<15} {:<40}\n {:<15} {:<40}'.format("\t files", ": "+",".join(fileNames), "\t data-version", ": "+dataVer, "\t lumi-file", ": "+lumi)
+            print attr
+            self.addDataset(name, fileNames, dataVersion=dataVer, lumiFile=lumi)
+        return
 
     # kwargs for 'includeOnlyTasks' or 'excludeTasks' to set the datasets over which this analyzer is processed, default is all datasets
     def addAnalyzer(self, name, analyzer, **kwargs):
         if self.hasAnalyzer(name):
             raise Exception("Analyzer '%s' already exists" % name)
-        print "=== main.py:\n\t Added Analyzer with name \"%s\"" % (name)
+        print "=== main.py:\n\t Added Analyzer with name '%s'" % (name)
         self._analyzers[name] = AnalyzerWithIncludeExclude(analyzer, **kwargs)
         return
 
@@ -348,7 +370,7 @@ class Process:
             if proofWorkers is not None:
                 opt = "workers=%d"%proofWorkers
             _proof = ROOT.TProof.Open(opt)
-            _proof.Exec("gSystem->Load(\"libHPlusAnalysis.so\");")
+            _proof.Exec("gSystem->Load('libHPlusAnalysis.so');")
 
         # Init timing counters
         realTimeTotal = 0
@@ -418,7 +440,7 @@ class Process:
                             raise Exception("Error: pileup spectrum is missing from dataset! Please switch to using newest multicrab!")
                         hPUMC = dset.getPileUp().Clone()
                         if aname not in hPUs.keys():
-                            print "===main.py:\n\t The key \"%s\" does not exist in dictionary variable \"hPUs\". Continue" % (aname) #attikis
+                            print "===main.py:\n\t The key '%s' does not exist in dictionary variable 'hPUs'. Continue" % (aname) #attikis
                             continue
                         if hPUMC.GetNbinsX() != hPUs[aname].GetNbinsX():
                             raise Exception("Pileup histogram dimension mismatch! data nPU has %d bins and MC nPU has %d bins"%(hPUs[aname].GetNbinsX(), hPUMC.GetNbinsX()))
@@ -459,7 +481,7 @@ class Process:
 
             for f in dset.getFileNames():
                 tchain.Add(f)
-                print "=== main.py:\n\t Adding file \"%s\" to TChain" % (f)
+                print "=== main.py:\n\t Adding file '%s' to TChain" % (f)
             tchain.SetCacheLearnEntries(100);
 
             tselector = ROOT.SelectorImpl() #attikis
