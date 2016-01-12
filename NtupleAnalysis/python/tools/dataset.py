@@ -25,70 +25,76 @@ import UCYHiggsAnalysis.NtupleAnalysis.tools.aux as aux
 import UCYHiggsAnalysis.NtupleAnalysis.tools.pileupReweightedAllEvents as pileupReweightedAllEvents
 import UCYHiggsAnalysis.NtupleAnalysis.tools.crosssection as crosssection
 
+
+#================================================================================================ 
+# Variable Declaration
+#================================================================================================ 
 _debugNAllEvents = False
 
 # era name -> list of era parts in data dataset names
 _dataEras = {
-    #"Run2011A": ["_2011A_"],
-    #"Run2011B": ["_2011B_"],
-    #"Run2011AB": ["_2011A_", "_2011B_"],
-    #"Run2012A": ["_2012A_"],
-    #"Run2012B": ["_2012B_"],
-    #"Run2012C": ["_2012C_"],
-    #"Run2012D": ["_2012D_"],
-    #"Run2012AB": ["_2012A_", "_2012B_"],
-    #"Run2012ABC": ["_2012A_", "_2012B_", "_2012C_"],
-    #"Run2012ABCD": ["_2012A_", "_2012B_", "_2012C_", "_2012D_"],
-    "Run2015C": ["_Run2015C"],
-    "Run2015D": ["_Run2015D"],
+    "Run2015C" : ["_Run2015C"],
+    "Run2015D" : ["_Run2015D"],
     "Run2015CD": ["_Run2015C", "_Run2015D"],
-    "Run2015": ["_Run2015C", "_Run2015D"],
+    "Run2015"  : ["_Run2015C", "_Run2015D"],
 }
 
-## Construct DatasetManager from a list of MultiCRAB directory names.
-# 
-# \param multiDirs   List of strings or pairs of strings of the MultiCRAB
-#                    directories (relative to the working directory). If
-#                    the item of the list is pair of strings, the first
-#                    element is the directory, and the second element is
-#                    the postfix for the dataset names from that directory.
-# \param kwargs      Keyword arguments (forwarded to getDatasetsFromMulticrabCfg())
-#
-# \return DatasetManager object
+
 def getDatasetsFromMulticrabDirs(multiDirs, **kwargs):
+    '''
+    Construct DatasetManager from a list of MultiCRAB directory names.
+    
+    \param multiDirs   List of strings or pairs of strings of the MultiCRAB
+    directories (relative to the working directory). If
+    the item of the list is pair of strings, the first
+    element is the directory, and the second element is
+    the postfix for the dataset names from that directory.
+
+    \param kwargs      Keyword arguments (forwarded to getDatasetsFromMulticrabCfg())
+    
+    \return DatasetManager object
+    '''
+
     if "cfgfile" in kwargs:
         raise Exception("'cfgfile' keyword argument not allowed")
     if "namePostfix" in kwargs:
         raise Exception("'namePostfix' keyword argument not allowed")
 
     datasets = DatasetManager()
+
+    # For-loop: All multiCRAB directories
     for d in multiDirs:
+        print "=== dataset.py:\n\t d = ", d
         if isinstance(d, str):
             dset = getDatasetsFromMulticrabCfg(directory=d, **kwargs)
         else:
             dset = getDatasetsFromMulticrabCfg(directory=d[0], namePostfix=d[1], **kwargs)
+
+        print "=== dataset.py:\n\t dset = ", dset
         datasets.extend(dset)
 
     return datasets
 
-## Construct DatasetManager from a multicrab.cfg.
-#
-# \param kwargs   Keyword arguments (see below) 
-#
-# All keyword arguments are forwarded to readFromMulticrabCfg.
-#
-# All keyword arguments <b>except</b> the ones below are forwarded to
-# DatasetManagerCreator.createDatasetManager()
-# \li \a directory
-# \li \a cfgfile
-# \li \a excludeTasks
-# \li \a includeOnlyTasks
-# \li \a namePostfix
-#
-# \return DatasetManager object
-# 
-# \see dataset.readFromMulticrabCfg
 def getDatasetsFromMulticrabCfg(**kwargs):
+    '''
+    Construct DatasetManager from a multicrab.cfg.
+    
+    \param kwargs   Keyword arguments (see below) 
+    
+    All keyword arguments are forwarded to readFromMulticrabCfg.
+    
+    All keyword arguments <b>except</b> the ones below are forwarded to
+    DatasetManagerCreator.createDatasetManager()
+    \li \a directory
+    \li \a cfgfile
+    \li \a excludeTasks
+    \li \a includeOnlyTasks
+    \li \a namePostfix
+    
+    \return DatasetManager object
+    
+    \see dataset.readFromMulticrabCfg
+    '''
     _args = copy.copy(kwargs)
     for argName in ["directory", "cfgfile", "excludeTasks", "includeOnlyTasks", "namePostfix"]:
         try:
@@ -99,29 +105,31 @@ def getDatasetsFromMulticrabCfg(**kwargs):
     managerCreator = readFromMulticrabCfg(**kwargs)
     return managerCreator.createDatasetManager(**_args)
 
-## Construct DatasetManagerConstructor from a multicrab.cfg.
-#
-# \param kwargs   Keyword arguments (see below) 
-#
-# <b>Keyword arguments</b>
-# \li \a opts              Optional OptionParser object. Should have options added with addOptions() and multicrab.addOptions().
-# \li \a directory         Directory where to look for \a cfgfile.
-# \li \a cfgfile           Path to the multicrab.cfg file (for default, see multicrab.getTaskDirectories())
-# \li \a excludeTasks      String, or list of strings, to specify regexps.
-#                          If a dataset name matches to any of the
-#                          regexps, Dataset object is not constructed for
-#                          that. Conflicts with \a includeOnlyTasks
-# \li \a includeOnlyTasks  String, or list of strings, to specify
-#                          regexps. Only datasets whose name matches
-#                          to any of the regexps are kept. Conflicts
-#                          with \a excludeTasks.
-# \li Rest are forwarded to readFromCrabDirs()
-#
-# \return DatasetManagerCreator object
-# 
-# The section names in multicrab.cfg are taken as the dataset names
-# in the DatasetManager object.
 def readFromMulticrabCfg(**kwargs):
+    '''
+    Construct DatasetManagerConstructor from a multicrab.cfg.
+    
+    \param kwargs   Keyword arguments (see below) 
+    
+    <b>Keyword arguments</b>
+    \li \a opts              Optional OptionParser object. Should have options added with addOptions() and multicrab.addOptions().
+    \li \a directory         Directory where to look for \a cfgfile.
+    \li \a cfgfile           Path to the multicrab.cfg file (for default, see multicrab.getTaskDirectories())
+    \li \a excludeTasks      String, or list of strings, to specify regexps.
+    If a dataset name matches to any of the
+    regexps, Dataset object is not constructed for
+    that. Conflicts with \a includeOnlyTasks
+    \li \a includeOnlyTasks  String, or list of strings, to specify
+    regexps. Only datasets whose name matches
+    to any of the regexps are kept. Conflicts
+    with \a excludeTasks.
+    \li Rest are forwarded to readFromCrabDirs()
+    
+    \return DatasetManagerCreator object
+    
+    The section names in multicrab.cfg are taken as the dataset names
+    in the DatasetManager object.
+    '''
     opts = kwargs.get("opts", None)
     taskDirs = []
     dirname = ""
@@ -143,21 +151,25 @@ def readFromMulticrabCfg(**kwargs):
     managerCreator = readFromCrabDirs(taskDirs, baseDirectory=dirname, **kwargs)
     return managerCreator
 
-## Construct DatasetManager from a list of CRAB task directory names.
-# 
-# \param taskdirs     List of strings for the CRAB task directories (relative
-#                     to the working directory), forwarded to readFromCrabDirs()
-# \param kwargs       Keyword arguments (see below)
-#
-# All keyword arguments are forwarded to readFromCrabDirs().
-#
-# All keyword arguments <b>except</b> the ones below are forwarded to
-# DatasetManagerCreator.createDatasetManager()
-# \li \a namePostfix
-#
-# \see readFromCrabDirs()
 def getDatasetsFromCrabDirs(taskdirs, **kwargs):
+    '''
+    Construct DatasetManager from a list of CRAB task directory names.
+    
+    \param taskdirs     List of strings for the CRAB task directories (relative
+    to the working directory), forwarded to readFromCrabDirs()
+
+    \param kwargs       Keyword arguments (see below)
+    
+    All keyword arguments are forwarded to readFromCrabDirs().
+    
+    All keyword arguments <b>except</b> the ones below are forwarded to
+    DatasetManagerCreator.createDatasetManager()
+    \li \a namePostfix
+    
+    \see readFromCrabDirs()
+    '''
     _args = copy.copy(kwargs)
+    # For-loop: All arguments
     for argName in ["namePostfix"]:
         try:
             del _args[argName]
@@ -167,24 +179,27 @@ def getDatasetsFromCrabDirs(taskdirs, **kwargs):
     managerCreator = readFromCrabDirs(taskdirs, **kwargs)
     return managerCreator.createDatasetManager(**_args)
 
-
-## Construct DatasetManagerCreator from a list of CRAB task directory names.
-# 
-# \param taskdirs     List of strings for the CRAB task directories (relative
-#                     to the working directory)
-# \param emptyDatasetsAsNone  If true, in case of no datasets return None instead of raising an Exception (default False)
-# \param kwargs       Keyword arguments (see below) 
-# 
-# <b>Keyword arguments</b>, all are also forwarded to readFromRootFiles()
-# \li \a opts         Optional OptionParser object. Should have options added with addOptions().
-# \li \a namePostfix  Postfix for the dataset names (default: '')
-#
-# \return DatasetManagerCreator object
-# 
-# The basename of the task directories are taken as the dataset names
-# in the DatasetManagerCreator object (e.g. for directory '../Foo',
-# 'Foo' will be the dataset name)
 def readFromCrabDirs(taskdirs, emptyDatasetsAsNone=False, **kwargs):
+    '''
+    Construct DatasetManagerCreator from a list of CRAB task directory names.
+    
+    \param taskdirs     List of strings for the CRAB task directories (relative
+    to the working directory)
+    
+    \param emptyDatasetsAsNone  If true, in case of no datasets return None instead of raising an Exception (default False)
+
+    \param kwargs       Keyword arguments (see below) 
+    
+    <b>Keyword arguments</b>, all are also forwarded to readFromRootFiles()
+    \li \a opts         Optional OptionParser object. Should have options added with addOptions().
+    \li \a namePostfix  Postfix for the dataset names (default: '')
+    
+    \return DatasetManagerCreator object
+    
+    The basename of the task directories are taken as the dataset names
+    in the DatasetManagerCreator object (e.g. for directory '../Foo',
+    'Foo' will be the dataset name)
+    '''
     inputFile = None
     if "opts" in kwargs:
         opts = kwargs["opts"]
@@ -195,10 +210,12 @@ def readFromCrabDirs(taskdirs, emptyDatasetsAsNone=False, **kwargs):
 
     dlist = []
     noFiles = False
+
+    # For-loop: All task directories
     for d in taskdirs:
         # crab2
         resdir = os.path.join(d, "res")
-        name = os.path.basename(d)
+        name   = os.path.basename(d)
         if os.path.exists(resdir):
             files = glob.glob(os.path.join(resdir, inputFile))
         else:
@@ -206,7 +223,7 @@ def readFromCrabDirs(taskdirs, emptyDatasetsAsNone=False, **kwargs):
             files = glob.glob(os.path.join(d, "results", inputFile))
             name = name.replace("crab_", "")
         if len(files) == 0:
-            print >> sys.stderr, "Ignoring dataset %s: no files matched to '%s' in task directory %s" % (d, inputFile, os.path.join(d, "res"))
+            print >> sys.stderr, "=== dataset.py:\n\t Ignoring dataset %s: no files matched to '%s' in task directory %s" % (d, inputFile, os.path.join(d, "res"))
             noFiles = True
             continue
 
@@ -214,50 +231,58 @@ def readFromCrabDirs(taskdirs, emptyDatasetsAsNone=False, **kwargs):
 
     if noFiles:
         print >> sys.stderr, ""
-        print >> sys.stderr, "  There were datasets without files. Have you merged the files with hplusMergeHistograms.py?"
+        print >> sys.stderr, "=== dataset.py:\n\t There were datasets without files. Have you merged the files with hplusMergeHistograms.py?"
         print >> sys.stderr, ""
         if len(dlist) == 0:
-            raise Exception("No datasets. Have you merged the files with hplusMergeHistograms.py?")
+            raise Exception("dataset.py:\n\t No datasets. Have you merged the files with hplusMergeHistograms.py?")
 
     if len(dlist) == 0:
         if emptyDatasetsAsNone:
             return None
-        raise Exception("No datasets from CRAB task directories %s" % ", ".join(taskdirs))
+        raise Exception("dataset.py:\n\t No datasets from CRAB task directories %s" % ", ".join(taskdirs))
 
     return readFromRootFiles(dlist, **kwargs)
 
-## Construct DatasetManager from a list of CRAB task directory names.
-# 
-# \param rootFileList  List of (\a name, \a filenames) pairs (\a name
-#                      should be string, \a filenames can be string or
-#                      list of strings). \a name is taken as the
-#                      dataset name, and \a filenames as the path(s)
-#                      to the ROOT file(s).
-# \param kwargs        Keyword arguments, forwarded to readFromRootFiles() and dataset.Dataset.__init__()
-#
-# \return DatasetManager object
+
 def getDatasetsFromRootFiles(rootFileList, **kwargs):
+    '''
+    Construct DatasetManager from a list of CRAB task directory names.
+    
+    \param rootFileList  List of (\a name, \a filenames) pairs (\a name
+    should be string, \a filenames can be string or
+    list of strings). \a name is taken as the
+    dataset name, and \a filenames as the path(s)
+    to the ROOT file(s).
+
+    \param kwargs        Keyword arguments, forwarded to readFromRootFiles() and dataset.Dataset.__init__()
+    
+    \return DatasetManager object
+    '''
+
     managerCreator = readFromRootFiles(rootFileList, **kwargs)
     return managerCreator.createDatasetManager(**kwargs)
 
-## Construct DatasetManagerCreator from a list of CRAB task directory names.
-# 
-# \param rootFileList  List of (\a name, \a filenames) pairs (\a name
-#                      should be string, \a filenames can be string or
-#                      list of strings). \a name is taken as the
-#                      dataset name, and \a filenames as the path(s)
-#                      to the ROOT file(s). Forwarded to DatasetManagerCreator.__init__()
-# \param kwargs        Keyword arguments (see below), all forwarded to DatasetManagerCreator.__init__()
-#
-# <b>Keyword arguments</b>
-# \li \a opts          Optional OptionParser object. Should have options added with addOptions().
-#
-# \return DatasetManagerCreator object
-#
-# If \a opts exists, and the \a opts.listAnalyses is set to True, list
-# all available analyses (with DatasetManagerCreator.printAnalyses()),
-# and exit.
 def readFromRootFiles(rootFileList, **kwargs):
+    '''
+    Construct DatasetManagerCreator from a list of CRAB task directory names.
+ 
+    \param rootFileList  List of (\a name, \a filenames) pairs (\a name
+    should be string, \a filenames can be string or
+    list of strings). \a name is taken as the
+    dataset name, and \a filenames as the path(s)
+    to the ROOT file(s). Forwarded to DatasetManagerCreator.__init__()
+
+    \param kwargs        Keyword arguments (see below), all forwarded to DatasetManagerCreator.__init__()
+    
+    <b>Keyword arguments</b>
+    \li \a opts          Optional OptionParser object. Should have options added with addOptions().
+    
+    \return DatasetManagerCreator object
+    
+    If \a opts exists, and the \a opts.listAnalyses is set to True, list
+    all available analyses (with DatasetManagerCreator.printAnalyses()),
+    and exit.
+    '''
     creator = DatasetManagerCreator(rootFileList, **kwargs)
     if "opts" in kwargs and kwargs["opts"].listAnalyses:
         creator.printAnalyses()
@@ -270,10 +295,12 @@ _optionDefaults = {
     "input": "histograms-*.root",
 }
 
-## Add common dataset options to OptionParser object.
-#
-# \param parser   OptionParser object
 def addOptions(parser, analysisName=None, searchMode=None, dataEra=None, optimizationMode=None, systematicVariation=None):
+    '''
+    Add common dataset options to OptionParser object.
+    
+    \param parser   OptionParser object
+    '''
     parser.add_option("-i", dest="input", type="string", default=_optionDefaults["input"],
                       help="Pattern for input root files (note: remember to escape * and ? !) (default: '%s')" % _optionDefaults["input"])
     parser.add_option("-f", dest="files", type="string", action="append", default=[],
@@ -306,20 +333,20 @@ class Settings:
     def set(self, **kwargs):
         for key, value in kwargs.iteritems():
             if not key in self.data:
-                raise Exception("Not allowed to insert '%s', available settings: %s" % (key, ", ".join(self.data.keys())))
+                raise Exception("=== dataset.py:\n\t Not allowed to insert '%s', available settings: %s" % (key, ", ".join(self.data.keys())))
             self.data[key] = value
 
     def append(self, **kwargs):
         for key, value in kwargs.iteritems():
             if not key in self.data:
-                raise Exception("Not allowed to insert '%s', available settings: %s" % (key, ", ".join(self.data.keys())))
+                raise Exception("=== dataset.py:\n\t Not allowed to insert '%s', available settings: %s" % (key, ", ".join(self.data.keys())))
             try:
                 self.data[key].append(value)
             except AttributeError:
                 try:
                     self.data[key].update(value)
                 except AttributeError:
-                    raise Exception("Trying to append to '%s', but it does not have 'append' method (assuming list) nor 'update' method (assuming dictionary). Its type is %s." % (key, type(self.data[key]).__name__))
+                    raise Exception("=== dataset.py:\n\t Trying to append to '%s', but it does not have 'append' method (assuming list) nor 'update' method (assuming dictionary). Its type is %s." % (key, type(self.data[key]).__name__))
 
     def get(self, key, args=None):
         if args is None:
@@ -428,7 +455,7 @@ class CountAsymmetric:
     def multiply(self, count):
         value = count.value()
         if count.uncertainty() != 0:
-            raise Exception("Can't multiply CountAsymmetric (%f, %f, %f) with Count (%f, %f) with non-zero uncertainty" % (self._value, self._uncertaintyLow, self._uncertaintyHigh, count.value(), count.uncertainty()))
+            raise Exception("=== dataset.py:\n\t Can't multiply CountAsymmetric (%f, %f, %f) with Count (%f, %f) with non-zero uncertainty" % (self._value, self._uncertaintyLow, self._uncertaintyHigh, count.value(), count.uncertainty()))
         self._value *= value
         self._uncertaintyLow *= value
         self._uncertaintyHigh *= value
@@ -446,26 +473,29 @@ def divideBinomial(countPassed, countTotal):
     value = p / float(t)
     p = int(p)
     t = int(t)
-    errUp = ROOT.TEfficiency.ClopperPearson(t, p, 0.683, True)
+    errUp   = ROOT.TEfficiency.ClopperPearson(t, p, 0.683, True )
     errDown = ROOT.TEfficiency.ClopperPearson(t, p, 0.683, False)
     return CountAsymmetric(value, value-errDown, errUp-value)
 
-## Transform histogram (TH1) to a list of (name, Count) pairs.
-#
-# The name is taken from the x axis label and the count is Count
-# object with value and (statistical) uncertainty.
 def _histoToCounter(histo):
+    '''
+    Transform histogram (TH1) to a list of (name, Count) pairs.
+
+    The name is taken from the x axis label and the count is Count
+     object with value and (statistical) uncertainty.
+    '''
     ret = []
 
     for bin in xrange(1, histo.GetNbinsX()+1):
         ret.append( (histo.GetXaxis().GetBinLabel(bin),
                      Count(float(histo.GetBinContent(bin)),
                            float(histo.GetBinError(bin)))) )
-
     return ret
 
-## Transform a list of (name, Count) pairs to a histogram (TH1)
 def _counterToHisto(name, counter):
+    '''
+    Transform a list of (name, Count) pairs to a histogram (TH1)
+    '''
     histo = ROOT.TH1F(name, name, len(counter), 0, len(counter))
     histo.Sumw2()
 
@@ -475,28 +505,32 @@ def _counterToHisto(name, counter):
         histo.SetBinContent(bin, count.value())
         histo.SetBinError(bin, count.uncertainty())
         bin += 1
-
     return histo
 
-## Transform histogram (TH1) to a list of values
 def histoToList(histo):
+    '''
+    ## Transform histogram (TH1) to a list of values
+    '''
     return [histo.GetBinContent(bin) for bin in xrange(1, histo.GetNbinsX()+1)]
 
 
-## Transform histogram (TH1) to a dictionary.
-#
-# The key is taken from the x axis label, and the value is the bin
-# content.
 def _histoToDict(histo):
+    '''
+    Transform histogram (TH1) to a dictionary.
+    
+    The key is taken from the x axis label, and the value is the bin
+     content.
+    '''
     ret = {}
 
     for bin in xrange(1, histo.GetNbinsX()+1):
         ret[histo.GetXaxis().GetBinLabel(bin)] = histo.GetBinContent(bin)
-
     return ret
 
-## Integrate TH1 to a Count
 def histoIntegrateToCount(histo):
+    '''
+    Integrate TH1 to a Count
+    '''
     count = Count(0, 0)
     if histo is None:
         return count
@@ -505,21 +539,23 @@ def histoIntegrateToCount(histo):
         count.add(Count(histo.GetBinContent(bin), histo.GetBinError(bin)))
     return count
 
-## Rescales info dictionary.
-# 
-# Assumes that d has a 'control' key for a numeric value, and then
-# normalizes all items in the dictionary such that the 'control'
-# becomes one.
-# 
-# The use case is to have a dictionary from _histoToDict() function,
-# where the original histogram is merged from multiple jobs. It is
-# assumed that each histogram as a one bin with 'control' label, and
-# the value of this bin is 1 for each job. Then the bin value for
-# the merged histogram tells the number of jobs. Naturally the
-# scheme works correctly only if the histograms from jobs are
-# identical, and hence is appropriate only for dataset-like
-# information.
 def _rescaleInfo(d):
+    '''
+    # Rescales info dictionary.
+    
+    Assumes that d has a 'control' key for a numeric value, and then
+    normalizes all items in the dictionary such that the 'control'
+    becomes one.
+    
+    The use case is to have a dictionary from _histoToDict() function,
+    where the original histogram is merged from multiple jobs. It is
+    assumed that each histogram as a one bin with 'control' label, and
+    the value of this bin is 1 for each job. Then the bin value for
+    the merged histogram tells the number of jobs. Naturally the
+    scheme works correctly only if the histograms from jobs are
+    identical, and hence is appropriate only for dataset-like
+    information.
+    '''
     factor = 1/d["control"]
 
     ret = {}
@@ -532,12 +568,14 @@ def _rescaleInfo(d):
     return ret
 
 
-## Normalize TH1/TH2/TH3 to unit area.
-# 
-# \param h   RootHistoWithUncertainties object, or TH1/TH2/TH3 histogram
-# 
-# \return Normalized histogram (same as the argument object, i.e. no copy is made).
 def _normalizeToOne(h):
+    '''
+    Normalize TH1/TH2/TH3 to unit area.
+     
+    \param h   RootHistoWithUncertainties object, or TH1/TH2/TH3 histogram
+    
+    \return Normalized histogram (same as the argument object, i.e. no copy is made).
+    '''
     if isinstance(h, RootHistoWithUncertainties):
         integral = h.integral()
     elif isinstance(h, ROOT.TH3):
@@ -551,14 +589,16 @@ def _normalizeToOne(h):
     else:
         return _normalizeToFactor(h, 1.0/integral)
 
-## Scale TH1 with a given factor.
-# 
-# \param h   TH1 histogram
-# \param f   Scale factor
-# 
-# TH1.Sumw2() is called before the TH1.Scale() in order to scale the
-# histogram errors correctly.
 def _normalizeToFactor(h, f):
+    '''
+    Scale TH1 with a given factor.
+    
+    \param h   TH1 histogram
+    \param f   Scale factor
+     
+    TH1.Sumw2() is called before the TH1.Scale() in order to scale the
+    histogram errors correctly.
+    '''
     backup = ROOT.gErrorIgnoreLevel
     ROOT.gErrorIgnoreLevel = ROOT.kError
     h.Sumw2() # errors are also scaled after this call 
@@ -567,24 +607,25 @@ def _normalizeToFactor(h, f):
     return h
 
 
-## Helper function for merging/stacking a set of datasets.
-# 
-# \param datasetList  List of all Dataset objects to consider
-# \param nameList     List of the names of Dataset objects to merge/stack
-# \param task         String to identify merge/stack task (can be 'stack' or 'merge')
-# \param allowMissingDatasets  If True, ignore error from missing dataset (warning is nevertheless printed)
-# 
-# \return a triple of:
-# - list of selected Dataset objects
-# - list of non-selected Dataset objects
-# - index of the first selected Dataset object in the original list
-#   of all Datasets
-# 
-# The Datasets to merge/stack are selected from the list of all
-# Datasets, and it is checked that all of them are either data or MC
-# (i.e. merging/stacking of data and MC datasets is forbidden).
-# """
 def _mergeStackHelper(datasetList, nameList, task, allowMissingDatasets=False):
+    '''
+    Helper function for merging/stacking a set of datasets.
+    
+    \param datasetList  List of all Dataset objects to consider
+    \param nameList     List of the names of Dataset objects to merge/stack
+    \param task         String to identify merge/stack task (can be 'stack' or 'merge')
+    \param allowMissingDatasets  If True, ignore error from missing dataset (warning is nevertheless printed)
+    
+    \return a triple of:
+    - list of selected Dataset objects
+    - list of non-selected Dataset objects
+    - index of the first selected Dataset object in the original list
+    of all Datasets
+    
+    The Datasets to merge/stack are selected from the list of all
+    Datasets, and it is checked that all of them are either data or MC
+    (i.e. merging/stacking of data and MC datasets is forbidden).
+    '''
     if not task in ["stack", "merge"]:
         raise Exception("Task can be either 'stack' or 'merge', was '%s'" % task)
 
@@ -595,6 +636,7 @@ def _mergeStackHelper(datasetList, nameList, task, allowMissingDatasets=False):
     mcCount = 0
     pseudoCount = 0
 
+    # For-loop: All datasets
     for i, d in enumerate(datasetList):
         if d.getName() in nameList:
             selected.append(d)
@@ -607,25 +649,27 @@ def _mergeStackHelper(datasetList, nameList, task, allowMissingDatasets=False):
             elif hasattr(d, "isPseudo") and d.isPseudo():
                 pseudoCount += 1
             else:
-                raise Exception("Internal error!")
+                raise Exception("dataset.py:\n\t Internal error!")
         else:
             notSelected.append(d)
 
     if dataCount > 0 and mcCount > 0:
-        raise Exception("Can not %s data and MC datasets!" % task)
+        raise Exception("=== dataset.py:\n\t Can not '%s' data and MC datasets!" % task)
     if dataCount > 0 and pseudoCount > 0:
-        raise Exception("Can not %s data and pseudo datasets!" % task)
+        raise Exception("=== dataset.py:\n\t Can not '%s' data and pseudo datasets!" % task)
     if pseudoCount > 0 and mcCount > 0:
-        raise Exception("Can not %s pseudo and MC datasets!" % task)
+        raise Exception("=== dataset.py:\n\t Can not '%s' pseudo and MC datasets!" % task)
 
     if len(selected) != len(nameList):
         dlist = nameList[:]
+        
+        # For-loop:
         for d in selected:
             ind = dlist.index(d.getName())
             del dlist[ind]
-        message = "Tried to %s '"%task + ", ".join(dlist) +"' which don't exist"
+        message = "=== dataset.py:\n\t Tried to '%s' '" % task + ", ".join(dlist) +"' which don't exist"
         if allowMissingDatasets:
-            print >> sys.stderr, "WARNING: "+message
+            print >> sys.stderr, "=== dataset.py:\n\t WARNING: " + message
         else:
             raise Exception(message)
 
@@ -671,10 +715,10 @@ class TreeDraw:
         1 bin, which contains the event count and the uncertainty of the
         event count (calculated as sqrt(N)).
         '''
-        self.tree = tree
-        self.varexp = varexp
+        self.tree      = tree
+        self.varexp    = varexp
         self.selection = selection
-        self.weight = weight
+        self.weight    = weight
 
         self.binLabelsX = binLabelsX
         self.binLabelsY = binLabelsY
@@ -702,7 +746,7 @@ class TreeDraw:
                 }
         args.update(kwargs)
         
-        # Allow modification functions
+        # Allow modification functions        
         for name, value in args.items():
             if hasattr(value, "__call__"):
                 args[name] = value(getattr(self, name))
@@ -719,18 +763,18 @@ class TreeDraw:
         dataset.TreeDrawCompound        
         '''
         if self.varexp != "" and not ">>" in self.varexp:
-            raise Exception("varexp should include explicitly the histogram binning (%s)"%self.varexp)
+            raise Exception("=== dataset.py:\n\t varexp should include explicitly the histogram binning ('%s')" % self.varexp)
 
         selection = self.selection
         if len(self.weight) > 0:
             if len(selection) > 0:
-                selection = "%s * (%s)" % (self.weight, selection)
+                selection = "'%s' * ('%s')" % (self.weight, selection)
             else:
                 selection = self.weight
 
         (tree, treeName) = dataset.createRootChain(self.tree)
         if tree == None:
-            raise Exception("No TTree '%s' in file %s" % (treeName, dataset.getRootFile().GetName()))
+            raise Exception("=== dataset.py:\n\t No TTree '%s' in file '%s'" % (treeName, dataset.getRootFile().GetName()))
 
         if self.varexp == "":
             nentries = tree.GetEntries(selection)
@@ -752,10 +796,10 @@ class TreeDraw:
         option = opt+"goff"
         nentries = tree.Draw(varexp, selection, option)
         if nentries < 0:
-            raise Exception("Error when calling TTree.Draw with the following parameters for dataset %s, nentries=%d\ntree:       %s\nvarexp:     %s\nselection:  %s\noption:     %s" % (dataset.getName(), nentries, treeName, varexp, selection, option))
+            raise Exception("=== dataset.py:\n\t Error when calling TTree.Draw with the following parameters for dataset %s, nentries=%d\ntree:       %s\nvarexp:     %s\nselection:  %s\noption:     %s" % (dataset.getName(), nentries, treeName, varexp, selection, option))
         h = tree.GetHistogram()
         if h == None: # need '==' to compare null TH1
-            print >>sys.stderr, "WARNING: TTree.Draw with the following parameters returned null histogram for dataset %s (%d entries)\ntree:       %s\nvarexp:     %s\nselection:  %s\noption:     %s" % (dataset.getName(), nentries, treeName, varexp, selection, option)
+            print >>sys.stderr, "=== dataset.py:\n\t WARNING: TTree.Draw with the following parameters returned null histogram for dataset %s (%d entries)\ntree:       %s\nvarexp:     %s\nselection:  %s\noption:     %s" % (dataset.getName(), nentries, treeName, varexp, selection, option)
             return None
 
         h.SetName(dataset.getName()+"_"+h.GetName())
@@ -767,8 +811,7 @@ class TreeDraw:
                 nlabels = len(labels)
                 nbins = getattr(h, "GetNbins"+axis)()
                 if nlabels != nbins:
-                    raise Exception("Trying to set %s bin labels, bot %d labels, histogram has %d bins. \ntree:       %s\nvarexp:     %s\nselection:  %s\noption:     %s" %
-                                    (axis, nlabels, nbins, self.tree, varexp, selection, option))
+                    raise Exception("=== dataset.py:\n\t Trying to set %s bin labels, bot %d labels, histogram has %d bins. \ntree:       %s\nvarexp:     %s\nselection:  %s\noption:     %s" % (axis, nlabels, nbins, self.tree, varexp, selection, option))
                 axisObj = getattr(h, "Get"+axis+"axis")()
                 for i, label in enumerate(labels):
                     axisObj.SetBinLabel(i+1, label)
@@ -827,7 +870,7 @@ class TreeScan:
         rootFile = dataset.getRootFile()
         tree = rootFile.Get(self.tree)
         if tree == None:
-            raise Exception("No TTree '%s' in file %s" % (self.tree, rootFile.GetName()))
+            raise Exception("=== dataset.py:\n\t No TTree '%s' in file '%s'" % (self.tree, rootFile.GetName()))
 
         tree.Draw(">>elist", self.selection)
         elist = ROOT.gDirectory.Get("elist")
@@ -844,55 +887,67 @@ class TreeScan:
     ## \var selection
     # Select only these TTree entries
 
-## Provides ability to have separate dataset.TreeDraws for different datasets
-#
-# One specifies a default dataset.TreeDraw, and the exceptions for that with a
-# map from string to dataset.TreeDraw.
 #================================================================================================ 
 # Class Definition
 #================================================================================================ 
 class TreeDrawCompound:
-    ## Constructor
-    #
-    # \param default     Default dataset.TreeDraw
-    # \param datasetMap  Dictionary for the overriding dataset.TreeDraw objects
-    #                    containing dataset names as keys, and TreeDraws as values.
+    '''
+    Provides ability to have separate dataset.TreeDraws for different datasets
+    
+    One specifies a default dataset.TreeDraw, and the exceptions for that with a
+    map from string to dataset.TreeDraw.
+    '''
     def __init__(self, default, datasetMap={}):
+        '''
+        Constructor
+        
+        \param default     Default dataset.TreeDraw
+        
+        \param datasetMap  Dictionary for the overriding dataset.TreeDraw objects
+        containing dataset names as keys, and TreeDraws as values.
+        '''
         self.default = default
         self.datasetMap = datasetMap
 
-    ## Add a new dataset specific dataset.TreeDraw
-    #
-    # \param datasetName  Name of the dataset
-    # \param treeDraw     dataset.TreeDraw object to add
     def add(self, datasetName, treeDraw):
+        '''
+        Add a new dataset specific dataset.TreeDraw
+        
+        \param datasetName  Name of the dataset
+        
+        \param treeDraw     dataset.TreeDraw object to -add
+        '''
         self.datasetMap[datasetName] = treeDraw
 
-    ## Produce TH1
-    #
-    # \param datasetName  Dataset object
-    #
-    # The dataset.TreeDraw for which the call is forwarded is searched from
-    # the datasetMap with the datasetName. If found, that object is
-    # used. If not found, the default TreeDraw is used.
     def draw(self, dataset):
+        '''
+        Produce TH1
+        
+        \param datasetName  Dataset object
+        
+        The dataset.TreeDraw for which the call is forwarded is searched from
+        the datasetMap with the datasetName. If found, that object is
+        used. If not found, the default TreeDraw is used.
+        '''
         h = None
         datasetName = dataset.getName()
         if datasetName in self.datasetMap:
-            #print "Dataset %s in datasetMap" % datasetName, self.datasetMap[datasetName].selection
+            print "=== dataset.py:\n\t Dataset '%s' in datasetMap" % datasetName, self.datasetMap[datasetName].selection
             h = self.datasetMap[datasetName].draw(dataset)
         else:
-            #print "Dataset %s with default" % datasetName, self.default.selection
+            print "=== dataset.py:\n\t Dataset '%s' with default" % datasetName, self.default.selection
             h = self.default.draw(dataset)
         return h
 
-    ## Clone
-    #
-    # <b>Keyword arguments</b> are the same as for the clone() method
-    # of the contained TreeDraw objects. The new TreeDrawCompoung is
-    # constructed such that the default and dataset-specific TreeDraws
-    # are cloned with the given keyword arguments.
     def clone(self, **kwargs):
+        '''
+        Clone
+        
+        <b>Keyword arguments</b> are the same as for the clone() method
+        of the contained TreeDraw objects. The new TreeDrawCompoung is
+        constructed such that the default and dataset-specific TreeDraws
+        are cloned with the given keyword arguments.
+        '''
         ret = TreeDrawCompound(self.default.clone(**kwargs))
         for name, td in self.datasetMap.iteritems():
             ret.datasetMap[name] = td.clone(**kwargs)
@@ -913,11 +968,13 @@ def _treeDrawToNumEntriesSingle(treeDraw):
     # if selection and weight are "", TreeDraw.draw() returns a histogram with the number of entries
     return treeDraw.clone(varexp=var)
 
-## Maybe unnecessary function?
-#
-# Seems to be used only from DatasetQCDData class, which was never
-# finished.
 def treeDrawToNumEntries(treeDraw):
+    '''
+    Maybe unnecessary function?
+    
+    Seems to be used only from DatasetQCDData class, which was never
+    finished.
+    '''
     if isinstance(treeDraw, TreeDrawCompound):
         td = TreeDrawCompound(_treeDrawToNumEntriesSingle(treeDraw.default))
         for name, td2 in treeDraw.datasetMap.iteritems():
@@ -941,44 +998,41 @@ class Systematics:
     class All:
         pass
 
-    ## Constructor
-    #
-    # \param kwargs   Keyword arguments, see below
-    #
-    # <b>Keyword arguments</b>
-    # \li\a allShapes                 If True, use all available shape variation uncertainties
-    # \li\a shapes                    List of strings for explicit list of shape
-    #                                 variations (e.g. ['SystVarJES',
-    #                                 'SystVarJER'])
-    # \li\a normalizationSelections   List of strings for the selections
-    #                                 used up to this point for
-    #                                 normalization uncertainties (not
-    #                                 used yet)
-    # \li\a additionalNormalizations  Dictionary (name (string) ->
-    #                                 value (float)) for addititional
-    #                                 normalization uncertainties. The
-    #                                 uncertainties are supposed to be
-    #                                 relative.
-    # \li\a additionalDatasetNormalizations Dictionary (name (string)
-    #                                 -> function (string -> float)) for
-    #                                 additional dataset-specific
-    #                                 uncertainties. The uncertainties are
-    #                                 supposed to be relative.
-    # \li\a additionalShapes          Dictionary (name (string) -> (th1up,
-    #                                 th1down)) for additional shape
-    #                                 variation uncertainties.
-    #                                 th1up/th1down can be either
-    #                                 TH1s, or strings for paths of
-    #                                 histograms in the analysis
-    #                                 directory (or ROOT file)
-    # \li\a additionalShapesRelative  Dictionary (name (string) -> th1)
-    #                                 for additional bin-wise relative
-    #                                 uncertainties. Each bin of TH1
-    #                                 should have the relative
-    #                                 uncertainty of that bin.
-    # \li\a applyToDatasets           Datasets to which the systematic uncertainties are applied (one of the tag classes OnlyForMC, OnlyForPseudo, OnlyForPseudoAndMC, All)
-    # \li\a verbose                   If True, print the applied uncertainties
     def __init__(self, **kwargs):
+        '''
+        Constructor
+        
+        \param kwargs   Keyword arguments, see below
+    
+        <b>Keyword arguments</b>
+        \li\a allShapes                 If True, use all available shape variation uncertainties
+        \li\a shapes                    List of strings for explicit list of shape
+        variations (e.g. ['SystVarJES', 'SystVarJER'])
+
+        \li\a normalizationSelections   List of strings for the selections
+        used up to this point for  normalization uncertainties (not used yet)
+
+        \li\a additionalNormalizations  Dictionary (name (string) ->
+        value (float)) for addititional normalization uncertainties. The
+        uncertainties are supposed to be relative.
+
+        \li\a additionalDatasetNormalizations Dictionary (name (string)
+        -> function (string -> float)) for additional dataset-specific
+        uncertainties. The uncertainties are supposed to be relative.
+
+        \li\a additionalShapes          Dictionary (name (string) -> (th1up, th1down)) for additional shape
+        variation uncertainties. th1up/th1down can be either TH1s, or strings for paths of
+        histograms in the analysis directory (or ROOT file)
+
+        \li\a additionalShapesRelative  Dictionary (name (string) -> th1)
+        for additional bin-wise relative uncertainties. Each bin of TH1
+        should have the relative uncertainty of that bin.
+
+        \li\a applyToDatasets           Datasets to which the systematic uncertainties are applied 
+        (one of the tag classes OnlyForMC, OnlyForPseudo, OnlyForPseudoAndMC, All)
+
+        \li\a verbose                   If True, print the applied uncertainties
+        '''
         self.settings = Settings(allShapes=False,
                                  shapes=[],
                                  normalizationSelections=[],
@@ -991,90 +1045,109 @@ class Systematics:
                                  )
         self.settings.set(**kwargs)
 
-    ## Set systematics parameters
-    #
-    # \param kwargs  Keyword arguments, see __init__()
     def set(self, **kwargs):
+        '''
+        Set systematics parameters
+        
+        \param kwargs  Keyword arguments, see __init__()
+        '''
         self.settings.set(**kwargs)
 
-    ## Append to systematic parameters
-    #
-    # \param kwargs   Keyword arguments, see __init__()
-    #
-    # Appending works only for those parameters, whose type is list or
-    # dictionary.
     def append(self, **kwargs):
+        '''
+        Append to systematic parameters
+        
+        \param kwargs   Keyword arguments, see __init__()
+        
+        Appending works only for those parameters, whose type is list or
+        dictionary.
+        '''
         self.settings.append(**kwargs)
 
-    ## Clone Systematics recipe
-    #
-    # \param kwargs  Keyword arguments for overriding parameters, see __init__()
     def clone(self, **kwargs):
+        '''
+        Clone Systematics recipe
+        
+        \param kwargs  Keyword arguments for overriding parameters, see __init__()
+        '''
         cl = copy.deepcopy(self)
         cl.set(**kwargs)
         return cl
 
-    ## Create SystematicsHelper for Dataset.getDatasetRootHisto()
-    #
-    # \param name    Path to the histogram in the analysis TDirectory
-    # \param kwargs  Keyword arguments for overriding parameters, see __init__()
     def histogram(self, name, **kwargs):
+        '''
+        Create SystematicsHelper for Dataset.getDatasetRootHisto()
+        
+        \param name    Path to the histogram in the analysis TDirectory
+
+        \param kwargs  Keyword arguments for overriding parameters, see __init__()
+        '''
         settings = self.settings
         if len(kwargs) > 0:
             settings = settings.clone(**kwargs)
         return SystematicsHelper(name, settings)
 
-## Helper class to do the work for obtaining uncertainties from their sources for a requested histogram
-#
-# The object should be created with Systematics.histogram(), i.e. not
-# directly.
 #================================================================================================ 
 # Class Definition
 #================================================================================================ 
 class SystematicsHelper:
-    ## Constructor
-    #
-    # \param histoName   Name of the histogram to read
-    # \param settings    Settings object for systematic recipe
+    '''
+    Helper class to do the work for obtaining uncertainties from their sources for a requested histogram
+    
+    The object should be created with Systematics.histogram(), i.e. not directly.
+    '''
     def __init__(self, histoName, settings):
+        '''
+        Constructor
+        
+        \param histoName   Name of the histogram to read
+
+        \param settings    Settings object for systematic recipe
+        '''
         self._histoName = histoName
         self._settings = settings
 
-    ## Read the histogram for a dataset
-    #
-    # \param dset  Dataset object
     def draw(self, dset):
+        '''
+        Read the histogram for a dataset
+    
+        \param dset  Dataset object
+        '''
         (th1, realName) = dset.getRootHisto(self._histoName)
         return th1
 
-    ## Add uncertainties to RootHistoWithUncertainties object
-    #
-    # \param dset                         Dataset object
-    # \param rootHistoWithUncertainties   RootHistoWithUncertainties object
-    # \param modify                       Optional modification function, see Dataset.getDatasetRootHisto()
     def addUncertainties(self, dset, rootHistoWithUncertainties, modify=None):
+        '''
+        Add uncertainties to RootHistoWithUncertainties object
+    
+        \param dset                         Dataset object
+
+        \param rootHistoWithUncertainties   RootHistoWithUncertainties object
+
+        \param modify                       Optional modification function, see Dataset.getDatasetRootHisto()
+        '''
         verbose = self._settings.get("verbose")
         if verbose:
-            print "Adding uncertainties to histogram '%s' of dataset '%s'" % (self._histoName, dset.getName())
+            print "=== dataset.py:\n\t Adding uncertainties to histogram '%s' of dataset '%s'" % (self._histoName, dset.getName())
 
         onlyFor = self._settings.get("applyToDatasets")
         if dset.isMC():
             if onlyFor is Systematics.OnlyForPseudo:
                 if verbose:
-                    print "  Dataset is MC, no systematics considered (Systematics(..., onlyForMC=%s))" % onlyFor.__name__
+                    print "=== dataset.py:\n\t Dataset is MC, no systematics considered (Systematics(..., onlyForMC=%s))" % onlyFor.__name__
                 return
         elif dset.isPseudo():
             if onlyFor is Systematics.OnlyForMC:
                 if verbose:
-                    print "  Dataset is pseudo, no systematics considered (Systematics(..., onlyForMC=%s))" % onlyFor.__name__
+                    print "=== dataset.py:\n\t Dataset is pseudo, no systematics considered (Systematics(..., onlyForMC=%s))" % onlyFor.__name__
                 return
         elif dset.isData():
             if onlyFor is not Systematics.All:
                 if verbose:
-                    print "  Dataset is data, no systematics considered (Systematics(..., onlyForMC=%s))" % onlyFor.__name__
+                    print "=== dataset.py:\n\t Dataset is data, no systematics considered (Systematics(..., onlyForMC=%s))" % onlyFor.__name__
                 return
         else:
-            raise Exception("Internal error (unknown dataset type)")
+            raise Exception("=== dataset.py:\n\t Internal error (unknown dataset type)")
 
         # Read the shape variations from the Dataset
         shapes = []
@@ -1082,14 +1155,14 @@ class SystematicsHelper:
         if self._settings.get("allShapes"):
             shapes = allShapes
             if verbose:
-                print "  Using all available shape variations (%s)" % ",".join(shapes)
+                print "=== dataset.py:\n\t Using all available shape variations (%s)" % ",".join(shapes)
         else:
             shapes = self._settings.get("shapes")
             #for s in self._settings.get("shapes"):
             #    if s in allShapes:
             #        shapes.append(s)
             if verbose:
-                print "  Using explicitly specified shape variations (%s)" % ",".join(shapes)
+                print "=== dataset.py:\n\t Using explicitly specified shape variations (%s)" % ",".join(shapes)
         for source in shapes:
             plus = None
             minus = None
@@ -1106,7 +1179,7 @@ class SystematicsHelper:
         additShapes = self._settings.get("additionalShapes")
         if len(additShapes) > 0:
             if verbose:
-                print "  Adding additional shape variations %s" % ",".join(additShapes.keys())
+                print "=== dataset.py:\n\t Adding additional shape variations %s" % ",".join(additShapes.keys())
             for source, (th1plus, th1minus) in additShapes.iteritems():
                 hp = th1plus
                 hm = th1minus
@@ -1124,7 +1197,7 @@ class SystematicsHelper:
         relShapes = self._settings.get("additionalShapesRelative")
         if len(relShapes) > 0:
             if verbose:
-                print "  Adding additional bin-wise relative uncertainties %s" % ",".join(relShapes.keys())
+                print "=== dataset.py:\n\t Adding additional bin-wise relative uncertainties %s" % ",".join(relShapes.keys())
             for source, th1 in relShapes.iteritems():
                 rootHistoWithUncertainties.addShapeUncertaintyFromVariationRelative(source, th1)
 
@@ -1132,14 +1205,14 @@ class SystematicsHelper:
         normSel = self._settings.get("normalizationSelections")
         if len(normSel) > 0:
             if verbose:
-                print "  Adding normalization uncertainties after selections %s" % ",".join(normSel)
+                print "=== dataset.py:\n\t Adding normalization uncertainties after selections %s" % ",".join(normSel)
             raise Exception("Normalization uncertainties given the set of selections is not supported yet")
 
         # Add any user-supplied normalization uncertainties
         additNorm = self._settings.get("additionalNormalizations")
         if len(additNorm) > 0:
             if verbose:
-                print "  Adding additional relative normalization uncertainties %s" % ",".join(additNorm.keys())
+                print "=== dataset.py:\n\t Adding additional relative normalization uncertainties %s" % ",".join(additNorm.keys())
             for source, value in additNorm.iteritems():
                 rootHistoWithUncertainties.addNormalizationUncertaintyRelative(source, value)
 
@@ -1147,24 +1220,25 @@ class SystematicsHelper:
         additNorm = self._settings.get("additionalDatasetNormalizations")
         if len(additNorm) > 0:
             if verbose:
-                print "  Adding additional dataset-specific (for %s) relative normalization uncertainties %s" % (dset.getName(), ",".join(additNorm.keys()))
+                print "=== dataset.py:\n\t Adding additional dataset-specific (for %s) relative normalization uncertainties %s" % (dset.getName(), ",".join(additNorm.keys()))
             for source, func in additNorm.iteritems():
                 value = func(dset.getName())
                 rootHistoWithUncertainties.addNormalizationUncertaintyRelative(source, value)
 
         if verbose:
-            print "  Below is the final set of uncertainties for this histogram"
+            print "=== dataset.py:\n\t Below is the final set of uncertainties for this histogram"
             rootHistoWithUncertainties.printUncertainties()
 
         
-
-## Class to encapsulate a ROOT histogram with a bunch of uncertainties
-#
-# Looks almost as TH1, except holds bunch of uncertainties; the histograms contained are clones and therefore owned by the class
 #================================================================================================ 
 # Class Definition
 #================================================================================================ 
 class RootHistoWithUncertainties:
+    ''''
+    Class to encapsulate a ROOT histogram with a bunch of uncertainties
+    
+    Looks almost as TH1, except holds bunch of uncertainties; the histograms contained are clones and therefore owned by the class
+    '''
     def __init__(self, rootHisto):
         self._rootHisto = None
         
@@ -1188,9 +1262,9 @@ class RootHistoWithUncertainties:
         #if not ROOT.TH1.CheckConsistency(self._rootHisto, th1):
         #    raise Exception("Adding uncertainty %s, histogram consistency check fails (ROOT.TH1.CheckConsistency())" % name)
         if self._rootHisto.GetDimension() != th1.GetDimension():
-            raise Exception("Adding uncertainty %s, histograms have different dimension (%d != %d)" % (name, self._rootHisto.GetDimension(), th1.GetDimension()))
+            raise Exception("=== dataset.py:\n\t Adding uncertainty '%s', histograms have different dimension (%d != %d)" % (name, self._rootHisto.GetDimension(), th1.GetDimension()))
         if self._rootHisto.GetNbinsX() != th1.GetNbinsX():
-            raise Exception("Adding uncertainty %s, histograms have different number of X bins (%d != %d)" % (name, self._rootHisto.GetNbinsX(), th1.GetNbinsX()))
+            raise Exception("=== dataset.py:\n\t Adding uncertainty '%s', histograms have different number of X bins (%d != %d)" % (name, self._rootHisto.GetNbinsX(), th1.GetNbinsX()))
 
     def delete(self):
         if self._rootHisto != None:
@@ -1202,14 +1276,16 @@ class RootHistoWithUncertainties:
             d.Delete()
         self._shapeUncertainties = {}
 
-    ## Set the ROOT histogram object
-    #
-    # \param newRootHisto   ROOT histogram object
-    #
-    # This method can be called only in absence of shape variation uncertainties
     def setRootHisto(self, newRootHisto):
+        '''
+        Set the ROOT histogram object
+    
+        \param newRootHisto   ROOT histogram object
+        
+        This method can be called only in absence of shape variation uncertainties
+        '''
         if len(self._shapeUncertainties.keys()) != 0 or self._rootHisto != None:
-            raise Exception("There are shape uncertanties, you should not set the original histogram (call delete() before)!")
+            raise Exception("=== dataset.py:\n\t There are shape uncertanties, you should not set the original histogram (call delete() before)!")
         self._rootHisto = aux.Clone(newRootHisto)
 
     ## Get the ROOT histogram object
@@ -1219,22 +1295,22 @@ class RootHistoWithUncertainties:
     ## Get the event rate, i.e. integral of the root histo object (usually at this point the under and overflow bins are already merged to actual bins)
     def getRate(self):
         if not self._flowBinsVisibleStatus:
-            raise Exception("getRate(): The under/overflow bins might not be not empty! Did you forget to call makeFlowBinsVisible() before getRate()?")
+            raise Exception("=== dataset.py:\n\t getRate(): The under/overflow bins might not be not empty! Did you forget to call makeFlowBinsVisible() before getRate()?")
         myRate = self._rootHisto.Integral()
         myRateIncludingOverflow = self.integral()
         if abs(myRate - myRateIncludingOverflow) > 0.00001:
-            raise Exception("getRate(): Weird, the under/overflow should be empty at this point, but apparantly they are not?!")
+            raise Exception("=== dataset.py:\n\t getRate(): Weird, the under/overflow should be empty at this point, but apparantly they are not?!")
         return myRate
 
     ## Get the stat. uncertainty of the root histo object
     def getRateStatUncertainty(self):
         if not self._flowBinsVisibleStatus:
-            raise Exception("getRate(): The under/overflow bins might not be not empty! Did you forget to call makeFlowBinsVisible() before getRate()?")
+            raise Exception("=== dataset.py:\n\t getRate(): The under/overflow bins might not be not empty! Did you forget to call makeFlowBinsVisible() before getRate()?")
         if len(self._treatShapesAsStat) > 0:
-            print "WARNING: some shapes are treated as statistical uncertainty, but they have not been implemented yet to getRateStatUncertainty()!"
+            print "=== dataset.py:\n\t WARNING: some shapes are treated as statistical uncertainty, but they have not been implemented yet to getRateStatUncertainty()!"
         mySum = 0.0
         if isinstance(self._rootHisto, ROOT.TH2):
-            raise Exception("getRateStatUncertainty() supported currently only for TH1!")
+            raise Exception("=== dataset.py:\n\t getRateStatUncertainty() supported currently only for TH1!")
         for i in range(1, self._rootHisto.GetNbinsX()+1):
             mySum += self._rootHisto.GetBinError(i)**2
         return math.sqrt(mySum)
@@ -1242,9 +1318,9 @@ class RootHistoWithUncertainties:
     ## Get the syst. uncertainty of the root histo object
     def getRateSystUncertainty(self):
         if not self._flowBinsVisibleStatus:
-            raise Exception("getRate(): The under/overflow bins might not be not empty! Did you forget to call makeFlowBinsVisible() before getRate()?")
+            raise Exception("=== dataset.py:\n\t getRate(): The under/overflow bins might not be not empty! Did you forget to call makeFlowBinsVisible() before getRate()?")
         if isinstance(self._rootHisto, ROOT.TH2):
-            raise Exception("getRateSystUncertainty() supported currently only for TH1!")
+            raise Exception("=== dataset.py:\n\t getRateSystUncertainty() supported currently only for TH1!")
         # Integrate first over distribution, then sum
         myClone = self.Clone()
         myClone.Rebin(self._rootHisto.GetNbinsX())
@@ -1266,12 +1342,14 @@ class RootHistoWithUncertainties:
         # Update nominal histogram
         histogramsExtras.makeFlowBinsVisible(self._rootHisto)
 
-    ## Add shape variation uncertainty (Note that the nominal value is subtracted from the variations to obtain absolute uncert.)
-    #
-    # \param name     Name of the uncertainty
-    # \param th1Plus  TH1 for the 'plus' variation
-    # \param th1Minus TH1 for the 'minus' variation
     def addShapeUncertaintyFromVariation(self, name, th1Plus, th1Minus):
+        '''
+        Add shape variation uncertainty (Note that the nominal value is subtracted from the variations to obtain absolute uncert.)
+        
+        \param name     Name of the uncertainty
+        \param th1Plus  TH1 for the 'plus' variation
+        \param th1Minus TH1 for the 'minus' variation
+        '''
         if self._flowBinsVisibleStatus:
             # Check if flow bins have entries
             myStatus = abs(th1Plus.GetBinContent(th1Plus.GetNbinsX()+1)) < 0.00001
@@ -1279,25 +1357,27 @@ class RootHistoWithUncertainties:
             myStatus &= abs(th1Plus.GetBinContent(0)) < 0.00001
             myStatus &= abs(th1Minus.GetBinContent(0)) < 0.00001
             if not myStatus:
-                raise Exception("addShapeUncertaintyFromVariation(): result could be ambiguous, because under/overflow bins have already been moved to visible bins")
+                raise Exception("=== dataset.py:\n\t addShapeUncertaintyFromVariation(): result could be ambiguous, because under/overflow bins have already been moved to visible bins")
         plusClone = aux.Clone(th1Plus)
         minusClone = aux.Clone(th1Minus)
         self._checkConsistency(name, plusClone)
         self._checkConsistency(name, minusClone)
         # Subtract nominal to get absolute uncertainty (except for source histograms)
         if name in self._shapeUncertainties.keys():
-            raise Exception("Uncertainty '%s' has already been added!"%name)
+            raise Exception("=== dataset.py:\n\t Uncertainty '%s' has already been added!"%name)
         plusClone.Add(self._rootHisto, -1.0)
         minusClone.Add(self._rootHisto, -1.0)
         # Store
         self._shapeUncertainties[name] = (plusClone, minusClone)
 
-    ## Remove superfluous shape variation uncertainties
-    #
-    # \param keepList  List of variation names to keep
-    #
-    # The normalization relative uncertainties are summed quadratically
     def keepOnlySpecifiedShapeUncertainties(self, keepList):
+        '''
+        Remove superfluous shape variation uncertainties
+        
+        \param keepList  List of variation names to keep
+        
+        The normalization relative uncertainties are summed quadratically
+        '''
         dropList = []
         for key in self._shapeUncertainties.keys():
             if not key in keepList:
@@ -1308,36 +1388,42 @@ class RootHistoWithUncertainties:
             hminus.Delete()
             del self._shapeUncertainties[key]
 
-    ## Remove shape variation uncertainties for a key
-    #
-    # \param name   String of key to be removed
-    #
-    # The normalization relative uncertainties are summed quadratically
     def removeShapeUncertainty(self, name):
+        '''
+        Remove shape variation uncertainties for a key
+        
+        \param name   String of key to be removed
+        
+        The normalization relative uncertainties are summed quadratically
+        '''
         myKey = None
         if name in self._shapeUncertainties.keys():
             myKey = name
         elif "SystVar"+name in self._shapeUncertainties.keys():
             myKey = "SystVar"+name
         else:
-            raise Exception("Could not find key '%s' in syst. var.! (list = %s)"%(name,", ".join(map(str,self._shapeUncertainties.keys()))))
+            raise Exception("=== dataset.py:\n\t Could not find key '%s' in syst. var.! (list = %s)"%(name,", ".join(map(str,self._shapeUncertainties.keys()))))
         (hplus,hminus) = self._shapeUncertainties[myKey]
         hplus.Delete()
         hminus.Delete()
         del self._shapeUncertainties[myKey]
 
-    ## Add bin-wise relative uncertainty
-    #
-    # \param name     Name of the uncertainty
-    # \param th1Plus  TH1 holding the relative uncertainties (e.g. 0.2 for 20 %)
-    # \param th1Minus TH1 holding the relative uncertainties (e.g. 0.2 for 20 %); if None, then th1Plus values are used
     def addShapeUncertaintyRelative(self, name, th1Plus, th1Minus=None):
+        '''
+        Add bin-wise relative uncertainty
+        
+        \param name     Name of the uncertainty
+
+        \param th1Plus  TH1 holding the relative uncertainties (e.g. 0.2 for 20 %)
+
+        \param th1Minus TH1 holding the relative uncertainties (e.g. 0.2 for 20 %); if None, then th1Plus values are used
+        '''
         if name in self._shapeUncertainties.keys():
-            raise Exception("addShapeUncertaintyRelative(): Uncertainty '%s' already exists (did you add it twice?)!"%name)
+            raise Exception("=== dataset.py:\n\t addShapeUncertaintyRelative(): Uncertainty '%s' already exists (did you add it twice?)!"%name)
         if self._flowBinsVisibleStatus:
-            raise Exception("addShapeUncertaintyRelative(): result could be ambiguous, because under/overflow bins have already been moved to visible bins")
+            raise Exception("=== dataset.py:\n\t addShapeUncertaintyRelative(): result could be ambiguous, because under/overflow bins have already been moved to visible bins")
         if isinstance(th1Plus, ROOT.TH2) or isinstance(th1Minus, ROOT.TH2):
-            raise Exception("So far only TH1's are supported (and not TH2/TH3).")
+            raise Exception("=== dataset.py:\n\t So far only TH1's are supported (and not TH2/TH3).")
 
         self._checkConsistency(name, th1Plus)
         hplus = aux.Clone(th1Plus)
@@ -1358,16 +1444,20 @@ class RootHistoWithUncertainties:
         self._shapeUncertainties[name] = (hplus, hminus)
 
 
-    ## Add normalization relative uncertainty
-    #
-    # \param name             Name of the uncertainty
-    # \param uncertaintyPlus  Float for the value (e.g. 0.2 for 20 %)
-    # \param uncertaintyMinus  Float for the value (e.g. 0.2 for 20 %); if None, then uncertaintyPlus value is used
-    #
-    # The normalization relative uncertainties are summed quadratically
     def addNormalizationUncertaintyRelative(self, name, uncertaintyPlus, uncertaintyMinus=None):
+        '''
+        Add normalization relative uncertainty
+        
+        \param name             Name of the uncertainty
+        
+        \param uncertaintyPlus  Float for the value (e.g. 0.2 for 20 %)
+        
+        \param uncertaintyMinus  Float for the value (e.g. 0.2 for 20 %); if None, then uncertaintyPlus value is used
+        
+         The normalization relative uncertainties are summed quadratically
+        '''
         if name in self._shapeUncertainties.keys():
-            raise Exception("addShapeUncertaintyRelative(): Uncertainty '%s' already exists (did you add it twice?)!"%name)
+            raise Exception("=== dataset.py:\n\t addShapeUncertaintyRelative(): Uncertainty '%s' already exists (did you add it twice?)!"%name)
 
         hplus = aux.Clone(self._rootHisto)
         hplus.Reset()
@@ -1405,32 +1495,35 @@ class RootHistoWithUncertainties:
     def getShapeUncertaintiesAsStatistical(self):
         return self._treatShapesAsStat
 
-    ## Create TGraphAsymmErrors for the sum of uncertainties
-    #
-    # \param addStatistical   If true, also statistical uncertainties are added
-    # \param addSystematic    If False, don't include systematic uncertainties
-    #
-    # Statistical uncertainties are taken via _rootHisto.GetBinError().
-    #
-    # All uncertainties are summed in quadrature for each bin.
-    #
-    # For asymmetric uncertainties the sum is done separately for both
-    # sides (this is a rather crude approximation, since in these
-    # cases the uncertainties are probably not Gaussian).
-    #
-    # With shape variation uncertainties it can happen that both
-    # variations yield value larger or smaller than the nominal. If
-    # this happens, only the variation with larger absolute difference
-    # from the nominal value is considered, and only in the difference
-    # direction (i.e. asymmetrically). Again, a rather crude
-    # approximation.
     def getSystematicUncertaintyGraph(self, addStatistical=False, addSystematic=True):
-        xvalues = []
+        '''
+        Create TGraphAsymmErrors for the sum of uncertainties
+        
+        \param addStatistical   If true, also statistical uncertainties are added
+        
+        \param addSystematic    If False, don't include systematic uncertainties
+    
+        Statistical uncertainties are taken via _rootHisto.GetBinError().
+        
+        All uncertainties are summed in quadrature for each bin.
+        
+        For asymmetric uncertainties the sum is done separately for both
+        sides (this is a rather crude approximation, since in these
+        cases the uncertainties are probably not Gaussian).
+        
+        With shape variation uncertainties it can happen that both
+        variations yield value larger or smaller than the nominal. If
+        this happens, only the variation with larger absolute difference
+        from the nominal value is considered, and only in the difference
+        direction (i.e. asymmetrically). Again, a rather crude
+        approximation.
+        '''
+        xvalues  = []
         xerrhigh = []
-        xerrlow = []
-        yvalues = []
+        xerrlow  = []
+        yvalues  = []
         yerrhigh = []
-        yerrlow = []
+        yerrlow  = []
 
         class WrapTH1:
             def __init__(self, th1):
@@ -1449,6 +1542,7 @@ class RootHistoWithUncertainties:
             def statErrors(self, i):
                 stat = self._th1.GetBinError(i)
                 return (stat, stat)
+
         class WrapTGraph:
             def __init__(self, gr):
                 self._gr = gr
@@ -1517,9 +1611,11 @@ class RootHistoWithUncertainties:
                                       array.array("d", xerrlow), array.array("d", xerrhigh),
                                       array.array("d", yerrlow), array.array("d", yerrhigh))
 
-    ## Print associated systematic uncertainties
     def printUncertainties(self):
-        print "Shape uncertainties (%d):" % len(self._shapeUncertainties)
+        '''
+        Print associated systematic uncertainties
+        '''
+        print "=== dataset.py:\n\t Shape uncertainties (%d):" % len(self._shapeUncertainties)
         keys = self._shapeUncertainties.keys()
         keys.sort()
         for key in keys:
@@ -1562,66 +1658,84 @@ class RootHistoWithUncertainties:
         else:
             return self._rootHisto.GetMaximum()
 
-    ## Get X axis title
     def getXtitle(self):
+        '''
+        Get X axis title
+        '''
         if self._rootHisto is None:
             return None
         return self._rootHisto.GetXaxis().GetTitle()
 
-    ## Get Y axis title
     def getYtitle(self):
+        '''
+        Get Y axis title
+        '''
         if self._rootHisto is None:
             return None
         return self._rootHisto.GetYaxis().GetTitle()
 
-    ## Get the width of a bin
-    #
-    # \param bin  Bin number
     def getBinWidth(self, bin):
+        '''
+        Get the width of a bin
+        
+        \param bin  Bin number
+        '''
         if self._rootHisto is None:
             return None
         return self._rootHisto.GetBinWidth(bin)
 
-    ## Get list of bin widths
     def getBinWidths(self):
+        '''
+        Get list of bin widths
+        '''
         if self._rootHisto is None:
             return None
         return [self._rootHisto.GetBinWidth(i) for i in xrange(1, self._rootHisto.GetNbinsX()+1)]
 
-    #### Below are methods for ROOT TH1 compatibility (only selected methods are implemented)
 
-    ## Get the number of X axis bins
+    #### Below are methods for ROOT TH1 compatibility (only selected methods are implemented)
     def GetNbinsX(self):
+        '''
+        Get the number of X axis bins
+        '''
         return self._rootHisto.GetNbinsX()
 
-    ## Get the name
     def GetName(self):
+        '''
+        Get the name
+        '''
         return self._rootHisto.GetName()
 
-    ## Set the name
-    #
-    # \param args   Positional arguments, forwarded to TH1.SetName()
     def SetName(self, *args):
+        '''
+        Set the name
+        
+        \param args   Positional arguments, forwarded to TH1.SetName()    
+        '''
         self._rootHisto.SetName(*args)
 
-    ## Sumw2
-    #
-    # It is enough to propagate the call rot self._rootHisto, because
-    # from the uncertainty histograms we are only interested of the values
     def Sumw2(self):
+        '''
+        Sumw2
+        
+        It is enough to propagate the call rot self._rootHisto, because
+         from the uncertainty histograms we are only interested of the values
+        '''
         self._rootHisto.Sumw2()
 
-    ## Rebin histogram
-    #
-    # \param args  Positional arguments, forwarded to TH1.Rebin()
     def Rebin(self, *args):
+        '''
+        Rebin histogram
+        
+        \param args  Positional arguments, forwarded to TH1.Rebin()
+        '''
         if self._rootHisto == None:
-            raise Exception("Tried to call Rebin for a histogram which has been deleted")
+            raise Exception("=== dataset.py:\n\t Tried to call Rebin for a histogram which has been deleted")
         htmp = self._rootHisto.Rebin(*args)
         if htmp == None:
-            raise Exception("Something went wrong with the rebinning (%s)!"%self._rootHisto.GetName())
+            raise Exception("=== dataset.py:\n\t Something went wrong with the rebinning (%s)!"%self._rootHisto.GetName())
         if htmp.GetBinContent(htmp.GetNbinsX()) == float('Inf'):
-            raise Exception("Check the rebin range, it produces infinity!")
+            raise Exception("=== dataset.py:\n\t Check the rebin range, it produces infinity!")
         if len(args) > 1: # If more than 1 argument is given, ROOT creates a clone of the histogram
             self._rootHisto.Delete()
         ROOT.SetOwnership(htmp, True)
@@ -1633,7 +1747,7 @@ class RootHistoWithUncertainties:
             plustmp = plus.Rebin(*args)
             minustmp = minus.Rebin(*args)
             if plustmp.GetBinContent(htmp.GetNbinsX()) == float('Inf') or minustmp.GetBinContent(htmp.GetNbinsX()) == float('Inf'):
-                raise Exception("Check the rebin range, it produces infinity!")
+                raise Exception("=== dataset.py:\n\t Check the rebin range, it produces infinity!")
             if len(args) > 1: # If more than 1 argument is given, ROOT creates a clone of the histogram
                 plus.Delete()
                 minus.Delete()
@@ -1644,10 +1758,12 @@ class RootHistoWithUncertainties:
             self._shapeUncertainties[key] = (plustmp, minustmp)
         self.makeFlowBinsVisible()
 
-    ## Rebin histogram
-    #
-    # \param args  Positional arguments, forwarded to TH1.Rebin()
     def Rebin2D(self, *args):
+        '''
+        Rebin histogram
+        
+        \param args  Positional arguments, forwarded to TH1.Rebin()
+        '''
         htmp = self._rootHisto.Rebin2D(*args)
         if len(args) > 2: # If more than 2 arguments are given, ROOT creates a clone of the histogram
             self._rootHisto.Delete()
@@ -1669,11 +1785,14 @@ class RootHistoWithUncertainties:
             self._shapeUncertainties[key] = (plustmp, minustmp)
         self.makeFlowBinsVisible()
 
-    ## Add another RootHistoWithUncertainties object
-    #
-    # \param other   RootHistoWithUncertainties object
-    # \param args  Positional arguments, forwarded to TH1.Add()
     def Add(self, other, *args):
+        '''
+        Add another RootHistoWithUncertainties object
+    
+        \param other   RootHistoWithUncertainties object
+
+        \param args  Positional arguments, forwarded to TH1.Add()
+        '''
         # Make sure the flow bins are handled in the same way before adding
         if self._flowBinsVisibleStatus and not other._flowBinsVisibleStatus:
             other.makeFlowBinsVisible()
@@ -1684,6 +1803,8 @@ class RootHistoWithUncertainties:
         keys2 = other._shapeUncertainties.keys()
         #keys1.sort()
         #keys2.sort()
+
+        # For-loop: All keys1
         for key in keys1:
             if key in keys2:
                 (plus, minus) = self._shapeUncertainties[key]
@@ -1692,6 +1813,8 @@ class RootHistoWithUncertainties:
                 minus.Add(otherMinus, *args)
             #else:
                 # key is not in other, keep it like it is
+
+        # For-loop: All keys2
         for key in keys2:
             if not key in keys1:
                 # Add those histograms, which so far did not exist
@@ -1709,43 +1832,45 @@ class RootHistoWithUncertainties:
         # Add shape uncertainties treated as stat
         self._treatShapesAsStat.update(other._treatShapesAsStat)
 
-    ## Scale the histogram
-    #
-    # It is enough to forward the call to self._rootHisto and
-    # self._shapeUncertainties, because it does not affect the
-    # relative uncertainties.
     def Scale(self, *args):
+        '''
+        Scale the histogram
+        
+        It is enough to forward the call to self._rootHisto and
+        self._shapeUncertainties, because it does not affect the
+        relative uncertainties.
+        '''
         self._rootHisto.Scale(*args)
         i = 0
         for (plus, minus) in self._shapeUncertainties.itervalues():
             plus.Scale(*args)
             minus.Scale(*args)
             i += 1
+        return
 
-    ## Scale a variation uncertainty
-    #
-    # It is enough to forward the call to self._rootHisto and
-    # self._shapeUncertainties, because it does not affect the
-    # relative uncertainties.
     def ScaleVariationUncertainty(self, name, value):
+        '''
+        Scale a variation uncertainty
+    
+        It is enough to forward the call to self._rootHisto and
+        self._shapeUncertainties, because it does not affect the
+        relative uncertainties.
+        '''
         if name not in self._shapeUncertainties.keys():
-            raise Exception("Error: Cannot find '%s' in list of variation uncertainties (%s)!"%(name, ", ".join(map(str, self._shapeUncertainties.keys()))))
+            raise Exception("=== dataset.py:\n\t Error: Cannot find '%s' in list of variation uncertainties (%s)!"%(name, ", ".join(map(str, self._shapeUncertainties.keys()))))
         (plus, minus) = self._shapeUncertainties[name]
         plus.Scale(value)
         minus.Scale(value)
-        #for i in xrange(0, self._rootHisto.GetNbinsX()+2):
-            #if abs(self._rootHisto.GetBinContent(i)) > 0.0:
-                #oldValue = (plus.GetBinContent(i),self._rootHisto.GetBinContent(i))
-                #plus.SetBinContent(i, plus.GetBinContent(i)*value)
-                #minus.SetBinContent(i, minus.GetBinContent(i)*value)
-                #print oldValue, plus.GetBinContent(i)
         self._shapeUncertainties[name] = (plus, minus)
+        return
 
-    ## Clone the histogram
-    #
-    # All contained histograms are also cloned. For all cloned
-    # histograms, th1.SetDirectory(0) is called.
     def Clone(self):
+        '''
+        Clone the histogram
+        
+        All contained histograms are also cloned. For all cloned
+        histograms, th1.SetDirectory(0) is called.
+        '''
         clone = RootHistoWithUncertainties(aux.Clone(self._rootHisto))
         for key, value in self._shapeUncertainties.iteritems():
             (plus, minus) = (aux.Clone(value[0]), aux.Clone(value[1]))
@@ -1754,8 +1879,10 @@ class RootHistoWithUncertainties:
         clone._flowBinsVisibleStatus = self._flowBinsVisibleStatus
         return clone
 
-    ## Delete all contained histograms
     def Delete(self):
+        '''
+        Delete all contained histograms
+        '''
         if self._rootHisto != None:
             self._rootHisto.Delete()
         if self._shapeUncertainties != None:
@@ -1764,13 +1891,18 @@ class RootHistoWithUncertainties:
                 minus.Delete()
         self._rootHisto = None
         self._shapeUncertainties = None
+        return
 
-    ## "Eats" SetDirectory() call for interface compatibility, i.e. do nothing
     def SetDirectory(self, *args):
+        '''
+        "Eats" SetDirectory() call for interface compatibility, i.e. do nothing
+        '''
         pass
 
-    ## Print a lot of comma separated info for debugging
     def Debug(self):
+        '''
+        Print a lot of comma separated info for debugging
+        '''
         def histoContentsHelper(h):
             s = ""
             for i in range(0, h.GetNbinsX()+2):
@@ -1782,53 +1914,58 @@ class RootHistoWithUncertainties:
                 s += ", %f"%h.GetBinError(i)
             return s
 
-        print "*** Debug info for RootHistoWithUncertainties:"
-        print "histogram %s"%(self.GetName())
-        print "nominal%s"%histoContentsHelper(self._rootHisto)
-        print "nominal_error%s"%histoErrorHelper(self._rootHisto)
+        print "=== dataset.py:\n\t Debug info for RootHistoWithUncertainties:"
+        print "=== dataset.py:\n\t histogram '%s'" % (self.GetName())
+        print "=== dataset.py:\n\t nominal '%s'" % histoContentsHelper(self._rootHisto)
+        print "=== dataset.py:\n\t nominal_error '%s'" % histoErrorHelper(self._rootHisto)
         keys = self._shapeUncertainties.keys()
+
+        # For-loop: All keys
         for key in keys:
             (hPlus, hMinus) = self._shapeUncertainties[key]
-            print "uncert_%s_up%s"%(key,histoContentsHelper(hPlus))
-            print "uncert_%s_down%s"%(key,histoContentsHelper(hMinus))
-        print "rate, %f"%self.getRate()
-        print "rate_stat_uncert, %f"%self.getRateStatUncertainty()
-        print "rate_syst_uncert, +%f, -%f"%self.getRateSystUncertainty()
+            print "=== dataset.py:\n\t uncert_%s_up%s" % (key,histoContentsHelper(hPlus))
+            print "=== dataset.py:\n\t uncert_%s_down%s" % (key,histoContentsHelper(hMinus))
+        print "=== dataset.py:\n\t rate, %f" % self.getRate()
+        print "=== dataset.py:\n\t rate_stat_uncert, %f" % self.getRateStatUncertainty()
+        print "=== dataset.py:\n\t rate_syst_uncert, +%f, -%f" % self.getRateSystUncertainty()
         g = self.getSystematicUncertaintyGraph()
         sUp = ""
         sDown = ""
         for i in range(0, g.GetN()):
-            sUp += ", %f"%g.GetErrorYhigh(i)
-            sDown += ", %f"%g.GetErrorYlow(i)
-        print "rate_syst_uncert_up,%s"%sUp
-        print "rate_syst_uncert_down,%s\n"%sDown
+            sUp   += "=== dataset.py:\n\t , %f"%g.GetErrorYhigh(i)
+            sDown += "=== dataset.py:\n\t , %f"%g.GetErrorYlow(i)
+        print "=== dataset.py:\n\t rate_syst_uncert_up,%s" % sUp
+        print "=== dataset.py:\n\t rate_syst_uncert_down,%s\n" % sDown
+        return 
 
-## Base class for DatasetRootHisto classes (wrapper for TH1 histogram and the originating Dataset)
-# 
-# The derived class must implement
-# _normalizedHistogram()
-# which should return the cloned and normalized TH1
-#
-# The wrapper holds the normalization of the histogram. User should
-# set the current normalization scheme with the normalize* methods,
-# and then get a clone of the original histogram, which is then
-# normalized according to the current scheme.
-#
-# This makes the class very flexible with respect to the many
-# possible normalizations user could want to apply within a plot
-# script. The first use case was MC counters, which could be printed
-# first normalized to the luminosity of the data, and also
-# normalized to the cross section.
-#
-# The histogram wrapper classes also abstract the signel histogram, and
-# mergeddata and MC histograms behind a common interface.
 #================================================================================================ 
 # Class Definition
 #================================================================================================ 
 class DatasetRootHistoBase:
+    '''
+    Base class for DatasetRootHisto classes (wrapper for TH1 histogram and the originating Dataset)
+ 
+    The derived class must implement
+    _normalizedHistogram()
+    which should return the cloned and normalized TH1
+
+    The wrapper holds the normalization of the histogram. User should
+    set the current normalization scheme with the normalize* methods,
+    and then get a clone of the original histogram, which is then
+    normalized according to the current scheme.
+    
+    This makes the class very flexible with respect to the many
+    possible normalizations user could want to apply within a plot
+    script. The first use case was MC counters, which could be printed
+    first normalized to the luminosity of the data, and also
+    normalized to the cross section.
+    
+    The histogram wrapper classes also abstract the signel histogram, and
+    mergeddata and MC histograms behind a common interface.
+    '''
     def __init__(self, dataset):
         self.dataset = dataset
-        self.name = dataset.getName()
+        self.name    = dataset.getName()
         self.multiplication = None
 
     def getDataset(self):
@@ -1849,32 +1986,38 @@ class DatasetRootHistoBase:
     def isPseudo(self):
         return self.dataset.isPseudo()
 
-    ## Get a clone of the wrapped histogram (TH1) normalized as requested.
     def getHistogram(self):
+        '''
+        Get a clone of the wrapped histogram (TH1) normalized as requested.
+        '''
         h = self.getHistogramWithUncertainties()
         return h.getRootHisto()
 
-    ## Get a clone of the wrapped histogram (RootHistoWithUncertainties) normalized as requested.
     def getHistogramWithUncertainties(self):
+        '''
+        Get a clone of the wrapped histogram (RootHistoWithUncertainties) normalized as requested.
+        '''
         h = self._normalizedHistogram()
         if h is None:
             return h
 
         if self.multiplication != None:
             h = _normalizeToFactor(h, self.multiplication)
-
         return h
 
-    ## Scale the histogram bin values with a value.
-    # 
-    # \param value    Value to multiply with
-    # 
-    # h = h*value
     def scale(self, value):
+        '''
+        Scale the histogram bin values with a value.
+        
+        \param value    Value to multiply with
+        
+        h = h*value
+        '''
         if self.multiplication == None:
             self.multiplication = value
         else:
             self.multiplication *= value
+        return
 
     ## \var dataset
     # dataset.Dataset object where the histogram originates
@@ -1883,24 +2026,32 @@ class DatasetRootHistoBase:
     ## \var multiplication
     # Multiplication factor to be applied after normalization (if None, not applied)
 
-## Wrapper for a single TH1 histogram and the corresponding Dataset.
+
 #================================================================================================ 
 # Class Definition
 #================================================================================================ 
 class DatasetRootHisto(DatasetRootHistoBase):
-    ## Constructor.
-    # 
-    # \param histo    RootHistoWithUncertainty wrapper object
-    # \param dataset  Corresponding Dataset object
-    # 
-    # Sets the initial normalization to 'none'
+    '''
+    Wrapper for a single TH1 histogram and the corresponding Dataset.
+    '''
     def __init__(self, histo, dataset):
+        '''
+        Constructor.
+         
+        \param histo    RootHistoWithUncertainty wrapper object
+        \param dataset  Corresponding Dataset object
+    
+        Sets the initial normalization to 'none'
+        '''
         DatasetRootHistoBase.__init__(self, dataset)
         self.histo = histo
         self.normalization = "none"
+        return
 
-    ## Get list of the bin labels of the histogram.
     def getBinLabels(self):
+        '''
+        Get list of the bin labels of the histogram.
+        '''
         if self.histo is None:
             return None
         return [x[0] for x in _histoToCounter(self.histo.getRootHisto())]
@@ -1913,13 +2064,15 @@ class DatasetRootHisto(DatasetRootHistoBase):
         else:
             return [function(self)]
 
-    ## Modify the TH1 with a function
-    #
-    # \param function              Function taking the original TH1, and returning a new TH1. If newDatasetRootHisto is specified, function must take some other DatasetRootHisto object as an input too
-    # \param newDatasetRootHisto   Optional, the other DatasetRootHisto object
-    #
-    # Needed for appending rows to counters from TTree, and for embedding normalization
     def modifyRootHisto(self, function, newDatasetRootHisto=None):
+        '''
+        Modify the TH1 with a function
+        
+        \param function              Function taking the original TH1, and returning a new TH1. If newDatasetRootHisto is specified, function must take some other DatasetRootHisto object as an input too
+        \param newDatasetRootHisto   Optional, the other DatasetRootHisto object
+        
+        Needed for appending rows to counters from TTree, and for embedding normalization
+        '''
         if newDatasetRootHisto != None:
             if not isinstance(newDatasetRootHisto, DatasetRootHisto):
                 raise Exception("newDatasetRootHisto must be of the type DatasetRootHisto")
@@ -1927,8 +2080,10 @@ class DatasetRootHisto(DatasetRootHistoBase):
         else:
             self.histo.setRootHisto(function(self.histo.getRootHisto()))
 
-    ## Return normalized clone of the original TH1
     def _normalizedHistogram(self):
+        '''
+        Return normalized clone of the original TH1
+        '''
         if self.histo is None:
             return None
 
@@ -1948,35 +2103,41 @@ class DatasetRootHisto(DatasetRootHistoBase):
         elif self.normalization == "toLuminosity":
             return _normalizeToFactor(h, self.luminosity)
         else:
-            raise Exception("Internal error")
+            raise Exception("=== dataset.py:\n\t Internal error")
 
-    ## Set the normalization scheme to 'to one'.
-    #
-    # The histogram is normalized to unit area.
     def normalizeToOne(self):
+        '''
+        Set the normalization scheme to 'to one'.
+        
+        The histogram is normalized to unit area.
+        '''
         self.normalization = "toOne"
 
-    ## Set the current normalization scheme to 'by cross section'.
-    #
-    # The histogram is normalized to the cross section of the
-    # corresponding dataset. The normalization can be applied only
-    # to MC histograms.
     def normalizeByCrossSection(self):
+        '''
+        Set the current normalization scheme to 'by cross section'.
+        
+        The histogram is normalized to the cross section of the
+        corresponding dataset. The normalization can be applied only
+        to MC histograms.
+        '''
         if not self.dataset.isMC():
-            raise Exception("Can't normalize non-MC histogram by cross section")
+            raise Exception("=== dataset.py:\n\t Can't normalize non-MC histogram by cross section")
         self.normalization = "byCrossSection"
 
-    ## Set the current normalization scheme to 'to luminosity'.
-    #
-    # \param lumi   Integrated luminosity in pb^-1 to normalize to
-    #
-    # The histogram is normalized first normalized to the cross
-    # section of the corresponding dataset, and then to a given
-    # luminosity. The normalization can be applied only to MC
-    # histograms.
     def normalizeToLuminosity(self, lumi):
+        '''
+        Set the current normalization scheme to 'to luminosity'.
+
+        \param lumi   Integrated luminosity in pb^-1 to normalize to
+
+        The histogram is normalized first normalized to the cross
+        section of the corresponding dataset, and then to a given
+        luminosity. The normalization can be applied only to MC
+        histograms.
+        '''
         if not self.dataset.isMC():
-            raise Exception("Can't normalize non-MC histogram to luminosity")
+            raise Exception("=== dataset.py:\n\t Can't normalize non-MC histogram to luminosity")
 
         self.normalization = "toLuminosity"
         self.luminosity = lumi
@@ -1987,32 +2148,40 @@ class DatasetRootHisto(DatasetRootHistoBase):
     # String representing the current normalization scheme
 
 
-## Base class for merged data/Mc histograms and the corresponding datasets
 #================================================================================================ 
 # Class Definition
 #================================================================================================ 
 class DatasetRootHistoCompoundBase(DatasetRootHistoBase):
-    ## Constructor.
-    # 
-    # \param histoWrappers   List of dataset.DatasetRootHisto objects to merge
-    # \param mergedDataset   The corresponding dataset.DatasetMerged object
+    '''
+    Base class for merged data/Mc histograms and the corresponding datasets
+    '''
     def __init__(self, histoWrappers, mergedDataset):
+        '''
+        Constructor
+        
+        \param histoWrappers   List of dataset.DatasetRootHisto objects to merge
+        \param mergedDataset   The corresponding dataset.DatasetMerged object         
+        '''
         DatasetRootHistoBase.__init__(self, mergedDataset)
         self.histoWrappers = histoWrappers
         self.normalization = "none"
 
-    ## Get list of the bin labels of the first of the merged histogram.
     def getBinLabels(self):
+        '''
+        Get list of the bin labels of the first of the merged histogram.
+        '''
         for drh in self.histoWrappers:
             ret = drh.getBinLabels()
             if ret is not None:
                 return ret
         return None
 
-   ## Calculate the sum of the histograms (i.e. merge).
-   # 
-   # Intended to be called from the deriving classes
     def _getSumHistogram(self):
+        '''
+        Calculate the sum of the histograms (i.e. merge).
+        
+        Intended to be called from the deriving classes
+        '''
         # Loop until we have a real RootHistoWithUncertainties (not None)
         hsum = None
         for i, drh in enumerate(self.histoWrappers):
@@ -2035,7 +2204,7 @@ class DatasetRootHistoCompoundBase(DatasetRootHistoBase):
                                     hsum.getRootHisto().SetBinError(i, math.sqrt(hsum.getRootHisto().GetBinError(i)**2 + histo.getRootHisto().GetBinError(j)**2));
                                     # Ignore uncertainties
                 if nSuccess == 0:
-                    raise Exception("Histogram '%s' from datasets '%s' and '%s' have different binnings: %d vs. %d" % (hsum.GetName(), self.histoWrappers[i].getDataset().getName(), h.getDataset().getName(), hsum.GetNbinsX(), histo.GetNbinsX()))
+                    raise Exception("=== dataset.py:\n\t Histogram '%s' from datasets '%s' and '%s' have different binnings: %d vs. %d" % (hsum.GetName(), self.histoWrappers[i].getDataset().getName(), h.getDataset().getName(), hsum.GetNbinsX(), histo.GetNbinsX()))
             else:
                 hsum.Add(histo)
             histo.Delete()
@@ -2047,39 +2216,43 @@ class DatasetRootHistoCompoundBase(DatasetRootHistoBase):
     # String representing the current normalization scheme
 
 
-## Wrapper for a merged TH1 histograms from data and the corresponding Datasets.
-#
-# The merged data histograms can only be normalized 'to one'.
-#
-# \see dataset.DatasetRootHisto class.
 #================================================================================================ 
 # Class Definition
 #================================================================================================ 
 class DatasetRootHistoMergedData(DatasetRootHistoCompoundBase):
-    ## Constructor.
-    # 
-    # \param histoWrappers   List of dataset.DatasetRootHisto objects to merge
-    # \param mergedDataset   The corresponding dataset.DatasetMerged object
-    # 
-    # The constructor checks that all histoWrappers are data, and
-    # are not yet normalized.
+    '''
+    Wrapper for a merged TH1 histograms from data and the corresponding Datasets.
+    
+    The merged data histograms can only be normalized 'to one'.
+    
+    \see dataset.DatasetRootHisto class.
+    '''
     def __init__(self, histoWrappers, mergedDataset):
+        '''
+        Constructor
+
+        \param histoWrappers   List of dataset.DatasetRootHisto objects to merge
+        \param mergedDataset   The corresponding dataset.DatasetMerged object
+        
+        The constructor checks that all histoWrappers are data, and
+        are not yet normalized.
+        '''
         DatasetRootHistoCompoundBase.__init__(self, histoWrappers, mergedDataset)
         for h in self.histoWrappers:
             if not h.isData():
-                raise Exception("Histograms to be merged must come from data (%s is not data)" % h.getDataset().getName())
+                raise Exception("=== dataset.py:\n\t Histograms to be merged must come from data (%s is not data)" % h.getDataset().getName())
             if h.normalization != "none":
-                raise Exception("Histograms to be merged must not be normalized at this stage")
+                raise Exception("=== dataset.py:\n\t Histograms to be merged must not be normalized at this stage")
             if h.multiplication != None:
-                raise Exception("Histograms to be merged must not be multiplied at this stage")
+                raise Exception("=== dataset.py:\n\t Histograms to be merged must not be multiplied at this stage")
 
     def forEach(self, function, datasetRootHisto1=None):
         ret = []
         if datasetRootHisto1 != None:
             if not isinstance(datasetRootHisto1, DatasetRootHistoMergedData):
-                raise Exception("datasetRootHisto1 must be of the type DatasetRootHistoMergedData")
+                raise Exception("=== dataset.py:\n\t datasetRootHisto1 must be of the type DatasetRootHistoMergedData")
             if not len(self.histoWrappers) == len(datasetRootHisto1.histoWrappers):
-                raise Exception("len(self.histoWrappers) != len(datasetrootHisto1.histoWrappers), %d != %d" % len(self.histoWrappers), len(datasetRootHisto1.histoWrappers))
+                raise Exception("=== dataset.py:\n\t len(self.histoWrappers) != len(datasetrootHisto1.histoWrappers), %d != %d" % len(self.histoWrappers), len(datasetRootHisto1.histoWrappers))
             
             for i, drh in enumerate(self.histoWrappers):
                 ret.extend(drh.forEach(function, datasetRootHisto1.histoWrappers[i]))
@@ -2089,18 +2262,20 @@ class DatasetRootHistoMergedData(DatasetRootHistoCompoundBase):
         return ret
         
 
-    ## Modify the TH1 with a function
-    #
-    # \param function             Function taking the original TH1, and returning a new TH1. If newDatasetRootHisto is specified, function must take some other DatasetRootHisto object as an input too
-    # \param newDatasetRootHisto  Optional, the other DatasetRootHisto object, must be the same type and contain same number of DatasetRootHisto objects
-    #
-    # Needed for appending rows to counters from TTree, and for embedding normalization
     def modifyRootHisto(self, function, newDatasetRootHisto=None):
+        '''
+        Modify the TH1 with a function
+        
+        \param function             Function taking the original TH1, and returning a new TH1. If newDatasetRootHisto is specified, function must take some other DatasetRootHisto object as an input too
+        \param newDatasetRootHisto  Optional, the other DatasetRootHisto object, must be the same type and contain same number of DatasetRootHisto objects
+        
+         Needed for appending rows to counters from TTree, and for embedding normalization
+         '''
         if newDatasetRootHisto != None:
             if not isinstance(newDatasetRootHisto, DatasetRootHistoMergedData):
-                raise Exception("newDatasetRootHisto must be of the type DatasetRootHistoMergedData")
+                raise Exception("=== dataset.py:\n\t newDatasetRootHisto must be of the type DatasetRootHistoMergedData")
             if not len(self.histoWrappers) == len(newDatasetRootHisto.histoWrappers):
-                raise Exception("len(self.histoWrappers) != len(newDatasetrootHisto.histoWrappers), %d != %d" % len(self.histoWrappers), len(newDatasetRootHisto.histoWrappers))
+                raise Exception("=== dataset.py:\n\t len(self.histoWrappers) != len(newDatasetrootHisto.histoWrappers), %d != %d" % len(self.histoWrappers), len(newDatasetRootHisto.histoWrappers))
             
             for i, drh in enumerate(self.histoWrappers):
                 drh.modifyRootHisto(function, newDatasetRootHisto.histoWrappers[i])
@@ -2108,17 +2283,22 @@ class DatasetRootHistoMergedData(DatasetRootHistoCompoundBase):
             for i, drh in enumerate(self.histoWrappers):
                 drh.modifyRootHisto(function)
 
-    ## Set the current normalization scheme to 'to one'.
-    #
-    # The histogram is normalized to unit area.
     def normalizeToOne(self):
+        '''
+        Set the current normalization scheme to 'to one'.
+        
+        The histogram is normalized to unit area.
+        '''
         self.normalization = "toOne"
+        return
 
-    ## Merge the histograms and apply the current normalization.
-    # 
-    # The returned histogram is a clone, so client code can do
-    # anything it wishes with it.
     def _normalizedHistogram(self):
+        '''
+        Merge the histograms and apply the current normalization.
+        
+        The returned histogram is a clone, so client code can do
+        anything it wishes with it.
+        '''
         hsum = self._getSumHistogram()
         if hsum is None:
             return None
@@ -2128,66 +2308,78 @@ class DatasetRootHistoMergedData(DatasetRootHistoCompoundBase):
         else:
             return hsum
 
-## Wrapper for a merged TH1 histograms from pseudo and the corresponding Datasets.
-#
-# The merged pseudo histogramgs can only be normalized 'to one'.
-#
-# Works as DatasetRootHistoMergedData, except can be constructed only
-# from pseudo datasets.
-#
-# \see dataset.DatasetRootHisto class.
 #================================================================================================ 
 # Class Definition
 #================================================================================================ 
 class DatasetRootHistoMergedPseudo(DatasetRootHistoMergedData):
-    ## Constructor.
-    #
-    # \param histoWrappers   List of dataset.DatasetRootHisto objects to merge
-    # \param mergedDataset   The corresponding dataset.DatasetMerged object
-    #
-    # The constructor checks that all histoWrappers are data, and
-    # are not yet normalized.
+    '''
+    Wrapper for a merged TH1 histograms from pseudo and the corresponding Datasets.
+    
+    The merged pseudo histogramgs can only be normalized 'to one'.
+    
+    Works as DatasetRootHistoMergedData, except can be constructed only
+    from pseudo datasets.
+    
+    \see dataset.DatasetRootHisto class.
+    '''
     def __init__(self, histoWrappers, mergedDataset):
+        '''
+        Constructor
+    
+        \param histoWrappers   List of dataset.DatasetRootHisto objects to merge
+        \param mergedDataset   The corresponding dataset.DatasetMerged object
+        
+        The constructor checks that all histoWrappers are data, and
+        are not yet normalized.
+        '''
         DatasetRootHistoCompoundBase.__init__(self, histoWrappers, mergedDataset)
         for h in self.histoWrappers:
             if not h.isPseudo():
-                raise Exception("Histograms to be merged must come from pseudo (%s is not pseudo)" % h.getDataset().getName())
-            if h.normalization != "none":
-                raise Exception("Histograms to be merged must not be normalized at this stage")
-            if h.multiplication != None:
-                raise Exception("Histograms to be merged must not be multiplied at this stage")
+                raise Exception("=== dataset.py:\n\t Histograms to be merged must come from pseudo (%s is not pseudo)" % h.getDataset().getName())
 
-## Wrapper for a merged TH1 histograms from MC and the corresponding Datasets.
-# 
-# See also the documentation of DatasetRootHisto class.
+            if h.normalization != "none":
+                raise Exception("=== dataset.py:\n\t Histograms to be merged must not be normalized at this stage")
+
+            if h.multiplication != None:
+                raise Exception("=== dataset.py:\n\t Histograms to be merged must not be multiplied at this stage")
+
 #================================================================================================ 
 # Class Definition
 #================================================================================================ 
 class DatasetRootHistoMergedMC(DatasetRootHistoCompoundBase):
-    ## Constructor.
-    # 
-    # \param histoWrappers   List of dataset.DatasetRootHisto objects to merge
-    # \param mergedDataset   The corresponding dataset.DatasetMerged object
-    # 
-    # The constructor checks that all histoWrappers are MC, and are
-    # not yet normalized.
+    '''
+    Wrapper for a merged TH1 histograms from MC and the corresponding Datasets.
+    
+    See also the documentation of DatasetRootHisto class.
+    '''
     def __init__(self, histoWrappers, mergedDataset):
+        '''
+        Constructor
+        
+        \param histoWrappers   List of dataset.DatasetRootHisto objects to merge
+        \param mergedDataset   The corresponding dataset.DatasetMerged object
+        
+        The constructor checks that all histoWrappers are MC, and are
+        not yet normalized.
+        '''
         DatasetRootHistoCompoundBase.__init__(self, histoWrappers, mergedDataset)
         for h in self.histoWrappers:
             if not h.isMC():
-                raise Exception("Histograms to be merged must come from MC")
+                raise Exception("=== dataset.py:\n\t Histograms to be merged must come from MC")
+        
             if h.normalization != "none":
-                raise Exception("Histograms to be merged must not be normalized at this stage")
+                raise Exception("=== dataset.py:\n\t Histograms to be merged must not be normalized at this stage")
+            
             if h.multiplication != None:
-                raise Exception("Histograms to be merged must not be multiplied at this stage")
+                raise Exception("=== dataset.py:\n\t Histograms to be merged must not be multiplied at this stage")
 
     def forEach(self, function, datasetRootHisto1=None):
         ret = []
         if datasetRootHisto1 != None:
             if not isinstance(datasetRootHisto1, DatasetRootHistoMergedMC):
-                raise Exception("datasetRootHisto1 must be of the type DatasetRootHistoMergedMC")
+                raise Exception("=== dataset.py:\n\t datasetRootHisto1 must be of the type DatasetRootHistoMergedMC")
             if not len(self.histoWrappers) == len(datasetRootHisto1.histoWrappers):
-                raise Exception("len(self.histoWrappers) != len(datasetrootHisto1.histoWrappers), %d != %d" % len(self.histoWrappers), len(datasetRootHisto1.histoWrappers))
+                raise Exception("=== dataset.py:\n\t len(self.histoWrappers) != len(datasetrootHisto1.histoWrappers), %d != %d" % len(self.histoWrappers), len(datasetRootHisto1.histoWrappers))
             
             for i, drh in enumerate(self.histoWrappers):
                 ret.extend(drh.forEach(function, datasetRootHisto1.histoWrappers[i]))
@@ -2196,13 +2388,18 @@ class DatasetRootHistoMergedMC(DatasetRootHistoCompoundBase):
                 ret.extend(drh.forEach(function))
         return ret
 
-    ## Modify the TH1 with a function
-    #
-    # \param function             Function taking the original TH1, and returning a new TH1. If newDatasetRootHisto is specified, function must take some other DatasetRootHisto object as an input too
-    # \param newDatasetRootHisto  Optional, the other DatasetRootHisto object, must be the same type and contain same number of DatasetRootHisto objects
-    #
-    # Needed for appending rows to counters from TTree, and for embedding normalization
     def modifyRootHisto(self, function, newDatasetRootHisto=None):
+        '''
+        Modify the TH1 with a function
+        
+        \param function             Function taking the original TH1, and returning a new TH1. 
+        If newDatasetRootHisto is specified, function must take some other DatasetRootHisto object as an input too
+
+        \param newDatasetRootHisto  Optional, the other DatasetRootHisto object, 
+        must be the same type and contain same number of DatasetRootHisto objects
+    
+        Needed for appending rows to counters from TTree, and for embedding normalization
+        '''
         if newDatasetRootHisto != None:
             if not isinstance(newDatasetRootHisto, DatasetRootHistoMergedMC):
                 raise Exception("newDatasetRootHisto must be of the type DatasetRootHistoMergedMC")
@@ -2215,65 +2412,73 @@ class DatasetRootHistoMergedMC(DatasetRootHistoCompoundBase):
             for i, drh in enumerate(self.histoWrappers):
                 drh.modifyRootHisto(function)
 
-    ## Set the current normalization scheme to 'to one'.
-    # 
-    # The histogram is normalized to unit area.
-    # 
-    # Sets the normalization of the underlying
-    # dataset.DatasetRootHisto objects to 'by cross section' in order
-    # to be able to sum them. The normalization 'to one' is then done
-    # for the summed histogram.
     def normalizeToOne(self):
+        '''
+        Set the current normalization scheme to 'to one'.
+        
+        The histogram is normalized to unit area.
+        
+        Sets the normalization of the underlying
+        dataset.DatasetRootHisto objects to 'by cross section' in order
+        to be able to sum them. The normalization 'to one' is then done
+        for the summed histogram.
+        '''
         self.normalization = "toOne"
         for h in self.histoWrappers:
             h.normalizeByCrossSection()
 
-    ## Set the current normalization scheme to 'by cross section'.
-    # 
-    # The histogram is normalized to the cross section of the
-    # corresponding dataset.
-    # 
-    # Sets the normalization of the underlying
-    # dataset.DatasetRootHisto objects to 'by cross section'. Then
-    # they can be summed directly, and the summed histogram is
-    # automatically correctly normalized to the total cross section of
-    # the merged dataset.Dataset objects.
     def normalizeByCrossSection(self):
+        '''
+        Set the current normalization scheme to 'by cross section'.
+        
+        The histogram is normalized to the cross section of the
+        corresponding dataset.
+        
+        Sets the normalization of the underlying
+        dataset.DatasetRootHisto objects to 'by cross section'. Then
+        they can be summed directly, and the summed histogram is
+        automatically correctly normalized to the total cross section of
+        the merged dataset.Dataset objects.
+        '''
         self.normalization = "byCrossSection"
         for h in self.histoWrappers:
             h.normalizeByCrossSection()
 
-    ## Set the current normalization scheme to 'to luminosity'.
-    # 
-    # \param lumi   Integrated luminosity in pb^-1 to normalize to
-    # 
-    # The histogram is normalized first normalized to the cross
-    # section of the corresponding dataset, and then to a given
-    # luminosity.
-    # 
-    # Sets the normalization of the underlying
-    # dataset.DatasetRootHisto objects to 'to luminosity'. Then they
-    # can be summed directly, and the summed histogram is
-    # automatically correctly normalized to the given integrated
-    # luminosity. """
     def normalizeToLuminosity(self, lumi):
+        '''
+        Set the current normalization scheme to 'to luminosity'.
+    
+        \param lumi   Integrated luminosity in pb^-1 to normalize to
+        
+        The histogram is normalized first normalized to the cross
+        section of the corresponding dataset, and then to a given
+        luminosity.
+         
+        Sets the normalization of the underlying
+        dataset.DatasetRootHisto objects to 'to luminosity'. Then they
+        can be summed directly, and the summed histogram is
+        automatically correctly normalized to the given integrated
+        luminosity. """
+        '''
         self.normalization = "toLuminosity"
         for h in self.histoWrappers:
             h.normalizeToLuminosity(lumi)
 
-    ## Merge the histograms and apply the current normalization.
-    # 
-    # The returned histogram is a clone, so client code can do
-    # anything it wishes with it.
-    # 
-    # The merged MC histograms must be normalized in some way,
-    # otherwise they can not be summed (or they can be, but the
-    # contents of the summed histogram doesn't make any sense as it
-    # is just the sum of the MC events of the separate datasets
-    # which in general have different cross sections).
     def _normalizedHistogram(self):
+        '''
+        Merge the histograms and apply the current normalization.
+        
+        The returned histogram is a clone, so client code can do
+        anything it wishes with it.
+        
+        The merged MC histograms must be normalized in some way,
+        otherwise they can not be summed (or they can be, but the
+        contents of the summed histogram doesn't make any sense as it
+        is just the sum of the MC events of the separate datasets
+        which in general have different cross sections).
+        '''
         if self.normalization == "none":
-            raise Exception("Merged MC histograms must be normalized to something!")
+            raise Exception("=== dataset.py:\n\t Merged MC histograms must be normalized to something!")
 
         hsum = self._getSumHistogram()
         if hsum is None:
@@ -2289,37 +2494,43 @@ class DatasetRootHistoMergedMC(DatasetRootHistoCompoundBase):
     ## \var normalization
     # String representing the current normalization scheme
 
-
-## Wrapper for a added TH1 histograms from MC and the corresponding Datasets.
-#
-# Here "Adding" is like merging, but for datasets which have the same
-# cross section, and are split to two datasets just for increased
-# statistics. Use case is inclusive W+jets in Summer12, which is split
-# into two datasets.
-# 
-# See also the documentation of DatasetRootHisto class.
 #================================================================================================ 
 # Class Definition
 #================================================================================================ 
 class DatasetRootHistoAddedMC(DatasetRootHistoCompoundBase):
-    ## Constructor.
-    # 
-    # \param histoWrappers   List of dataset.DatasetRootHisto objects to merge
-    # \param addedDataset   The corresponding dataset.DatasetMerged object
-    # 
-    # The constructor checks that all histoWrappers are MC, and are
-    # not yet normalized.
+    '''
+    Wrapper for a added TH1 histograms from MC and the corresponding Datasets.
+
+    Here "Adding" is like merging, but for datasets which have the same
+    cross section, and are split to two datasets just for increased
+    statistics. Use case is inclusive W+jets in Summer12, which is split
+    into two datasets.
+    
+    See also the documentation of DatasetRootHisto class.
+    '''
+
     def __init__(self, histoWrappers, addedDataset):
+        '''
+        Constructor
+        
+        \param histoWrappers   List of dataset.DatasetRootHisto objects to merge
+        
+        \param addedDataset   The corresponding dataset.DatasetMerged object
+        
+        The constructor checks that all histoWrappers are MC, and are
+        not yet normalized.
+        '''
         DatasetRootHistoBase.__init__(self, addedDataset)
         self.histoWrappers = histoWrappers
         self.normalization = "none"
         for h in self.histoWrappers:
             if not h.isMC():
-                raise Exception("Histograms to be added must come from MC")
+                raise Exception("=== dataset.py:\n\t Histograms to be added must come from MC")
             if h.normalization != "none":
-                raise Exception("Histograms to be added must not be normalized at this stage")
+                raise Exception("=== dataset.py:\n\t Histograms to be added must not be normalized at this stage")
             if h.multiplication != None:
-                raise Exception("Histograms to be added must not be multiplied at this stage")
+                raise Exception("=== dataset.py:\n\t Histograms to be added must not be multiplied at this stage")
+        return
 
     def isData(self):
         return False
@@ -2331,9 +2542,9 @@ class DatasetRootHistoAddedMC(DatasetRootHistoCompoundBase):
         ret = []
         if datasetRootHisto1 != None:
             if not isinstance(datasetRootHisto1, DatasetRootHistoAddedMC):
-                raise Exception("datasetRootHisto1 must be of the type DatasetRootHistoAddedMC")
+                raise Exception("=== dataset.py:\n\t datasetRootHisto1 must be of the type DatasetRootHistoAddedMC")
             if not len(self.histoWrappers) == len(datasetRootHisto1.histoWrappers):
-                raise Exception("len(self.histoWrappers) != len(datasetrootHisto1.histoWrappers), %d != %d" % len(self.histoWrappers), len(datasetRootHisto1.histoWrappers))
+                raise Exception("=== dataset.py:\n\t len(self.histoWrappers) != len(datasetrootHisto1.histoWrappers), %d != %d" % len(self.histoWrappers), len(datasetRootHisto1.histoWrappers))
             
             for i, drh in enumerate(self.histoWrappers):
                 ret.extend(drh.forEach(function, datasetRootHisto1.histoWrappers[i]))
@@ -2342,18 +2553,22 @@ class DatasetRootHistoAddedMC(DatasetRootHistoCompoundBase):
                 ret.extend(drh.forEach(function))
         return ret
 
-    ## Modify the TH1 with a function
-    #
-    # \param function             Function taking the original TH1, and returning a new TH1. If newDatasetRootHisto is specified, function must take some other DatasetRootHisto object as an input too
-    # \param newDatasetRootHisto  Optional, the other DatasetRootHisto object, must be the same type and contain same number of DatasetRootHisto objects
-    #
-    # Needed for appending rows to counters from TTree, and for embedding normalization
     def modifyRootHisto(self, function, newDatasetRootHisto=None):
+        '''
+        Modify the TH1 with a function
+        
+        \param function             Function taking the original TH1, and returning a new TH1.
+        If newDatasetRootHisto is specified, function must take some other DatasetRootHisto object as an input too
+        
+        \param newDatasetRootHisto  Optional, the other DatasetRootHisto object, must be the same type and contain same number of DatasetRootHisto objects
+        
+        Needed for appending rows to counters from TTree, and for embedding normalization
+        '''
         if newDatasetRootHisto != None:
             if not isinstance(newDatasetRootHisto, DatasetRootHistoAddedMC):
-                raise Exception("newDatasetRootHisto must be of the type DatasetRootHistoAddedMC")
+                raise Exception("===dataset.py:\n\t newDatasetRootHisto must be of the type DatasetRootHistoAddedMC")
             if not len(self.histoWrappers) == len(newDatasetRootHisto.histoWrappers):
-                raise Exception("len(self.histoWrappers) != len(newDatasetrootHisto.histoWrappers), %d != %d" % len(self.histoWrappers), len(newDatasetRootHisto.histoWrappers))
+                raise Exception("===dataset.py:\n\t len(self.histoWrappers) != len(newDatasetrootHisto.histoWrappers), %d != %d" % len(self.histoWrappers), len(newDatasetRootHisto.histoWrappers))
             
             for i, drh in enumerate(self.histoWrappers):
                 drh.modifyRootHisto(function, newDatasetRootHisto.histoWrappers[i])
@@ -2361,58 +2576,69 @@ class DatasetRootHistoAddedMC(DatasetRootHistoCompoundBase):
             for i, drh in enumerate(self.histoWrappers):
                 drh.modifyRootHisto(function)
 
-    ## Set the current normalization scheme to 'to one'.
-    # 
-    # The histogram is normalized to unit area.
-    # 
-    # Sets the normalization of the underlying
-    # dataset.DatasetRootHisto objects to 'by cross section' in order
-    # to be able to sum them. The normalization 'to one' is then done
-    # for the summed histogram.
     def normalizeToOne(self):
+        '''
+        Set the current normalization scheme to 'to one'.
+        
+        The histogram is normalized to unit area.
+        
+        Sets the normalization of the underlying
+        dataset.DatasetRootHisto objects to 'by cross section' in order
+        to be able to sum them. The normalization 'to one' is then done
+         for the summed histogram.
+        '''
         self.normalization = "toOne"
+        return
 
-    ## Set the current normalization scheme to 'by cross section'.
-    # 
-    # The histogram is normalized to the cross section of the
-    # corresponding dataset.
-    # 
-    # Sets the normalization of the underlying
-    # dataset.DatasetRootHisto objects to 'by cross section'. Then
-    # they can be summed directly, and the summed histogram is
-    # automatically correctly normalized to the total cross section of
-    # the merged dataset.Dataset objects.
     def normalizeByCrossSection(self):
+        '''
+        Set the current normalization scheme to 'by cross section'.
+        
+        The histogram is normalized to the cross section of the
+        corresponding dataset.
+        
+        Sets the normalization of the underlying
+        dataset.DatasetRootHisto objects to 'by cross section'. Then
+        they can be summed directly, and the summed histogram is
+        automatically correctly normalized to the total cross section of
+        the merged dataset.Dataset objects.
+        '''
         self.normalization = "byCrossSection"
+        return
 
-    ## Set the current normalization scheme to 'to luminosity'.
-    # 
-    # \param lumi   Integrated luminosity in pb^-1 to normalize to
-    # 
-    # The histogram is normalized first normalized to the cross
-    # section of the corresponding dataset, and then to a given
-    # luminosity.
-    # 
-    # Sets the normalization of the underlying
-    # dataset.DatasetRootHisto objects to 'to luminosity'. Then they
-    # can be summed directly, and the summed histogram is
-    # automatically correctly normalized to the given integrated
-    # luminosity. """
     def normalizeToLuminosity(self, lumi):
+        '''
+        Set the current normalization scheme to 'to luminosity'.
+        
+        \param lumi   Integrated luminosity in pb^-1 to normalize to
+        
+        The histogram is normalized first normalized to the cross
+        section of the corresponding dataset, and then to a given
+        luminosity.
+        
+        Sets the normalization of the underlying
+        dataset.DatasetRootHisto objects to 'to luminosity'. Then they
+        can be summed directly, and the summed histogram is
+        automatically correctly normalized to the given integrated
+        luminosity.
+        '''
         self.normalization = "toLuminosity"
         self.luminosity = lumi
+        return
 
-    ## Merge the histograms and apply the current normalization.
-    # 
-    # The returned histogram is a clone, so client code can do
-    # anything it wishes with it.
-    # 
-    # The merged MC histograms must be normalized in some way,
-    # otherwise they can not be summed (or they can be, but the
-    # contents of the summed histogram doesn't make any sense as it
-    # is just the sum of the MC events of the separate datasets
-    # which in general have different cross sections).
     def _normalizedHistogram(self):
+        '''
+        Merge the histograms and apply the current normalization.
+        
+        The returned histogram is a clone, so client code can do
+        anything it wishes with it.
+        
+        The merged MC histograms must be normalized in some way,
+        otherwise they can not be summed (or they can be, but the
+        contents of the summed histogram doesn't make any sense as it
+        is just the sum of the MC events of the separate datasets
+        which in general have different cross sections).
+        '''
         hsum = self._getSumHistogram()
 
         if self.normalization == "none":
@@ -2427,7 +2653,7 @@ class DatasetRootHistoAddedMC(DatasetRootHistoCompoundBase):
         elif self.normalization == "toLuminosity":
             return _normalizeToFactor(hsum, self.luminosity)
         else:
-            raise Exception("Internal error, got normalization %s" % self.normalization)
+            raise Exception("=== dataset.py:\n\t Internal error, got normalization %s" % self.normalization)
 
     ## \var histoWrappers
     # List of underlying dataset.DatasetRootHisto objects
@@ -2448,79 +2674,88 @@ class HistogramNotFoundException(Exception):
     def __init__(self, message):
         Exception.__init__(self, message)
 
-## Dataset class for histogram access from one ROOT file.
-# 
-# The default values for cross section/luminosity are read from
-# 'configInfo/configInfo' histogram (if it exists). The data/MC
-# datasets are differentiated by the existence of 'crossSection'
-# (for MC) and 'luminosity' (for data) keys in the histogram. Reads
-# the dataVersion from 'configInfo/dataVersion' and deduces whether
-# the dataset is data/MC from it.
-#
-# \see dataset.DatasetMerged for merging multiple Dataset objects
-# (either data or MC) to one logical dataset (e.g. all data datasets
-# to one dataset, all QCD pThat bins to one dataset)
 #================================================================================================ 
 # Class Definition
 #================================================================================================ 
 class Dataset:
-    ## Constructor.
-    # 
-    # \param name              Name of the dataset (can be anything)
-    # \param tfiles            List of ROOT.TFile objects for the dataset
-    # \param analysisName      Base part of the analysis directory name
-    # \param searchMode        String for search mode
-    # \param dataEra           String for data era
-    # \param optimizationMode  String for optimization mode (optional)
-    # \param systematicVariation String for systematic variation (optional)
-    # \param weightedCounters  If True, pick the counters from the 'weighted' subdirectory
-    # \param counterDir        Name of the directory in the ROOT file for
-    #                          event counter histograms. If None is given,
-    #                          is assumed that the dataset has no counters.
-    #                          This also means that the histograms from this
-    #                          dataset can not be normalized unless the
-    #                          number of all events is explictly set with
-    #                          setNAllEvents() method. Note that this
-    #                          directory should *not* point to the 'weighted'
-    #                          subdirectory, but to the top-level counter
-    #                          directory. The weighted counters are taken
-    #                          into account with \a useWeightedCounters
-    #                          argument
-    # \param useAnalysisNameOnly Should the analysis directory be
-    #                            inferred only from analysisName?
-    # \param availableSystematicVariationSources List of strings of the systematic variations
-    #                                      available on the ROOT file (without the "Plus"/"Minus" postfix)
-    # \param enableSystematicVariationForData Add \a systematicVariation to directory name also for data (needed for embedding)
-    # \param setCrossSectionAutomatically Try to set cross section automatically if the dataset is MC (default True)
-    #
-    # 
-    # Opens the ROOT file, reads 'configInfo/configInfo' histogram
-    # (if it exists), and reads the main event counter
-    # ('counterDir/counters') if counterDir is not None. Reads also
-    # 'configInfo/dataVersion' TNamed.
-    #
-    # With the v44_4 pattuples we improved the "Run2011 A vs. B vs AB"
-    # workflow such that for MC we run analyzers for all data eras.
-    # This means that the TDirectory names will be different for data
-    # and MC, such that in MC the era name is appended to the
-    # directory name. 
-    #
-    # The final directory name is (if \a useAnalysisNameOnly is False)
-    # data: analysisName+searchMode+optimizationMode(+systematicVariation)
-    # MC:   analysisName+searchMode+dataEra+optimizationMode+systematicVariation
-    # For data, \a systematicVariation is added only if \a enableSystematicVariationForData is True
-    #
-    # The \a useAnalysisNameOnly parameter is needed e.g. for ntuples
-    # which store the era-specific weights to the tree itself, and
-    # therefore the 
+    '''
+    Dataset class for histogram access from one ROOT file.
+    
+    The default values for cross section/luminosity are read from
+    'configInfo/configInfo' histogram (if it exists). The data/MC
+    datasets are differentiated by the existence of 'crossSection'
+    (for MC) and 'luminosity' (for data) keys in the histogram. Reads
+    the dataVersion from 'configInfo/dataVersion' and deduces whether
+    the dataset is data/MC from it.
+    
+    \see dataset.DatasetMerged for merging multiple Dataset objects
+    (either data or MC) to one logical dataset (e.g. all data datasets
+    to one dataset, all QCD pThat bins to one dataset)
+    '''
+
     def __init__(self, name, tfiles, analysisName,
                  searchMode=None, dataEra=None, optimizationMode=None, systematicVariation=None,
                  weightedCounters=True, counterDir="counters", useAnalysisNameOnly=False, availableSystematicVariationSources=[], enableSystematicVariationForData=False, setCrossSectionAutomatically=True):
+        '''
+        Constructor
+    
+        \param name              Name of the dataset (can be anything)
+        
+        \param tfiles            List of ROOT.TFile objects for the dataset
+        
+        \param analysisName      Base part of the analysis directory name
+        \param searchMode        String for search mode
+        
+        \param dataEra           String for data era
+
+        \param optimizationMode  String for optimization mode (optional)
+
+        \param systematicVariation String for systematic variation (optional)
+
+        \param weightedCounters  If True, pick the counters from the 'weighted' subdirectory
+
+        \param counterDir        Name of the directory in the ROOT file for
+        event counter histograms. If None is given, is assumed that the dataset has no counters.
+        This also means that the histograms from this dataset can not be normalized unless the
+        number of all events is explictly set with setNAllEvents() method. Note that this
+        directory should *not* point to the 'weighted' subdirectory, but to the top-level counter
+        directory. The weighted counters are taken into account with \a useWeightedCounters
+        argument
+
+        \param useAnalysisNameOnly Should the analysis directory be inferred only from analysisName?
+
+        \param availableSystematicVariationSources List of strings of the systematic variations
+        available on the ROOT file (without the "Plus"/"Minus" postfix)
+
+        \param enableSystematicVariationForData Add \a systematicVariation to directory name also for data (needed for embedding)
+    
+        \param setCrossSectionAutomatically Try to set cross section automatically if the dataset is MC (default True)
+    
+        Opens the ROOT file, reads 'configInfo/configInfo' histogram
+        (if it exists), and reads the main event counter
+        ('counterDir/counters') if counterDir is not None. Reads also
+        'configInfo/dataVersion' TNamed.
+    
+        With the v44_4 pattuples we improved the "Run2011 A vs. B vs AB"
+        workflow such that for MC we run analyzers for all data eras.
+        This means that the TDirectory names will be different for data
+        and MC, such that in MC the era name is appended to the
+        directory name. 
+    
+        The final directory name is (if \a useAnalysisNameOnly is False)
+        data: analysisName+searchMode+optimizationMode(+systematicVariation)
+        MC:   analysisName+searchMode+dataEra+optimizationMode+systematicVariation
+        For data, \a systematicVariation is added only if \a enableSystematicVariationForData is True
+        
+        The \a useAnalysisNameOnly parameter is needed e.g. for ntuples
+        which store the era-specific weights to the tree itself, and
+        therefore the 
+        '''
         self.rawName = name
         self.name = name
         self.files = tfiles
         if len(self.files) == 0:
-            raise Exception("Expecting at least one TFile, jot 0")
+            raise Exception("=== dataset.py:\n\t Expecting at least one TFile, got 0")
 
         # Now this is really an uhly hack
         self._setBaseDirectory(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(self.files[0].GetName())))))
@@ -2534,11 +2769,11 @@ class Dataset:
                 if isinstance(value, basestring):
                     if value == valnew:
                         continue
-                    raise Exception("Mismatched values in %s, label %s, got %s from file %s, and %s from file %s" % (name, key, value, refFile.GetName(), valnew, newFile.GetName()))
+                    raise Exception("=== dataset.py:\n\t Mismatched values in %s, label %s, got %s from file %s, and %s from file %s" % (name, key, value, refFile.GetName(), valnew, newFile.GetName()))
                 if valnew == 0 and value == 0:
                     return
                 if abs(value-valnew)/max(value, valnew) > 0.001:
-                    raise Exception("Mismatched values in %s, label %s, got %f from file %s, and %f from file %s" % (name, key, value, refFile.GetName(), valnew, newFile.GetName()))
+                    raise Exception("=== dataset.py:\n\t Mismatched values in %s, label %s, got %f from file %s, and %f from file %s" % (name, key, value, refFile.GetName(), valnew, newFile.GetName()))
         def addDirContentsToDict(tdirectory, dictionary):
             content = aux.listDirectoryContent(tdirectory, lambda key: key.GetClassName() == "TNamed" and key.GetName() not in ["dataVersion", "parameterSet"])
             for name in content:
@@ -2547,10 +2782,10 @@ class Dataset:
         
         for f in self.files:
             if not f.IsOpen():
-                raise Exception("File %s of dataset %s has been closed! Maybe this Dataset has been removed without 'close=False'?" % (f.GetName(), self.name))
+                raise Exception("=== dataset.py:\n\t File %s of dataset %s has been closed! Maybe this Dataset has been removed without 'close=False'?" % (f.GetName(), self.name))
             configInfo = aux.Get(f, "configInfo")
             if configInfo == None:
-                raise Exception("configInfo directory is missing from file %s" % f.GetName())
+                raise Exception("=== dataset.py:\n\t configInfo directory is missing from file %s" % f.GetName())
 
             info = aux.Get(configInfo, "configinfo")
             if info != None:
@@ -2567,27 +2802,27 @@ class Dataset:
 
             dataVersion = aux.Get(configInfo, "dataVersion")
             if dataVersion == None:
-                raise Exception("Unable to determine dataVersion for dataset %s from file %s" % (name, f.GetName()))
+                raise Exception("=== dataset.py:\n\t Unable to determine dataVersion for dataset %s from file %s" % (name, f.GetName()))
             if self.dataVersion is None:
                 self.dataVersion = dataVersion.GetTitle()
             else:
                 if self.dataVersion != dataVersion.GetTitle():
-                    raise Exception("Mismatched values in configInfo/dataVersion, got %s from file %s, and %s from file %s" % (self.dataVersion, self.files[0].GetName(), dataVersion.GetTitle(), f.GetName()))
+                    raise Exception("=== dataset.py:\n\t Mismatched values in configInfo/dataVersion, got %s from file %s, and %s from file %s" % (self.dataVersion, self.files[0].GetName(), dataVersion.GetTitle(), f.GetName()))
 
-        self._isData = "data" in self.dataVersion
+        self._isData   = "data" in self.dataVersion
         self._isPseudo = "pseudo" in self.dataVersion
-        self._isMC = not (self._isData or self._isPseudo)
+        self._isMC     = not (self._isData or self._isPseudo)
         self._weightedCounters = weightedCounters
 
-        self._analysisName = analysisName
-        self._searchMode = searchMode
-        self._dataEra = dataEra
-        self._optimizationMode = optimizationMode
+        self._analysisName        = analysisName
+        self._searchMode          = searchMode
+        self._dataEra             = dataEra
+        self._optimizationMode    = optimizationMode
         self._systematicVariation = systematicVariation
         self._useAnalysisNameOnly = useAnalysisNameOnly
         self._availableSystematicVariationSources = availableSystematicVariationSources
-        self._enableSystematicVariationForData = enableSystematicVariationForData
-        self._setCrossSectionAutomatically = setCrossSectionAutomatically
+        self._enableSystematicVariationForData    = enableSystematicVariationForData
+        self._setCrossSectionAutomatically        = setCrossSectionAutomatically
 
         self._analysisDirectoryName = self._analysisName
         if not self._useAnalysisNameOnly:
@@ -2604,7 +2839,7 @@ class Dataset:
         # Check that analysis directory exists
         for f in self.files:
             if aux.Get(f, self._analysisDirectoryName) == None:
-                raise AnalysisNotFoundException("Analysis directory '%s' does not exist in file '%s'" % (self._analysisDirectoryName, f.GetName()))
+                raise AnalysisNotFoundException("=== dataset.py:\n\t Analysis directory '%s' does not exist in file '%s'" % (self._analysisDirectoryName, f.GetName()))
         self._analysisDirectoryName += "/"
 
         # Update info from analysis directory specific histogram, if one exists
@@ -2614,7 +2849,7 @@ class Dataset:
             for f in self.files:
                 d = aux.Get(f, realDirName)
                 if d == None:
-                    raise Exception("%s directory is missing from file %s, it was in %s" % (realDirName, f.GetName(), self.files[0].GetName()))
+                    raise Exception("=== dataset.py:\n\t %s directory is missing from file %s, it was in %s" % (realDirName, f.GetName(), self.files[0].GetName()))
                 info = {}
                 h = aux.Get(d, "configinfo")
                 if h != None:
@@ -2626,7 +2861,7 @@ class Dataset:
                     assertInfo(updateInfo, info, self.files[0], f, realDirName+"/configinfo")
             if "energy" in updateInfo:
                 #raise Exception("You may not set 'energy' in analysis directory specific configinfo histogram. Please fix %s." % realName)
-                print "WARNING: 'energy' has been set in analysis directory specific configinfo histogram (%s), it will be ignored. Please fix your pseudomulticrab code." % (realName+"/configinfo")
+                print "=== dataset.py:\n\t WARNING: 'energy' has been set in analysis directory specific configinfo histogram (%s), it will be ignored. Please fix your pseudomulticrab code." % (realName+"/configinfo")
                 del updateInfo["energy"]
             self.info.update(updateInfo)
 
@@ -2645,7 +2880,7 @@ class Dataset:
             if "energy" in self.info:
                 crosssection.setBackgroundCrossSectionForDataset(self, quietMode=(self._systematicVariation != None or self._optimizationMode != None))
             else:
-                print "%s is MC but has no energy set in configInfo/configinfo, not setting its cross section automatically" % self.name
+                print "=== dataset.py:\n\t %s is MC but has no energy set in configInfo/configinfo, not setting its cross section automatically" % self.name
 
         # For some reason clearing the in-memory representations of
         # the files increases the reading (object lookup?) performance
@@ -2654,27 +2889,31 @@ class Dataset:
         for f in self.files:
             f.Clear()
 
-    ## Close the files
-    #
-    # Can be useful when opening very many files in order to reduce
-    # the memory footprint and not hit the limit of number of open
-    # files
     def close(self):
+        '''
+        Close the files
+        
+        Can be useful when opening very many files in order to reduce
+        the memory footprint and not hit the limit of number of open
+        files
+        '''
         for f in self.files:
             f.Close("R")
             f.Delete()
         self.files = []
 
-    ## Clone the Dataset object
-    # 
-    # Nothing is shared between the returned copy and this object,
-    # except the ROOT file object
-    #
-    # Use case is creative dataset manipulations, e.g. copying ttbar
-    # to another name and scaling the cross section by the BR(t->H+)
-    # while also keeping the original ttbar with the original SM cross
-    # section.
     def deepCopy(self):
+        '''
+        Clone the Dataset object
+        
+        Nothing is shared between the returned copy and this object,
+        except the ROOT file object
+        
+        Use case is creative dataset manipulations, e.g. copying ttbar
+        to another name and scaling the cross section by the BR(t->H+)
+        while also keeping the original ttbar with the original SM cross
+        section.
+        '''
         d = Dataset(self.rawName, self.files, self._analysisName, self._searchMode, self._dataEra, self._optimizationMode, self._systematicVariation, self._weightedCounters, self._unweightedCounterDir, self._useAnalysisNameOnly, self._availableSystematicVariationSources, self._enableSystematicVariationForData, self._setCrossSectionAutomatically)
         d.info.update(self.info)
         d.nAllEvents = self.nAllEvents
@@ -2704,16 +2943,18 @@ class Dataset:
             return ""
         return self._systematicVariation
 
-    ## Translate a logical name to a physical name in the file
-    #
-    # \param name            Name to translate
-    # \param analysisPostfix Postfix to the current analysis directory
-    #                        name to read the objects from. You better
-    #                        know what you're doing.
-    #
-    # If name starts with slash ('/'), it is interpreted as a absolute
-    # path within the ROOT file.
     def _translateName(self, name, analysisPostfix=""):
+        '''
+        Translate a logical name to a physical name in the file
+        
+        \param name            Name to translate
+        
+        \param analysisPostfix Postfix to the current analysis directory
+        name to read the objects from. You better know what you're doing.
+        
+        If name starts with slash ('/'), it is interpreted as a absolute
+        path within the ROOT file.
+        '''
         if len(name) > 0 and name[0] == '/':
             return name[1:]
         else:
@@ -2725,8 +2966,10 @@ class Dataset:
                 return ret[0:-1]
             return ret
 
-    ## Get the ParameterSet stored in the ROOT file
     def getParameterSet(self):
+        '''
+        Get the ParameterSet stored in the ROOT file
+        '''
         (objs, realNames) = self.getRootObjects("configInfo/parameterSet")
         return objs[0].GetTitle()        
 
@@ -2736,28 +2979,31 @@ class Dataset:
     def getAvailableSystematicVariationSources(self):
         return self._availableSystematicVariationSources
 
-    ## Get ROOT histogram
-    #
-    # \param name    Path of the ROOT histogram relative to the analysis
-    #                root directory
-    # \param kwargs  Keyword arguments, forwarded to getRootObjects()
-    #
-    # \return pair (\a histogram, \a realName)
-    #
-    # If name starts with slash ('/'), it is interpreted as a absolute
-    # path within the ROOT file.
-    #
-    # If dataset consists of multiple files, the histograms are added
-    # with the ROOT.TH1.Add() method.
-    # 
-    # If dataset.TreeDraw object is given (or actually anything with
-    # draw() method), the draw() method is called by giving the
-    # Dataset object as parameters. The draw() method is expected to
-    # return a TH1 which is then returned.
     def getRootHisto(self, name, **kwargs):
+        '''
+        Get ROOT histogram
+        
+        \param name    Path of the ROOT histogram relative to the analysis
+        root directory
+        
+        \param kwargs  Keyword arguments, forwarded to getRootObjects()
+        
+        \return pair (\a histogram, \a realName)
+        
+        If name starts with slash ('/'), it is interpreted as a absolute
+        path within the ROOT file.
+        
+        If dataset consists of multiple files, the histograms are added
+        with the ROOT.TH1.Add() method.
+         
+        If dataset.TreeDraw object is given (or actually anything with
+        draw() method), the draw() method is called by giving the
+        Dataset object as parameters. The draw() method is expected to
+        return a TH1 which is then returned.
+        '''
         if hasattr(name, "draw"):
             if len(kwargs) > 0:
-                print >>sys.stderr, "WARNING: You gave keyword arguments to getDatasetRootHisto() together with object with draw() method. The keyword arguments are not passed to the draw() call. This may or may not be what you want."
+                print >>sys.stderr, "=== dataset.py:\n\t WARNING: You gave keyword arguments to getDatasetRootHisto() together with object with draw() method. The keyword arguments are not passed to the draw() call. This may or may not be what you want."
             h = name.draw(self)
             realName = None
         else:
@@ -2772,55 +3018,64 @@ class Dataset:
     
         return (h, realName)
 
-    ## Create ROOT TChain
-    # 
-    # \param name    Path of the ROOT TTree relative to the analysis
-    #                root directory
-    # \param kwargs  Keyword arguments, forwarded to _translateName()
-    #
-    # \return pair (ROOT.TChain, \a realName)
-    #
-    # If name starts with slash ('/'), it is interpreted as a absolute
-    # path within the ROOT file.
     def createRootChain(self, treeName, **kwargs):
+        '''
+        Create ROOT TChain
+        
+        \param name    Path of the ROOT TTree relative to the analysis
+        root directory
+
+        \param kwargs  Keyword arguments, forwarded to _translateName()
+        
+        \return pair (ROOT.TChain, \a realName)
+        
+        If name starts with slash ('/'), it is interpreted as a absolute
+        path within the ROOT file.
+        '''
         realName = self._translateName(treeName, **kwargs)
         chain = ROOT.TChain(realName)
         for f in self.files:
             chain.Add(f.GetName())
         return (chain, realName)
 
-    ## Get arbitrary ROOT object from the file
-    #
-    # \param name    Path of the ROOT object relative to the analysis
-    #                root directory
-    # \param kwargs  Keyword arguments, forwarded to getRootObjects()
-    #
-    # \return pair (\a object, \a realName)
-    #
-    # If name starts with slash ('/'), it is interpreted as a absolute
-    # path within the ROOT file.
-    #
-    # If the dataset consists of multiple files, raise an Exception.
-    # User should use getRootObjects() method instead.
     def getRootObject(self, name, **kwargs):
+        '''
+        Get arbitrary ROOT object from the file
+        
+        \param name    Path of the ROOT object relative to the analysis
+        root directory
+
+        \param kwargs  Keyword arguments, forwarded to getRootObjects()
+        
+        \return pair (\a object, \a realName)
+    
+        If name starts with slash ('/'), it is interpreted as a absolute
+        path within the ROOT file.
+    
+        If the dataset consists of multiple files, raise an Exception.
+        User should use getRootObjects() method instead.
+        '''
         if len(self.files) > 1:
-            raise Exception("You asked for a single ROOT object, but the Dataset %s consists of multiple ROOT files. You should call getRootObjects() instead, and deal with the multiple objects by yourself.")
+            raise Exception("=== dataset.py:\n\y You asked for a single ROOT object, but the Dataset %s consists of multiple ROOT files. You should call getRootObjects() instead, and deal with the multiple objects by yourself.")
         (lst, realName) = self.getRootObjects(name, **kwargs)
         return (lst[0], realName)
 
-    ## Get list of arbitrary ROOT objects from the file
-    #
-    # \param name    Path of the ROOT object relative to the analysis
-    #                root directory
-    # \param kwargs  Keyword arguments, forwarded to _translateName()
-    #
-    # \return pair (\a list, \a realName), where \a list is the list
-    #         of ROOT objects, one per file, and \a realName is the
-    #         physical name of the objects
-    #
-    # If name starts with slash ('/'), it is interpreted as a absolute
-    # path within the ROOT file.
     def getRootObjects(self, name, **kwargs):
+        '''
+        Get list of arbitrary ROOT objects from the file
+        
+        \param name    Path of the ROOT object relative to the analysis
+        root directory
+
+        \param kwargs  Keyword arguments, forwarded to _translateName()
+        
+        \return pair (\a list, \a realName), where \a list is the list
+        of ROOT objects, one per file, and \a realName is the
+        physical name of the objects
+        
+        If name starts with slash ('/'), it is interpreted as a absolute
+        path within the ROOT file.
+        '''
         realName = self._translateName(name, **kwargs)
         ret = []
         if len(self.files) == 0:
@@ -2836,8 +3091,10 @@ class Dataset:
             ret.append(o)
         return (ret, realName)
 
-    ## Read counters
     def _readCounters(self):
+        '''
+        Read counters        
+        '''
         self.counterDir = self._unweightedCounterDir
 
         # Read unweighted counters
@@ -2859,10 +3116,10 @@ class Dataset:
                     normalizationCheckStatus = False
         except HistogramNotFoundException, e:
             if not self._weightedCounters:
-                raise Exception("Could not find counter histogram, message: %s" % str(e))
+                raise Exception("=== dataset.py:\n\t Could not find counter histogram, message: %s" % str(e))
             self.nAllEventsUnweighted = -1
         if not normalizationCheckStatus:
-            raise Exception("Error: dset=%s: Unweighted skimcounter is smaller than all events counter of analysis! Please check (this is known to happen when running PROOF on samples with negative generator weights."%self.name)
+            raise Exception("=== dataset.py:\n\t Error: dset=%s: Unweighted skimcounter is smaller than all events counter of analysis! Please check (this is known to happen when running PROOF on samples with negative generator weights."%self.name)
 
         self.nAllEventsWeighted = None
         self.nAllEvents = self.nAllEventsUnweighted
@@ -2876,7 +3133,7 @@ class Dataset:
                 self.nAllEventsWeighted = ctr[0][1].value() # first counter, second element of the tuple
                 self.nAllEvents = self.nAllEventsWeighted
             except HistogramNotFoundException, e:
-                raise Exception("Could not find counter histogram, message: %s" % str(e))
+                raise Exception("=== dataset.py:\n\t Could not find counter histogram, message: %s" % str(e))
 
     def getName(self):
         return self.name
@@ -2886,46 +3143,63 @@ class Dataset:
 
     def forEach(self, function):
         return [function(self)]
-
-    ## Set the centre-of-mass energy (in TeV) as string
+    
     def setEnergy(self, energy):
+        '''
+        Set the centre-of-mass energy (in TeV) as string
+        '''
         if not isinstance(energy, basestring):
-            raise Exception("The energy must be set as string")
+            raise Exception("=== dataset.py:\n\t The energy must be set as string")
         self.info["energy"] = energy
+        return
 
-    ## Get the centre-of-mass energy (in TeV) as string
     def getEnergy(self):
+        '''
+        Get the centre-of-mass energy (in TeV) as string
+        '''
         return self.info.get("energy", "0")
 
-    ## Set cross section of MC dataset (in pb).
     def setCrossSection(self, value):
+        '''
+        Set cross section of MC dataset (in pb).
+        '''
         if not self.isMC():
-            raise Exception("Should not set cross section for non-MC dataset %s" % self.name)
+            raise Exception("=== dataset.py:\n\t Should not set cross section for non-MC dataset %s" % self.name)
         self.info["crossSection"] = value
+        return
 
-    ## Get cross section of MC dataset (in pb).
     def getCrossSection(self):
+        '''
+        Get cross section of MC dataset (in pb).
+        '''
         if not self.isMC():
-            raise Exception("Dataset %s is not MC, no cross section available" % self.name)
+            raise Exception("=== dataset.py:\n\t Dataset %s is not MC, no cross section available" % self.name)
         try:
             return self.info["crossSection"]
         except KeyError:
-            raise Exception("Dataset %s is MC, but cross section has not been set. You have to either add the cross section for this dataset and energy of %s TeV to NtupleAnalysis/python/tools/crosssection.py, or set it for this Dataset object with setCrossSection() method." % (self.name, self.getEnergy()))
+            raise Exception("=== dataset.py:\n\t Dataset %s is MC, but cross section has not been set. You have to either add the cross section for this dataset and energy of %s TeV to NtupleAnalysis/python/tools/crosssection.py, or set it for this Dataset object with setCrossSection() method." % (self.name, self.getEnergy()))
+        return
 
-    ## Set the integrated luminosity of data dataset (in pb^-1).
     def setLuminosity(self, value):
+        '''
+        Set the integrated luminosity of data dataset (in pb^-1).
+        '''
         if not self.isData():
-            raise Exception("Should not set luminosity for MC dataset %s" % self.name)
+            raise Exception("=== dataset.py:\n\t Should not set luminosity for MC dataset %s" % self.name)
         self.info["luminosity"] = value
+        return
 
-    ## Get the integrated luminosity of data dataset (in pb^-1).
     def getLuminosity(self):
+        '''
+        Get the integrated luminosity of data dataset (in pb^-1).
+        '''
         if not (self.isData() or self.isPseudo()):
-            raise Exception("Dataset %s is not data nor pseudo, no luminosity available" % self.name)
+            raise Exception("=== dataset.py:\n\t Dataset %s is not data nor pseudo, no luminosity available" % self.name)
         try:
             return self.info["luminosity"]
         except KeyError:
-            raise Exception("Dataset %s is %s, but luminosity has not been set yet. You have to explicitly set the luminosity with setLuminosity() method." % (self.name, self.getDataType()))
+            raise Exception("=== dataset.py:\n\t Dataset %s is %s, but luminosity has not been set yet. You have to explicitly set the luminosity with setLuminosity() method." % (self.name, self.getDataType()))
+        return
 
     def setProperty(self, key, value):
         self.info[key] = value
@@ -2949,42 +3223,46 @@ class Dataset:
             return "MC"
         if self.isPseudo:
             return "pseudo"
-        raise Exception("I don't know what I am, sorry.")
+        raise Exception("=== dataset.py:\n\t I don't know what I am, sorry.")
 
     def getCounterDirectory(self):
         return self.counterDir
 
     def getRootFile(self):
         if len(self.files) > 1:
-            raise Exception("Dataset %s consists of %d files, you should use getRootFiles() method instead." % (self.getName(), len(self.files)))
+            raise Exception("=== dataset.py:\n\t Dataset %s consists of %d files, you should use getRootFiles() method instead." % (self.getName(), len(self.files)))
         return self.files[0]
 
     def getRootFiles(self):
         return self.files
 
-    ## Set the number of all events (for normalization).
-    #
-    # This allows both overriding the value read from the event
-    # counter, or creating a dataset without event counter at all.
     def setNAllEvents(self, nAllEvents):
+        '''
+        Set the number of all events (for normalization).
+        
+        This allows both overriding the value read from the event
+        counter, or creating a dataset without event counter at all.    
+        '''
         self.nAllEvents = nAllEvents
 
-    ## Update number of all events (for normalization) to a pileup-reweighted value.
-    #
-    # \param era     Data era to use to pick the pile-up-reweighted all
-    #                event number (optional, if not given a default
-    #                value read from the configinfo is used)
-    # \param kwargs  Keyword arguments (forwarded to pileupReweightedAllEvents.WeightedAllEvents.getWeighted())
-    #
-    # If \a topPtWeightType is not given in \a kwargs, read the value
-    # from analysis directory -specific configInfo
     def updateNAllEventsToPUWeighted(self, era=None, **kwargs):
+        '''
+        Update number of all events (for normalization) to a pileup-reweighted value.
+        
+        \param era     Data era to use to pick the pile-up-reweighted all
+        event number (optional, if not given a default value read from the configinfo is used)
+
+        \param kwargs  Keyword arguments (forwarded to pileupReweightedAllEvents.WeightedAllEvents.getWeighted())
+        
+        If \a topPtWeightType is not given in \a kwargs, read the value
+        from analysis directory -specific configInfo
+        '''
         # Ignore if not MC
         if not self.isMC():
             return
         # Look at configInfo
         if not "isPileupReweighted" in self.info.keys():
-            raise Exception("Key 'isPileupReweighted' missing in configinfo histogram!")
+            raise Exception("=== dataset.py:\n\t Key 'isPileupReweighted' missing in configinfo histogram!")
         ratio = 1.0
         if self.info["isPileupReweighted"] > 0.0:
             delta = (self.info["isPileupReweighted"] - self.nAllEvents) / self.nAllEvents
@@ -2992,38 +3270,42 @@ class Dataset:
                 print "dataset (%s): Updated NAllEvents to pileUpReweighted NAllEvents, change: %0.6f %%"%(self.getName(), delta*100.0)
             ratio = ratio * self.info["isPileupReweighted"] / self.nAllEvents
         if not "isTopPtReweighted" in self.info.keys():
-            raise Exception("Key 'isTopPtReweighted' missing in configinfo histogram!")
+            raise Exception("=== dataset.py:\n\t Key 'isTopPtReweighted' missing in configinfo histogram!")
         if self.info["isTopPtReweighted"] > 0.0:
             delta = (self.info["isTopPtReweighted"] - self.nAllEvents) / self.nAllEvents
             if _debugNAllEvents and abs(delta) > 0.00001:
-                print "dataset (%s): Updated NAllEvents to isTopPtReweighted NAllEvents, change: %0.6f %%"%(self.getName(), delta*100.0)
+                print "=== dataset.py:\n\t dataset (%s): Updated NAllEvents to isTopPtReweighted NAllEvents, change: %0.6f %%"%(self.getName(), delta*100.0)
             ratio = ratio * self.info["isTopPtReweighted"] / self.nAllEvents
         self.nAllEvents = ratio * self.nAllEvents
 
     def getNAllEvents(self):
         if not hasattr(self, "nAllEvents"):
-            raise Exception("Number of all events is not set for dataset %s! The counter directory was not given, and setNallEvents() was not called." % self.name)
+            raise Exception("=== dataset.py:\n\t Number of all events is not set for dataset %s! The counter directory was not given, and setNallEvents() was not called." % self.name)
         return self.nAllEvents
 
-    ## Get the cross section normalization factor.
-    #
-    # The normalization factor is defined as crossSection/N(all
-    # events), so by multiplying the number of MC events with the
-    # factor one gets the corresponding cross section.
     def getNormFactor(self):
+        '''
+        Get the cross section normalization factor.
+        
+        The normalization factor is defined as crossSection/N(all
+        events), so by multiplying the number of MC events with the
+        factor one gets the corresponding cross section.
+        '''
         nAllEvents = self.getNAllEvents()
         if nAllEvents == 0:
-            raise Exception("%s: Number of all events is 0.\nProbable cause is that the counters are weighted, the analysis job input was a skim, and the updateNAllEventsToPUWeighted() has not been called." % self.name)
+            raise Exception("=== dataset.py:\n\t %s: Number of all events is 0.\nProbable cause is that the counters are weighted, the analysis job input was a skim, and the updateNAllEventsToPUWeighted() has not been called." % self.name)
 
         return self.getCrossSection() / nAllEvents
 
-    ## Check if a ROOT histogram exists in this dataset
-    #
-    # \param name  Name (path) of the ROOT histogram
-    #
-    # If dataset.TreeDraw object is given, it is considered to always
-    # exist.
     def hasRootHisto(self, name, **kwargs):
+        '''
+        Check if a ROOT histogram exists in this dataset
+
+        \param name  Name (path) of the ROOT histogram
+
+        If dataset.TreeDraw object is given, it is considered to always
+        exist.
+        '''
         realName = self._translateName(name, **kwargs)
         if hasattr(realName, "draw"):
             return True
@@ -3034,24 +3316,28 @@ class Dataset:
                 o.Delete()
                 return True
 
-    ## Get the dataset.DatasetRootHisto object for a named histogram.
-    # 
-    # \param name   Path of the histogram in the ROOT file
-    # \param modify Function to modify the histogram (use case is e.g. obtaining a slice of TH2 as TH1)
-    # \param kwargs Keyword arguments, forwarded to getRootHisto()
-    #
-    # \return dataset.DatasetRootHisto object containing the (unnormalized) TH1 and this Dataset
-    # 
-    # If dataset.TreeDraw object is given (or actually anything with
-    # draw() method), the draw() method is called by giving the
-    # Dataset object as parameters. The draw() method is expected to
-    # return a TH1 which is then returned.
-    #
-    # If dataset.SystematicsHelper object is given (or actually
-    # anything with addUncertainties() method), the addUncertainties()
-    # method of it is called with the Dataset and
-    # RootHistoWithUncertainties objects, and the modify function.
     def getDatasetRootHisto(self, name, modify=None, **kwargs):
+        '''
+        Get the dataset.DatasetRootHisto object for a named histogram.
+        
+        \param name   Path of the histogram in the ROOT file
+        
+        \param modify Function to modify the histogram (use case is e.g. obtaining a slice of TH2 as TH1)
+        
+        \param kwargs Keyword arguments, forwarded to getRootHisto()
+        
+        \return dataset.DatasetRootHisto object containing the (unnormalized) TH1 and this Dataset
+        
+        If dataset.TreeDraw object is given (or actually anything with
+        draw() method), the draw() method is called by giving the
+        Dataset object as parameters. The draw() method is expected to
+        return a TH1 which is then returned.
+        
+        If dataset.SystematicsHelper object is given (or actually
+        anything with addUncertainties() method), the addUncertainties()
+        method of it is called with the Dataset and
+        RootHistoWithUncertainties objects, and the modify function.
+        '''
         #h = None
         # if hasattr(name, "draw"):
         #     if len(kwargs) > 0:
@@ -3070,22 +3356,25 @@ class Dataset:
             name.addUncertainties(self, wrapper, modify)
         return DatasetRootHisto(wrapper, self) 
 
-    ## Get the directory content of a given directory in the ROOT file.
-    # 
-    # \param directory   Path of the directory in the ROOT file
-    # \param predicate   Append the directory name to the return list only if
-    #                    predicate returns true for the name. Predicate
-    #                    should be a function taking an object in the directory as an
-    #                    argument and returning a boolean.
-    # 
-    # \return List of names in the directory.
-    #
-    # If the dataset consists of multiple files, the listing of the
-    # first file is given.
     def getDirectoryContent(self, directory, predicate=None):
+        '''
+        Get the directory content of a given directory in the ROOT file.
+        
+        \param directory   Path of the directory in the ROOT file
+
+        \param predicate   Append the directory name to the return list only if
+                           predicate returns true for the name. Predicate
+                           should be a function taking an object in the directory as an
+                           argument and returning a boolean.
+        
+        \return List of names in the directory.
+        
+        If the dataset consists of multiple files, the listing of the
+        first file is given.
+        '''
         (dirs, realDir) = self.getRootObjects(directory)
 
-        # wrap the predicate
+        # Wrap the predicate
         wrapped = None
         if predicate is not None:
             wrapped = lambda key: predicate(key.ReadObj())
@@ -3100,7 +3389,7 @@ class Dataset:
         return self.basedir
 
     def formatDatasetTree(self, indent):
-        return '%sDataset("%s", %s, ...),\n' % (indent, self.getName(), ", ".join(['"%s"' % f.GetName() for f in self.files]))
+        return '=== dataset.py:\n\t %sDataset("%s", %s, ...),\n' % (indent, self.getName(), ", ".join(['"%s"' % f.GetName() for f in self.files]))
         
     ## \var name
     # Name of the dataset
@@ -3132,39 +3421,44 @@ class Dataset:
     # If true, dataset is from data, if false, from MC
 
 
-## Dataset class for histogram access for a dataset merged from Dataset objects.
-# 
-# The merged datasets are required to be either MC, data, or pseudo
 #================================================================================================ 
 # Class Definition
 #================================================================================================ 
 class DatasetMerged:
-    ## Constructor.
-    # 
-    # \param name      Name of the merged dataset
-    # \param datasets  List of dataset.Dataset objects to merge
-    # 
-    # Calculates the total cross section (luminosity) for MC (data or pseudo)
-    # datasets.
+    '''
+    Dataset class for histogram access for a dataset merged from Dataset objects.
+    
+    The merged datasets are required to be either MC, data, or pseudo
+    '''
     def __init__(self, name, datasets):
+        '''
+        Constructor.
+        
+        \param name      Name of the merged dataset
+
+        \param datasets  List of dataset.Dataset objects to merge
+        
+        Calculates the total cross section (luminosity) for MC (data or pseudo)
+        datasets.
+        '''
         self.name = name
         #self.stacked = stacked
         self.datasets = datasets
         if len(datasets) == 0:
-            raise Exception("Can't create a DatasetMerged from 0 datasets")
+            raise Exception("=== dataset.py:\n\t Can't create a DatasetMerged from 0 datasets")
 
         self.info = {}
 
         energy = self.datasets[0].getEnergy()
         for d in self.datasets[1:]:
             if energy != d.getEnergy():
-                raise Exception("Can't merge datasets with different centre-of-mass energies (%s: %d TeV, %s: %d TeV)" % (self.datasets[0].getName(), energy, d.getName(), d.getEnergy()))
+                raise Exception("=== dataset.py:\n\t Can't merge datasets with different centre-of-mass energies (%s: %d TeV, %s: %d TeV)" % (self.datasets[0].getName(), energy, d.getName(), d.getEnergy()))
 
         if self.datasets[0].isMC():
             crossSum = 0.0
             for d in self.datasets:
                 if not d.isMC():
-                    raise Exception("Can't merge non-MC dataset %s with MC datasets, it is %s" % (d.getName(), d.getDataType()))
+                    raise Exception("=== dataset.py:\n\t Can't merge non-MC dataset %s with MC datasets, it is %s" % (d.getName(), d.getDataType()))
                 crossSum += d.getCrossSection()
             self.info["crossSection"] = crossSum
         else:
@@ -3174,20 +3468,26 @@ class DatasetMerged:
                 lumiSum += d.getLuminosity()
                 t = d.getDataType()
                 if reft != t:
-                    raise Exception("Can't merge non-%s datasets %s with %s datasets, it is %s" % (reft, d.getName(), t))
+                    raise Exception("=== dataset.py:\n\t Can't merge non-%s datasets %s with %s datasets, it is %s" % (reft, d.getName(), t))
             self.info["luminosity"] = lumiSum
 
-    ## Close TFiles in the contained dataset.Dataset objects
     def close(self):
+        ''' 
+        Close TFiles in the contained dataset.Dataset objects
+        '''
+        # For-loop: All datasets
         for d in self.datasets:
+            print "=== dataset.py:\n\t Closing dataset '%s'" % (d)
             d.close()
 
-    ## Make a deep copy of a DatasetMerged object.
-    #
-    # Nothing is shared between the returned copy and this object.
-    #
-    # \see dataset.Dataset.deepCopy()
     def deepCopy(self):
+        '''
+        Make a deep copy of a DatasetMerged object.
+        
+        Nothing is shared between the returned copy and this object.
+        
+        \see dataset.Dataset.deepCopy()
+        '''
         dm = DatasetMerged(self.name, [d.deepCopy() for d in self.datasets])
         dm.info.update(self.info)
         return dm
@@ -3195,6 +3495,7 @@ class DatasetMerged:
     def setDirectoryPostfix(self, postfix):
         for d in self.datasets:
             d.setDirectoryPostfix(postfix)
+        return
 
     def getName(self):
         return self.name
@@ -3217,24 +3518,24 @@ class DatasetMerged:
 
     def setCrossSection(self, value):
         if not self.isMC():
-            raise Exception("Should not set cross section for non-MC dataset %s (has luminosity)" % self.name)
-        raise Exception("Setting cross section for merged dataset is meaningless (it has no real effect, and hence is misleading")
+            raise Exception("=== dataset.py:\n\t Should not set cross section for non-MC dataset %s (has luminosity)" % self.name)
+        raise Exception("=== dataset.py:\n\t Setting cross section for merged dataset is meaningless (it has no real effect, and hence is misleading")
 
     ## Get cross section of MC dataset (in pb).
     def getCrossSection(self):
         if not self.isMC():
-            raise Exception("Dataset %s is not MC, no cross section available" % self.name)
+            raise Exception("=== dataset.py:\n\t Dataset %s is not MC, no cross section available" % self.name)
         return self.info["crossSection"]
 
     def setLuminosity(self, value):
         if self.isMC():
-            raise Exception("Should not set luminosity for MC dataset %s (has crossSection)" % self.name)
-        raise Exception("Setting luminosity for merged dataset is meaningless (it has no real effect, and hence is misleading")
+            raise Exception("=== dataset.py:\n\t Should not set luminosity for MC dataset %s (has crossSection)" % self.name)
+        raise Exception("=== dataset.py:\n\t Setting luminosity for merged dataset is meaningless (it has no real effect, and hence is misleading")
 
     ## Get the integrated luminosity of data dataset (in pb^-1).
     def getLuminosity(self):
         if self.isMC():
-            raise Exception("Dataset %s is MC, no luminosity available" % self.name)
+            raise Exception("=== dataset.py:\n\t Dataset %s is MC, no luminosity available" % self.name)
         return self.info["luminosity"]
 
     def setProperty(self, key, value):
@@ -3256,33 +3557,37 @@ class DatasetMerged:
         countDir = self.datasets[0].getCounterDirectory()
         for d in self.datasets[1:]:
             if countDir != d.getCounterDirectory():
-                raise Exception("Error: merged datasets have different counter directories")
+                raise Exception("=== dataset.py:\n\t Error: merged datasets have different counter directories")
         return countDir
 
     def getNormFactor(self):
         return None
 
-    ## Check if a ROOT histogram exists in this dataset
-    #
-    # \param name  Name (path) of the ROOT histogram
-    #
-    # The ROOT histogram is expected to exist in all underlying
-    # dataset.Dataset objects.
     def hasRootHisto(self, name):
+        '''
+        Check if a ROOT histogram exists in this dataset
+        
+        \param name  Name (path) of the ROOT histogram
+        
+        The ROOT histogram is expected to exist in all underlying
+        dataset.Dataset objects.
+        '''
         has = True
         for d in self.datasets:
             has = has and d.hasRootHisto(name)
         return has
 
-    ## Get the DatasetRootHistoMergedMC/DatasetRootHistoMergedData object for a named histogram.
-    #
-    # \param name   Path of the histogram in the ROOT file
-    # \param kwargs Keyword arguments, forwarder to get
-    #               getDatasetRootHisto() of the contained
-    #               Dataset objects
-    #
-    # DatasetRootHistoMergedData works also for pseudo
     def getDatasetRootHisto(self, name, **kwargs):
+        '''
+        Get the DatasetRootHistoMergedMC/DatasetRootHistoMergedData object for a named histogram.
+        
+        \param name   Path of the histogram in the ROOT file
+
+        \param kwargs Keyword arguments, forwarder to get
+        getDatasetRootHisto() of the contained Dataset objects
+        
+        DatasetRootHistoMergedData works also for pseudo
+        '''
         wrappers = [d.getDatasetRootHisto(name, **kwargs) for d in self.datasets]
         if self.isMC():
             return DatasetRootHistoMergedMC(wrappers, self)
@@ -3291,45 +3596,52 @@ class DatasetMerged:
         elif self.isPseudo():
             return DatasetRootHistoMergedPseudo(wrappers, self)
         else:
-            raise Exception("Internal error (unknown dataset type)")
+            raise Exception("=== dataset.py:\n\t Internal error (unknown dataset type)")
+        return
 
-    ## Get ROOT histogram
-    #
-    # \param name    Path of the ROOT histogram relative to the analysis
-    #                root directory
-    # \param kwargs  Keyword arguments, forwarded to getRootObjects()
-    #
-    # \return pair (\a first histogram, \a realName)
-    #
-    # If name starts with slash ('/'), it is interpreted as a absolute
-    # path within the ROOT file.
-    #
-    # If dataset.TreeDraw object is given (or actually anything with
-    # draw() method), the draw() method is called by giving the
-    # Dataset object as parameters. The draw() method is expected to
-    # return a TH1 which is then returned.
     def getFirstRootHisto(self, name, **kwargs):
+        '''
+        Get ROOT histogram
+        
+        \param name    Path of the ROOT histogram relative to the analysis
+        root directory
+
+        \param kwargs  Keyword arguments, forwarded to getRootObjects()
+        
+        \return pair (\a first histogram, \a realName)
+        
+        If name starts with slash ('/'), it is interpreted as a absolute
+        path within the ROOT file.
+        
+        If dataset.TreeDraw object is given (or actually anything with
+        draw() method), the draw() method is called by giving the
+        Dataset object as parameters. The draw() method is expected to
+        return a TH1 which is then returned.
+        '''
         if hasattr(self.datasets[0], "getFirstRootHisto"):
             content = self.datasets[0].getFirstRootHisto(name, **kwargs)
         else:
             content = self.datasets[0].getRootHisto(name, **kwargs)
         return content
 
-    ## Get the directory content of a given directory in the ROOT file.
-    # 
-    # \param directory   Path of the directory in the ROOT file
-    # \param predicate   Append the directory name to the return list only if
-    #                    predicate returns true for the name. Predicate
-    #                    should be a function taking a string as an
-    #                    argument and returning a boolean.
-    # 
-    # Returns a list of names in the directory. The contents of the
-    # directories of the merged datasets are required to be identical.
     def getDirectoryContent(self, directory, predicate=lambda x: True):
+        '''
+        Get the directory content of a given directory in the ROOT file.
+        
+        \param directory   Path of the directory in the ROOT file
+
+        \param predicate   Append the directory name to the return list only if
+                           predicate returns true for the name. Predicate
+                           should be a function taking a string as an
+                           argument and returning a boolean.
+        
+        Returns a list of names in the directory. The contents of the
+        directories of the merged datasets are required to be identical.
+        '''
         content = self.datasets[0].getDirectoryContent(directory, predicate)
         for d in self.datasets[1:]:
             if content != d.getDirectoryContent(directory, predicate):
-                raise Exception("Error: merged datasets have different contents in directory '%s'" % directory)
+                raise Exception("=== dataset.py:\n\t Error: merged datasets have different contents in directory '%s'" % directory)
         return content
 
     def formatDatasetTree(self, indent):
@@ -3346,88 +3658,101 @@ class DatasetMerged:
     ## \var info
     # Dictionary containing total cross section (MC) or integrated luminosity (data)
 
-## Dataset class for histogram access for a dataset added from Dataset objects.
-# 
-# The added datasets are required to be MC
 #================================================================================================ 
 # Class Definition
 #================================================================================================ 
 class DatasetAddedMC(DatasetMerged):
-    ## Constructor.
-    # 
-    # \param name      Name of the merged dataset
-    # \param datasets  List of dataset.Dataset objects to add
-    #
-    # The cross section of the added datasets must be the same
+    '''
+    Dataset class for histogram access for a dataset added from Dataset objects.
+    
+    The added datasets are required to be MC
+    '''
     def __init__(self, name, datasets):
+        '''
+        Constructor.
+        
+        \param name      Name of the merged dataset
+        
+        \param datasets  List of dataset.Dataset objects to add
+        
+        The cross section of the added datasets must be the same
+        '''
         self.name = name
         #self.stacked = stacked
         self.datasets = datasets
         if len(datasets) == 0:
-            raise Exception("Can't create a DatasetAddedMC from 0 datasets")
+            raise Exception("=== dataset.py:\n\t Can't create a DatasetAddedMC from 0 datasets")
 
         self.info = {}
 
         energy = self.datasets[0].getEnergy()
         for d in self.datasets[1:]:
             if energy != d.getEnergy():
-                raise Exception("Can't merge datasets with different centre-of-mass energies (%s: %d TeV, %s: %d TeV)" % self.datasets[0].getName(), energy, d.getName(), d.getEnergy())
+                raise Exception("=== dataset.py:\n\t Can't merge datasets with different centre-of-mass energies (%s: %d TeV, %s: %d TeV)" % self.datasets[0].getName(), energy, d.getName(), d.getEnergy())
 
         crossSection = self.datasets[0].getCrossSection()
         for d in self.datasets:
             if not d.isMC():
-                raise Exception("Datasets must be MC, got %s which is data" % d.getName())
+                raise Exception("=== dataset.py:\n\t Datasets must be MC, got %s which is data" % d.getName())
             xs2 = d.getCrossSection()
             if abs((xs2-crossSection)/crossSection) > 1e-6:
-                raise Exception("Datasets must have the same cross section, got %f from %s and %f from %s" % (crossSection, self.datasets[0].getName(), xs2, d.getName()))
+                raise Exception("=== dataset.py:\n\t Datasets must have the same cross section, got %f from %s and %f from %s" % (crossSection, self.datasets[0].getName(), xs2, d.getName()))
 
         self.info["crossSection"] = crossSection
 
-    ## Make a deep copy of a DatasetMerged object.
-    #
-    # Nothing is shared between the returned copy and this object.
-    #
-    # \see dataset.Dataset.deepCopy()
     def deepCopy(self):
+        '''
+        Make a deep copy of a DatasetMerged object.
+        
+        Nothing is shared between the returned copy and this object.
+        
+        \see dataset.Dataset.deepCopy()
+        '''
         dm = DatasetAddedMC(self.name, [d.deepCopy() for d in self.datasets])
         dm.info.update(self.info)
         return dm
 
-    ## Set cross section of MC dataset (in pb).
     def setCrossSection(self, value):
+        '''
+        Set cross section of MC dataset (in pb)
+        '''
         if not self.isMC():
-            raise Exception("Should not set cross section for data dataset %s" % self.name)
+            raise Exception("=== dataset.py:\n\t Should not set cross section for data dataset %s" % self.name)
         self.info["crossSection"] = value
         for d in self.datasets:
             d.setCrossSection(value)
+        return
 
     def setProperty(self, key, value):
         for d in self.datasets:
             d.setProperty(key, value)
+        return
 
-    ## Get the DatasetRootHistoMergedMC/DatasetRootHistoMergedData object for a named histogram.
-    #
-    # \param name   Path of the histogram in the ROOT file
-    # \param kwargs Keyword arguments, forwarder to get
-    #               getDatasetRootHisto() of the contained
-    #               Dataset objects
     def getDatasetRootHisto(self, name, **kwargs):
+        '''
+        Get the DatasetRootHistoMergedMC/DatasetRootHistoMergedData object for a named histogram.
+        
+        \param name   Path of the histogram in the ROOT file
+        
+        \param kwargs Keyword arguments, forwarder to get
+        getDatasetRootHisto() of the contained Dataset objects
+        '''
         wrappers = [d.getDatasetRootHisto(name, **kwargs) for d in self.datasets]
         return DatasetRootHistoAddedMC(wrappers, self)
 
-
-    ## Get the cross section normalization factor.
-    #
-    # The normalization factor is defined as crossSection/N(all
-    # events), so by multiplying the number of MC events with the
-    # factor one gets the corresponding cross section.
-    #
-    # Implementation is close to dataset.Dataset.getNormFactor()
     def getNormFactor(self):
+        '''
+        Get the cross section normalization factor.
+    
+        The normalization factor is defined as crossSection/N(all
+        events), so by multiplying the number of MC events with the
+        factor one gets the corresponding cross section.
+        
+        Implementation is close to dataset.Dataset.getNormFactor()
+        '''
         nAllEvents = sum([d.getNAllEvents() for d in self.datasets])
         if nAllEvents == 0:
-            raise Exception("%s: Number of all events is 0.\nProbable cause is that the counters are weighted, the analysis job input was a skim, and the updateAllEventsToPUWeighted() has not been called." % self.name)
-
+            raise Exception("=== dataset.py:\n\t %s: Number of all events is 0.\nProbable cause is that the counters are weighted, the analysis job input was a skim, and the updateAllEventsToPUWeighted() has not been called." % self.name)
         return self.getCrossSection() / nAllEvents
 
     def formatDatasetTree(self, indent):
@@ -3437,54 +3762,60 @@ class DatasetAddedMC(DatasetMerged):
         ret += "%s]),\n" % indent
         return ret
 
-## Collection of Dataset objects which are managed together.
-# 
-# Holds both an ordered list of Dataset objects, and a name->object
-# map for convenient access by dataset name.
-#
-# \todo The code structure could be simplified by getting rid of
-# dataset.DatasetRootHisto. This would mean that the MC normalisation
-# should be handled in dataset.DatasetManagager and dataset.Dataset,
-# with an interface similar to what dataset.DatasetRootHisto and
-# histograms.HistoManager provide now (i.e. user first sets the
-# normalisation scheme, and then asks histograms which are then
-# normalised as requested). dataset.Dataset and dataset.DatasetManager
-# should then return ROOT TH1s, with which user is free to do what
-# (s)he wants. histograms.HistoManager and histograms.HistoManagerImpl
-# could be merged, as it would take already-normalized histograms as
-# input (the input should still be histograms.Histo classes in order
-# to give user freedom to provide fully customized version of such
-# wrapper class if necessary). The interface of plots.PlotBase would
-# still accept TH1/TGraph, so no additional burden would appear for
-# the usual use cases with plots. The information of a histogram being
-# data/MC in histograms.Histo could also be removed (as it is
-# sometimes too restrictive), and the use in plots.PlotBase (and
-# deriving classes) could be transformed to identify the data/MC
-# datasets (for default formatting purposes) by the name of the
-# histograms (in the usual workflow the histograms have the dataset
-# name), with the possibility that user can easily modify the names of
-# data/MC histograms. This would bring more flexibility on that front,
-# and easier customization when necessary.
 #================================================================================================ 
 # Class Definition
 #================================================================================================ 
 class DatasetManager:
-    ## Constructor
-    #
-    # \param base    Directory (absolute/relative to current working
-    #                directory) where the luminosity JSON file is located (see
-    #                loadLuminosities())
-    #
-    # DatasetManager is constructed as empty
+    '''
+    Collection of Dataset objects which are managed together.
+    
+    Holds both an ordered list of Dataset objects, and a name->object
+    map for convenient access by dataset name.
+    
+    \todo The code structure could be simplified by getting rid of
+    dataset.DatasetRootHisto. This would mean that the MC normalisation
+    should be handled in dataset.DatasetManagager and dataset.Dataset,
+    with an interface similar to what dataset.DatasetRootHisto and
+    histograms.HistoManager provide now (i.e. user first sets the
+    normalisation scheme, and then asks histograms which are then
+    normalised as requested). dataset.Dataset and dataset.DatasetManager
+    should then return ROOT TH1s, with which user is free to do what
+    (s)he wants. histograms.HistoManager and histograms.HistoManagerImpl
+    could be merged, as it would take already-normalized histograms as
+    input (the input should still be histograms.Histo classes in order
+    to give user freedom to provide fully customized version of such
+    wrapper class if necessary). The interface of plots.PlotBase would
+    still accept TH1/TGraph, so no additional burden would appear for
+    the usual use cases with plots. The information of a histogram being
+    data/MC in histograms.Histo could also be removed (as it is
+    sometimes too restrictive), and the use in plots.PlotBase (and
+    deriving classes) could be transformed to identify the data/MC
+    datasets (for default formatting purposes) by the name of the
+    histograms (in the usual workflow the histograms have the dataset
+    name), with the possibility that user can easily modify the names of
+    data/MC histograms. This would bring more flexibility on that front,
+    and easier customization when necessary.
+    '''
     def __init__(self, base=""):
-        self.datasets = []
+        '''
+        Constructor
+        
+        \param base    Directory (absolute/relative to current working
+        directory) where the luminosity JSON file is located (see
+        loadLuminosities())
+        
+        DatasetManager is constructed as empty
+        '''
+        self.datasets   = []
         self.datasetMap = {}
         self._setBaseDirectory(base)
 
-    ## Populate the datasetMap member from the datasets list.
-    # 
-    # Intended only for internal use.
     def _populateMap(self):
+        '''
+        Populate the datasetMap member from the datasets list.
+        
+        Intended only for internal use.
+        '''
         self.datasetMap = {}
         for d in self.datasets:
             self.datasetMap[d.getName()] = d
@@ -3492,68 +3823,84 @@ class DatasetManager:
     def _setBaseDirectory(self, base):
         for d in self.datasets:
             d._setBaseDirectory(base)
+        return
 
-    ## Close all TFiles of the contained dataset.Dataset objects
-    #
-    # \see dataset.Dataset.close()
     def close(self):
+        '''
+        Close all TFiles of the contained dataset.Dataset objects
+        
+        \see dataset.Dataset.close()
+        '''
         for d in self.datasets:
             d.close()
+        return
 
-    ## Append a Dataset object to the set.
-    # 
-    # \param dataset    Dataset object
-    # 
-    # The new Dataset must have a different name than the already existing ones.
     def append(self, dataset):
+        '''
+        Append a Dataset object to the set.
+        
+        \param dataset    Dataset object
+        
+        The new Dataset must have a different name than the already existing ones.
+        '''
         if dataset.getName() in self.datasetMap:
-            raise Exception("Dataset '%s' already exists in this DatasetManager" % dataset.getName())
+            raise Exception("=== dataset.py:\n\t Dataset '%s' already exists in this DatasetManager" % dataset.getName())
 
         self.datasets.append(dataset)
         self.datasetMap[dataset.getName()] = dataset
 
-    ## Extend the set of Datasets from another DatasetManager object.
-    # 
-    # \param datasetmgr   DatasetManager object
-    # 
-    # Note that the dataset.Dataset objects of datasetmgr are appended to
-    # self by reference, i.e. the Dataset objects will be shared
-    # between them.
-    # """
     def extend(self, datasetmgr):
+        '''
+        Extend the set of Datasets from another DatasetManager object.
+        
+        \param datasetmgr   DatasetManager object
+        
+        Note that the dataset.Dataset objects of datasetmgr are appended to
+        self by reference, i.e. the Dataset objects will be shared
+        between them.
+        '''
         for d in datasetmgr.datasets:
             self.append(d)
+        return
 
-    ## Make a shallow copy of the DatasetManager object.
-    # 
-    # The dataset.Dataset objects are shared between the DatasetManagers.
-    #
-    # Useful e.g. if you want to have a subset of the dataset.Dataset objects
     def shallowCopy(self):
-
+        '''
+        Make a shallow copy of the DatasetManager object.
+        
+        The dataset.Dataset objects are shared between the DatasetManagers.
+        
+        Useful e.g. if you want to have a subset of the dataset.Dataset objects
+        '''
         copy = DatasetManager()
         copy.extend(self)
         return copy
 
-    ## Make a deep copy of the DatasetManager object.
-    # 
-    # Nothing is shared between the DatasetManagers.
-    #
-    # Useful e.g. if you want to have two sets of same datasets, but
-    # others are somehow modified (e.g. cross section)
     def deepCopy(self):
+        '''
+        Make a deep copy of the DatasetManager object.
+        
+        Nothing is shared between the DatasetManagers.
+        
+        Useful e.g. if you want to have two sets of same datasets, but
+        others are somehow modified (e.g. cross section)
+        '''
         copy = DatasetManager()
         for d in self.datasets:
             copy.append(d.deepCopy())
         return copy
 
-    ## Set the centre-of-mass energy for all datasets
     def setEnergy(self, energy):
+        '''
+        Set the centre-of-mass energy for all datasets
+        '''
         for d in self.datasets:
             d.setEnergy(energy)
+        return
 
-    ## Get a list of centre-of-mass energies of the datasets
     def getEnergies(self):
+        '''
+        Get a list of centre-of-mass energies of the datasets
+        '''
         tmp = {}
         for d in self.datasets:
             tmp[d.getEnergy()] = 1
@@ -3567,83 +3914,107 @@ class DatasetManager:
     def getDataset(self, name):
         return self.datasetMap[name]
 
-    ## Get a list of dataset.DatasetRootHisto objects for a given name.
-    # 
-    # \param histoName   Path to the histogram in each ROOT file.
-    # \param kwargs      Keyword arguments, forwarder to get
-    #                    getDatasetRootHisto() of the contained
-    #                    Dataset objects
-    #
-    # \see dataset.Dataset.getDatasetRootHisto()
     def getDatasetRootHistos(self, histoName, **kwargs):
+        '''
+        Get a list of dataset.DatasetRootHisto objects for a given name.
+        
+        \param histoName   Path to the histogram in each ROOT file.
+
+        \param kwargs      Keyword arguments, forwarder to get
+        getDatasetRootHisto() of the contained Dataset objects
+    
+        \see dataset.Dataset.getDatasetRootHisto()
+        '''
         return [d.getDatasetRootHisto(histoName, **kwargs) for d in self.datasets]
 
-    ## Get a list of all dataset.Dataset objects.
     def getAllDatasets(self):
+        '''
+        Get a list of all dataset.Dataset objects.
+        '''
         return self.datasets
 
-    ## Get a list of MC dataset.Dataset objects.
-    #
-    # \todo Implementation would be simpler with filter() method
     def getMCDatasets(self):
+        '''
+        Get a list of MC dataset.Dataset objects.
+        
+        \todo Implementation would be simpler with filter() method
+        '''
         ret = []
         for d in self.datasets:
             if d.isMC():
                 ret.append(d)
         return ret
 
-    ## Get a list of data dataset.Dataset objects.
-    #
-    # \todo Implementation would be simpler with filter() method
     def getDataDatasets(self):
+        '''
+        Get a list of data dataset.Dataset objects.
+        
+        \todo Implementation would be simpler with filter() method
+        '''
         ret = []
         for d in self.datasets:
             if d.isData():
                 ret.append(d)
         return ret
 
-    ## Get a list of pseudo dataset.Dataset objects.
     def getPseudoDatasets(self):
+        '''
+        Get a list of pseudo dataset.Dataset objects.
+        '''
         return filter(lambda d: d.isPseudo(), self.datasets)
 
-    ## Get a list of names of all dataset.Dataset objects.
     def getAllDatasetNames(self):
+        '''
+        Get a list of names of all dataset.Dataset objects.
+        '''
         return [x.getName() for x in self.getAllDatasets()]
 
-    ## Get a list of names of MC dataset.Dataset objects."""
     def getMCDatasetNames(self):
+        '''
+        Get a list of names of MC dataset.Dataset objects."""
+        '''
         return [x.getName() for x in self.getMCDatasets()]
 
-    ## Get a list of names of data dataset.Dataset objects.
     def getDataDatasetNames(self):
+        '''
+        Get a list of names of data dataset.Dataset objects.
+        '''
         return [x.getName() for x in self.getDataDatasets()]
 
-    ## Get a list of names of pseudo dataset.Dataset objects.
     def getPseudoDatasetNames(self):
+        '''
+        Get a list of names of pseudo dataset.Dataset objects.
+        '''
         return [x.getName() for x in self.getPseudoDatasets()]
 
-    ## Select and reorder Datasets.
-    # 
-    # \param nameList   Ordered list of Dataset names to select
-    # 
-    # This method can be used to either select a set of
-    # dataset.Dataset objects. reorder them, or both.
     def selectAndReorder(self, nameList):
+        '''
+        Select and reorder Datasets.
+        
+        \param nameList   Ordered list of Dataset names to select
+        
+        This method can be used to either select a set of
+        dataset.Dataset objects. reorder them, or both.
+        '''
         selected = []
         for name in nameList:
             try:
                 selected.append(self.datasetMap[name])
             except KeyError:
-                print >> sys.stderr, "WARNING: Dataset selectAndReorder: dataset %s doesn't exist" % name
+                print >> sys.stderr, "=== dataset.py:\n\t WARNING: Dataset selectAndReorder: dataset %s doesn't exist" % name
 
         self.datasets = selected
         self._populateMap()
+        return
 
-    ## Remove dataset.Dataset objects
-    # 
-    # \param nameList    List of dataset.Dataset names to remove
-    # \param close       If true, close the removed dataset.Dataset objects
     def remove(self, nameList, close=True):
+        '''
+        Remove dataset.Dataset objects
+        
+        \param nameList    List of dataset.Dataset names to remove
+
+        \param close       If true, close the removed dataset.Dataset objects
+        '''
         if isinstance(nameList, basestring):
             nameList = [nameList]
 
@@ -3655,12 +4026,16 @@ class DatasetManager:
                 d.close()
         self.datasets = selected
         self._populateMap()
+        return
 
-    ## Rename a Dataset.
-    # 
-    # \param oldName   The current name of a dataset.Dataset
-    # \param newName   The new name of a dataset.Dataset
     def rename(self, oldName, newName):
+        '''
+        Rename a Dataset.
+        
+        \param oldName   The current name of a dataset.Dataset
+
+        \param newName   The new name of a dataset.Dataset
+        '''
         if oldName == newName:
             return
 
@@ -3669,49 +4044,69 @@ class DatasetManager:
         self.datasetMap[oldName].setName(newName)
         self._populateMap()
 
-    ## Rename many dataset.Dataset objects
-    # 
-    # \param nameMap   Dictionary containing oldName->newName mapping
-    # \param silent    If true, don't raise Exception if source dataset doesn't exist
-    #
-    # \see rename()
     def renameMany(self, nameMap, silent=False):
+        '''
+        Rename many dataset.Dataset objects
+        
+        \param nameMap   Dictionary containing oldName->newName mapping
+
+        \param silent    If true, don't raise Exception if source dataset doesn't exist
+        
+        \see rename()
+        '''
+        
+        # For-loop
         for oldName, newName in nameMap.iteritems():
             if oldName == newName:
                 continue
 
             if newName in self.datasetMap:
-                raise Exception("Trying to rename datasets '%s' to '%s', but a dataset with the new name already exists!" % (oldName, newName))
+                raise Exception("=== dataset.py:\n\t Trying to rename datasets '%s' to '%s', but a dataset with the new name already exists!" % (oldName, newName))
 
             try:
                 self.datasetMap[oldName].setName(newName)
             except KeyError, e:
                 if not silent:
-                    raise Exception("Trying to rename dataset '%s' to '%s', but '%s' doesn't exist!" % (oldName, newName, oldName))
+                    raise Exception("=== dataset.py:\n\t Trying to rename dataset '%s' to '%s', but '%s' doesn't exist!" % (oldName, newName, oldName))
         self._populateMap()
+        return
 
-    ## Merge all data dataset.Dataset objects to one with a name 'Data'.
-    #
-    # \param args    Positional arguments (forwarded to merge())
-    # \param kwargs  Keyword arguments (forwarded to merge())
     def mergeData(self, *args, **kwargs):
+        '''
+        Merge all data dataset.Dataset objects to one with a name 'Data'.
+        
+        \param args    Positional arguments (forwarded to merge())
+        
+        \param kwargs  Keyword arguments (forwarded to merge())
+        '''
         self.merge("Data", self.getDataDatasetNames(), *args, **kwargs)
-
-    ## Merge all MC dataset.Datasetobjects to one with a name 'MC'.
-    #
-    # \param args    Positional arguments (forwarded to merge())
-    # \param kwargs  Keyword arguments (forwarded to merge())
+        return
+        
     def mergeMC(self, *args, **kwargs):
+        '''
+        Merge all MC dataset.Datasetobjects to one with a name 'MC'.
+        
+        \param args    Positional arguments (forwarded to merge())
+         
+        \param kwargs  Keyword arguments (forwarded to merge())
+        '''
         self.merge("MC", self.getMCDatasetNames(), *args, **kwargs)
+        return
 
-    ## Merge datasets according to the mapping.
-    #
-    # \param mapping Dictionary of oldName->mergedName mapping. The
-    #                dataset.Dataset objects having the same mergedName are merged
-    # \param args    Positional arguments (forwarded to merge())
-    # \param kwargs  Keyword arguments (forwarded to merge())
     def mergeMany(self, mapping, *args, **kwargs):
+        '''
+        Merge datasets according to the mapping.
+        
+        \param mapping Dictionary of oldName->mergedName mapping. The
+                       dataset.Dataset objects having the same mergedName are merged
+
+        \param args    Positional arguments (forwarded to merge())
+
+        \param kwargs  Keyword arguments (forwarded to merge())
+        '''
         toMerge = {}
+
+        # For-loop: All datasets
         for d in self.datasets:
             if d.getName() in mapping:
                 newName = mapping[d.getName()]
@@ -3720,27 +4115,33 @@ class DatasetManager:
                 else:
                     toMerge[newName] = [d.getName()]
 
+        # For-loop
         for newName, nameList in toMerge.iteritems():
             self.merge(newName, nameList, *args, **kwargs)
 
-    ## Merge dataset.Dataset objects.
-    # 
-    # \param newName      Name of the merged dataset.DatasetMerged
-    # \param nameList     List of dataset.Dataset names to merge
-    # \param keepSources  If true, keep the original dataset.Dataset
-    #                     objects in the list of datasets. Otherwise
-    #                     they are removed, as they are now contained
-    #                     in the dataset.DatasetMerged object
-    # \param addition     Creates DatasetAddedMC instead of DatasetMerged
-    # \param allowMissingDatasets  If True, ignore error from missing dataset (warning is nevertheless printed)
-    #
-    # If nameList translates to only one dataset.Dataset, the
-    # dataset.Daataset object is renamed (i.e. dataset.DatasetMerged
-    # object is not created)
     def merge(self, newName, nameList, keepSources=False, addition=False, silent=False, allowMissingDatasets=False):
+        '''
+        Merge dataset.Dataset objects.
+        
+        \param newName      Name of the merged dataset.DatasetMerged
+        
+        \param nameList     List of dataset.Dataset names to merge
+
+        \param keepSources  If true, keep the original dataset.Dataset
+                            objects in the list of datasets. Otherwise
+                            they are removed, as they are now contained
+                            in the dataset.DatasetMerged object
+
+        \param addition     Creates DatasetAddedMC instead of DatasetMerged
+
+        \param allowMissingDatasets  If True, ignore error from missing dataset (warning is nevertheless printed)
+        
+        If nameList translates to only one dataset.Dataset, the
+        dataset.Daataset object is renamed (i.e. dataset.DatasetMerged object is not created)
+        '''
         (selected, notSelected, firstIndex) = _mergeStackHelper(self.datasets, nameList, "merge", allowMissingDatasets)
         if len(selected) == 0:
-            message = "Dataset merge: no datasets '" +", ".join(nameList) + "' found, not doing anything"
+            message = "=== dataset.py:\n\t Dataset merge: no datasets '" +", ".join(nameList) + "' found, not doing anything"
             if allowMissingDatasets:
                 if not silent:
                     print >> sys.stderr, message
@@ -3749,7 +4150,7 @@ class DatasetManager:
             return
         elif len(selected) == 1 and not keepSources:
             if not silent:
-                print >> sys.stderr, "Dataset merge: one dataset '" + selected[0].getName() + "' found from list '" + ", ".join(nameList)+"', renaming it to '%s'" % newName
+                print >> sys.stderr, "=== dataset.py:\n\t Dataset merge: one dataset '" + selected[0].getName() + "' found from list '" + ", ".join(nameList)+"', renaming it to '%s'" % newName
             self.rename(selected[0].getName(), newName)
             return
 
@@ -3763,31 +4164,35 @@ class DatasetManager:
         self.datasets.insert(firstIndex, newDataset)
         self._populateMap()
 
-    ## Load integrated luminosities from a JSON file.
-    # 
-    # \param fname   Path to the file (default: 'lumi.json'). If the
-    #                directory part of the path is empty, the file is
-    #                looked from the base directory (which defaults to
-    #                current directory)
-    # 
-    # The JSON file should be formatted like this:
-    # \verbatim
-    # '{
-    #    "dataset_name": value_in_pb,
-    #    "Mu_135821-144114": 2.863224758
-    #  }'
-    # \endverbatim
-    # Note: as setting the integrated luminosity for a merged dataset
-    # will fail (see dataset.DatasetMerged.setLuminosity()), loading
-    # luminosities must be done before merging the data datasets to
-    # one.
     def loadLuminosities(self, fname="lumi.json"):
+        '''
+         Load integrated luminosities from a JSON file.
+        
+        \param fname   Path to the file (default: 'lumi.json'). If the
+                       directory part of the path is empty, the file is
+                       looked from the base directory (which defaults to
+                       current directory)
+        
+        The JSON file should be formatted like this:
+        \verbatim
+        '{
+           "dataset_name": value_in_pb,
+           "Mu_135821-144114": 2.863224758
+         }'
+        \endverbatim
+
+        Note: as setting the integrated luminosity for a merged dataset
+        will fail (see dataset.DatasetMerged.setLuminosity()), loading
+        luminosities must be done before merging the data datasets to
+        one.
+        '''
         import json
 
+        # For-loop: All datasets
         for d in self.datasets:
             jsonname = os.path.join(d.basedir, fname)
             if not os.path.exists(jsonname):
-                raise Exception("Luminosity JSON file '%s' does not exist. Have you run 'hplusLumiCalc.py' in your multicrab directory?" % jsonname)
+                raise Exception("=== dataset.py:\n\t Luminosity JSON file '%s' does not exist. Have you run 'hplusLumiCalc.py' in your multicrab directory?" % jsonname)
                 for name in self.getDataDatasetNames():
                     self.getDataset(name).setLuminosity(1)
             else:
@@ -3795,17 +4200,6 @@ class DatasetManager:
                 for name, value in data.iteritems():
                     if self.hasDataset(name):
                         self.getDataset(name).setLuminosity(value)
-
-####        if len(os.path.dirname(fname)) == 0:
-####            fname = os.path.join(self.basedir, fname)
-####
-####        if not os.path.exists(fname):
-####            print >> sys.stderr, "WARNING: luminosity json file '%s' doesn't exist!" % fname
-####
-####        data = json.load(open(fname))
-####        for name, value in data.iteritems():
-####            if self.hasDataset(name):
-####                self.getDataset(name).setLuminosity(value)
 
     def loadRunRange(self, fname="runrange.json"):
         import json
@@ -3815,17 +4209,20 @@ class DatasetManager:
         data = json.load(open(jsonname))
         return data[self.datasets[0].getAnalysisName()]
 
-    ## Update all event counts to the ones taking into account the pile-up reweighting
-    #
-    # \param kwargs     Keyword arguments (forwarded to dataset.Dataset.updateAllEventsToWeighted)
-    #
-    # Uses the table pileupReweightedAllEvents._weightedAllEvents
     def updateNAllEventsToPUWeighted(self, **kwargs):
+        '''
+        Update all event counts to the ones taking into account the pile-up reweighting
+        
+        \param kwargs     Keyword arguments (forwarded to dataset.Dataset.updateAllEventsToWeighted)
+        
+        Uses the table pileupReweightedAllEvents._weightedAllEvents
+        '''
+        # For-loop: All datasets
         for dataset in self.datasets:
             dataset.updateNAllEventsToPUWeighted(**kwargs)
         #self.printInfo()
-
-
+        return
+            
     ## Format dataset information
     def formatInfo(self):
         out = StringIO.StringIO()
@@ -3845,6 +4242,8 @@ class DatasetManager:
         c4skip = " "*(len(col4hdr)+2)
 
         out.write((c1fmt%col1hdr)+"  "+col2hdr+"  "+col3hdr+"  "+col4hdr+"\n")
+
+        # For-loop: All datasets
         for dataset in self.datasets:
             line = (c1fmt % dataset.getName())
             if dataset.isMC():
@@ -3863,9 +4262,12 @@ class DatasetManager:
         out.close()
         return ret
 
-    ## Print dataset information.
     def printInfo(self):
+        '''
+        Print dataset information.
+        '''
         print self.formatInfo()
+        return
 
     def formatDatasetTree(self):
         ret = "DatasetManager.datasets = [\n"
@@ -3877,13 +4279,15 @@ class DatasetManager:
     def printDatasetTree(self):
         print self.formatDatasetTree()
 
-    ## Prints the parameterSet of some Dataset
-    #
-    # Absolutely no guarantees of which Dataset the parameterSet is
-    # from will not be given.
     def printSelections(self):
+        '''
+        Prints the parameterSet of some Dataset
+        
+        Absolutely no guarantees of which Dataset the parameterSet is
+        from will not be given.
+        '''
         namePSets = self.datasets[0].forEach(lambda d: (d.getName(), d.getParameterSet()))
-        print "ParameterSet for dataset", namePSets[0][0]
+        print "=== dataset.py:\n\t ParameterSet for dataset", namePSets[0][0]
         print namePSets[0][1]
 
     def getSelections(self):
@@ -3935,7 +4339,7 @@ class DatasetPrecursor:
             # Get the data version
             dataVersion = aux.Get(rootFile, "configInfo/dataVersion")
             if dataVersion == None:
-                print "=== dataset.py:\n\tUnable to find 'configInfo/dataVersion' from ROOT file '%s', I have no idea if this file is data, MC, or pseudo" % name
+                print "=== dataset.py:\n\t Unable to find 'configInfo/dataVersion' from ROOT file '%s', I have no idea if this file is data, MC, or pseudo" % name
                 continue
             
             if self._dataVersion is None:
@@ -4009,8 +4413,10 @@ class DatasetPrecursor:
     def getNAllEvents(self):
         return self._nAllEvents
 
-    ## Close the ROOT files
     def close(self):
+        '''
+        Close the ROOT files
+        '''
         # For-loop: All ROOT files
         for f in self._rootFiles:            
             print "=== dataset.py:\n\t Closing file '%s'" % ( f.GetName() )
@@ -4023,31 +4429,35 @@ _analysisNameSkipList = [re.compile("^SystVar"), re.compile("configInfo"), re.co
 _analysisSearchModes  = re.compile("_\d+to\d+_")
 _dataDataEra_re       = re.compile("_Run201\d\S_")
 
-## Class for listing contents of multicrab dirs, dataset ROOT files, and creating DatasetManager
-#
-# The mai is to first create an object of this class to represent a
-# multicrab directory, and then create one or many DatasetManagers,
-# which then correspond to a single analysis directory within the ROOT
-# files.
 #================================================================================================ 
 # Class Definition
 #================================================================================================ 
 class DatasetManagerCreator:
-    ## Constructor
-    #
-    # \param rootFileList  List of (\a name, \a filenames) pairs (\a
-    #                      name should be string, \a filenames can be
-    #                      string or list of strings). \a name is taken
-    #                      as the dataset name, and \a filenames as the
-    #                      path(s) to the ROOT file(s).
-    # \param kwargs        Keyword arguments (see below)
-    #
-    # <b>Keyword arguments</b>
-    # \li \a baseDirectory    Base directory of the datasets (delivered later to DatasetManager._setBaseDirectory())
-    #
-    # Creates DatasetPrecursor objects for each ROOT file, reads the
-    # contents of first MC file to get list of available analyses.
+    '''
+    Class for listing contents of multicrab dirs, dataset ROOT files, and creating DatasetManager
+
+    The mai is to first create an object of this class to represent a
+    multicrab directory, and then create one or many DatasetManagers,
+    which then correspond to a single analysis directory within the ROOT
+    files.
+    '''
     def __init__(self, rootFileList, **kwargs):
+        '''
+        Constructor
+        
+        \param rootFileList  List of (\a name, \a filenames) pairs (\a
+        name should be string, \a filenames can be string or list of strings). \a name is taken
+        as the dataset name, and \a filenames as the path(s) to the ROOT file(s).
+        
+        \param kwargs        Keyword arguments (see below)
+        
+        <b>Keyword arguments</b>
+
+        \li \a baseDirectory    Base directory of the datasets (delivered later to DatasetManager._setBaseDirectory())
+       
+        Creates DatasetPrecursor objects for each ROOT file, reads the
+        contents of first MC file to get list of available analyses.
+        '''
         self._precursors = [DatasetPrecursor(name, filenames) for name, filenames in rootFileList]
         self._baseDirectory = kwargs.get("baseDirectory", "")
         
@@ -4084,7 +4494,7 @@ class DatasetManagerCreator:
             return True
         contents = filter(skipItem, contents)
         if len(contents) == 0:
-            raise Exception("No analysis TDirectories found")
+            raise Exception("=== dataset.py:\n\t No analysis TDirectories found")
 
         analyses = {}
         searchModes = {}
@@ -4157,24 +4567,27 @@ class DatasetManagerCreator:
     def getLumiFile(self):
         return os.path.join(self._baseDirectory, "lumi.json")
 
-    ## Create DatasetManager
-    #
-    # \param kwargs   Keyword arguments (see below)
-    #
-    # <b>Keyword arguments</b>
-    # \li \a analysisName      Base part of the analysis directory name
-    # \li \a searchMode        String for search mode
-    # \li \a dataEra           String for data era
-    # \li \a optimizationMode  String for optimization mode (optional)
-    # \li \a systematicVariation String for systematic variation (optional)
-    # \li \a opts              Optional OptionParser object. Should have options added with addOptions().
-    #
-    # The values of \a analysisName, \a searchMode, \a dataEra, and \a
-    # optimizationMode are overridden from \a opts, if they are set
-    # (i.e. are non-None). Also, if any of these is not specified
-    # either explicitly or via \a opts, the value is inferred from the
-    # contents, if there exists only one of it.
     def createDatasetManager(self, **kwargs):
+        '''
+        Create DatasetManager
+        
+        \param kwargs   Keyword arguments (see below)
+        
+        <b>Keyword arguments</b>
+        
+        \li \a analysisName      Base part of the analysis directory name
+        \li \a searchMode        String for search mode
+        \li \a dataEra           String for data era
+        \li \a optimizationMode  String for optimization mode (optional)
+        \li \a systematicVariation String for systematic variation (optional)
+        \li \a opts              Optional OptionParser object. Should have options added with addOptions().
+        
+        The values of \a analysisName, \a searchMode, \a dataEra, and \a
+        optimizationMode are overridden from \a opts, if they are set
+        (i.e. are non-None). Also, if any of these is not specified
+        either explicitly or via \a opts, the value is inferred from the
+        contents, if there exists only one of it.
+        '''
         _args = {}
         _args.update(kwargs)
 
@@ -4199,7 +4612,7 @@ class DatasetManagerCreator:
             del _args["opts"]
 
         if not "analysisName" in _args:
-            raise Exception("You did not specify AnalysisName, and it was not automatically detected from ROOT file")
+            raise Exception("=== dataset.py:\n\t You did not specify AnalysisName, and it was not automatically detected from ROOT file")
 
         # Print the configuration
         parameters = []
@@ -4208,7 +4621,7 @@ class DatasetManagerCreator:
                 value = _args[name]
                 if value is not None:
                     parameters.append("%s='%s'" % (name, value))
-        print "Creating DatasetManager with", ", ".join(parameters)
+        print "=== dataset.py:\n\t Creating DatasetManager with", ", ".join(parameters)
 
         # Create manager and datasets
         dataEra = _args.get("dataEra", None)
@@ -4229,7 +4642,7 @@ class DatasetManagerCreator:
             except KeyError:
                 eras = _dataEras.keys()
                 eras.sort()
-                raise Exception("Unknown data era '%s', known are %s" % (dataEra, ", ".join(eras)))
+                raise Exception("=== dataset.py:\n\t Unknown data era '%s', known are %s" % (dataEra, ", ".join(eras)))
 
             precursors = filter(lambda p: isInEra(lst, p), precursors)
         manager = DatasetManager()
@@ -4269,7 +4682,7 @@ class DatasetManagerCreator:
         # Load luminosity automatically if the file exists
         lumiPath = self.getLumiFile()
         if os.path.exists(lumiPath):
-            print "Loading data luminosities from %s" % lumiPath
+            print "=== dataset.py:\n\t Loading data luminosities from %s" % lumiPath
             manager.loadLuminosities()
         
         return manager
@@ -4292,11 +4705,13 @@ class DatasetManagerCreator:
     def getDataDataEras(self):
         return self._dataDataEras
 
-    ## Return MC data eras, or data data eras if MC data era list is empty
-    #
-    # This is probably the typical use case when user wants "just the
-    # list of available data eras".
     def getDataEras(self):
+        '''
+        Return MC data eras, or data data eras if MC data era list is empty
+        
+        This is probably the typical use case when user wants "just the
+        list of available data eras".
+        '''
         if len(self._mcDataEras) > 0:
             return self._mcDataEras
         else:
@@ -4326,33 +4741,33 @@ class DatasetManagerCreator:
         print
         
         if len(self._mcDataEras) == 0:
-            print "No data eras in MC"
+            print "=== dataset.py:\n\t No data eras in MC"
         else:
-            print "Data eras (in MC) (dataEra):"
+            print "=== dataset.py:\n\t Data eras (in MC) (dataEra):"
             for d in self._mcDataEras:
                 print "  "+d
         print
 
         if len(self._dataDataEras) == 0:
-            print "No data eras in data"
+            print "=== dataset.py:\n\t No data eras in data"
         else:
-            print "Data eras (in data, the letters can be combined in almost any way) (dataEra):"
+            print "=== dataset.py:\n\t Data eras (in data, the letters can be combined in almost any way) (dataEra):"
             for d in self._dataDataEras:
                 print "  "+d
         print
 
         if len(self._optimizationModes) == 0:
-            print "No optimization modes"
+            print "=== dataset.py:\n\t No optimization modes"
         else:
-            print "Optimization modes (optimizationMode):"
+            print "=== dataset.py:\n\t Optimization modes (optimizationMode):"
             for o in self._optimizationModes:
                 print "  "+o
         print
 
         if len(self._systematicVariations) == 0:
-            print "No systematic variations"
+            print "=== dataset.py:\n\t No systematic variations"
         else:
-            print "Systematic variations (systematicVariation):"
+            print "=== dataset.py:\n\t Systematic variations (systematicVariation):"
             for s in self._systematicVariations:
                 print "  "+s
         print
@@ -4362,69 +4777,82 @@ class DatasetManagerCreator:
         for precursor in self._precursors:
             precursor.close()
 
-## Helper class to plug NtupleCache to the existing framework
-#
-# User should not construct an object by herself, but use
-# NtupleCahce.histogram()
 #================================================================================================ 
 # Class Definition
 #================================================================================================ 
 class NtupleCacheDrawer:
-    ## Constructor
-    #
-    # \param ntupleCache   NtupleCache object
-    # \param histoName     Name of the histogram to obtain
-    # \param selectorName  Name of the selector
+    '''
+    Helper class to plug NtupleCache to the existing framework
+    
+    User should not construct an object by herself, but use
+    NtupleCahce.histogram()
+    '''
     def __init__(self, ntupleCache, histoName, selectorName):
+        '''
+        Constructor
+        
+        \param ntupleCache   NtupleCache object
+        \param histoName     Name of the histogram to obtain
+        \param selectorName  Name of the selector
+        '''
         self.ntupleCache = ntupleCache
         self.histoName = histoName
         self.selectorName = selectorName
 
-    ## "Draw"
-    #
-    # \param datasetName  Dataset object
-    #
-    # This method exploits the infrastucture we have for TreeDraw.
     def draw(self, dataset):
+        '''
+        "Draw"
+    
+        \param datasetName  Dataset object
+        
+        This method exploits the infrastucture we have for TreeDraw.
+        '''
         self.ntupleCache.process(dataset)
         return self.ntupleCache.getRootHisto(dataset, self.histoName, self.selectorName)
 
-## Ntuple processing with C macro and caching the result histograms
-#
-# 
 #================================================================================================ 
 # Class Definition
 #================================================================================================ 
 class NtupleCache:
-    ## Constructor
-    #
-    # \param treeName       Path to the TTree inside a ROOT file
-    # \param selector       Name of the selector class, should also correspond a .C file in \a test/ntuple
-    # \param selectorArgs   Optional arguments to the selector
-    #                       constructor, can be a list of arguments,
-    #                       or a function returning a list of
-    #                       arguments
-    # \param process        Should the ntuple be processed? (if False, results are read from the cache file)
-    # \param cacheFileName  Path to the cache file
-    # \param maxEvents      Maximum number of events to process (-1 for all events)
-    # \param printStatus    Print processing status information
-    # \param macros         Additional macro files to compile and load
-    #
-    # I would like to make \a process redundant, but so far I haven't
-    # figured out a bullet-proof method for that.
+    '''
+    Ntuple processing with C macro and caching the result histograms
+    '''
+    
     def __init__(self, treeName, selector, selectorArgs=[], process=True, cacheFileName="histogramCache.root", maxEvents=-1, printStatus=True, macros=[]):
-        self.treeName = treeName
+        '''
+        Constructor
+        
+        \param treeName       Path to the TTree inside a ROOT file
+        
+        \param selector       Name of the selector class, should also correspond a .C file in \a test/ntuple
+        
+        \param selectorArgs   Optional arguments to the selector constructor, can be a list of arguments, 
+        or a function returning a list of arguments
+        
+        \param process        Should the ntuple be processed? (if False, results are read from the cache file)
+        
+        \param cacheFileName  Path to the cache file
+        
+        \param maxEvents      Maximum number of events to process (-1 for all events)
+        
+        \param printStatus    Print processing status information
+        
+        \param macros         Additional macro files to compile and load
+        
+        I would like to make \a process redundant, but so far I haven't figured out a bullet-proof method for that.
+        '''
+        self.treeName      = treeName
         self.cacheFileName = cacheFileName
-        self.selectorName = selector
-        self.selectorArgs = selectorArgs
-        self.doProcess = process
-        self.maxEvents = maxEvents
-        self.printStatus = printStatus
+        self.selectorName  = selector
+        self.selectorArgs  = selectorArgs
+        self.doProcess     = process
+        self.maxEvents     = maxEvents
+        self.printStatus   = printStatus
 
         self.additionalSelectors = {}
         self.datasetSelectorArgs = {}
 
-        self.macrosLoaded = False
+        self.macrosLoaded      = False
         self.processedDatasets = {}
 
         self.macros = [
@@ -4435,15 +4863,17 @@ class NtupleCache:
             ]
         self.cacheFile = None
 
-    ## Compile and load the macros
     def _loadMacros(self):
+        '''
+        Compile and load the macros
+        '''
         base = os.path.join(aux.higgsAnalysisPath(), "NtupleAnalysis", "test", "ntuple")
         macros = [os.path.join(base, x) for x in self.macros]
 
         for m in macros:
             ret = ROOT.gROOT.LoadMacro(m+"+g")
             if ret != 0:
-                raise Exception("Failed to load "+m)
+                raise Exception("=== dataset.py:\n\t Failed to load "+m)
 
     def addSelector(self, name, selector, selectorArgs):
         self.additionalSelectors[name] = (selector, selectorArgs)
@@ -4456,19 +4886,12 @@ class NtupleCache:
             self.datasetSelectorArgs[selectorName] = {}
         self.datasetSelectorArgs[selectorName].update(dictionary)
 
-    # def _isMacroNewerThanCacheFile(self):
-    #     latestMacroTime = max([os.path.getmtime(m) for m in self.macros])
-    #     cacheTime = 0
-    #     if os.path.exists(self.cacheFileName):
-    #         cacheTime = os.path.getmtime(self.cacheFileName)
-    #     return latestMacroTime > cacheTime
-
-    ## Process selector for a dataset
-    #
-    # \param dataset  Dataset object
     def process(self, dataset):
-        #if not self.forceProcess and not self._isMacroNewerThanCacheFile():
-        #    return
+        '''
+        Process selector for a dataset
+        
+        \param dataset  Dataset object
+        '''
         if not self.doProcess:
             return
 
@@ -4573,15 +4996,19 @@ class NtupleCache:
         for d in directories:
             d.Write()
 
-    ## Get a histogram from the cache file
-    #
-    # \param Datase        Dataset object for which histogram is to be obtained
-    # \param histoName     Histogram name
-    # \param selectorName  Selector name
     def getRootHisto(self, dataset, histoName, selectorName):
+        '''
+        Get a histogram from the cache file
+        
+        \param Datase        Dataset object for which histogram is to be obtained
+
+        \param histoName     Histogram name
+
+        \param selectorName  Selector name
+        '''
         if self.cacheFile == None:
             if not os.path.exists(self.cacheFileName):
-                raise Exception("Assert: for some reason the cache file %s does not exist yet. Did you set 'process=True' in the constructor of NtupleCache?" % self.cacheFileName)
+                raise Exception("=== datasset.py:\n\t Assert: for some reason the cache file %s does not exist yet. Did you set 'process=True' in the constructor of NtupleCache?" % self.cacheFileName)
             self.cacheFile = ROOT.TFile.Open(self.cacheFileName)
 
         if selectorName is None:
@@ -4590,14 +5017,17 @@ class NtupleCache:
         path = "%s/%s/%s/%s" % (hashlib.sha1(dataset.getBaseDirectory()).hexdigest(), selectorName, dataset.getName(), histoName)
         h = self.cacheFile.Get(path)
         if not h:
-            raise Exception("Histogram '%s' not found from %s" % (path, self.cacheFile.GetName()))
+            raise Exception("=== dataset.py:\n\t Histogram '%s' not found from %s" % (path, self.cacheFile.GetName()))
         return h
 
-    ## Create NtupleCacheDrawer for Dataset.getDatasetRootHisto()
-    #
-    # \param histoName   Histogram name to obtain
-    # \param selectorName  Name of selector from which to read the histogram (None for the main selector)
     def histogram(self, histoName, selectorName=None):
+        '''
+        Create NtupleCacheDrawer for Dataset.getDatasetRootHisto()
+        
+        \param histoName   Histogram name to obtain
+        
+        \param selectorName  Name of selector from which to read the histogram (None for the main selector)
+        '''
         return NtupleCacheDrawer(self, histoName, selectorName)
 
 
@@ -4619,7 +5049,7 @@ class SelectorArgs:
 
         # Any remaining argument is an error
         if len(args) >= 1:
-            raise Exception("Incorrect arguments for SelectorArgs.__init__(): %s" % ", ".join(args.keys()))
+            raise Exception("=== dataset.py:\n\t Incorrect arguments for SelectorArgs.__init__(): %s" % ", ".join(args.keys()))
 
     def clone(self, **kwargs):
         c = copy.deepcopy(self)
@@ -4629,7 +5059,7 @@ class SelectorArgs:
     def set(self, **kwargs):
         for key, value in kwargs.iteritems():
             if not hasattr(self, key):
-                raise Exception("This SelectorArgs does not have property %s" % key)
+                raise Exception("=== dataset.py:\n\t This SelectorArgs does not have property %s" % key)
             setattr(self, key, value)
 
     def update(self, selectorArgs):
