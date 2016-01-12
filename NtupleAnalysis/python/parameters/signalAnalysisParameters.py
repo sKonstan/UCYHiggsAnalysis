@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+print "=== signalAnalysisParameters.py:\n\t Edit me"
 
 from UCYHiggsAnalysis.NtupleAnalysis.main import PSet
 import UCYHiggsAnalysis.NtupleAnalysis.parameters.scaleFactors as scaleFactors

@@ -12,7 +12,7 @@ Usage:
 ./testAnalysis.py <path-to-multicrab-directory>"
 
 Example:
-./testAnalysis.py ~/public/multicrab_CMSSW752_Default_07Jan2016_testNEW/
+./testAnalysis.py /afs/cern.ch/user/a/attikis/public/multicrab_CMSSW752_Default_07Jan2016_testNEW/
 '''
 
 #================================================================================================ 
@@ -65,9 +65,10 @@ for algo in ["pfCombinedInclusiveSecondaryVertexV2BJetTags"]:
         suffix = "_%s_%s" % (algo, wp)
 
         print "=== testAnalysis.py:\n\t Adding analyzer \"%s\" for working point \"%s\"" % (algo, wp)
-        process.addAnalyzer("Test"+suffix, Analyzer("TestAnalysis", config=selections, silent=False))
-        sys.exit()
+        process.addAnalyzer("Test" + suffix, Analyzer("TestAnalysis", config=selections, silent=False) )
+        #sys.exit()
         
+
 #================================================================================================ 
 # Example of adding an analyzer whose configuration depends on dataVersion
 #================================================================================================ 

@@ -1,19 +1,41 @@
+'''
+As the name indicates this modules is the main file loaded in all analysis 
+scripts for histogram creation.
+
+It contains basic and auxiliary  methods and classes for creating analyzers, adding datasets
+and customising the workflow.
+
+Example (import):
+from UCYHiggsAnalysis.NtupleAnalysis.main import Process, PSet, Analyzer
+'''
+
+#================================================================================================
+# Imports
+#================================================================================================
 import os
 import time
 import copy
 import json
 
 import ROOT
-ROOT.gROOT.SetBatch(True)
-ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 import datasets as datasetsTest
 import UCYHiggsAnalysis.NtupleAnalysis.tools.dataset as dataset
 import UCYHiggsAnalysis.NtupleAnalysis.tools.aux as aux
 import UCYHiggsAnalysis.NtupleAnalysis.tools.git as git
 
+
+#================================================================================================
+# ROOT Configurations
+#================================================================================================
+ROOT.gROOT.SetBatch(True)
+ROOT.PyConfig.IgnoreCommandLineOptions = True
+
 _debugPUreweighting = False
 
+#================================================================================================
+# Class Definition
+#================================================================================================
 class PSet:
     def __init__(self, **kwargs):
         self.__dict__["_data"] = copy.deepcopy(kwargs)
@@ -62,28 +84,35 @@ class PSet:
         return json.dumps(self._asDict(), sort_keys=True, indent=2)
 
 
-def File(fname):
-    fullpath = os.path.join(aux.higgsAnalysisPath(), fname)
+def File(fileName):
+    fullpath = os.path.join(aux.higgsAnalysisPath(), fileName)
     if not os.path.exists(fullpath):
-        raise Exception("The file %s does not exist" % self._fullpath)
+        raise Exception("=== main.py:\n\t The file \"%s\" does not exist" % self._fullpath)
     return fullpath
 
+#================================================================================================
+# Class Definition
+#================================================================================================
 class Analyzer:
+    print "=== main.py:\n\t class Analyzer"
     def __init__(self, className, **kwargs):
         self.__dict__["_className"] = className
         silentStatus = True
+
         if "silent" in kwargs:
             silentStatus = kwargs["silent"]
             del kwargs["silent"]
+
         if "config" in kwargs:
             if isinstance(kwargs["config"], PSet):
                 self.__dict__["_pset"] = kwargs["config"]
             else:
-                raise Exception("The keyword config should be used only for providing the parameters as a PSet!")
+                raise Exception("=== main.py:\n\t The keyword config should be used only for providing the parameters as a PSet!")
         else:
             self.__dict__["_pset"] = PSet(**kwargs)
+
         if not silentStatus:
-            print "Configuration parameters:"
+            print "=== main.py:\n\t Configuration parameters:"
             print self.__dict__["_pset"]
 
     def __getattr__(self, name):
@@ -104,7 +133,12 @@ class Analyzer:
     def config_(self):
         return self.__dict__["_pset"].serialize_()
 
+#================================================================================================
+# Class Definition
+#================================================================================================
 class AnalyzerWithIncludeExclude:
+    print "=== main.py:\n\t class AnalyzerWithIncludeExclude"
+
     def __init__(self, analyzer, **kwargs):
         self._analyzer = analyzer
         if len(kwargs) > 0 and (len(kwargs) != 1 or not ("includeOnlyTasks" in kwargs or "excludeTasks" in kwargs)):
@@ -122,7 +156,12 @@ class AnalyzerWithIncludeExclude:
         return len(tasks) == 1
 
 
+#================================================================================================
+# Class Definition
+#================================================================================================
 class DataVersion:
+    print "=== main.py:\n\t class DataVersion"
+
     def __init__(self, dataVersion):
         self._version = dataVersion
 
@@ -147,7 +186,13 @@ class DataVersion:
     def isS10(self):
         return self._isMC() and "S10" in self._version
 
+
+#================================================================================================
+# Class Definition
+#================================================================================================
 class Dataset:
+    print "=== main.py:\n\t class Dataset"
+
     def __init__(self, name, files, dataVersion, lumiFile, pileup, nAllEvents):
         self._name = name
         self._files = files
@@ -174,7 +219,13 @@ class Dataset:
     def getNAllEvents(self):
         return self._nAllEvents
 
+
+#================================================================================================
+# Class Definition
+#================================================================================================
 class Process:
+    print "=== main.py:\n\t class Process"
+
     def __init__(self, outputPrefix="analysis", outputPostfix="", maxEvents=-1):
         ROOT.gSystem.Load("libHPlusAnalysis.so") #attikis
 
@@ -186,8 +237,10 @@ class Process:
         self._maxEvents = maxEvents
         self._options = PSet()
 
-    def addDataset(self, name, files=None, dataVersion=None, lumiFile=None):
+        return
 
+    def addDataset(self, name, files=None, dataVersion=None, lumiFile=None):
+        #print "=== main.py:\n\t Adding dataset "
         if files is None:
             files = datasetsTest.getFiles(name)
 
@@ -198,6 +251,7 @@ class Process:
         nAllEvents = prec.getNAllEvents()
         prec.close()
         self._datasets.append( Dataset(name, files, dataVersion, lumiFile, pileUp, nAllEvents) )
+        return
 
     def addDatasets(self, names): # no explicit files possible here
         for name in names:
@@ -220,6 +274,7 @@ class Process:
             raise Exception("Analyzer '%s' already exists" % name)
         print "=== main.py:\n\t Added Analyzer with name \"%s\"" % (name)
         self._analyzers[name] = AnalyzerWithIncludeExclude(analyzer, **kwargs)
+        return
 
     # FIXME: not sure if these two actually make sense
     def getAnalyzer(self, name):
