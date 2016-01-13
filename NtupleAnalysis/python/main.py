@@ -446,10 +446,12 @@ class Process:
                             inputList.Add(hPUs[aname])
                         else:
                             n = 50
-                            hFlat = ROOT.TH1F("dummyPU","dummyPU",n,0,n)
+                            hFlat = ROOT.TH1F("dummyPU" + aname,"dummyPU" + aname, n, 0, n)
+                            hFlat.SetName("PileUpData")
                             for k in range(n):
                                 hFlat.Fill(k+1, 1.0/n)
                             inputList.Add(hFlat)
+                            hPUs[aname] = hFlat
                             print "=== main.py:\n\t Warning: Using a flat pileup spectrum for data (which is missing) -> MC PU spectrum is unchanged"
 
                         if dset.getPileUp() == None:

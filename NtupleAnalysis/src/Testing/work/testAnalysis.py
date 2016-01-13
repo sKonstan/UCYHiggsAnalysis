@@ -53,7 +53,7 @@ else:
 #================================================================================================ 
 # Add Configuration Attributes
 #================================================================================================ 
-print "=== testAnalysis.py:\n\t Loading & Customising cfg parameters"
+print "=== testAnalysis.py:\n\t Loading & Customising cfg parameters from \".signalAnalysisParameters\""
 from UCYHiggsAnalysis.NtupleAnalysis.parameters.signalAnalysisParameters import allSelections
 
 # Trigger
@@ -82,18 +82,19 @@ allSelections.__setattr__("jetEtaCutMax",    2.5  )
 # Add Analysis Variations
 #================================================================================================ 
 # For-loop: All b-tag discriminators
+print "=== testAnalysis.py:"
 for algo in ["pfCombinedInclusiveSecondaryVertexV2BJetTags"]:
     
     # For-loop: All working points
-    #for wp in ["Loose", "Medium", "Tight"]:
-    for wp in ["Loose"]:
+    for wp in ["Loose", "Medium", "Tight"]:
+    #for wp in ["Loose"]:
         selections = allSelections.clone()
         selections.BJetSelection.bjetDiscr = algo
         selections.BJetSelection.bjetDiscrWorkingPoint = wp
         suffix = "_%s_%s" % (algo, wp)
 
-        if bVerbose:
-            print "=== testAnalysis.py:\n\t Adding algorithm \"%s\" for working point \"%s\"" % (algo, wp)
+        #if bVerbose:
+        print "\t Adding algorithm \"%s\" for working point \"%s\"" % (algo, wp)
         process.addAnalyzer("Test" + suffix, Analyzer("TestAnalysis", config=selections, silent=bSilent) )
         
 
