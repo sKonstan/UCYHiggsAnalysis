@@ -321,14 +321,19 @@ class Process:
             setattr(self._options, key, value)
 
     def run(self, proof=False, proofWorkers=None):
-        outputDir = self._outputPrefix+"_"+time.strftime("%y%m%d_%H%M%S")
+        outputDir = self._outputPrefix + "_" + time.strftime("%d%b%Y_%Hh%Mm%Ss") #time.strftime("%y%m%d_%H%M%S")
         if self._outputPostfix != "":
             outputDir += "_"+self._outputPostfix
 
         # Create output directory
+        if self._verbose:
+            print "=== main.py:\n\t Creating directory '%s'" % (outputDir) 
+
         os.mkdir(outputDir)
         multicrabCfg = os.path.join(outputDir, "multicrab.cfg")
         f = open(multicrabCfg, "w")
+
+        # For-loop: All datasets
         for dset in self._datasets:
             f.write("[%s]\n\n" % dset.getName())
         f.close()
@@ -444,7 +449,7 @@ class Process:
                             raise Exception("Error: pileup spectrum is missing from dataset! Please switch to using newest multicrab!")
                         hPUMC = dset.getPileUp().Clone()
                         if aname not in hPUs.keys():
-                            print "===main.py:\n\t The key '%s' does not exist in dictionary variable 'hPUs'. Continue" % (aname) #attikis
+                            print "===main.py:\n\t The key '%s' does not exist in dictionary variable 'hPUs'. Continue" % (aname)
                             continue
                         if hPUMC.GetNbinsX() != hPUs[aname].GetNbinsX():
                             raise Exception("=== main.py:\n\t Pileup histogram dimension mismatch! data nPU has %d bins and MC nPU has %d bins"%(hPUs[aname].GetNbinsX(), hPUMC.GetNbinsX()))
@@ -466,8 +471,9 @@ class Process:
                 print "=== main.py:\n\t Skipping %s, no analyzers" % dset.getName()
                 continue
 
-            print "=== main.py:\n\t Processing dataset (%d/%d) ..." % (ndset, len(self._datasets))
+            print "=== main.py:\n\t Processing dataset (%d/%d): " % (ndset, len(self._datasets))
             info  = '{:<20} {:<40}'.format("\t dataset", ": " + dset.getName())
+            info += '\n{:<20} {:<40}'.format("\t Is Data", ": " + str(dset.getDataVersion().isData()) )
 
             if dset.getDataVersion().isData():
                 lumivalue = "--- not available in lumi.json (or lumi.json not available) ---"
@@ -487,7 +493,7 @@ class Process:
             print info
             
             resDir      = os.path.join(outputDir, dset.getName(), "res")
-            resFileName = os.path.join(resDir, "histograms-%s.root"%dset.getName())
+            resFileName = os.path.join(resDir, "histograms-%s.root" % dset.getName())
             os.makedirs(resDir)
             tchain = ROOT.TChain("Events")
 
@@ -500,13 +506,11 @@ class Process:
                 tchain.Add(f)
             tchain.SetCacheLearnEntries(100);
 
-            tselector = ROOT.SelectorImpl() #attikis
+            tselector = ROOT.SelectorImpl()
 
-            # FIXME: TChain.GetEntries() is needed only to give a time
-            # estimate for the analysis. If this turns out to be slow,
-            # we could store the number of events along the file names
-            # (whatever is the method for that)
-            inputList.Add(ROOT.SelectorImplParams(tchain.GetEntries(), dset.getDataVersion().isMC(), self._options.serialize_(), True)) #attikis
+            # FIXME: TChain.GetEntries() is needed only to give a time estimate for the analysis. 
+            # If this turns out to be slow, we could store the number of events along the file names    
+            inputList.Add(ROOT.SelectorImplParams(tchain.GetEntries(), dset.getDataVersion().isMC(), self._options.serialize_(), True))
 
             if _proof is not None:
                 tchain.SetProof(True)
@@ -519,7 +523,7 @@ class Process:
             for counter, i in enumerate(inputList):
                 if self._verbose:
                     print "\t inputList[%s] = %s" % (counter, i.GetName())
-            tselector.SetInputList(inputList) #attikis
+            tselector.SetInputList(inputList)
 
             readBytesStart = ROOT.TFile.GetFileBytesRead()
             readCallsStart = ROOT.TFile.GetFileReadCalls()
@@ -528,12 +532,12 @@ class Process:
 
             if self._maxEvents > 0:
                 tchain.SetCacheEntryRange(0, self._maxEvents)
-                tchain.Process(tselector, "", self._maxEvents) #attikis
+                tchain.Process(tselector, "", self._maxEvents)
             else:                
-                tchain.Process(tselector) #attikis
+                tchain.Process(tselector)
 
-            timeStop = time.time()
-            clockStop = time.clock()
+            timeStop      = time.time()
+            clockStop     = time.clock()
             readCallsStop = ROOT.TFile.GetFileReadCalls()
             readBytesStop = ROOT.TFile.GetFileBytesRead()
 
