@@ -116,6 +116,7 @@ void SelectorImpl::SlaveBegin(TTree * /*tree*/) {
   // The SlaveBegin() function is called after the Begin() function.
   // When running with PROOF SlaveBegin() is called on each slave server.
   // The tree argument is deprecated (on PROOF 0 is passed).
+  std::cout << "=== SelectorImpl::SlaveBegin()" << std::endl;
 
   // Pick parameters
   const SelectorImplParams *params = dynamic_cast<const SelectorImplParams *>(fInput->FindObject("PARAMS"));
@@ -264,7 +265,7 @@ void SelectorImpl::printStatus() {
 
   if (fProcessed % fPrintStep == 0) {
     double myFraction = static_cast<double>(fProcessed) / static_cast<double>(fEntries);
-    std::cout << "\rProcessing ... ";
+    //std::cout << "\r\t Processing ... ";
     
     Long64_t bytes = 0;
     double timeDiff = 1;
@@ -296,19 +297,21 @@ void SelectorImpl::printStatus() {
       fPrintLastTime = myRealTime;
 
       double myTimeEstimate = myRealTime / myFraction - myRealTime;
-      int myHours = static_cast<int>(myTimeEstimate / 3600);
+      int myHours     = static_cast<int>(myTimeEstimate / 3600);
       myTimeEstimate -= static_cast<double>(myHours * 3600);
-      int myMinutes = static_cast<int>(myTimeEstimate / 60);
+      int myMinutes   = static_cast<int>(myTimeEstimate / 60);
       myTimeEstimate -= static_cast<double>(myMinutes * 60);
-      int mySeconds = static_cast<int>(myTimeEstimate);
-      std::cout << "estimated time: ";
+      int mySeconds   = static_cast<int>(myTimeEstimate);
+      std::cout << "\r\t Estimated Time: ";
+
       if (myHours) {
         std::cout << std::setw(2) << std::setfill('0') << myHours << ":";
       }
       std::cout << std::setw(2) << std::setfill('0') << myMinutes << ":"
                 << std::setw(2) << std::setfill('0') << mySeconds << " ";
     }
-    std::cout << " (" << std::setprecision(4) << myFraction * 100.0 << " %) at "
+
+    std::cout << "\r\t Processed " << std::setprecision(4) << myFraction * 100.0 << "% at "
               << std::setprecision(3) << (bytes/timeDiff/1024/1024) << " MB/s"
               << "       " // to clear
               << std::flush;
@@ -319,7 +322,7 @@ void SelectorImpl::resetStatus() {
   if(!fPrintStatus) return;
 
   fStopwatch.Stop();
-  std::cout << "\r    Dataset processed (" << fProcessed << " entries). " << std::endl;
+  std::cout << "\n\r         Dataset processed with " << fProcessed << " entries. " << std::endl;
   //fStopwatch.Print();
   fPrintStep = 20000;
 }

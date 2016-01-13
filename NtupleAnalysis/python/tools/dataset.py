@@ -4314,8 +4314,9 @@ class DatasetPrecursor:
     Precursor dataset, helper class for DatasetManagerCreator
     This holds the name, ROOT file, and data/MC status of a dataset.
     '''
-    def __init__(self, name, filenames):
-        self._name = name
+    def __init__(self, name, filenames, verbose=False):
+        self._name    = name
+        self._verbose = verbose
         if isinstance(filenames, basestring):
             self._filenames = [filenames]
         else:
@@ -4328,7 +4329,11 @@ class DatasetPrecursor:
         self._nAllEvents  = 0.0
 
         # For-loop: All ROOT file names
+        if self._verbose:
+            print "=== dataset.py:"
         for name in self._filenames:
+            if self._verbose:
+                print "\t Opening ROOT file '%s'" % (name)
             rootFile = ROOT.TFile.Open(name)
 
             # Below is important to use '==' instead of 'is' to check for null file
@@ -4374,7 +4379,7 @@ class DatasetPrecursor:
                             raise Exception("Error: The first bin of the counters histogram should be the all events bin!")
                         self._nAllEvents += counters.GetBinContent(1)
                 if self._nAllEvents == 0.0:
-                    print "Warning (DatasetPrecursor): N(allEvents) = 0 !!!"
+                    print "=== dataset.py:\n\t Warning (DatasetPrecursor): N(allEvents) = 0 !!!"
 
         # Set the correct values for _isData, _isMC, _isPseudo
         if self._dataVersion is None:
@@ -4417,9 +4422,12 @@ class DatasetPrecursor:
         '''
         Close the ROOT files
         '''
+        if self._verbose:
+            print "=== dataset.py:"
         # For-loop: All ROOT files
         for f in self._rootFiles:            
-            print "=== dataset.py:\n\t Closing file '%s'" % ( f.GetName() )
+            if self._verbose:
+                print "\t Closing file '%s'" % ( f.GetName() )
             f.Close("R")
             f.Delete()
         self._rootFiles = []
@@ -4908,6 +4916,7 @@ class NtupleCache:
             self.macrosLoaded = True
         
         if self.cacheFile == None:
+            print "=== dataset.py:\n\t Opening cache file '%s'" % (self.cacheFileName)
             self.cacheFile = ROOT.TFile.Open(self.cacheFileName, "RECREATE")
             self.cacheFile.cd()
 
@@ -5009,6 +5018,7 @@ class NtupleCache:
         if self.cacheFile == None:
             if not os.path.exists(self.cacheFileName):
                 raise Exception("=== datasset.py:\n\t Assert: for some reason the cache file %s does not exist yet. Did you set 'process=True' in the constructor of NtupleCache?" % self.cacheFileName)
+            print "=== dataset.py:\n\t Opening cache file '%s'" % (self.cacheFileName)
             self.cacheFile = ROOT.TFile.Open(self.cacheFileName)
 
         if selectorName is None:

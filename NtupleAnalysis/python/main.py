@@ -222,8 +222,7 @@ class Dataset:
 #================================================================================================
 class Process:
 
-    def __init__(self, outputPrefix="analysis", outputPostfix="", maxEvents=-1):
-        print "=== main.py:\n\t Process __init__()"
+    def __init__(self, outputPrefix="analysis", outputPostfix="", maxEvents=-1, verbose=False):
         ROOT.gSystem.Load("libHPlusAnalysis.so") #attikis
 
         self._outputPrefix  = outputPrefix
@@ -233,6 +232,7 @@ class Process:
         self._analyzers = {}
         self._maxEvents = maxEvents
         self._options   = PSet()
+        self._verbose   = verbose
         return
 
     def addDataset(self, name, files=None, dataVersion=None, lumiFile=None):
@@ -267,7 +267,8 @@ class Process:
         No explicit files possible here
         '''       
         for name in names:
-            print "=== main.py:\n\t Adding dataset '%s'" % (name)
+            if self._verbose:
+                print "=== main.py:\n\t Adding dataset '%s'" % (name)
             self.addDataset(name)
         return
 
@@ -284,9 +285,10 @@ class Process:
             dataVer     = dset.getDataVersion()
             lumi        = dsetMgrCreator.getLumiFile()
 
-            print "=== main.py:\n\t Adding dataset '%s' with following attributes:" % (name)
-            attr = '{:<15} {:<40}\n {:<15} {:<40}\n {:<15} {:<40}'.format("\t files", ": "+",".join(fileNames), "\t data-version", ": "+dataVer, "\t lumi-file", ": "+lumi)
-            print attr
+            if self._verbose:
+                print "=== main.py:\n\t Adding dataset to self with following properties:"
+                attr = '{:<15} {:<40}\n {:<15} {:<40}\n {:<15} {:<40}\n {:<15} {:<40}'.format("\t dataset", ": " + name, "\t files", ": " + ",".join(fileNames), "\t data-version", ": "+dataVer, "\t lumi-file", ": " + lumi)
+                print attr
             self.addDataset(name, fileNames, dataVersion=dataVer, lumiFile=lumi)
         return
 
@@ -294,7 +296,9 @@ class Process:
     def addAnalyzer(self, name, analyzer, **kwargs):
         if self.hasAnalyzer(name):
             raise Exception("Analyzer '%s' already exists" % name)
-        print "=== main.py:\n\t Added Analyzer with name '%s'" % (name)
+
+        if self._verbose:
+            print "=== main.py:\n\t Added Analyzer with name '%s'" % (name)
         self._analyzers[name] = AnalyzerWithIncludeExclude(analyzer, **kwargs)
         return
 
@@ -373,10 +377,10 @@ class Process:
             _proof.Exec("gSystem->Load('libHPlusAnalysis.so');")
 
         # Init timing counters
-        realTimeTotal = 0
-        cpuTimeTotal = 0
+        realTimeTotal   = 0
+        cpuTimeTotal    = 0
         readMbytesTotal = 0
-        callsTotal = 0
+        callsTotal      = 0
 
         # Sum data pu distributions
         hPUs = {}
@@ -427,7 +431,7 @@ class Process:
                         if aname in hPUs.keys():
                             if _debugPUreweighting:
                                 for k in range(hPUs[aname].GetNbinsX()):
-                                    print "DEBUG(PUreweighting): dataPU:%d:%f"%(k+1, hPUs[aname].GetBinContent(k+1))
+                                    print "=== main.py:\n\t DEBUG(PUreweighting): dataPU:%d:%f"%(k+1, hPUs[aname].GetBinContent(k+1))
                             inputList.Add(hPUs[aname])
                         else:
                             n = 50
@@ -435,7 +439,7 @@ class Process:
                             for k in range(n):
                                 hFlat.Fill(k+1, 1.0/n)
                             inputList.Add(hFlat)
-                            print "Warning: Using a flat pileup spectrum for data (which is missing) -> MC PU spectrum is unchanged"
+                            print "=== main.py:\n\t Warning: Using a flat pileup spectrum for data (which is missing) -> MC PU spectrum is unchanged"
                         if dset.getPileUp() == None:
                             raise Exception("Error: pileup spectrum is missing from dataset! Please switch to using newest multicrab!")
                         hPUMC = dset.getPileUp().Clone()
@@ -443,11 +447,11 @@ class Process:
                             print "===main.py:\n\t The key '%s' does not exist in dictionary variable 'hPUs'. Continue" % (aname) #attikis
                             continue
                         if hPUMC.GetNbinsX() != hPUs[aname].GetNbinsX():
-                            raise Exception("Pileup histogram dimension mismatch! data nPU has %d bins and MC nPU has %d bins"%(hPUs[aname].GetNbinsX(), hPUMC.GetNbinsX()))
+                            raise Exception("=== main.py:\n\t Pileup histogram dimension mismatch! data nPU has %d bins and MC nPU has %d bins"%(hPUs[aname].GetNbinsX(), hPUMC.GetNbinsX()))
                         hPUMC.SetName("PileUpMC")
                         if _debugPUreweighting:
                             for k in range(hPUMC.GetNbinsX()):
-                                print "Debug(PUreweighting): MCPU:%d:%f"%(k+1, hPUMC.GetBinContent(k+1))
+                                print "=== main.py:\n\t Debug(PUreweighting): MCPU:%d:%f"%(k+1, hPUMC.GetBinContent(k+1))
                         inputList.Add(hPUMC)
                         if analyzer.exists("usePileupWeights"):
                             usePUweights = analyzer.__getattr__("usePileupWeights")
@@ -459,29 +463,41 @@ class Process:
                                         nAllEventsPUWeighted += w * hPUMC.GetBinContent(k)
                     anames.append(aname)
             if nanalyzers == 0:
-                print "Skipping %s, no analyzers" % dset.getName()
+                print "=== main.py:\n\t Skipping %s, no analyzers" % dset.getName()
                 continue
 
-            print "=== main.py:\n\t Processing dataset (%d/%d): %s"%(ndset, len(self._datasets), dset.getName())
+            print "=== main.py:\n\t Processing dataset (%d/%d) ..." % (ndset, len(self._datasets))
+            info  = '{:<20} {:<40}'.format("\t dataset", ": " + dset.getName())
+
             if dset.getDataVersion().isData():
                 lumivalue = "--- not available in lumi.json (or lumi.json not available) ---"
                 if dset.getName() in lumidata.keys():
                     lumivalue = lumidata[dset.getName()]
-                print "    Luminosity: %s fb-1"%lumivalue
-            print "    Using pileup weights:", usePUweights
-            if useTopPtCorrection:
-                print "    Using top pt weights: True"
+                    info  += '\n{:<20} {:<40}'.format("\t Luminosity", ": " + str(lumivalue) + " (fb-1)")
+            else:
+                info += '\n{:<20} {:<40}'.format("\t Luminosity", ": -")
 
-            resDir = os.path.join(outputDir, dset.getName(), "res")
+            # PileUp Weights
+            info  += '\n{:<20} {:<40}'.format("\t Pile-Up Weights", ": " + str(usePUweights))
+
+            # Top pT Corrections
+            info  += '\n{:<20} {:<40}'.format("\t Top-pT Weights", ": " + str(useTopPtCorrection))
+
+            # Print combined information
+            print info
+            
+            resDir      = os.path.join(outputDir, dset.getName(), "res")
             resFileName = os.path.join(resDir, "histograms-%s.root"%dset.getName())
-
             os.makedirs(resDir)
-        
             tchain = ROOT.TChain("Events")
 
+            if self._verbose:
+                print "=== main.py:"
+            # For-loop: All dataset files
             for f in dset.getFileNames():
+                if self._verbose:
+                    print "\t Adding file '%s' to TChain" % (f)
                 tchain.Add(f)
-                print "=== main.py:\n\t Adding file '%s' to TChain" % (f)
             tchain.SetCacheLearnEntries(100);
 
             tselector = ROOT.SelectorImpl() #attikis
@@ -498,9 +514,11 @@ class Process:
             else:
                 inputList.Add(ROOT.TNamed("OUTPUTFILE_LOCATION", resFileName))
 
-            print "=== main.py:"
+            if self._verbose:
+                print "=== main.py:"
             for counter, i in enumerate(inputList):
-                print "\n\t inputList[%s] = %s" % (counter, i.GetName())
+                if self._verbose:
+                    print "\t inputList[%s] = %s" % (counter, i.GetName())
             tselector.SetInputList(inputList) #attikis
 
             readBytesStart = ROOT.TFile.GetFileBytesRead()
@@ -638,24 +656,51 @@ class Process:
             if _proof is not None:
                 tchain.SetProof(False)
                 queryResult = _proof.GetQueryResult()
-                cpuTime = queryResult.GetUsedCPU()
-                readMbytes = queryResult.GetBytes()/1024/1024
+                cpuTime     = queryResult.GetUsedCPU()
+                readMbytes  = queryResult.GetBytes()/1024/1024
             else:
-                cpuTime = clockStop-clockStart
+                cpuTime    = clockStop-clockStart
                 readMbytes = float(readBytesStop-readBytesStart)/1024/1024
-                calls = " (%d calls)" % (readCallsStop-readCallsStart)
+                calls      = "%d" % (readCallsStop-readCallsStart)
+
             realTime = timeStop-timeStart
-            print "    Real time %.2f, CPU time %.2f (%.1f %%), read %.2f MB%s, read speed %.2f MB/s" % (realTime, cpuTime, cpuTime/realTime*100, readMbytes, calls, readMbytes/realTime)
-	    print
-            realTimeTotal += realTime
-            cpuTimeTotal += cpuTime
+
+            # Create statistics list
+            stats = []
+            stats.append("\t %.2f" % (realTime)   )
+            stats.append("%.2f"    % (cpuTime)    )
+            stats.append("%.1f"    % (cpuTime/realTime*100) )
+            stats.append("%.2f"    % (readMbytes) )
+            stats.append("%s"      % (calls)      )
+            stats.append("%.2f"    % (readMbytes/realTime)  )
+
+            heading = "{:<20} {:<20} {:<20} {:<20} {:<30} {:<20}".format("\t Real Time [s]", "CPU Time [s]", "CPU Time [%]", "Read [MB]", "File Reads [Calls]", "Read Speed [MB/s]")
+            values  = "{:<20} {:<20} {:<20} {:<20} {:<30} {:<20}".format(stats[0], stats[1], stats[2], stats[3], stats[4], stats[5])
+            hLine   = len(values)*"="
+            print "=== main.py:\n\t Printing statistics:"
+            print "\t", hLine
+            print heading
+            print "\t", hLine
+            print values
+
+            # Calculations (Total)
+            realTimeTotal   += realTime
+            cpuTimeTotal    += cpuTime
             readMbytesTotal += readMbytes
 
-        print
-
         if len(self._datasets) > 1:
-            print "    Total: Real time %.2f, CPU time %.2f (%.1f %%), read %.2f MB, read speed %.2f MB/s" % (realTimeTotal, cpuTimeTotal, cpuTimeTotal/realTimeTotal*100, readMbytesTotal, readMbytesTotal/realTimeTotal)
-        print "    Results are in", outputDir
+            # Create total statistics list
+            statsTotal = []
+            statsTotal.append("\t %.2f" % (realTimeTotal)   )
+            statsTotal.append("%.2f"    % (cpuTimeTotal)    )
+            statsTotal.append("%.1f"    % (cpuTimeTotal/realTimeTotal*100) )
+            statsTotal.append("%.2f"    % (readMbytesTotal) )
+            statsTotal.append("%s"      % (callsTotal)      )
+            statsTotal.append("%.2f"    % (readMbytesTotal/realTimeTotal)  )
+            valuesTotal = "{:<20} {:<20} {:<20} {:<20} {:<30} {:<20}".format(statsTotal[0], statsTotal[1], statsTotal[2], statsTotal[3], statsTotal[4], statsTotal[5])
+            print valuesTotal
+
+        print "=== main.py:\n\t Results are in '%s'" % (outputDir)
 
         return outputDir
 

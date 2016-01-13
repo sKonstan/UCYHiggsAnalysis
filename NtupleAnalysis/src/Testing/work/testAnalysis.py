@@ -14,17 +14,27 @@ Usage:
 Example:
 ./testAnalysis.py /afs/cern.ch/user/a/attikis/public/multicrab_CMSSW752_Default_07Jan2016_testNEW/
 '''
-
 #================================================================================================ 
 # Imports
 #================================================================================================ 
 import sys
 from UCYHiggsAnalysis.NtupleAnalysis.main import Process, PSet, Analyzer
 
+
+#================================================================================================ 
+# Options
+#================================================================================================ 
+bVerbose  = False       # Default is "False"
+bSilent   = True        # Default is "True"
+prefix    = "analysis"  # Default is "analysis"
+postfix   = ""          # Default is ""
+maxEvts   = -1          # Default is -1
+
+
 #================================================================================================ 
 # Setup the process
 #================================================================================================ 
-process = Process()
+process = Process(outputPrefix=prefix, outputPostfix=postfix, maxEvents=maxEvts, verbose=bVerbose)
 
 
 #================================================================================================ 
@@ -35,9 +45,9 @@ if len(sys.argv) < 2:
     print __doc__
     sys.exit(0)
 else:
-    print "=== testAnalysis.py:\n\t Adding all datasets from multiCRAB directory \"%s\"" % (sys.argv[1])
+    if bVerbose:
+        print "=== testAnalysis.py:\n\t Adding all datasets from multiCRAB directory \"%s\"" % (sys.argv[1])
     process.addDatasetsFromMulticrab(sys.argv[1])
-    #sys.exit(0)
 
 
 #================================================================================================ 
@@ -56,18 +66,18 @@ allSelections.__setattr__("jetEtaCutMax",    2.5  )
 #================================================================================================ 
 # For-loop: All b-tag discriminators
 for algo in ["pfCombinedInclusiveSecondaryVertexV2BJetTags"]:
-    print "=== testAnalysis.py:\n\t Adding algorithm \"%s\"" % (algo)
     
     # For-loop: All working points
-    for wp in ["Loose", "Medium", "Tight"]:
+    #for wp in ["Loose", "Medium", "Tight"]:
+    for wp in ["Loose"]:
         selections = allSelections.clone()
         selections.BJetSelection.bjetDiscr = algo
         selections.BJetSelection.bjetDiscrWorkingPoint = wp
         suffix = "_%s_%s" % (algo, wp)
 
-        print "=== testAnalysis.py:\n\t Adding analyzer \"%s\" for working point \"%s\"" % (algo, wp)
-        process.addAnalyzer("Test" + suffix, Analyzer("TestAnalysis", config=selections, silent=False) )
-        #sys.exit()
+        if bVerbose:
+            print "=== testAnalysis.py:\n\t Adding algorithm \"%s\" for working point \"%s\"" % (algo, wp)
+        process.addAnalyzer("Test" + suffix, Analyzer("TestAnalysis", config=selections, silent=bSilent) )
         
 
 #================================================================================================ 
@@ -88,14 +98,18 @@ process.addAnalyzer("test2", createAnalyzer)
 #================================================================================================ 
 # Pick events
 #================================================================================================ 
-#process.addOptions(EventSaver = PSet(enabled = True,pickEvents = True))
+# process.addOptions(EventSaver = PSet(enabled = True,pickEvents = True))
 
 
 #================================================================================================ 
 # Run the analysis
 #================================================================================================ 
 # Run the analysis with PROOF? By default it uses all cores, but you can give proofWorkers=<N> as a parameter
+if bVerbose:
+        print "=== testAnalysis:\n\t Running the process ..." 
 if "proof" in sys.argv:
     process.run(proof=True)
 else:
     process.run()
+
+print "=== testAnalysis:\n\t DONE"

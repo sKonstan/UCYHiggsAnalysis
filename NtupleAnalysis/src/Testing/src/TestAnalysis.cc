@@ -96,7 +96,7 @@ TestAnalysis::TestAnalysis(const ParameterSet& config)
 { }
 
 void TestAnalysis::book(TDirectory *dir) {
-  std::cout << "=== TestAnalysis.cc:\n\t TestAnalysis::book()" << std::endl;
+  // std::cout << "=== TestAnalysis.cc:\n\t TestAnalysis::book()" << std::endl;
 
   // Book histograms in event selection classes
   fTauSelection.bookHistograms(dir);
@@ -122,7 +122,7 @@ void TestAnalysis::book(TDirectory *dir) {
 
 
 void TestAnalysis::setupBranches(BranchManager& branchManager) {
-  std::cout << "=== TestAnalysis.cc:\n\t TestAnalysis::setupBranches()" << std::endl;
+  // std::cout << "=== TestAnalysis.cc:\n\t TestAnalysis::setupBranches()" << std::endl;
   fEvent.setupBranches(branchManager);
 
   return;
