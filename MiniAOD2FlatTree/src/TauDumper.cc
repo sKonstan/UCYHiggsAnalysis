@@ -93,7 +93,7 @@ void TauDumper::book(TTree* tree){
     tree->Branch( ( cfg_branchName + "_lChTrkEta")   .c_str(), &lChTrackEta[i]    );
     tree->Branch( ( cfg_branchName + "_lNeutrTrkPt") .c_str(), &lNeutrTrackPt[i]  );
     tree->Branch( ( cfg_branchName + "_lNeutrTrkEta").c_str(), &lNeutrTrackEta[i] );
-    tree->Branch( ( cfg_branchName + "_decay")       .c_str(), &decayMode[i]      );
+    tree->Branch( ( cfg_branchName + "_decayMode")   .c_str(), &decayMode[i]      );
     tree->Branch( ( cfg_branchName + "_IPxy")        .c_str(), &ipxy[i]           );
     tree->Branch( ( cfg_branchName + "_IPxySignif")  .c_str(), &ipxySignif[i]     );
     tree->Branch( ( cfg_branchName + "_nProngs")     .c_str(), &nProngs[i]        );

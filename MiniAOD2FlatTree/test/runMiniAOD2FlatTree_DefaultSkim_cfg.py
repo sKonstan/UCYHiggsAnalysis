@@ -165,6 +165,7 @@ process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
                             ),
 
                             METNoiseFilter = cms.PSet(
+                                branchName                = cms.untracked.string("METFilter"),
                                 triggerResults            = cms.InputTag(TrgResultsSource),
                                 printTriggerResultsList   = cms.untracked.bool(False),
                                 debugMode                 = cms.untracked.bool(bDebug),
@@ -192,7 +193,7 @@ process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
 
                             GenWeights = cms.VPSet(
                                 cms.PSet(
-                                    branchName = cms.untracked.string("GenWeights"),
+                                    branchName = cms.untracked.string("GenWeight"),
                                     src        = cms.InputTag("generator"),
                                     debugMode  = cms.untracked.bool(bDebug),
                                     filter     = cms.untracked.bool(False)

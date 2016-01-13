@@ -31,8 +31,6 @@ import UCYHiggsAnalysis.NtupleAnalysis.tools.git as git
 ROOT.gROOT.SetBatch(True)
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 
-_debugPUreweighting = False
-
 #================================================================================================
 # Class Definition
 #================================================================================================
@@ -163,9 +161,8 @@ class DataVersion:
 
     def __init__(self, dataVersion):
         self._version = dataVersion
-
-        self._isData = "data" in self._version
-        self._isMC = "mc" in self._version
+        self._isData  = "data" in self._version
+        self._isMC    = "mc" in self._version
 
     def __str__(self):
         return self._version
@@ -191,12 +188,12 @@ class DataVersion:
 #================================================================================================
 class Dataset:
     def __init__(self, name, files, dataVersion, lumiFile, pileup, nAllEvents):
-        self._name = name
-        self._files = files
+        self._name        = name
+        self._files       = files
         self._dataVersion = DataVersion(dataVersion)
-        self._lumiFile = lumiFile
-        self._pileup = pileup
-        self._nAllEvents = nAllEvents
+        self._lumiFile    = lumiFile
+        self._pileup      = pileup
+        self._nAllEvents  = nAllEvents
 
     def getName(self):
         return self._name
@@ -387,10 +384,13 @@ class Process:
         readMbytesTotal = 0
         callsTotal      = 0
 
-        # Sum data pu distributions
+        # Sum data PU distributions
         hPUs = {}
+
+        # For-loop: All analyzers
         for aname, analyzerIE in self._analyzers.iteritems():
             hPU = None
+            # For-loop: All datasets
             for dset in self._datasets:
                 if dset.getDataVersion().isData() and analyzerIE.runForDataset_(dset.getName()):
                     if hPU is None:
@@ -405,14 +405,17 @@ class Process:
  
         # Process over datasets
         ndset = 0
+        # For-loop: All datsets
         for dset in self._datasets:
-            ndset += 1
-            inputList = ROOT.TList()
-            nanalyzers = 0
-            anames = []
-            usePUweights = False
-            useTopPtCorrection = False
+            ndset               += 1
+            inputList            = ROOT.TList()
+            nanalyzers           = 0
+            anames               = []
+            usePUweights         = False
+            useTopPtCorrection   = False
             nAllEventsPUWeighted = 0.0
+            
+            # For-loop: All analyzers
             for aname, analyzerIE in self._analyzers.iteritems():
                 if analyzerIE.runForDataset_(dset.getName()):
                     nanalyzers += 1
@@ -420,10 +423,11 @@ class Process:
                     if hasattr(analyzer, "__call__"):
                         analyzer = analyzer(dset.getDataVersion())
                         if analyzer is None:
-                            raise Exception("Analyzer %s was specified as a function, but returned None" % aname)
+                            raise Exception("=== main.py:\n\t Analyzer '%s' was specified as a function, but returned None" % aname)
                         if not isinstance(analyzer, Analyzer):
-                            raise Exception("Analyzer %s was specified as a function, but returned object of %s instead of Analyzer" % (aname, analyzer.__class__.__name__))
+                            raise Exception("=== main.py:\n\t Analyzer '%s' was specified as a function, but returned object of '%s' instead of Analyzer" % (aname, analyzer.__class__.__name__))
                     inputList.Add(ROOT.TNamed("analyzer_"+aname, analyzer.className_()+":"+analyzer.config_()))
+
                     # ttbar status for top pt corrections
                     ttbarStatus = "0"
                     useTopPtCorrection = analyzer.exists("useTopPtWeights") and analyzer.__getattr__("useTopPtWeights")
@@ -431,10 +435,12 @@ class Process:
                     if useTopPtCorrection:
                         ttbarStatus = "1"
                     inputList.Add(ROOT.TNamed("isttbar", ttbarStatus))
+
                     # Pileup reweighting
                     if dset.getDataVersion().isMC():
+
                         if aname in hPUs.keys():
-                            if _debugPUreweighting:
+                            if self._verbose:
                                 for k in range(hPUs[aname].GetNbinsX()):
                                     print "=== main.py:\n\t DEBUG(PUreweighting): dataPU:%d:%f"%(k+1, hPUs[aname].GetBinContent(k+1))
                             inputList.Add(hPUs[aname])
@@ -445,16 +451,19 @@ class Process:
                                 hFlat.Fill(k+1, 1.0/n)
                             inputList.Add(hFlat)
                             print "=== main.py:\n\t Warning: Using a flat pileup spectrum for data (which is missing) -> MC PU spectrum is unchanged"
+
                         if dset.getPileUp() == None:
-                            raise Exception("Error: pileup spectrum is missing from dataset! Please switch to using newest multicrab!")
+                            raise Exception("=== main.py:\n\t Error: pileup spectrum is missing from dataset! Please switch to using newest multicrab!")
                         hPUMC = dset.getPileUp().Clone()
+
                         if aname not in hPUs.keys():
                             print "===main.py:\n\t The key '%s' does not exist in dictionary variable 'hPUs'. Continue" % (aname)
                             continue
+
                         if hPUMC.GetNbinsX() != hPUs[aname].GetNbinsX():
                             raise Exception("=== main.py:\n\t Pileup histogram dimension mismatch! data nPU has %d bins and MC nPU has %d bins"%(hPUs[aname].GetNbinsX(), hPUMC.GetNbinsX()))
                         hPUMC.SetName("PileUpMC")
-                        if _debugPUreweighting:
+                        if self._verbose:
                             for k in range(hPUMC.GetNbinsX()):
                                 print "=== main.py:\n\t Debug(PUreweighting): MCPU:%d:%f"%(k+1, hPUMC.GetBinContent(k+1))
                         inputList.Add(hPUMC)
@@ -479,7 +488,7 @@ class Process:
                 lumivalue = "--- not available in lumi.json (or lumi.json not available) ---"
                 if dset.getName() in lumidata.keys():
                     lumivalue = lumidata[dset.getName()]
-                    info  += '\n{:<20} {:<40}'.format("\t Luminosity", ": " + str(lumivalue) + " (fb-1)")
+                info  += '\n{:<20} {:<40}'.format("\t Luminosity", ": " + str(lumivalue) + " (fb-1)")
             else:
                 info += '\n{:<20} {:<40}'.format("\t Luminosity", ": -")
 
@@ -583,12 +592,15 @@ class Process:
                 cinfo.GetXaxis().SetBinLabel(n+1, "isData")
                 cinfo.GetXaxis().SetBinLabel(n+2, "isPileupReweighted")
                 cinfo.GetXaxis().SetBinLabel(n+3, "isTopPtReweighted")
+
                 # Add "isData" column
                 if not dset.getDataVersion().isMC():
                     cinfo.SetBinContent(n+1, cinfo.GetBinContent(1))
+
                 # Add "isPileupReweighted" column
                 if usePUweights:
                     cinfo.SetBinContent(n+2, nAllEventsPUWeighted / nanalyzers)
+
                 # Add "isTopPtReweighted" column
                 if useTopPtCorrection:
                     cinfo.SetBinContent(n+3, NAllEventsTopPt / nanalyzers)

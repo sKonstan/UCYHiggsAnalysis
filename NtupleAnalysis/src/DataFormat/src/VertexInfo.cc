@@ -15,13 +15,13 @@ VertexInfo::~VertexInfo() {}
 
 void VertexInfo::setupBranches(BranchManager& mgr) {
   //mgr.book("nPU", &fNPU); // The MC number of PU vertices is not available for data
-  mgr.book("nGoodOfflineVertices", &fNPU);
-  mgr.book("nPUvertices", &fSimulatedNPU);
-  mgr.book("pvDistanceToClosestVertex", &fPVDistanceToClosestVertex);
-  mgr.book("pvDistanceToNextVertex", &fPVDistanceToNextVertex);
-  mgr.book("pvX", &fPVx);
-  mgr.book("pvY", &fPVy);
-  mgr.book("pvZ", &fPVz);
+  mgr.book("EventInfo_nGoodOfflineVertices"     , &fNPU );
+  mgr.book("EventInfo_nPUvertices"              , &fSimulatedNPU );
+  mgr.book("EventInfo_pvDistanceToClosestVertex", &fPVDistanceToClosestVertex );
+  mgr.book("EventInfo_pvDistanceToNextVertex"   , &fPVDistanceToNextVertex );
+  mgr.book("EventInfo_pvX"                      , &fPVx );
+  mgr.book("EventInfo_pvY"                      , &fPVy );
+  mgr.book("EventInfo_pvZ"                      , &fPVz );
   bBranchesExist = true;
 }
 

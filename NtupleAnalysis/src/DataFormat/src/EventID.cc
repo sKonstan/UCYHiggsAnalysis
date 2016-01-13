@@ -11,10 +11,10 @@ EventID::EventID():
 EventID::~EventID() {}
 
 void EventID::setupBranches(BranchManager& mgr) {
-  mgr.book("event", &fEvent);
-  mgr.book("lumi", &fLumi);
-  mgr.book("run", &fRun);
-  mgr.book("NUP", &fNUP);
-  mgr.book("prescale", &fPrescale);
+  mgr.book("EventInfo_event"   , &fEvent);
+  mgr.book("EventInfo_lumi"    , &fLumi );
+  mgr.book("EventInfo_run"     , &fRun  );
+  mgr.book("EventInfo_NUP"     , &fNUP  );
+  mgr.book("EventInfo_prescale", &fPrescale);
 }
 

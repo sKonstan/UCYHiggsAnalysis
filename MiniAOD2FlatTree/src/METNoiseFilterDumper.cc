@@ -39,7 +39,7 @@ void METNoiseFilterDumper::book(TTree* tree){
 
   // For-loop: All filters
   for (size_t i = 0; i < fFilters.size(); ++i) {
-    theTree->Branch( (cfg_branchName + fFilters[i]).c_str(), &bFilters[i]);
+    theTree->Branch( (cfg_branchName + "_" + fFilters[i]).c_str(), &bFilters[i]);
   }
 
   // Create the TTree branches

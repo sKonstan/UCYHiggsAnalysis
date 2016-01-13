@@ -37,7 +37,8 @@ void GenWeightDumper::book(TTree* tree){
   // cfg_debugMode  = inputCollections[i].getUntrackedParameter<bool>("debugMode");
   cfg_branchName = inputCollections[0].getUntrackedParameter<std::string>("branchName","");
   
-  tree->Branch( (cfg_branchName + "_Weight") .c_str(), &GenWeight );
+  // tree->Branch( (cfg_branchName + "_Weight") .c_str(), &GenWeight );
+  tree->Branch( (cfg_branchName) .c_str(), &GenWeight );
 
   return;
 }

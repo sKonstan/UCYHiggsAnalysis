@@ -46,5 +46,5 @@ bool BranchBase::isBranchTypeOk(const std::string& actualType, bool print) const
 
 void BranchBase::assertValid() const {
   if(!isValid())
-    throw std::runtime_error("Tried to access branch "+name+" but doesn't exist in the TTree");
+    throw std::runtime_error("=== BranchBase::assertValid():\n\t Tried to access branch \"" + name + "\" but doesn't exist in the TTree");
 }
