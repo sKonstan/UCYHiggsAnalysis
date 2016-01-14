@@ -6,9 +6,9 @@ multicrabcreate.py [multicrab-dir-to-be-resubmitted]
 Description:
 This script is used to launch multicrab jobs, with certain customisable options.
 The file datasets.py is used an an auxiliary file to determine the samples to be processesed.
-Launching the command with a multicrab-dir as a parameter:
 
-[username@lxplus0036:test]$ multicrabcreate.py multicrab-dir-to-be-resubmitted
+Launching the command with a multicrab-dir as a parameter:
+[username@lxplus0036:test]$ multicrabCreate.py <multicrab_dir>
 resubmits some crab tasks within the multicrab dir. 
 
 Links:
@@ -92,13 +92,15 @@ def GetDatasetList(skimType):
     myDatasets  = Datasets(False)
 
     if skimType == "Default":        
-        datasetList  = myDatasets.GetDatasetObjects(miniAODversion="RunIISpring15MiniAODv2", datasetType = "CollisionData")
+        #datasetList  = myDatasets.GetDatasetObjects(miniAODversion="RunIISpring15MiniAODv2", datasetType = "CollisionData")
+        datasetList.append(myDatasets.GetDatasetObject("/MuonEG/Run2015D-PromptReco-v4/MINIAOD"))
         datasetList.append(myDatasets.GetDatasetObject('/ttHJetToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8_mWCutfix/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'))
         datasetList.append(myDatasets.GetDatasetObject('/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v3/MINIAODSIM'))
         #datasetList.append(myDatasets.GetDatasetObject('/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'))
 
         #datasetList = myDatasets.GetDatasetObjects(miniAODversion="RunIISpring15MiniAODv2")        
         #datasetList = [myDatasets.GetDatasetObject("/DoubleMuon/Run2015D-PromptReco-v4/MINIAOD")] #testing
+
         # testing
         #dataList = ['/ttHJetToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8_mWCutfix/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
         #            '/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v3/MINIAODSIM',

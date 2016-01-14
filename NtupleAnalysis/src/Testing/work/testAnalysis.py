@@ -71,7 +71,6 @@ allSelections.Trigger.triggerOR = ["HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_vx",
                                    "HLT_TripleMu_12_10_5_vx",
                                    "HLT_Ele16_Ele12_Ele8_CaloIdL_TrackIdL_vx",
                                ]
-allSelections.TauSelection.rtau = 0.0 # Disable rtau
 allSelections.__setattr__("jetPtCutMin" ,    20.0 )
 allSelections.__setattr__("jetPtCutMax" , 99999.0 )
 allSelections.__setattr__("jetEtaCutMin",   -2.5  )
