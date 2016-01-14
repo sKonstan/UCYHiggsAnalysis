@@ -103,7 +103,7 @@ def main():
             while len(name) < 30:
                 name += " "
             
-            print "===multicrabGet.py:"
+            print "=== multicrabGet.py:"
             msg  = '{:<20} {:<40}'.format("\t Dataset"          , ": " + self.dataset)
             msg += '\n {:<20} {:<40}'.format("\t Retrieved Jobs", ": " + self.retrieved)
             msg += '\n {:<20} {:<40}'.format("\t All Jobs"      , ": " + self.all)
