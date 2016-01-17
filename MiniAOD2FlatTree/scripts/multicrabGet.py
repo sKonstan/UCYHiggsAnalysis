@@ -36,6 +36,7 @@ from CRABClient.UserUtilities import getConsoleLogLevel
 # Class Definition
 #================================================================================================ 
 class colors:
+    # http://stackoverflow.com/questions/15580303/python-output-complex-line-with-floats-colored-by-value
     colordict = {
                 'RED'     :'\033[91m',
                 'GREEN'   :'\033[92m',
@@ -43,10 +44,12 @@ class colors:
                 'GRAY'    :'\033[90m',
                 'NORMAL'  :'\033[0m',
                 'ORANGE'  :'\033[33m',
-                'BOLD'    :'\033[1m' ,
+                'CYAN'    :'\033[36m',
                 'PURPLE'  :'\033[35m',
                 'LIGHTRED':'\033[91m',
                 'PINK'    :'\033[95m',
+                'YELLOW'  :'\033[93m',
+                'WHITE'  :'\033[37m',
                 }
     if sys.stdout.isatty():
         RED      = colordict['RED']
@@ -55,12 +58,14 @@ class colors:
         GRAY     = colordict['GRAY']
         NORMAL   = colordict['NORMAL']
         ORANGE   = colordict['ORANGE']
-        BOLD     = colordict['BOLD']
+        CYAN     = colordict['CYAN']
         PURPLE   = colordict['PURPLE']
         LIGHTRED = colordict['LIGHTRED']
         PINK     = colordict['PINK']
+        YELLOW   = colordict['YELLOW']
+        WHITE    = colordict['WHITE']
     else:
-        RED, GREEN, BLUE, GRAY, NORMAL, ORANGE, BOLD, PURPLE, LIGHTRED, PINK, = '', '', '', '', '', '', '', '', '', ''
+        RED, GREEN, BLUE, GRAY, NORMAL, ORANGE, CYAN, PURPLE, LIGHTRED, PINK, YELLOW, WHITE = '', '', '', '', '', '', '', '', '', '', '', ''
 
 
 class Report:
@@ -222,7 +227,7 @@ def GetTaskReports(datasetPath, status, dashboardURL, verbose=False):
     # Get all files under <dataset_dir>/results/
     files = execute("ls %s" % os.path.join( datasetPath, "results") )
 
-    try: #if 1:
+    try:
         if verbose:
             print "\t Executing \"crab status\" command"
 
@@ -242,7 +247,7 @@ def GetTaskReports(datasetPath, status, dashboardURL, verbose=False):
             touch(datasetPath)
 
         if failed > 0:
-            print "=== multicrabGet.py:\n\t Executing \"crab status\" for task \"%s\"" % ( os.path.basename(datasetPath) )
+            print "\t Found \"Failed\" jobs for task \"%s\". Executing command \"crab resubmit --dir=\"%s\"" % ( os.path.basename(datasetPath), datasetPath )
             dummy = crabCommand('resubmit', dir = datasetPath)
 
         # Assess JOB success/failure for task (again)
@@ -391,9 +396,10 @@ def main():
         # Get the reports
         reports += GetTaskReports(d, taskStatus, taskDashboard)
 
-    # For-loop: All CRAB reports (for given dataset)
-    for r in reports:
-        r.Print()
+    # For-loop: All CRAB reports
+    if bDebug:
+        for r in reports:
+            r.Print()
 
     return
 
@@ -410,7 +416,9 @@ def retrievedFiles(directory, crabResults, verbose=True):
     finished     = 0
     failed       = 0
     transferring = 0
+    running      = 0
     idle         = 0
+    submitted    = 0
     dataset      = directory.split("/")[-1]
     nJobs        = len(crabResults['jobList'])
 
@@ -437,6 +445,10 @@ def retrievedFiles(directory, crabResults, verbose=True):
             transferring += 1 
         if r[0] == 'idle':
             idle += 1 
+        if r[0] == 'running':
+            running+= 1 
+        if r[0] == 'submitted':
+            submitted+= 1 
         
     # Print results in a nice table
     if verbose:
@@ -445,22 +457,26 @@ def retrievedFiles(directory, crabResults, verbose=True):
         print
         
         # Summarise information
-        summary = []
-        summary.append( str(finished)     )
-        summary.append( str(failed)       )
-        summary.append( str(transferring) )
-        summary.append( str(idle)         )
-        summary.append( ''.join(str(retrievedLog).split()) )
-        summary.append( ''.join(str(retrievedOut).split()) )
+        nTotal    = str(nJobs)
+        nRun      = str(running)
+        nTransfer = str(transferring)
+        nFinish   = str(finished)
+        nSubmit   = str(submitted)
+        nFail     = str(failed)
+        nIdle     = str(idle)
+        nLogs     = ''.join( str(retrievedLog).split() ) 
+        nOut      = ''.join( str(retrievedOut).split() )
 
-        line  =    "{:<25} {:>4} {:<1} {:<4}".format("\t %sFinished"         % (colors.GREEN ), summary[0], "/", str(nJobs) )
-        line += "\n {:<25} {:>4} {:<1} {:<4}".format("\t %sTransferring"     % (colors.ORANGE), summary[2], "/", str(nJobs) )
-        line += "\n {:<25} {:>4} {:<1} {:<4}".format("\t %sFailed"           % (colors.RED   ), summary[1], "/", str(nJobs) )
-        line += "\n {:<25} {:>4} {:<1} {:<4}".format("\t %sIdle"             % (colors.GRAY  ), summary[3], "/", str(nJobs) )
-        line += "\n {:<25} {:>4} {:<1} {:<4}".format("\t %sRetrieved Logs"   % (colors.PURPLE), summary[4], "/", str(nJobs) )
-        line += "\n {:<25} {:>4} {:<1} {:<4}".format("\t %sRetrieved Outputs"% (colors.BLUE  ), summary[5], "/", str(nJobs) )
-        line += "\n {:<25} {:>4} {:<1} {:<4}".format("\t %s"                 % (colors.NORMAL), ""        , ""  , "")
-
+        line  = "   {:<25} {:>4} {:<1} {:<4}".format("\t %sIdle"             % (colors.GRAY  ), nIdle    , "/", nTotal )
+        line += "\n {:<25} {:>4} {:<1} {:<4}".format("\t %sSubmitted"        % (colors.YELLOW), nSubmit  , "/", nTotal )
+        line += "\n {:<25} {:>4} {:<1} {:<4}".format("\t %sFailed"           % (colors.RED   ), nFail    , "/", nTotal )
+        line += "\n {:<25} {:>4} {:<1} {:<4}".format("\t %sRunning"          % (colors.GREEN ), nRun     , "/", nTotal )
+        line += "\n {:<25} {:>4} {:<1} {:<4}".format("\t %sTransferring"     % (colors.ORANGE), nTransfer, "/", nTotal )
+        line += "\n {:<25} {:>4} {:<1} {:<4}".format("\t %sDone"             % (colors.WHITE ), nFinish  , "/", nTotal )
+        line += "\n {:<25} {:>4} {:<1} {:<4}".format("\t %sRetrieved Logs"   % (colors.PURPLE), nLogs    , "/", nTotal )
+        line += "\n {:<25} {:>4} {:<1} {:<4}".format("\t %sRetrieved Outputs"% (colors.BLUE  ), nOut     , "/", nTotal )
+        line += "\n {:<25} {:>4} {:<1} {:<4}".format("\t %s"                 % (colors.WHITE ), ""       , "" , ""     )
+        
         #print "=== multicrabGet.py:\n\t Printing summary for task \"%s\"" % ( dataset )
         print line
 

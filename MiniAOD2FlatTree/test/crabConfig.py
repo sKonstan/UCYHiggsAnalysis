@@ -1,5 +1,7 @@
 from WMCore.Configuration import Configuration
+# See https://github.com/dmwm/CRABClient/blob/master/src/python/CRABClient/ClientUtilities.py
 from CRABClient.UserUtilities import getUsernameFromSiteDB
+#from CRABClient.UserUtilities import getWorkArea
 
 config = Configuration()
 
@@ -47,7 +49,7 @@ config.Data.splitting     = 'FileBased'
 config.Data.unitsPerJob   = 5
 config.Data.publication   = False
 config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
-#config.Data.totalUnits    = -1 #10000 #testing
+config.Data.totalUnits    = 100000 #-1
 #config.Data.splitting     = "EventAwareLumiBased" # testing. please comment this and "config.Data.totalUnits" out
 # config.Data.allowNonValidInputDatase
 # config.Data.outputPrimaryDataset
