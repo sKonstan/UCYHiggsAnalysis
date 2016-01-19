@@ -28,11 +28,11 @@ replace_madhatter = ("srm://madhatter.csc.fi:8443/srm/managerv2?SFN=", "root://m
 #================================================================================================
 # Function Definitions
 #================================================================================================
-def AbortScript(keystroke):
+def AbortScript(keystroke, msg):
     '''
     Give user last chance to abort the script before its execution
     '''
-    message  =  "=== multicrabMergeHistograms.py:\n\t Press \"%s\" to abort, any other key to proceed: " % (keystroke)
+    message = "=== multicrabMergeHistograms.py:\n\t %s\n\t Press \"%s\" to abort, any other key to proceed: " % (msg, keystroke)
     response = raw_input(message)
     if (response!= keystroke):
         return
@@ -124,16 +124,17 @@ def getHistogramFileSE(stdoutFile, opts):
     return histoFile
 
 
-def splitFiles(files, filesPerEntry):
+def splitFiles(files, filesPerEntry, maxSize = 2000000000):
     '''
     '''
     i = 0
     ret = []
     if filesPerEntry < 0:
-#        return [(0, files)]
-        maxsize = 2000000000
-        sumsize = 0
+        maxsize   = maxSize
+        sumsize   = 0
         firstFile = 0
+
+        # For-loop: All files
         for ifile,f in enumerate(files):
             sumsize+=os.stat(f).st_size
             if sumsize > maxsize:
@@ -343,19 +344,23 @@ def main(opts, args):
     mergedFiles  = []
 
     # Print information to user
-    print "=== multicrabMergeHistograms.py:\n\t Found %s CRAB directories:" % (len (crabdirs))
-    for d in crabdirs:
-        print "\t\t ", d
+    if opts.verbose:
+        print "=== multicrabMergeHistograms.py:\n\t Found %s CRAB directories:" % (len (crabdirs))
+        for d in crabdirs:
+            print "\t ", d
 
     # Append regex expressions
     global re_histos
     re_histos.append(re.compile("^output files:.*?(?P<file>%s)" % opts.input))
     re_histos.append(re.compile("^\s+file\s+=\s+(?P<file>%s)" % opts.input))
 
+    print "=== multicrabMergeHistograms.py:"
     # For-loop: All CRAB directories
     for iDir, d in enumerate(crabdirs):
 
-        print "=== multicrabMergeHistograms.py:\n\t %s (%s/%s)" % ( multicrabDir[-1] + d, iDir+1, len(crabdirs) )
+        if iDir >0:
+            print
+        print "\t %s (%s/%s)" % ( multicrabDir[-1] + d, iDir+1, len(crabdirs) )
         d           = d.replace("/", "")
         stdoutFiles = glob.glob(os.path.join(d, "results", "cmsRun_*.log.tar.gz"))
         files       = []
@@ -373,7 +378,7 @@ def main(opts, args):
                     else:
                         print "\t Task %s, skipping job %s: input root file not found from stdout" % (d, f)
                 else:
-                    histoFile = getHistogramFile(f, opts, verbose=False)
+                    histoFile = getHistogramFile(f, opts, opts.verbose)
                     if histoFile != None:
                         path = os.path.join(os.path.dirname(f), histoFile)
                         if os.path.exists(path):
@@ -408,9 +413,9 @@ def main(opts, args):
         # Split file to several smaller ones if its size is greater than 2 GB
         filesSplit = splitFiles(files, opts.filesPerMerge)
         if len(filesSplit) == 1:
-            print "\t Merging %d file(s)" % (len(files))
+            print "\t Merging %d files" % (len(files))
         else:
-            print "\t Merging %d file(s) to %d files" % (len(files), len(filesSplit))
+            print "\t Merging %d files to %d files" % (len(files), len(filesSplit))
 
         # For-loop: All input files
         for index, inputFiles in filesSplit:
@@ -489,7 +494,10 @@ if __name__ == "__main__":
     parser.add_option("-i", dest="input", type="string", default="miniAOD2FlatTree_.*?\.root",
                       help="Regex for input root files (note: remember to escape * and ? !) (default: 'miniAOD2FlatTree_.*?\.root')")
     
-    parser.add_option("-o", dest="output", type="string", default="histograms-%s.root",
+    #parser.add_option("-o", dest="output", type="string", default="histograms-%s.root",
+    #                  help="Pattern for merged output root files (use '%s' for crab directory name) (default: 'histograms-%s.root')")
+
+    parser.add_option("-o", dest="output", type="string", default="miniAOD2FlatTree-%s.root",
                       help="Pattern for merged output root files (use '%s' for crab directory name) (default: 'histograms-%s.root')")
 
     parser.add_option("--test", dest="test", default=False, action="store_true",
@@ -531,7 +539,7 @@ if __name__ == "__main__":
         opts.verbose = True
     
     if not opts.assertJobs:
-        print "=== multicrabMergeHistograms.py:\n\t WARNING! You have launched the script without enabling the \" --assert\" option. Are you sure you want to continue?"
-        AbortScript(keystroke="q")
+        msg = "WARNING! You have launched the script without enabling the \"--assert\" option. Are you sure you want to continue?"
+        AbortScript("q", msg)
 
     sys.exit( main(opts, args) )
