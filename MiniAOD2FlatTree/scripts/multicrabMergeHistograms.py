@@ -285,10 +285,10 @@ def pileup(fname):
         hPU = None
 
         dataVersion = fOUT.Get("configInfo/dataVersion")
-        dv_re = re.compile("data")  
-        match = dv_re.search(dataVersion.GetTitle())
+        dv_re       = re.compile("data")  
+        match       = dv_re.search(dataVersion.GetTitle())
         if match:
-            puFile = os.path.join(os.path.dirname(fname),"PileUp.root")
+            puFile = os.path.join(os.path.dirname(fname), "PileUp.root")
             if os.path.exists(puFile):
                 fIN = ROOT.TFile.Open(puFile)
                 hPU = fIN.Get("pileup")
@@ -296,9 +296,12 @@ def pileup(fname):
                 print "PileUp not found in",os.path.dirname(fname),", did you run hplusLumiCalc?"
 
         if not hPU == None:
-            fOUT.cd("configInfo")
-            hPU.Write("",ROOT.TObject.kOverwrite)
+            folder = "configInfo"
+            fOUT.cd(folder)
+            print "=== multicrabMergeHistograms.py:\n\t Writing %s/%s to %s" % (folder, hPU.GetName(), puFile)
+            hPU.Write("", ROOT.TObject.kOverwrite)
 
+        # Close file
         fOUT.Close()
     return
 
@@ -325,33 +328,35 @@ def delFolder(regexp):
 def main(opts, args):
     '''
     '''
-    print "=== multicrabMergeHistograms.py:"
-    crabdirs = multicrab.getTaskDirectories(opts)
-    
+
+    # Declare Variables
+    multicrabDir = os.getcwd().split("/")    
+    crabdirs     = multicrab.getTaskDirectories(opts)
+    exit_re      = re.compile("/results/cmsRun_(?P<exitcode>\d+)\.log\.tar\.gz")
+    mergedFiles  = []
+
+    # Print information to user
+    print "=== multicrabMergeHistograms.py:\n\t Found %s CRAB directories:" % (len (crabdirs))
+    for d in crabdirs:
+        print "\t\t ", d
+
+    # Append regex expressions
     global re_histos
     re_histos.append(re.compile("^output files:.*?(?P<file>%s)" % opts.input))
     re_histos.append(re.compile("^\s+file\s+=\s+(?P<file>%s)" % opts.input))
 
-    exit_re      = re.compile("/results/cmsRun_(?P<exitcode>\d+)\.log\.tar\.gz")
-    multicrabDir = os.getcwd().split("/")
-    mergedFiles  = []
     # For-loop: All CRAB directories
     for iDir, d in enumerate(crabdirs):
-        print "\t %s (%s/%s)" % ( multicrabDir[-1] + d, iDir+1, len(crabdirs) )
 
+        print "=== multicrabMergeHistograms.py:\n\t %s (%s/%s)" % ( multicrabDir[-1] + d, iDir+1, len(crabdirs) )
         d           = d.replace("/", "")
         stdoutFiles = glob.glob(os.path.join(d, "results", "cmsRun_*.log.tar.gz"))
         files       = []
         exitCodes   = []
-        print "\t %s Jobs" % ( len(stdoutFiles) )
 
         #For-loop: All stdout files
         for index, f in enumerate(stdoutFiles):
-            #print "index = ", index
-            #msg = "\r\t Processing job %s" % (index)#, len(stdoutFiles), " "*10)
-            #print '{0}\r'.format(msg),
-            msg = "\r\t Processing job %s" % (index)
-            print msg
+            print "\t Processing job %s of %s" % (index, len(stdoutFiles) )
 
             try:
                 if opts.filesInSE:
@@ -375,10 +380,6 @@ def main(opts, args):
                 exit_match = exit_re.search(f)
                 if exit_match:
                     exitCodes.append( int(exit_match.group("exitcode")) )
-            
-        # To avoid overwriting previous print statement
-        print
-        sys.exit()#xenios
 
         if opts.test:
             if len(exitCodes) > 0:
@@ -394,11 +395,12 @@ def main(opts, args):
             if not os.path.isfile(f):
                 raise Exception("=== multicrabMergeHistograms.py:\n\t File %s is marked as output file in the CMSSW_N.stdout, but does not exist" % f)
 
+        # Split file to several smaller ones if its size is greater than 2 GB
         filesSplit = splitFiles(files, opts.filesPerMerge)
         if len(filesSplit) == 1:
-            print "\t Task %s, merging %d file(s)" % (d, len(files))
+            print "\t Merging %d file(s)" % (d, len(files))
         else:
-            print "\t Task %s, merging %d file(s) to %d files" % (d, len(files), len(filesSplit))
+            print "\t Merging %d file(s) to %d files" % (d, len(files), len(filesSplit))
 
         # For-loop: All input files
         for index, inputFiles in filesSplit:
@@ -420,7 +422,6 @@ def main(opts, args):
                     print "cp %s %s" % (inputFiles[0], mergeName)
                 if not opts.test:
                     shutil.copy(inputFiles[0], mergeName)
-                
             else:
                 if opts.fast:
                     ret = hplusHadd(opts, mergeName, inputFiles)
@@ -453,13 +454,13 @@ def main(opts, args):
     if opts.deleteImmediately:
         deleteMessage = " (source files deleted immediately)"
 
-    print
     print "\t Merged histogram files%s:" % deleteMessage
+    # For-loop: All merged files
     for f, sourceFiles in mergedFiles:
         print "\t %s (from %d file(s))" % (f, len(sourceFiles))
         delete(f,"Generated")
         delete(f,"Commit")
-        delete(f,"dataVersion")
+        delete(f,"dataVersion")        
         if opts.delete and not opts.deleteImmediately:
             for srcFile in sourceFiles:
                 if opts.verbose:
