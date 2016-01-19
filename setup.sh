@@ -89,17 +89,17 @@ else
         mkdir -p .python/UCYHiggsAnalysis
         touch .python/UCYHiggsAnalysis/__init__.py
     fi
-    for DIR in NtupleAnalysis HeavyChHiggsToTauNu; do
-        if [ ! -e .python/UCYHiggsAnalysis/$DIR ]; then
-            ln -s $HIGGSANALYSIS_BASE/$DIR/python .python/UCYHiggsAnalysis/$DIR
-            touch .python/UCYHiggsAnalysis/$DIR/__init__.py
-            for d in .python/UCYHiggsAnalysis/$DIR/*; do
-                if [ -d $d ]; then
-                    touch $d/__init__.py
-                fi
-            done
-        fi
-    done
+    #for DIR in NtupleAnalysis HeavyChHiggsToTauNu; do
+    #    if [ ! -e .python/UCYHiggsAnalysis/$DIR ]; then
+    #        ln -s $HIGGSANALYSIS_BASE/$DIR/python .python/UCYHiggsAnalysis/$DIR
+    #        touch .python/UCYHiggsAnalysis/$DIR/__init__.py
+    #        for d in .python/UCYHiggsAnalysis/$DIR/*; do
+    #            if [ -d $d ]; then
+    #                touch $d/__init__.py
+    #            fi
+    #        done
+    #    fi
+    #done
     for DIR in `ls NtupleAnalysis/src` ; do
         if [[ ! -e .python/UCYHiggsAnalysis/$DIR ]] && [[ -e $HIGGSANALYSIS_BASE/NtupleAnalysis/src/$DIR/python ]]; then
             ln -s $HIGGSANALYSIS_BASE//NtupleAnalysis/src/$DIR/python .python/UCYHiggsAnalysis/$DIR
@@ -119,7 +119,8 @@ else
     fi
 
 fi
-export PATH=$HIGGSANALYSIS_BASE/HeavyChHiggsToTauNu/scripts:$HIGGSANALYSIS_BASE/NtupleAnalysis/scripts:$PATH
+#export PATH=$HIGGSANALYSIS_BASE/HeavyChHiggsToTauNu/scripts:$HIGGSANALYSIS_BASE/NtupleAnalysis/scripts:$PATH
+export PATH=$HIGGSANALYSIS_BASE/NtupleAnalysis/scripts:$PATH
 
 # Install externals if necessary
 sh +x installexternals.sh
