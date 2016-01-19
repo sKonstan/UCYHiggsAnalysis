@@ -286,31 +286,41 @@ def pileup(fname):
     '''
     '''
 
-    if os.path.exists(fname):
-        fOUT = ROOT.TFile.Open(fname,"UPDATE")
-        fOUT.cd()
+    if not os.path.exists(fname):
+        print "=== multicrabMergeHistograms.py:\n\t ERROR! Could not find file %s " % (fname)
 
-        hPU = None
+    # Open file to update it
+    fileMode = "UPDATE"
+    print "\t\t Opening file in %s mode" % (fileMode)
+    fOUT = ROOT.TFile.Open(fname, fileMode)
+    fOUT.cd()
+    
+    hPU = None
 
-        dataVersion = fOUT.Get("configInfo/dataVersion")
-        dv_re       = re.compile("data")  
-        match       = dv_re.search(dataVersion.GetTitle())
-        if match:
-            puFile = os.path.join(os.path.dirname(fname), "PileUp.root")
-            if os.path.exists(puFile):
-                fIN = ROOT.TFile.Open(puFile)
-                hPU = fIN.Get("pileup")
-            else:
-                print "PileUp not found in",os.path.dirname(fname),", did you run hplusLumiCalc?"
+    dataVersion   = fOUT.Get("configInfo/dataVersion")    
+    stringToMatch = "data"
+    dv_re         = re.compile(stringToMatch)
+    match         = dv_re.search(dataVersion.GetTitle())
+    print "match = %s, dataVersion.GetTitle() = %s" % (match, dataVersion.GetTitle())
+    if match:
+        print "\t Datataset is of type \"%s\". Will add to it Pile-Up histogram" % (dataVersion.GetTitle())
+        puFile = os.path.join(os.path.dirname(fname), "PileUp.root")
+        if os.path.exists(puFile):
+            print "\t Opening file %s" % (puFile)
+            fIN = ROOT.TFile.Open(puFile)
+            hPU = fIN.Get("pileup")
+        else:
+            print "\t PileUp not found in" ,os.path.dirname(fname),", did you run hplusLumiCalc?"
+    else:
+        print "\t Datataset is of type \"%s\". Skipping Pile-Up histogram" % (dataVersion.GetTitle())
+    if not hPU == None:
+        folder = "configInfo"
+        fOUT.cd(folder)
+        print "\t Writing %s/%s to %s" % (folder, hPU.GetName(), puFile)            
+        hPU.Write("", ROOT.TObject.kOverwrite)
 
-        if not hPU == None:
-            folder = "configInfo"
-            fOUT.cd(folder)
-            print "=== multicrabMergeHistograms.py:\n\t Writing %s/%s to %s" % (folder, hPU.GetName(), puFile)
-            hPU.Write("", ROOT.TObject.kOverwrite)
-
-        # Close file
-        fOUT.Close()
+    # Close file
+    fOUT.Close()
     return
 
 
@@ -392,7 +402,7 @@ def main(opts, args):
                 exit_match = exit_re.search(f)
                 if exit_match:
                     exitCodes.append( int(exit_match.group("exitcode")) )
-                    
+
         # Print new line (so that previous print is not deleted)
         print 
 
@@ -462,6 +472,7 @@ def main(opts, args):
                         print "rm %s" % srcFile
                     if not opts.test:
                         os.remove(srcFile)
+        break
     
     deleteMessage = ""
     if opts.delete:
@@ -483,8 +494,8 @@ def main(opts, args):
                 if not opts.test:
                     os.remove(srcFile)
         pileup(f)
-
     return 0
+
 
 if __name__ == "__main__":
     parser = OptionParser(usage="Usage: %prog [options]")

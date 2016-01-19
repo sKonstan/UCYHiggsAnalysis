@@ -4361,7 +4361,7 @@ class DatasetPrecursor:
                 if pileup == None:
                     pileup = aux.Get(rootFile, "configInfo/pileup")
                     if pileup == None:
-                        print "=== dataset.py:\n\y Unable to find 'pileup' or 'configInfo/pileup' from ROOT file '%s'" % name
+                        print "=== dataset.py:\n\t Unable to find 'pileup' or 'configInfo/pileup' from ROOT file '%s'" % name
                 if self._pileup is None:
                     if pileup != None:
                         self._pileup = pileup
