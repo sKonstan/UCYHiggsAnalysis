@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+#================================================================================================
+# Import modules
+#================================================================================================
 import os, re
 import sys
 import glob
@@ -13,46 +16,64 @@ ROOT.gROOT.SetBatch(True)
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 import UCYHiggsAnalysis.NtupleAnalysis.tools.multicrab as multicrab
-#import HiggsAnalysis.NtupleAnalysis.tools.dataset._histoToDict as histoToDict
 
-re_histos = []
-re_se = re.compile("newPfn =\s*(?P<url>\S+)")
+#================================================================================================
+# Global Variables
+#================================================================================================
+re_histos         = []
+re_se             = re.compile("newPfn =\s*(?P<url>\S+)")
 replace_madhatter = ("srm://madhatter.csc.fi:8443/srm/managerv2?SFN=", "root://madhatter.csc.fi:1094")
 
+
+#================================================================================================
+# Function Definitions
+#================================================================================================
 def histoToDict(histo):
+    '''
+    '''
     ret = {}
     
     for bin in xrange(1, histo.GetNbinsX()+1):
-        ret[histo.GetXaxis().GetBinLabel(bin)] = histo.GetBinContent(bin)
-    
+        ret[histo.GetXaxis().GetBinLabel(bin)] = histo.GetBinContent(bin)    
     return ret
 
-def getHistogramFile(stdoutFile, opts):
-    multicrab.assertJobSucceeded(stdoutFile, opts.allowJobExitCodes)
+
+def GetNumOfLinesInFile(fileName):
+    '''
+    Self explanatory
+    '''
+    return sum(1 for line in fileName)    
+
+
+def getHistogramFile(stdoutFile, opts, verbose=False):
+    '''
+    '''
+    multicrab.assertJobSucceeded(stdoutFile, opts.allowJobExitCodes, True)
     histoFile = None
 
+    # Sanity check
     if tarfile.is_tarfile(stdoutFile):
-        fIN = tarfile.open(stdoutFile)
+        if verbose:
+            print "==== multicrabMergeHistograms.py:\n\t Opening tarfile %s" % (stdoutFile)
+        fIN    = tarfile.open(stdoutFile)
         log_re = re.compile("cmsRun-stdout-(?P<job>\d+)\.log")
+        
+        # For-loop: All members  
         for member in fIN.getmembers():
-            f = fIN.extractfile(member)
+            f     = fIN.extractfile(member)
             match = log_re.search(f.name)
             if match:
-                #histoFile = "miniaod2tree_%s.root"%match.group("job")
-                histoFile = "miniAOD2FlatTree_%s.root"%match.group("job")
-                """
-                for line in f:
-	            for r in re_histos:   
-            		m = r.search(line)
-            		if m:
-                	    histoFile = m.group("file")
-                	    break
-        	    if histoFile is not None:
-            		break
-                """
+                progress = "\r\t Processing job %s" % (match.group("job"))
+                print '{0}\r'.format(progress),
+                histoFile = "miniAOD2FlatTree_%s.root" % match.group("job")
+        if verbose:
+            print "==== multicrabMergeHistograms.py:\n\t Closing tarfile %s" % (stdoutFile)
         fIN.close()
     else:
+        if verbose:
+            print "==== multicrabMergeHistograms.py:\n\t Opening file %s" % (stdoutFile)            
         f = open(stdoutFile)
+        # For-loop: All lines in file 
         for line in f:
             for r in re_histos:
                 m = r.search(line)
@@ -64,23 +85,31 @@ def getHistogramFile(stdoutFile, opts):
         f.close()
     return histoFile
 
+
 def getHistogramFileSE(stdoutFile, opts):
+    '''
+    '''
     multicrab.assertJobSucceeded(stdoutFile, opts.allowJobExitCodes)
     histoFile = None
-    f = open(stdoutFile)
+    f         = open(stdoutFile)
+    # For-loop: All lines in file
     for line in f:
         m = re_se.search(line)
         if m:
             histoFile = m.group("url")
             break
     f.close()
+
     if histoFile != None:
         if not replace_madhatter[0] in histoFile:
             raise Exception("Other output SE's than madhatter are not supported at the moment (encountered PFN %s)"%histoFile)
         histoFile = histoFile.replace(replace_madhatter[0], replace_madhatter[1])
     return histoFile
 
+
 def splitFiles(files, filesPerEntry):
+    '''
+    '''
     i = 0
     ret = []
     if filesPerEntry < 0:
@@ -107,7 +136,10 @@ def splitFiles(files, filesPerEntry):
             i += 1
     return ret
 
+
 def hadd(opts, mergeName, inputFiles):
+    '''
+    '''
     cmd = ["hadd"]
     if opts.filesInSE:
         cmd.append("-T") # don't merge TTrees via xrootd
@@ -130,7 +162,10 @@ def hadd(opts, mergeName, inputFiles):
         return 1
     return 0
 
+
 def hplusHadd(opts, mergeName, inputFiles):
+    '''
+    '''
     args = {}
     if not opts.verbose:
         args = {"stdout": subprocess.PIPE, "stderr": subprocess.STDOUT}
@@ -183,12 +218,22 @@ def hplusHadd(opts, mergeName, inputFiles):
     
     return 0
 
-# Check that configInfo/configinfo control bin matches to number of
-# input files, in order to monitor a mysterious bug reported by Lauri
+
+#================================================================================================
+# Class Definition    
+#================================================================================================
 class SanityCheckException(Exception):
+    '''
+    Check that configInfo/configinfo control bin matches to number of
+    input files, in order to monitor a mysterious bug reported by Lauri
+    '''
     def __init__(self, message):
         super(SanityCheckException, self).__init__(message)
+
+
 def sanityCheck(mergedFile, inputFiles):
+    '''
+    '''
     tfile = ROOT.TFile.Open(mergedFile)
     configinfo = tfile.Get("configInfo/configinfo")
     if configinfo:
@@ -196,8 +241,12 @@ def sanityCheck(mergedFile, inputFiles):
 	info = histoToDict(configinfo)
         if int(info["control"]) != len(inputFiles):
             raise SanityCheckException("configInfo/configinfo:control = %d, len(inputFiles) = %d" % (int(info["control"]), len(inputFiles)))
+    return
+
 
 def delete(fname,regexp):
+    '''
+    '''
 
     fIN = ROOT.TFile.Open(fname,"UPDATE")
     fIN.cd()
@@ -212,8 +261,12 @@ def delete(fname,regexp):
                 fIN.cd()
     delFolder(regexp)
     fIN.Close()
+    return
+
 
 def pileup(fname):
+    '''
+    '''
 
     if os.path.exists(fname):
         fOUT = ROOT.TFile.Open(fname,"UPDATE")
@@ -231,19 +284,18 @@ def pileup(fname):
                 hPU = fIN.Get("pileup")
             else:
                 print "PileUp not found in",os.path.dirname(fname),", did you run hplusLumiCalc?"
-#        else:
-#
-#            tree = fOUT.Get("Events")
-#            tree.Draw("nPUvertices>>PileUp(50,0,50)", "", "goff e")
-#            hPU = tree.GetHistogram().Clone()
 
         if not hPU == None:
             fOUT.cd("configInfo")
             hPU.Write("",ROOT.TObject.kOverwrite)
 
         fOUT.Close()
+    return
+
 
 def delFolder(regexp):
+    '''
+    '''
     keys = ROOT.gDirectory.GetListOfKeys()
     del_re = re.compile(regexp)
     deleted = False
@@ -257,23 +309,33 @@ def delFolder(regexp):
                 else:
                     cycle = keys.At(i).GetCycle()
                     ROOT.gDirectory.Delete(keyName+";%i"%cycle)
+    return
+
 
 def main(opts, args):
+    '''
+    '''
+    print "=== multicrabMergeHistograms.py:"
     crabdirs = multicrab.getTaskDirectories(opts)
-
+    
     global re_histos
     re_histos.append(re.compile("^output files:.*?(?P<file>%s)" % opts.input))
     re_histos.append(re.compile("^\s+file\s+=\s+(?P<file>%s)" % opts.input))
 
-    exit_re = re.compile("/results/cmsRun_(?P<exitcode>\d+)\.log\.tar\.gz")
+    exit_re      = re.compile("/results/cmsRun_(?P<exitcode>\d+)\.log\.tar\.gz")
+    multicrabDir = os.getcwd().split("/")
+    mergedFiles  = []
+    # For-loop: All CRAB directories
+    for iDir, d in enumerate(crabdirs):
+        print "\t %s (%s/%s)" % ( multicrabDir[-1] + d, iDir+1, len(crabdirs) )
 
-    mergedFiles = []
-    for d in crabdirs:
-        d = d.replace("/", "")
+        d           = d.replace("/", "")
         stdoutFiles = glob.glob(os.path.join(d, "results", "cmsRun_*.log.tar.gz"))
+        files       = []
+        exitCodes   = []
+        print "\t %s Jobs" % ( len(stdoutFiles) )
 
-        files = []
-        exitCodes = []
+        #For-loop: All stdout files
         for f in stdoutFiles:
             try:
                 if opts.filesInSE:
@@ -281,7 +343,7 @@ def main(opts, args):
                     if histoFile != None:
                         files.append(histoFile)
                     else:
-                        print "Task %s, skipping job %s: input root file not found from stdout" % (d, f)
+                        print "\t Task %s, skipping job %s: input root file not found from stdout" % (d, f)
                 else:
                     histoFile = getHistogramFile(f, opts)
                     if histoFile != None:
@@ -289,33 +351,40 @@ def main(opts, args):
                         if os.path.exists(path):
                             files.append(path)
                         else:
-                            print "Task %s, skipping job %s: input root file found from stdout, but does not exist" % (d, f)
+                            print "\t Task %s, skipping job %s: input root file found from stdout, but does not exist" % (d, f)
                     else:
-                        print "Task %s, skipping job %s: input root file not found from stdout" % (d, f)
+                        print "\t Task %s, skipping job %s: input root file not found from stdout" % (d, f)
             except multicrab.ExitCodeException, e:
-                print "Task %s, skipping job %s: %s" % (d, f, str(e))
+                print "\t Task %s, skipping job %s: %s" % (d, f, str(e) )
                 exit_match = exit_re.search(f)
                 if exit_match:
-                    exitCodes.append(int(exit_match.group("exitcode")))
+                    exitCodes.append( int(exit_match.group("exitcode")) )
+            
+        # To avoid overwriting previous print statement
+        print
+        sys.exit()#xenios
 
         if opts.test:
             if len(exitCodes) > 0:
-                print "        jobs with problems:",sorted(exitCodes)
+                print "        jobs with problems:", sorted(exitCodes)
             continue
 
         if len(files) == 0:
-            print "Task %s, skipping, no files to merge" % d
+            print "\t Task %s, skipping, no files to merge" % d
             continue
+
+        # For loop: All files
         for f in files:
             if not os.path.isfile(f):
-                raise Exception("File %s is marked as output file in the  CMSSW_N.stdout, but does not exist" % f)
+                raise Exception("=== multicrabMergeHistograms.py:\n\t File %s is marked as output file in the CMSSW_N.stdout, but does not exist" % f)
 
         filesSplit = splitFiles(files, opts.filesPerMerge)
         if len(filesSplit) == 1:
-            print "Task %s, merging %d file(s)" % (d, len(files))
+            print "\t Task %s, merging %d file(s)" % (d, len(files))
         else:
-            print "Task %s, merging %d file(s) to %d files" % (d, len(files), len(filesSplit))
+            print "\t Task %s, merging %d file(s) to %d files" % (d, len(files), len(filesSplit))
 
+        # For-loop: All input files
         for index, inputFiles in filesSplit:
             tmp = d
             if len(filesSplit) > 1:
@@ -323,7 +392,7 @@ def main(opts, args):
             mergeName = os.path.join(d, "results", opts.output % tmp)
             if os.path.exists(mergeName) and not opts.test:
                 if opts.verbose:
-                    print "mv %s %s" % (mergeName, mergeName+".backup")
+                    print "\t mv %s %s" % (mergeName, mergeName+".backup")
                 shutil.move(mergeName, mergeName+".backup")
 
             # FIXME: add here reading of first xrootd file, finding all TTrees, and writing the TList to mergeName file
@@ -352,7 +421,7 @@ def main(opts, args):
             try:
                 sanityCheck(mergeName, inputFiles)
             except SanityCheckException, e:
-                print "Task %s: %s; disabling input file deletion" % (d, str(e))
+                print "\t Task %s: %s; disabling input file deletion" % (d, str(e))
                 opts.deleteImmediately = False
                 opts.delete = False
             if opts.deleteImmediately:
@@ -369,16 +438,16 @@ def main(opts, args):
         deleteMessage = " (source files deleted immediately)"
 
     print
-    print "Merged histogram files%s:" % deleteMessage
+    print "\t Merged histogram files%s:" % deleteMessage
     for f, sourceFiles in mergedFiles:
-        print "  %s (from %d file(s))" % (f, len(sourceFiles))
+        print "\t %s (from %d file(s))" % (f, len(sourceFiles))
         delete(f,"Generated")
         delete(f,"Commit")
         delete(f,"dataVersion")
         if opts.delete and not opts.deleteImmediately:
             for srcFile in sourceFiles:
                 if opts.verbose:
-                    print "rm %s" % srcFile
+                    print "\t rm %s" % srcFile
                 if not opts.test:
                     os.remove(srcFile)
         pileup(f)
@@ -419,4 +488,4 @@ if __name__ == "__main__":
     if opts.test:
         opts.verbose = True
 
-    sys.exit(main(opts, args))
+    sys.exit( main(opts, args) )

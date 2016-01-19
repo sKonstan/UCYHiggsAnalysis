@@ -12,8 +12,8 @@ from UCYHiggsAnalysis.MiniAOD2FlatTree.tools.dataOptions import getOptionsDataVe
 bSummary         = False #Default is "False"
 bDependencies    = False #Default is "False" 
 bDumpCollections = False #Default is "False"
-iMaxEvents       = 10000
-iReportEvery     = 10
+iMaxEvents       = 1000
+iReportEvery     = 100
 skimType         = "NoSkim" #"NoSkim #"Trigger" #"DefaultSkim"
 #dataset          = "/ttHJetToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8_mWCutfix/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
 dataset          = "/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v3/MINIAODSIM"
