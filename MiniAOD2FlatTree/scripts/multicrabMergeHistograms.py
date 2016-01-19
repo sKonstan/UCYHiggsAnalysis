@@ -363,7 +363,7 @@ def main(opts, args):
 
         #For-loop: All stdout files
         for index, f in enumerate(stdoutFiles):
-            print "\t Processing job %s of %s" % (index, len(stdoutFiles) )
+            print "\r\t Processing job %s of %s%s" % (index+1, len(stdoutFiles), " "*10 ),
 
             try:
                 if opts.filesInSE:
@@ -387,6 +387,9 @@ def main(opts, args):
                 exit_match = exit_re.search(f)
                 if exit_match:
                     exitCodes.append( int(exit_match.group("exitcode")) )
+                    
+        # Print new line (so that previous print is not deleted)
+        print 
 
         if opts.test:
             if len(exitCodes) > 0:
@@ -461,10 +464,10 @@ def main(opts, args):
     if opts.deleteImmediately:
         deleteMessage = " (source files deleted immediately)"
 
-    print "\t Merged histogram files%s:" % deleteMessage
+    print "=== multicrabMergeHistograms.py:\n\t Merged histogram files%s:" % deleteMessage
     # For-loop: All merged files
     for f, sourceFiles in mergedFiles:
-        print "\t %s (from %d file(s))" % (f, len(sourceFiles))
+        print "\t \t %s (from %d files)" % (f, len(sourceFiles))
         delete(f,"Generated")
         delete(f,"Commit")
         delete(f,"dataVersion")        
@@ -481,28 +484,41 @@ def main(opts, args):
 if __name__ == "__main__":
     parser = OptionParser(usage="Usage: %prog [options]")
     multicrab.addOptions(parser)
-    parser.add_option("-i", dest="input", type="string", default="histograms_.*?\.root",
-                      help="Regex for input root files (note: remember to escape * and ? !) (default: 'histograms_.*?\.root')")
+    #parser.add_option("-i", dest="input", type="string", default="histograms_.*?\.root",
+    #                  help="Regex for input root files (note: remember to escape * and ? !) (default: 'histograms_.*?\.root')")
+    parser.add_option("-i", dest="input", type="string", default="miniAOD2FlatTree_.*?\.root",
+                      help="Regex for input root files (note: remember to escape * and ? !) (default: 'miniAOD2FlatTree_.*?\.root')")
+    
     parser.add_option("-o", dest="output", type="string", default="histograms-%s.root",
                       help="Pattern for merged output root files (use '%s' for crab directory name) (default: 'histograms-%s.root')")
+
     parser.add_option("--test", dest="test", default=False, action="store_true",
                       help="Just test, do not do any merging or deleting (might be useful for checking what would happen). Implies --verbose.")
+
     parser.add_option("--delete", dest="delete", default=False, action="store_true",
                       help="Delete the source files to save disk space (default is to keep the files)")
+
     parser.add_option("--deleteImmediately", dest="deleteImmediately", default=False, action="store_true",
                       help="Delete the source files immediately after merging to save disk space (--delete deletes them after all crab tasks have been merged)")
+
     parser.add_option("--fast", dest="fast", default=False, action="store_true",
                       help="Use hplusHadd.py instead of hadd, it is faster but works only for TH1's. It also consumes (much) more memory, and is run for a couple of files at a time (see --fastFilesPerMerge).")
+
     parser.add_option("--fastFilesPerMerge", dest="fastFilesPerMerge", default=4, type="int",
                       help="With --fast, merge this many files at a time (default: 4)")
+
     parser.add_option("--filesPerMerge", dest="filesPerMerge", default=-1, type="int",
                       help="Merge at most this many files together, possibly resulting to multiple merged files. Use case: large ntuples. (default: -1 to merge all files to one)")
+
     parser.add_option("--filesInSE", dest="filesInSE", default=False, action="store_true",
                       help="The ROOT files to be merged are in an SE, merge the files from there. File locations are read from CMSSW_*.stdout files. NOTE: TTrees are not merged (it is assumed that due to TTrees the files are so big that they have to be stored in SE), but are replaced with TList of strings of the PFN's of the files via xrootd protocol.")
+
     parser.add_option("--allowJobExitCode", dest="allowJobExitCodes", default=[], action="append", type="int",
                       help="Allow merging files from this non-zero job exit code (zero exe exit code is still required). Can be given multiple times.")
+
     parser.add_option("--verbose", dest="verbose", default=False, action="store_true",
                       help="Verbose mode")
+
     parser.add_option("--assert", dest="assertJobs", default=False, action="store_true",
                       help="Before merging any files, assert that all CRAB jobs succeeded!")
     
