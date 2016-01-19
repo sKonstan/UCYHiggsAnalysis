@@ -374,7 +374,7 @@ def AbortCrabTask(keystroke):
     if (response!= keystroke):
         return
     else:
-        message  =  "=== multicrabCreate.py:\n\t EXIT"
+        print "=== multicrabCreate.py:\n\t EXIT"
         sys.exit()
     return
 

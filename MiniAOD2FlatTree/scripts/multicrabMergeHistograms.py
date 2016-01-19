@@ -28,12 +28,17 @@ replace_madhatter = ("srm://madhatter.csc.fi:8443/srm/managerv2?SFN=", "root://m
 #================================================================================================
 # Function Definitions
 #================================================================================================
-def backspace(n):
+def AbortScript(keystroke):
     '''
-    Back for 'n' chars
+    Give user last chance to abort the script before its execution
     '''
-    # Use '\r' to go back
-    print '\r' * n
+    message  =  "=== multicrabMergeHistograms.py:\n\t Press \"%s\" to abort, any other key to proceed: " % (keystroke)
+    response = raw_input(message)
+    if (response!= keystroke):
+        return
+    else:
+        print "=== multicrabMergeHistograms.py:\n\t EXIT"
+        sys.exit()
     return
 
 
@@ -57,7 +62,8 @@ def GetNumOfLinesInFile(fileName):
 def getHistogramFile(stdoutFile, opts, verbose=False):
     '''
     '''
-    multicrab.assertJobSucceeded(stdoutFile, opts.allowJobExitCodes, verbose)
+    if opts.assertJobs:
+        multicrab.assertJobSucceeded(stdoutFile, opts.allowJobExitCodes, verbose)
     histoFile = None
 
     # Sanity check
@@ -99,7 +105,8 @@ def getHistogramFile(stdoutFile, opts, verbose=False):
 def getHistogramFileSE(stdoutFile, opts):
     '''
     '''
-    multicrab.assertJobSucceeded(stdoutFile, opts.allowJobExitCodes)
+    if opts.assertJobs:
+        multicrab.assertJobSucceeded(stdoutFile, opts.allowJobExitCodes)
     histoFile = None
     f         = open(stdoutFile)
     # For-loop: All lines in file
@@ -398,9 +405,9 @@ def main(opts, args):
         # Split file to several smaller ones if its size is greater than 2 GB
         filesSplit = splitFiles(files, opts.filesPerMerge)
         if len(filesSplit) == 1:
-            print "\t Merging %d file(s)" % (d, len(files))
+            print "\t Merging %d file(s)" % (len(files))
         else:
-            print "\t Merging %d file(s) to %d files" % (d, len(files), len(filesSplit))
+            print "\t Merging %d file(s) to %d files" % (len(files), len(filesSplit))
 
         # For-loop: All input files
         for index, inputFiles in filesSplit:
@@ -496,6 +503,8 @@ if __name__ == "__main__":
                       help="Allow merging files from this non-zero job exit code (zero exe exit code is still required). Can be given multiple times.")
     parser.add_option("--verbose", dest="verbose", default=False, action="store_true",
                       help="Verbose mode")
+    parser.add_option("--assert", dest="assertJobs", default=False, action="store_true",
+                      help="Before merging any files, assert that all CRAB jobs succeeded!")
     
     (opts, args) = parser.parse_args()
 
@@ -504,5 +513,9 @@ if __name__ == "__main__":
 
     if opts.test:
         opts.verbose = True
+    
+    if not opts.assertJobs:
+        print "=== multicrabMergeHistograms.py:\n\t WARNING! You have launched the script without enabling the \" --assert\" option. Are you sure you want to continue?"
+        AbortScript(keystroke="q")
 
     sys.exit( main(opts, args) )
