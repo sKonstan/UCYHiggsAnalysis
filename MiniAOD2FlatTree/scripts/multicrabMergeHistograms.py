@@ -28,6 +28,15 @@ replace_madhatter = ("srm://madhatter.csc.fi:8443/srm/managerv2?SFN=", "root://m
 #================================================================================================
 # Function Definitions
 #================================================================================================
+def backspace(n):
+    '''
+    Back for 'n' chars
+    '''
+    # Use '\r' to go back
+    print '\r' * n
+    return
+
+
 def histoToDict(histo):
     '''
     '''
@@ -48,7 +57,7 @@ def GetNumOfLinesInFile(fileName):
 def getHistogramFile(stdoutFile, opts, verbose=False):
     '''
     '''
-    multicrab.assertJobSucceeded(stdoutFile, opts.allowJobExitCodes, True)
+    multicrab.assertJobSucceeded(stdoutFile, opts.allowJobExitCodes, verbose)
     histoFile = None
 
     # Sanity check
@@ -63,8 +72,9 @@ def getHistogramFile(stdoutFile, opts, verbose=False):
             f     = fIN.extractfile(member)
             match = log_re.search(f.name)
             if match:
-                progress = "\r\t Processing job %s" % (match.group("job"))
-                print '{0}\r'.format(progress),
+                if verbose:
+                    progress = "\r\t Processing job %s" % (match.group("job"))
+                    print '{0}\r'.format(progress),
                 histoFile = "miniAOD2FlatTree_%s.root" % match.group("job")
         if verbose:
             print "==== multicrabMergeHistograms.py:\n\t Closing tarfile %s" % (stdoutFile)
@@ -336,7 +346,13 @@ def main(opts, args):
         print "\t %s Jobs" % ( len(stdoutFiles) )
 
         #For-loop: All stdout files
-        for f in stdoutFiles:
+        for index, f in enumerate(stdoutFiles):
+            #print "index = ", index
+            #msg = "\r\t Processing job %s" % (index)#, len(stdoutFiles), " "*10)
+            #print '{0}\r'.format(msg),
+            msg = "\r\t Processing job %s" % (index)
+            print msg
+
             try:
                 if opts.filesInSE:
                     histoFile = getHistogramFileSE(f, opts)
@@ -345,7 +361,7 @@ def main(opts, args):
                     else:
                         print "\t Task %s, skipping job %s: input root file not found from stdout" % (d, f)
                 else:
-                    histoFile = getHistogramFile(f, opts)
+                    histoFile = getHistogramFile(f, opts, verbose=False)
                     if histoFile != None:
                         path = os.path.join(os.path.dirname(f), histoFile)
                         if os.path.exists(path):

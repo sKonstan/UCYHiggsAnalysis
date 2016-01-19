@@ -204,6 +204,8 @@ def assertJobSucceeded(stdoutFile, allowJobExitCodes=[], verbose=False):
     \param stdoutFile   Path to crab job stdout file
     \param allowJobExitCodes  Consider jobs with these non-zero exit codes to be succeeded
     If any of the checks fail, raises multicrab.ExitCodeException
+
+    for documentation on "tarfile" see https://pymotw.com/2/tarfile/
     '''
 
     # Create a string representing a pattern to look for
@@ -216,43 +218,41 @@ def assertJobSucceeded(stdoutFile, allowJobExitCodes=[], verbose=False):
 
     # Sanity check
     if tarfile.is_tarfile(stdoutFile):
-        #if verbose:
-        if 0:
-            print "==== multicrab.py:\n\t Opening tarfile %s" % (stdoutFile)
-        fIN    = tarfile.open(stdoutFile)
+
+        if verbose:
+            print "\t Opening tarfile %s" % (stdoutFile)
+        fIN    = tarfile.open(stdoutFile, "r")
         log_re = re.compile("cmsRun-stdout-(?P<job>\d+)\.log")
         
-        # For-loop: All members
+        # For-loop: All meta-data [via getmembers()]
         for member in fIN.getmembers():
             
             # Extract tarfile and look for matching string
+            if verbose:
+                print "\t\t Extracting member with name %s" % (member.name)
+
+            # Access the data from archive member 
             f       = fIN.extractfile(member)
-            print "=== multicrab.py\n\t HERE! EXIT"
             match   = log_re.search(f.name)
-            nLines  = sum(1 for line in open(f.name))
 
+            # For-loop: All lines in file
             if match:
-                # For-loop: All lines in file
                 for iLine, line in enumerate(f):
-
-                    progress = "\r\t Reading %s (%s/%s)" % (match, iLine, nLines)
-                    print '{0}\r'.format(progress),
 
                     # Get execution exit code
                     m = re_exe.search(line)
                     if m:
                         exeExitCode = int( m.group("code") )
                         continue                    
+
                     # Get job exit code
                     m = re_job.search(line)
                     if m:
                         jobExitCode = int(m.group("code"))
                         continue
-
         # Close the tarfile
-        # if verbose:
-        if 0:
-            print "=== multicrab.py:\n\t Closing tarfile %s" % (stdoutFile)
+        if verbose:
+            print "\t Closing tarfile %s" % (stdoutFile)
         fIN.close()
 
     jobExitCode = exeExitCode
