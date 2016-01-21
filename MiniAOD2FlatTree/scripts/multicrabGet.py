@@ -42,30 +42,28 @@ class colors:
                 'GREEN'   :'\033[92m',
                 'BLUE'    :'\033[34m',
                 'GRAY'    :'\033[90m',
-                'NORMAL'  :'\033[0m',
+                'WHITE'   :'\033[00m',
                 'ORANGE'  :'\033[33m',
                 'CYAN'    :'\033[36m',
                 'PURPLE'  :'\033[35m',
                 'LIGHTRED':'\033[91m',
                 'PINK'    :'\033[95m',
                 'YELLOW'  :'\033[93m',
-                'WHITE'  :'\033[37m',
                 }
     if sys.stdout.isatty():
         RED      = colordict['RED']
         GREEN    = colordict['GREEN']
         BLUE     = colordict['BLUE']
         GRAY     = colordict['GRAY']
-        NORMAL   = colordict['NORMAL']
+        WHITE    = colordict['WHITE']
         ORANGE   = colordict['ORANGE']
         CYAN     = colordict['CYAN']
         PURPLE   = colordict['PURPLE']
         LIGHTRED = colordict['LIGHTRED']
         PINK     = colordict['PINK']
         YELLOW   = colordict['YELLOW']
-        WHITE    = colordict['WHITE']
     else:
-        RED, GREEN, BLUE, GRAY, NORMAL, ORANGE, CYAN, PURPLE, LIGHTRED, PINK, YELLOW, WHITE = '', '', '', '', '', '', '', '', '', '', '', ''
+        RED, GREEN, BLUE, GRAY, WHITE, ORANGE, CYAN, PURPLE, LIGHTRED, PINK, YELLOW = '', '', '', '', '', '', '', '', '', '', ''
 
 
 class Report:
@@ -91,10 +89,10 @@ class Report:
             name += " "
             
         print "=== multicrabGet.py:"
-        msg  = '{:<20} {:<40}'.format("\t %sDataset"           % (colors.NORMAL) , ": " + self.dataset)
-        msg += '\n {:<20} {:<40}'.format("\t %sRetrieved Jobs" % (colors.NORMAL) , ": " + self.retrieved + " / " + self.allJobs)
-        msg += '\n {:<20} {:<40}'.format("\t %sStatus"         % (colors.NORMAL) , ": " + self.status)
-        msg += '\n {:<20} {:<40}'.format("\t %sDashboard"      % (colors.NORMAL) , ": " + self.dashboardURL)
+        msg  = '{:<20} {:<40}'.format("\t %sDataset"           % (colors.WHITE) , ": " + self.dataset)
+        msg += '\n {:<20} {:<40}'.format("\t %sRetrieved Jobs" % (colors.WHITE) , ": " + self.retrieved + " / " + self.allJobs)
+        msg += '\n {:<20} {:<40}'.format("\t %sStatus"         % (colors.WHITE) , ": " + self.status)
+        msg += '\n {:<20} {:<40}'.format("\t %sDashboard"      % (colors.WHITE) , ": " + self.dashboardURL)
         print msg
         return
     
@@ -114,28 +112,28 @@ class Report:
         # Remove all whitespace characters (space, tab, newline, etc.)
         status = ''.join(status.split())
         if status == "NEW":
-            status = "%s%s%s" % (colors.BLUE, status, colors.NORMAL)
+            status = "%s%s%s" % (colors.BLUE, status, colors.WHITE)
         elif status == "RESUBMIT":
-            status = "%s%s%s" % (colors.BLUE, status, colors.NORMAL)
+            status = "%s%s%s" % (colors.BLUE, status, colors.WHITE)
         elif status == "QUEUED": 
-            status = "%s%s%s" % (colors.GRAY, status, colors.NORMAL)            
+            status = "%s%s%s" % (colors.GRAY, status, colors.WHITE)            
         elif status == "SUBMITTED":
-            status = "%s%s%s" % (colors.BLUE, status, colors.NORMAL)
+            status = "%s%s%s" % (colors.BLUE, status, colors.WHITE)
         elif status == "SUBMITFAILED": 
-            status = "%s%s%s" % (colors.RED, status, colors.NORMAL)
+            status = "%s%s%s" % (colors.RED, status, colors.WHITE)
         elif status == "FAILED": 
-            status = "%s%s%s" % (colors.RED, status, colors.NORMAL)
+            status = "%s%s%s" % (colors.RED, status, colors.WHITE)
         elif status == "COMPLETED":
-            status = "%s%s%s" % (colors.GREEN, status, colors.NORMAL)
+            status = "%s%s%s" % (colors.GREEN, status, colors.WHITE)
         elif status == "KILLED":
-            status = "%s%s%s" % (colors.ORANGE, status, colors.NORMAL)
+            status = "%s%s%s" % (colors.ORANGE, status, colors.WHITE)
         elif status == "KILLFAILED":
-            status = "%s%s%s" % (colors.ORANGE, status, colors.NORMAL)
+            status = "%s%s%s" % (colors.ORANGE, status, colors.WHITE)
         elif status == "RESUBMITFAILED": 
-            status = "%s%s%s" % (colors.ORANGE, status, colors.NORMAL)
+            status = "%s%s%s" % (colors.ORANGE, status, colors.WHITE)
         else:
-            print "=== multicrabGet.py:\n\t ERROR! Unexpected task status \"%s\". EXIT" % (status)
-            sys.exit()
+            print "=== multicrabGet.py:\n\t WARNING! Unexpected task status \"%s\"" % (status)
+            #sys.exit()
 
         return status
 
@@ -184,7 +182,8 @@ def GetTaskDashboardURL(datasetPath, verbose=False):
             print "=== multicrabGet.py:\n\t ERROR! File \"grep.tmp\" not found! EXIT"
     else:
         dashboardURL = "UNDETERMINED"
-        print "=== multicrabGet.py:\n\t Could not execute command \"%s\"" % (cmd)
+        if verbose:
+            print "=== multicrabGet.py:\n\t Could not execute command \"%s\"" % (cmd)
     return dashboardURL
 
 
@@ -214,7 +213,8 @@ def GetTaskStatus(datasetPath, verbose=False):
             print "=== multicrabGet.py:\n\t ERROR! File \"grep.tmp\" not found! EXIT"
     else:
         status = "UNDETERMINED"
-        print "=== multicrabGet.py:\n\t Could not execute command \"%s\"" % (cmd)
+        if verbose:
+            print "=== multicrabGet.py:\n\t Could not execute command \"%s\"" % (cmd)
     return status
 
 
@@ -247,7 +247,7 @@ def GetTaskReports(datasetPath, status, dashboardURL, verbose=False):
             touch(datasetPath)
 
         if failed > 0:
-            print "\t Found \"Failed\" jobs for task \"%s\". Executing command \"crab resubmit --dir=\"%s\"" % ( os.path.basename(datasetPath), datasetPath )
+            print "\t Found \"Failed\" jobs for task \"%s\".\n\t Executing command \"crab resubmit --dir=\"%s\"" % ( os.path.basename(datasetPath), datasetPath )
             dummy = crabCommand('resubmit', dir = datasetPath)
 
         # Assess JOB success/failure for task (again)
@@ -418,7 +418,7 @@ def retrievedFiles(directory, crabResults, verbose=True):
     transferring = 0
     running      = 0
     idle         = 0
-    submitted    = 0
+    unknown      = 0
     dataset      = directory.split("/")[-1]
     nJobs        = len(crabResults['jobList'])
 
@@ -439,16 +439,16 @@ def retrievedFiles(directory, crabResults, verbose=True):
                 retrievedLog += 1
             if foundOut:
                 retrievedOut += 1
-        if r[0] == 'failed':
+        elif r[0] == 'failed':
             failed += 1
-        if r[0] == 'transferring':
+        elif r[0] == 'transferring':
             transferring += 1 
-        if r[0] == 'idle':
+        elif r[0] == 'idle':
             idle += 1 
-        if r[0] == 'running':
+        elif r[0] == 'running':
             running+= 1 
-        if r[0] == 'submitted':
-            submitted+= 1 
+        else:
+            unknown+= 1 
         
     # Print results in a nice table
     if verbose:
@@ -461,14 +461,14 @@ def retrievedFiles(directory, crabResults, verbose=True):
         nRun      = str(running)
         nTransfer = str(transferring)
         nFinish   = str(finished)
-        nSubmit   = str(submitted)
+        nUnknown  = str(unknown)
         nFail     = str(failed)
         nIdle     = str(idle)
         nLogs     = ''.join( str(retrievedLog).split() ) 
         nOut      = ''.join( str(retrievedOut).split() )
 
         line  = "   {:<25} {:>4} {:<1} {:<4}".format("\t %sIdle"             % (colors.GRAY  ), nIdle    , "/", nTotal )
-        line += "\n {:<25} {:>4} {:<1} {:<4}".format("\t %sSubmitted"        % (colors.YELLOW), nSubmit  , "/", nTotal )
+        line += "\n {:<25} {:>4} {:<1} {:<4}".format("\t %sUnknown"          % (colors.YELLOW), nUnknown , "/", nTotal )
         line += "\n {:<25} {:>4} {:<1} {:<4}".format("\t %sFailed"           % (colors.RED   ), nFail    , "/", nTotal )
         line += "\n {:<25} {:>4} {:<1} {:<4}".format("\t %sRunning"          % (colors.GREEN ), nRun     , "/", nTotal )
         line += "\n {:<25} {:>4} {:<1} {:<4}".format("\t %sTransferring"     % (colors.ORANGE), nTransfer, "/", nTotal )

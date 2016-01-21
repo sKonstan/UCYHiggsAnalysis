@@ -23,6 +23,7 @@ import os
 import re
 import sys
 import time
+from optparse import OptionParser
 import UCYHiggsAnalysis.MiniAOD2FlatTree.tools.git as git
 
 #from datasets import *
@@ -32,11 +33,14 @@ from UCYHiggsAnalysis.MiniAOD2FlatTree.tools.datasets import *
 #================================================================================================
 # Function Definitions
 #================================================================================================
-def GetCmsswVersion():
+def GetCmsswVersion(verbose=False):
     '''
     Get a command-line-friendly format of the CMSSW version currently use.
     https://docs.python.org/2/howto/regex.html
     '''
+    
+    if verbose:
+        print "=== multicrabCreate.py:\n\t GetCmsswVersion()"
 
     # Get the current working directory
     pwd = os.getcwd()
@@ -49,22 +53,21 @@ def GetCmsswVersion():
     
     version = ""
     if match:
-        # Return the string matched by the RE
+        # Return the string matched by the RE. Convert to desirable format
         version = match.group("version")
-
-        # Convert to desirable format
         version = version.replace("_","")
         version = version.replace("pre","p")
-        version = version.replace("patch","p")
-        
+        version = version.replace("patch","p")        
     return version
         
     
-def GetSkimType(PSet):
+def GetSkimType(PSet, verbose=False):
     '''
     Get the skim type according to the name of the PSET file used.
     This will be used to setup the multicrab job accordingly.
     '''
+    if verbose:
+        print "=== multicrabCreate.py:\n\t GetSkimType()"
 
     # Create a compiled regular expression object 
     skim_re = re.compile("runMiniAOD2FlatTree_(?P<skimType>\S+)Skim_cfg.py")
@@ -79,57 +82,53 @@ def GetSkimType(PSet):
         print "=== multicrabCreate.py:\n\t Could not determine the skim type for PSet \"%s\". EXIT." % (PSet)
         sys.exit()
 
-    print "=== multicrabCreate.py:\n\t Will create CRAB task using PSet \"%s\"." % (PSet)
     return skimType
 
 
-def GetDatasetList(skimType):
+def GetDatasetList(skimType, verbose=False):
     '''
     Get the list of datasets to be processed according to the skim type (and hance PSET file used).
     This will be used to setup the multicrab job accordingly.
     '''
+    if verbose:
+        print "=== multicrabCreat.py:\n\t GetDatasetList()"
+
     datasetList = []
     myDatasets  = Datasets(False)
-    
+
     if skimType == "Default":        
-        datasetList  = myDatasets.GetDatasetObjects(miniAODversion="RunIISpring15MiniAODv2", datasetType = "CollisionData")
+        #datasetList  = myDatasets.GetDatasetObjects(miniAODversion="RunIISpring15MiniAODv2", datasetType = "CollisionData")
         #datasetList.append(myDatasets.GetDatasetObject("/MuonEG/Run2015D-PromptReco-v4/MINIAOD"))
-        #datasetList = [myDatasets.GetDatasetObject("/DoubleMuon/Run2015D-PromptReco-v4/MINIAOD")]
-        #datasetList.append(myDatasets.GetDatasetObject('/ttHJetToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8_mWCutfix/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'))
-        #datasetList.append(myDatasets.GetDatasetObject('/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v3/MINIAODSIM'))
-        #datasetList.append(myDatasets.GetDatasetObject('/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'))
 
-        #datasetList = myDatasets.GetDatasetObjects(miniAODversion="RunIISpring15MiniAODv2")        
-
-        # testing
-#        dataList = ['/ttHJetToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8_mWCutfix/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
-#                    '/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v3/MINIAODSIM',
-#                    #'/ST_tW_top_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v2/MINIAODSIM',
-#                    #'/ST_t-channel_top_4f_leptonDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
-#                    #'/ST_s-channel_4f_leptonDecays_13TeV-amcatnlo-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
-#                    '/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
-#                    '/WW_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
-#                    '/WZ_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
-#                    '/ZZ_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
-#                    '/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
-#                    ]
-#        datasetList = []
-#        for d in dataList: 
-#            datasetList.append(myDatasets.GetDatasetObject(d))
+        dataList = [
+            '/ttHJetToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8_mWCutfix/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
+            '/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v3/MINIAODSIM',
+            #'/ST_tW_top_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v2/MINIAODSIM',
+            #'/ST_t-channel_top_4f_leptonDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
+            #'/ST_s-channel_4f_leptonDecays_13TeV-amcatnlo-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
+            '/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
+            #'/WW_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
+            #'/WZ_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
+            #'/ZZ_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
+            '/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
+            ]
+        for d in dataList: 
+            datasetList.append(myDatasets.GetDatasetObject(d))
     else:
         print "=== multicrabCreate.py:\n\t Unknown skim type '%s'." % (skimType), ". EXIT"
         sys.exit()
 
-    print "=== multicrabCreate.py:\n\t Creating CRAB Tasks for the following datasets:\n\t\t", "\n\t\t".join(str(d.DAS) for d in datasetList)
     return datasetList
 
     
-def GetTaskDirName(datasetList, skimType, version):
+def GetTaskDirName(datasetList, skimType, version, verbose=False):
     '''
     Get the name of the CRAB task directory to be created. For the user's benefit this
     will include the CMSSW uversion, the skim type and possibly important information from
     the dataset used, such as the bunch-crossing time.
     '''
+    if verbose:
+        print "=== multicrabCreat.py:\n\t GetTaskDirName()"
 
     # Constuct basic task directory name
     taskDirName  = "multicrab"
@@ -154,16 +153,20 @@ def GetTaskDirName(datasetList, skimType, version):
     return taskDirName
 
 
-def CreateCrabTask(taskDirName):
+def CreateCrabTask(taskDirName, verbose=False):
     '''
     Creates a directory which will be used as the CRAB task directory.
     Also copies all available information from git regarding the current status of the code, 
     including the unique "commit id", "git diff" and "git status".   
     '''
+    if verbose:
+        print "=== multicrabCreate.py:\n\t CreateCrabTask()"
+
     # If the task directory does not exist create it
     if not os.path.exists(taskDirName):
         os.mkdir(taskDirName)
-    print "=== multicrabCreate.py:\n\t Created CRAB task directory \"%s\"" % (taskDirName)
+    if verbose:
+        print "=== multicrabCreate.py:\n\t Created CRAB task directory \"%s\"" % (taskDirName)
         
     # Copy file to be used (and others to be tracked) to the task directory
     cmd = "cp %s %s" %(PSET, taskDirName)
@@ -171,8 +174,9 @@ def CreateCrabTask(taskDirName):
 
     # Write the commit id, "git status", "git diff" command output the directory created for the multicrab task.
     gitFileList = git.writeCodeGitInfo(taskDirName, False)
-    print "=== multicrabCreate.py:\n\t Copied %s to '%s'." % ("'" + "', '".join(gitFileList) + "'", taskDirName)
 
+    if verbose:
+        print "=== multicrabCreate.py:\n\t Copied %s to '%s'." % ("'" + "', '".join(gitFileList) + "'", taskDirName)
     return
 
 
@@ -248,13 +252,15 @@ def EnsurePathDoesNotExit(taskDirName, requestName):
     return
 
 
-def CreateCfgFile(dataset, taskDirName, requestName, infilePath = "crabConfig.py"):
+def CreateCfgFile(dataset, taskDirName, requestName, infilePath = "crabConfig.py", verbose=False):
     '''
     Creates a CRAB-specific configuration file which will be used in the submission
     of a job. The function uses as input a generic cfg file which is then customised
     based on the dataset type used.
     '''
-    
+    if verbose:
+        print "=== multicrabCreate.py:\n\t CreateCfgFile()"
+
     outfilePath = os.path.join(taskDirName, "crabConfig_" + requestName + ".py")
 
     # Check that file does not already exist
@@ -305,9 +311,6 @@ def CreateCfgFile(dataset, taskDirName, requestName, infilePath = "crabConfig.py
         match = crab_psetParams_re.search(line)
         if match:
             line = "config.JobType.pyCfgParams = ['dataVersion=" + dataset.dataVersion + "']\n"
-        print "dataset.dataVersion = ", dataset.dataVersion
-        import sys
-        sys.exit()
 
         # Set the "inputDBS" field which specifies the URL of the DBS reader instance where the input dataset is published
         match = crab_dbs_re.search(line)
@@ -336,36 +339,41 @@ def CreateCfgFile(dataset, taskDirName, requestName, infilePath = "crabConfig.py
     # Close input and output files
     fileOUT.close()
     fileIN.close()
-    print "=== multicrabCreate.py:\n\t Created CRAB cfg file \"%s\"" % (fileOUT.name)
 
+    if verbose:
+        print "=== multicrabCreate.py:\n\t Created CRAB cfg file \"%s\"" % (fileOUT.name)
     return
 
 
-def SubmitCrabTask(taskDirName, requestName):
+def SubmitCrabTask(taskDirName, requestName, verbose=False):
     '''
     Submit a given CRAB task using the specific cfg file.
     '''
+    if verbose:
+        print "=== multicrabCreate.py:\n\t SubmitCrabTask()"
+
     outfilePath = os.path.join(taskDirName, "crabConfig_" + requestName + ".py")
 
     # Submit the CRAB task
     cmd_submit = "crab submit " + outfilePath
-    print "=== multicrabCreate.py:\n\t ", cmd_submit
+    if verbose:
+        print "=== multicrabCreate.py:\n\t ", cmd_submit
     os.system(cmd_submit)
 
     # Rename the CRAB task directory (remove "crab_" from its name)
     cmd_mv = "mv " + os.path.join(taskDirName, "crab_" + requestName) + " " + os.path.join(taskDirName, requestName)
-    print "=== multicrabCreate.py:\n\t ", cmd_mv
+    if verbose:
+        print "=== multicrabCreate.py:\n\t ", cmd_mv
     os.system(cmd_mv)
 
-    # Small hack. By calling 'crab status' for all tasks prevents it from crashing when calling 'crab status' once the
-    # jobs are submitted. This is caused because I RENAME the CRAB tasks with the previous command "os.system(cmd_mv)". 
-    import time
-    time.sleep(1)
-    cmd_status = "crab status --dir=" + os.path.join(taskDirName, requestName)
-    print "=== multicrabCreate.py:\n\t ", cmd_status
-    os.system(cmd_status)
-
+    # Call 'crab status' command for taskDirNme/requestName 
+    #import time
+    #time.sleep(1)
+    #cmd_status = "crab status --dir=" + os.path.join(taskDirName, requestName)
+    #print "=== multicrabCreate.py:\n\t ", cmd_status
+    #os.system(cmd_status)
     return
+
 
 def AbortCrabTask(keystroke):
     '''
@@ -382,38 +390,93 @@ def AbortCrabTask(keystroke):
     return
 
 
+def AskToContinue(datasetList, verbose=False):
+    '''
+    '''
+    if verbose:
+        print "=== multicrabCreate.py:\n\t AskToContinue()"
+
+    msg  = "\n\t Creating CRAB task with PSet:\n\t\t %s" % (PSET)
+    msg += "\n\t The following datasets will be used:\n\t\t%s" % ("\n\t\t".join(str(d.DAS) for d in datasetList))
+    print "=== multicrabCreat.py:%s" % (msg)
+    AbortCrabTask(keystroke="q")
+    return
+
+
 #================================================================================================
 # Options & Declaration
 #================================================================================================
 PSET     = "runMiniAOD2FlatTree_DefaultSkim_cfg.py"
-skimType = "Default"
 
-# Get the CMSSW Version
-version = GetCmsswVersion()
- 
-# Get the Skim type
-skimType = GetSkimType(PSET)
 
-# Get the datasets
-datasetList = GetDatasetList(skimType)
-
-# Give user last chance to abort
-AbortCrabTask(keystroke="q")
-
-# Get the task directory name
-taskDirName = GetTaskDirName(datasetList, skimType, version)
-
-# Create CRAB task diractory
-CreateCrabTask(taskDirName)
-
-# For-loop: All datasets
-for dataset in datasetList:
-
-    # Create CRAB configuration file for each dataset
-    requestName = GetRequestName(dataset)
+#================================================================================================
+# Main Program
+#================================================================================================
+def main(opts, args):
+    '''
+    Do all steps here
+    '''
     
-    # Create a CRAB cfg file for each dataset
-    CreateCfgFile(dataset, taskDirName, requestName)
+    # Get the CMSSW version
+    version = GetCmsswVersion(opts.verbose)
+    
+    # Get the Skim type
+    skimType = GetSkimType(PSET, opts.verbose)
 
-    # Sumbit job for CRAB cfg file            
-    SubmitCrabTask(taskDirName, requestName)
+    # Get the datasets
+    datasetList = GetDatasetList(skimType, opts.verbose)
+
+    # Give user last chance to abort
+    AskToContinue(datasetList, opts.verbose)
+
+    # Get the task directory name
+    if opts.taskDirName=="":
+        taskDirName = GetTaskDirName(datasetList, skimType, version, opts.verbose)
+    else:
+        taskDirName = opts.taskDirName
+
+    # Create CRAB task diractory
+    CreateCrabTask(taskDirName)
+
+    # For-loop: All datasets
+    for dataset in datasetList:
+
+        if opts.verbose:
+            print "=== multicrabCreat.py:\n\t Getting request name, creating cfg file && submitting CRAB task for dataset \"%s\"" % (dataset)
+
+        # Create CRAB configuration file for each dataset
+        requestName = GetRequestName(dataset)
+    
+        # Create a CRAB cfg file for each dataset
+        CreateCfgFile(dataset, taskDirName, requestName, "crabConfig.py", opts.verbose)
+
+        # Sumbit job for CRAB cfg file            
+        SubmitCrabTask(taskDirName, requestName, opts.verbose)
+
+    return 0
+
+
+if __name__ == "__main__":
+    '''
+    https://docs.python.org/3/library/argparse.html
+
+    name or flags...: Either a name or a list of option strings, e.g. foo or -f, --foo.
+    action..........: The basic type of action to be taken when this argument is encountered at the command line.
+    nargs...........: The number of command-line arguments that should be consumed.
+    const...........: A constant value required by some action and nargs selections.
+    default.........: The value produced if the argument is absent from the command line.
+    type............: The type to which the command-line argument should be converted.
+    choices.........: A container of the allowable values for the argument.
+    required........: Whether or not the command-line option may be omitted (optionals only).
+    help............: A brief description of what the argument does.
+    metavar.........: A name for the argument in usage messages.
+    dest............: The name of the attribute to be added to the object returned by parse_args().
+    '''
+
+    parser = OptionParser(usage="Usage: %prog [options]")
+    parser.add_option("-v", "--verbose", dest="verbose"    , default=False, action="store_true", help="Verbose mode")
+    parser.add_option("-d", "--dir"    , dest="taskDirName", type="string", default="", help="Custom name for multiCRAB directory name")
+
+    (opts, args) = parser.parse_args()
+
+    sys.exit( main(opts, args) )

@@ -301,7 +301,7 @@ def pileup(fname):
     stringToMatch = "data"
     dv_re         = re.compile(stringToMatch)
     match         = dv_re.search(dataVersion.GetTitle())
-    print "match = %s, dataVersion.GetTitle() = %s" % (match, dataVersion.GetTitle())
+    print "=== multicrabMergeHistogram.py:\n\t ALEXANDROS"
     if match:
         print "\t Datataset is of type \"%s\". Will add to it Pile-Up histogram" % (dataVersion.GetTitle())
         puFile = os.path.join(os.path.dirname(fname), "PileUp.root")
@@ -310,9 +310,10 @@ def pileup(fname):
             fIN = ROOT.TFile.Open(puFile)
             hPU = fIN.Get("pileup")
         else:
-            print "\t PileUp not found in" ,os.path.dirname(fname),", did you run hplusLumiCalc?"
+            print "\t PileUp not found in" ,os.path.dirname(fname),", did you run hplusLumiCalc.py?"
     else:
         print "\t Datataset is of type \"%s\". Skipping Pile-Up histogram" % (dataVersion.GetTitle())
+
     if not hPU == None:
         folder = "configInfo"
         fOUT.cd(folder)
