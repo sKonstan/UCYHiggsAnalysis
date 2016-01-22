@@ -282,7 +282,7 @@ def delete(fname,regexp):
     return
 
 
-def pileup(fname):
+def pileup(fname, verbose=False):
     '''
     '''
 
@@ -291,7 +291,8 @@ def pileup(fname):
 
     # Open file to update it
     fileMode = "UPDATE"
-    print "\t\t Opening file in %s mode" % (fileMode)
+    if verbose:
+        print "\t\t Opening file in %s mode" % (fileMode)
     fOUT = ROOT.TFile.Open(fname, fileMode)
     fOUT.cd()
     
@@ -301,23 +302,26 @@ def pileup(fname):
     stringToMatch = "data"
     dv_re         = re.compile(stringToMatch)
     match         = dv_re.search(dataVersion.GetTitle())
-    print "=== multicrabMergeHistogram.py:\n\t ALEXANDROS"
+
     if match:
-        print "\t Datataset is of type \"%s\". Will add to it Pile-Up histogram" % (dataVersion.GetTitle())
+        if verbose:
+            print "\t Dataset is of type \"%s\". Will add to it Pile-Up histogram" % (dataVersion.GetTitle())
         puFile = os.path.join(os.path.dirname(fname), "PileUp.root")
         if os.path.exists(puFile):
-            print "\t Opening file %s" % (puFile)
+            if verbose:
+                print "\t Opening file %s" % (puFile)
             fIN = ROOT.TFile.Open(puFile)
             hPU = fIN.Get("pileup")
         else:
             print "\t PileUp not found in" ,os.path.dirname(fname),", did you run hplusLumiCalc.py?"
     else:
-        print "\t Datataset is of type \"%s\". Skipping Pile-Up histogram" % (dataVersion.GetTitle())
+        print "\t Dataset is of type \"%s\". Skipping Pile-Up histogram" % (dataVersion.GetTitle())
 
     if not hPU == None:
         folder = "configInfo"
         fOUT.cd(folder)
-        print "\t Writing %s/%s to %s" % (folder, hPU.GetName(), puFile)            
+        if verbose:
+            print "\t Writing %s/%s to %s" % (folder, hPU.GetName(), puFile)            
         hPU.Write("", ROOT.TObject.kOverwrite)
 
     # Close file
@@ -459,7 +463,8 @@ def main(opts, args):
                         return ret
     
             if len(filesSplit) > 1:
-                print "  done %d" % index
+                msg = "\r\t\t Done (%d/%d)" % (index, len(filesSplit) )
+                print '{0}\r'.format(msg),
             mergedFiles.append((mergeName, inputFiles))
             try:
                 sanityCheck(mergeName, inputFiles)
@@ -481,10 +486,10 @@ def main(opts, args):
     if opts.deleteImmediately:
         deleteMessage = " (source files deleted immediately)"
 
-    print "=== multicrabMergeHistograms.py:\n\t Merged histogram files%s:" % deleteMessage
+    print "=== multicrabMergeHistograms.py:\n\t Merged histogram files:%s" % deleteMessage
     # For-loop: All merged files
     for f, sourceFiles in mergedFiles:
-        print "\t \t %s (from %d files)" % (f, len(sourceFiles))
+        print "\t\t %s (from %d files)" % (f, len(sourceFiles))
         delete(f,"Generated")
         delete(f,"Commit")
         delete(f,"dataVersion")        

@@ -91,7 +91,7 @@ def GetDatasetList(skimType, verbose=False):
     This will be used to setup the multicrab job accordingly.
     '''
     if verbose:
-        print "=== multicrabCreat.py:\n\t GetDatasetList()"
+        print "=== multicrabCreate.py:\n\t GetDatasetList()"
 
     datasetList = []
     myDatasets  = Datasets(False)
@@ -128,7 +128,7 @@ def GetTaskDirName(datasetList, skimType, version, verbose=False):
     the dataset used, such as the bunch-crossing time.
     '''
     if verbose:
-        print "=== multicrabCreat.py:\n\t GetTaskDirName()"
+        print "=== multicrabCreate.py:\n\t GetTaskDirName()"
 
     # Constuct basic task directory name
     taskDirName  = "multicrab"
@@ -398,7 +398,7 @@ def AskToContinue(datasetList, verbose=False):
 
     msg  = "\n\t Creating CRAB task with PSet:\n\t\t %s" % (PSET)
     msg += "\n\t The following datasets will be used:\n\t\t%s" % ("\n\t\t".join(str(d.DAS) for d in datasetList))
-    print "=== multicrabCreat.py:%s" % (msg)
+    print "=== multicrabCreate.py:%s" % (msg)
     AbortCrabTask(keystroke="q")
     return
 
@@ -442,7 +442,7 @@ def main(opts, args):
     for dataset in datasetList:
 
         if opts.verbose:
-            print "=== multicrabCreat.py:\n\t Getting request name, creating cfg file && submitting CRAB task for dataset \"%s\"" % (dataset)
+            print "=== multicrabCreate.py:\n\t Getting request name, creating cfg file && submitting CRAB task for dataset \"%s\"" % (dataset)
 
         # Create CRAB configuration file for each dataset
         requestName = GetRequestName(dataset)

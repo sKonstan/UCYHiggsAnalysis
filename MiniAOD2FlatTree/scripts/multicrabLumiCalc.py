@@ -1,0 +1,253 @@
+#!/usr/bin/env python
+'''
+lumiCalc.py usage taken from:
+https://twiki.cern.ch/twiki/bin/viewauth/CMS/LumiCalc
+
+# PileUp calc according to:
+https://indico.cern.ch/event/459797/contribution/3/attachments/1181542/1711291/PPD_PileUp.pdf
+'''
+
+#================================================================================================ 
+# Import modules
+#================================================================================================ 
+import os
+import re
+import sys
+import glob
+import subprocess
+import json
+from optparse import OptionParser
+import ROOT
+from UCYHiggsAnalysis.NtupleAnalysis.tools.aux import execute
+
+import UCYHiggsAnalysis.NtupleAnalysis.tools.multicrab as multicrab
+
+
+#================================================================================================ 
+# Global Variables
+#================================================================================================ 
+PileUpJSON     = "/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/PileUp/pileup_latest.txt"
+dataVersion_re = re.compile("dataVersion=(?P<dataVersion>[^: ]+)")
+pu_re          = re.compile("\|\s+\S+\s+\|\s+\S+\s+\|\s+.*\s+\|\s+.*\s+\|\s+\S+\s+\|\s+\S+\s+\|\s+(?P<lumi>\d+(\.\d*)?|\.\d+)\s+\|\s+(?P<pu>\d+(\.\d*)?|\.\d+)\s+\|\s+\S+\s+\|")
+
+
+#================================================================================================ 
+# Function Definition
+#================================================================================================ 
+def isMCTask(taskdir, verbose=False):
+    '''
+    '''
+    crabCfg = "crabConfig_" + taskdir + ".py"
+
+    fileIN = open(crabCfg)
+    isData = False
+
+    # For-loop: All lines in file
+    for line in fileIN:
+        if "pyCfgParams" in line:
+            m = dataVersion_re.search(line)
+            if not m:
+                print "\t Unable to find dataVersion, assuming task %s is MC" % taskdir
+                return True
+            if "data" in m.group("dataVersion"):
+                print "\t The dataVersion is \"data\""
+                isData = True
+            break
+    fileIN.close()
+    return not isData
+
+
+def isEmpty(taskdir):
+    '''
+    '''
+    path  = os.path.join(taskdir, "results")
+    files = execute("ls %s"%path)
+    return len(files)==0
+
+
+def convertLumi(lumi, unit):
+    '''
+    Convert luminosity to pb^-1
+    '''
+    if unit == "ub":
+        return lumi/1e6
+    elif unit == "nb":
+        return lumi/1e3
+    elif unit == "pb":
+        return lumi
+    elif unit == "fb":
+        return lumi*1e3
+    else:
+        raise Exception("=== multicrabLumiCalc.py:\n\t Unsupported luminosity unit %s"%unit)
+    return
+
+def main(opts, args):
+    '''
+    Summary:  
+    +-------+------+------+------+-------------------+------------------+
+    | nfill | nrun | nls  | ncms | totdelivered(/pb) | totrecorded(/pb) |
+    +-------+------+------+------+-------------------+------------------+
+    |   1   |  1   | 1585 | 1585 |       25.515      |      25.028      |
+    +-------+------+------+------+-------------------+------------------+
+    '''
+    cell    = "\|\s+(?P<%s>\S+)\s+"
+    lumi_re = re.compile("\|\s+(?P<recorded>\d+\.*\d*)\s+\|\s*$")
+    unit_re = re.compile("totrecorded\(/(?P<unit>.*)\)")
+
+    if not opts.truncate and os.path.exists(opts.output):
+        f = open(opts.output, "r")
+        data = json.load(f)
+        f.close()
+    
+    files = []
+    # only if no explicit files, or some directories explicitly given
+    if len(opts.files) == 0 or len(opts.dirs) > 0:
+        crabdirs = multicrab.getTaskDirectories(opts)
+
+        print "=== multicrabLumiCalc.py:"
+        for index, d in enumerate(crabdirs):
+            print "\t %s (%s/%s)" % (d, index+1, len(crabdirs))
+
+            if isMCTask(d):
+                print "\t Ignoring task directory '%s', it looks like MC" % d
+                continue
+            if isEmpty(d):
+                print "\t Ignoring task directory '%s', it looks empty" % d
+                continue
+    
+            if opts.report:
+                multicrab.checkCrabInPath()
+                cmd = ["crab", "report", d]
+                if opts.verbose:
+                    print " ".join(cmd)
+                print "\t Executing command \"%s\"" % (" ".join(cmd) )
+                p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                output = p.communicate()[0]
+                ret = p.returncode
+                if ret != 0:
+                    print "\t Call to 'crab -report -d %s' failed with return value %d" % (d, ret)
+                    print output
+                    return 1
+                if opts.verbose:
+                    print output
+        
+            files.append((d, os.path.join(d, "results", "lumiSummary.json")))
+    files.extend([(None, f) for f in opts.files])
+    
+    data = {}
+    for task, jsonfile in files:
+        lumicalc = opts.lumicalc
+
+	# brilcalc lumi -u /pb -i JSON-file
+        home = os.environ['HOME']
+        path = os.path.join(home,".local/bin")
+        exe  = os.path.join(path,"brilcalc")
+        if not os.path.exists(exe):
+            print "\t The ommandline toolki \"brilcalc\" was not found! Have you installed it?"
+            print "\t For information see http://cms-service-lumi.web.cern.ch/cms-service-lumi/brilwsdoc.html"
+            sys.exit()
+
+	cmd = [exe,"lumi","--byls", "-u/pb","-i", jsonfile]
+        if opts.verbose:
+            print " ".join(cmd)
+
+        p      = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        output = p.communicate()[0]
+        ret    = p.returncode
+        if ret != 0:
+            print "\t Call to",cmd[0],"failed with return value %d with command" % ret
+            print " ".join(cmd)
+            print output
+            return 1
+        if opts.verbose:
+            print output
+
+        lines = output.split("\n")
+        lumi  = -1.0
+        unit  = None
+        # For-loop: All lines
+        for line in lines:
+            m = unit_re.search(line)
+            if m:
+                unit = m.group("unit")
+
+            m = lumi_re.search(line)
+            if m:
+                lumi = float(m.group("recorded")) # lumiCalc2.py returns pb^-1
+
+        if unit == None:
+            raise Exception("Didn't find unit information from lumiCalc output, command was %s" % " ".join(cmd))
+        lumi = convertLumi(lumi, unit)
+
+        # PileUp
+        fOUT     = os.path.join(task, "results", "PileUp.root")
+        pucmd    = ["pileupCalc.py","-i",jsonfile,"--inputLumiJSON",PileUpJSON,"--calcMode","true","--minBiasXsec","80000","--maxPileupBin","50","--numPileupBins","50",fOUT]
+        pu       = subprocess.Popen(pucmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        puoutput = pu.communicate()[0]
+        puret    = pu.returncode
+        if puret != 0:
+            print "\t Call to",pucmd[0],"failed with return value %d with command" % puret
+            print " ".join(pucmd)
+            print puoutput
+            return puret
+
+        if task == None:
+            print "\t File \"%s\" recorded luminosity is %f pb^-1" % (jsonfile, lumi)
+        else:
+            print "\t The task recorded luminosity is %f pb^-1" % (lumi)
+            data[task] = lumi
+
+        # Save the json file after each data task in case of future errors
+        if len(data) > 0:
+            f = open(opts.output, "wb")
+            json.dump(data, f, sort_keys=True, indent=2)
+            f.close()
+
+    if len(data) > 0:
+        f = open(opts.output, "wb")
+        json.dump(data, f, sort_keys=True, indent=2)
+        f.close()
+
+    return 0
+
+
+if __name__ == "__main__":
+
+    parser = OptionParser(usage="Usage: %prog [options] [crab task dirs]\n\nCRAB task directories can be given either as the last arguments, or with -d.")
+    multicrab.addOptions(parser)
+
+    parser.add_option("-f", "--files", dest="files", type="string", action="append", default=[],
+                      help="JSON files to calculate the luminosity for (this or -d is required)")
+
+    parser.add_option("-o", "--output", dest="output", type="string", default="lumi.json", 
+                      help="Output file to write the dataset integrated luminosities")
+
+    parser.add_option("-t", "--truncate", dest="truncate", default=False, action="store_true", 
+                      help="Truncate the output file before writing")
+
+    parser.add_option("--noreport", dest="report", action="store_false", default=True, 
+                      help="Do not run 'crab -report', i.e. you guarantee that the lumiSummary.json contains already all jobs.")
+
+    parser.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False, 
+                      help="Print outputs of the commands which are executed")
+
+    parser.add_option("--lumiCalc1", dest="lumicalc", action="store_const", const="lumiCalc1",
+                      help="Use lumiCalc.py instead of lumiCalc2.py")
+
+    parser.add_option("--lumiCalc2", dest="lumicalc", action="store_const", const="lumiCalc2",
+                      help="Use lumiCalc2.py (default is to use pixelLumiCalc.py)")
+
+    parser.add_option("--pixelLumiCalc", dest="lumicalc", action="store_const", const="pixelLumiCalc",
+                      help="Use pixelLumiCalc.py instead of lumiCalc2.py (default)")
+
+    (opts, args) = parser.parse_args()
+    opts.dirs.extend(args)
+    
+    if opts.lumicalc == None:
+        opts.lumicalc = "brilcalc"
+    
+    if opts.verbose:
+        print "=== multicrabLumiCalc.py:"
+        print "\t Calculating Luminosity with \"%s\" and Pile-Up with \"pileupCalc\"" % (opts.lumicalc)
+
+    sys.exit(main(opts, args))
