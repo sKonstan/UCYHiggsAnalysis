@@ -192,7 +192,7 @@ def hplusHadd(opts, mergeName, inputFiles):
     resultFiles = inputFiles[:]
     mergeRound = 0
     while len(resultFiles) > 1:
-        splitted = splitFiles(resultFiles, opts.fastFilesPerMerge)
+        splitted = splitFiles(resultFiles, opts.fastFilesPerMerge, opts.maxSize)
         resultFiles = []
         for index, files in splitted:
             if len(splitted) > 1 or mergeRound > 0:
@@ -425,8 +425,8 @@ def main(opts, args):
             if not os.path.isfile(f):
                 raise Exception("=== multicrabMergeHistograms.py:\n\t File %s is marked as output file in the CMSSW_N.stdout, but does not exist" % f)
 
-        # Split file to several smaller ones if its size is greater than 2 GB
-        filesSplit = splitFiles(files, opts.filesPerMerge)
+        # Split file to several smaller ones if its size is greater than opts.maxSize (default is 2 GB)
+        filesSplit = splitFiles(files, opts.filesPerMerge, opts.maxSize)
         if len(filesSplit) == 1:
             print "\t Merging %d files" % (len(files))
         else:
@@ -513,7 +513,6 @@ if __name__ == "__main__":
     
     #parser.add_option("-o", dest="output", type="string", default="histograms-%s.root",
     #                  help="Pattern for merged output root files (use '%s' for crab directory name) (default: 'histograms-%s.root')")
-
     parser.add_option("-o", dest="output", type="string", default="miniAOD2FlatTree-%s.root",
                       help="Pattern for merged output root files (use '%s' for crab directory name) (default: 'histograms-%s.root')")
 
@@ -546,7 +545,10 @@ if __name__ == "__main__":
 
     parser.add_option("--assert", dest="assertJobs", default=False, action="store_true",
                       help="Before merging any files, assert that all CRAB jobs succeeded!")
-    
+
+    parser.add_option("--maxSize", dest="maxSize", default=2000000000, action="store_true", 
+                      help="Define the maximum size of the merged ROOT file. The default value is 2000000000 (2 GB)")
+
     (opts, args) = parser.parse_args()
 
     if opts.filesPerMerge == 0:
