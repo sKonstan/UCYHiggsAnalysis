@@ -1,13 +1,23 @@
+'''
+Links:
+https://twiki.cern.ch/twiki/bin/view/CMSPublic/CRAB3ConfigurationFile
+https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookCRAB3Tutorial#Setup_the_environment
+'''
+
+#================================================================================================
+# Import Modules
+#================================================================================================
 from WMCore.Configuration import Configuration
 # See https://github.com/dmwm/CRABClient/blob/master/src/python/CRABClient/ClientUtilities.py
 from CRABClient.UserUtilities import getUsernameFromSiteDB
 #from CRABClient.UserUtilities import getWorkArea
 
-config = Configuration()
 
 #================================================================================================
 # General Section: The user specifies generic parameters about the request (e.g. request name).
 #================================================================================================
+config = Configuration()
+
 config.section_("General")
 config.General.requestName     = rName
 config.General.workArea        = dirName
@@ -45,12 +55,15 @@ config.JobType.outputFiles = ['miniAOD2FlatTree.root']
 config.section_("Data")
 config.Data.inputDataset  = dataset
 config.Data.inputDBS      = 'global' #'phys03'
-config.Data.splitting     = 'FileBased'
+config.Data.splitting     = 'FileBased' # EventBased, FileBased, LumiBased (1 lumi ~= 300 events)
 config.Data.unitsPerJob   = 5
 config.Data.publication   = False
 config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
-config.Data.totalUnits    = 50000 #-1 #100000
-#config.Data.splitting     = "EventAwareLumiBased" # testing. please comment this and "config.Data.totalUnits" out
+# Optional: How many files (when Data.splitting='FileBased'), lumi sections (when Data.splitting='LumiBased') or events (when Data.splitting='EventAwareLumiBased') to analyze
+config.Data.totalUnits    = 100000                 # Used with "config.Data.splitting"
+config.Data.splitting     = "EventAwareLumiBased" # Used with "config.Data.totalUnits"
+config.Data.unitsPerJob   = 5000
+
 # config.Data.allowNonValidInputDatase
 # config.Data.outputPrimaryDataset
 # config.Data.inputDBS
