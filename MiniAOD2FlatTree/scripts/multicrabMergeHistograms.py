@@ -305,7 +305,7 @@ def pileup(fname, verbose=False):
 
     if match:
         if verbose:
-            print "\t Dataset is of type \"%s\". Will add to it Pile-Up histogram" % (dataVersion.GetTitle())
+            print "\t\t Dataset is of type \"%s\". Will add to it Pile-Up histogram" % (dataVersion.GetTitle())
         puFile = os.path.join(os.path.dirname(fname), "PileUp.root")
         if os.path.exists(puFile):
             if verbose:
@@ -315,7 +315,8 @@ def pileup(fname, verbose=False):
         else:
             print "\t PileUp not found in" ,os.path.dirname(fname),", did you run hplusLumiCalc.py?"
     else:
-        print "\t Dataset is of type \"%s\". Skipping Pile-Up histogram" % (dataVersion.GetTitle())
+        if verbose:
+            print "\t\t Dataset is of type \"%s\". Skipping Pile-Up histogram" % (dataVersion.GetTitle())
 
     if not hPU == None:
         folder = "configInfo"
@@ -375,7 +376,7 @@ def main(opts, args):
 
         if iDir >0:
             print
-        print "\t %s (%s/%s)" % ( multicrabDir[-1] + d, iDir+1, len(crabdirs) )
+        print "\t %s (%s/%s)" % ( multicrabDir[-1] + "/" + d, iDir+1, len(crabdirs) )
         d           = d.replace("/", "")
         stdoutFiles = glob.glob(os.path.join(d, "results", "cmsRun_*.log.tar.gz"))
         files       = []
@@ -478,7 +479,6 @@ def main(opts, args):
                         print "rm %s" % srcFile
                     if not opts.test:
                         os.remove(srcFile)
-        break
     
     deleteMessage = ""
     if opts.delete:
