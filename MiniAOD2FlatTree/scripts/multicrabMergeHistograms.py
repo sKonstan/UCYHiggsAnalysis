@@ -62,7 +62,7 @@ def GetNumOfLinesInFile(fileName):
 def getHistogramFile(stdoutFile, opts, verbose=False):
     '''
     '''
-    if opts.assertJobs:
+    if not opts.noJobAssert:
         multicrab.assertJobSucceeded(stdoutFile, opts.allowJobExitCodes, verbose)
     histoFile = None
 
@@ -105,7 +105,7 @@ def getHistogramFile(stdoutFile, opts, verbose=False):
 def getHistogramFileSE(stdoutFile, opts):
     '''
     '''
-    if opts.assertJobs:
+    if not opts.noJobAssert:
         multicrab.assertJobSucceeded(stdoutFile, opts.allowJobExitCodes)
     histoFile = None
     f         = open(stdoutFile)
@@ -543,8 +543,8 @@ if __name__ == "__main__":
     parser.add_option("--verbose", dest="verbose", default=False, action="store_true",
                       help="Verbose mode")
 
-    parser.add_option("--assert", dest="assertJobs", default=False, action="store_true",
-                      help="Before merging any files, assert that all CRAB jobs succeeded!")
+    parser.add_option("--noJobAssert", dest="noJobAssert", default=False, action="store_true",
+                      help="Before merging any files, skip assert that all CRAB jobs succeeded (saves time)")
 
     parser.add_option("--maxSize", dest="maxSize", default=2000000000, action="store_true", 
                       help="Define the maximum size of the merged ROOT file. The default value is 2000000000 (2 GB)")
@@ -557,8 +557,8 @@ if __name__ == "__main__":
     if opts.test:
         opts.verbose = True
     
-    if not opts.assertJobs:
-        msg = "WARNING! You have launched the script without enabling the \"--assert\" option. Are you sure you want to continue?"
+    if opts.noJobAssert:
+        msg = "WARNING! You have launched the script with the \"--noJobAssert\" option. Are you sure all jobs were retrieved successfully?"
         AbortScript("q", msg)
 
     sys.exit( main(opts, args) )

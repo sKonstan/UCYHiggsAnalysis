@@ -4,9 +4,10 @@
 # Usage:
 # cd CMSSW_X_Y_Z/src/UCYHiggsAnalysis/
 # source setup.csh
+echo "=== setup.csh:"
 
 if ( $?HIGGSANALYSIS_BASE ) then
-    echo "=== setup.csh:\n\t Standalone environment already loaded (HIGGSANALYSIS_BASE)"
+    echo "\t Standalone environment already loaded (HIGGSANALYSIS_BASE)"
     exit
 endif
 
@@ -27,7 +28,7 @@ endif
 setenv HIGGSANALYSIS_BASE $PWD
 
 if ( $LOCATION == "lxplus" ) then
-    echo "=== setup.csh:\n\t Sourcing lxplus environments for gcc 4.8 and ROOT 6.02"
+    echo "\t Sourcing lxplus environments for gcc 4.8 and ROOT 6.02"
     source /afs/cern.ch/sw/lcg/contrib/gcc/4.8/x86_64-slc6-gcc48-opt/setup.csh
     setenv ROOTSYS /afs/cern.ch/sw/lcg/app/releases/ROOT/6.04.00/x86_64-slc6-gcc48-opt/root
     setenv LD_LIBRARY_PATH "${ROOTSYS}/lib:${LD_LIBRARY_PATH}"
@@ -124,9 +125,9 @@ else
 endif
 
 #setenv PATH "${HIGGSANALYSIS_BASE}/HeavyChHiggsToTauNu/scripts:${HIGGSANALYSIS_BASE}/NtupleAnalysis/scripts:${PATH}" #attikis
-echo "=== setup.csh:\n\t Setting PATH variable to ${HIGGSANALYSIS_BASE}/NtupleAnalysis/scripts:${PATH}"
+echo "\t Setting PATH variable to ${HIGGSANALYSIS_BASE}/NtupleAnalysis/scripts:${PATH}"
 setenv PATH "${HIGGSANALYSIS_BASE}/NtupleAnalysis/scripts:${PATH}"
 
 # Install externals if necessary
-echo "=== setup.csh:\n\t sh +x installexternals.sh"
+echo "\t sh +x installexternals.sh"
 sh +x installexternals.sh

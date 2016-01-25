@@ -220,16 +220,20 @@ class Dataset:
 class Process:
 
     def __init__(self, outputPrefix="analysis", outputPostfix="", maxEvents=-1, verbose=False):
-        ROOT.gSystem.Load("libHPlusAnalysis.so") #attikis
+        ROOT.gSystem.Load("libHPlusAnalysis.so") #attikis xenios
+        self._outputPrefix    = outputPrefix
+        self._outputPostfix   = outputPostfix
+        self._datasets        = []
+        self._analyzers       = {}
+        self._datasetStats    = {}
+        self._maxEvents       = maxEvents
+        self._options         = PSet()
+        self._verbose         = verbose
+        self._realTimeTotal   = 0
+        self._cpuTimeTotal    = 0
+        self._readMbytesTotal = 0
+        self._callsTotal      = 0
 
-        self._outputPrefix  = outputPrefix
-        self._outputPostfix = outputPostfix
-
-        self._datasets  = []
-        self._analyzers = {}
-        self._maxEvents = maxEvents
-        self._options   = PSet()
-        self._verbose   = verbose
         return
 
     def addDataset(self, name, files=None, dataVersion=None, lumiFile=None):
@@ -270,6 +274,8 @@ class Process:
         return
 
     def addDatasetsFromMulticrab(self, directory, *args, **kwargs):
+        '''
+        '''
         dataset._optionDefaults["input"] = "miniAOD2FlatTree*.root"
         dsetMgrCreator = dataset.readFromMulticrabCfg(directory=directory, *args, **kwargs)
         datasets = dsetMgrCreator.getDatasetPrecursors()
@@ -318,6 +324,8 @@ class Process:
             setattr(self._options, key, value)
 
     def run(self, proof=False, proofWorkers=None):
+        '''
+        '''
         outputDir = self._outputPrefix + "_" + time.strftime("%d%b%Y_%Hh%Mm%Ss") #time.strftime("%y%m%d_%H%M%S")
         if self._outputPostfix != "":
             outputDir += "_"+self._outputPostfix
@@ -377,13 +385,7 @@ class Process:
                 opt = "workers=%d"%proofWorkers
             _proof = ROOT.TProof.Open(opt)
             _proof.Exec("gSystem->Load('libHPlusAnalysis.so');")
-
-        # Init timing counters
-        realTimeTotal   = 0
-        cpuTimeTotal    = 0
-        readMbytesTotal = 0
-        callsTotal      = 0
-
+        
         # Sum data PU distributions
         hPUs = {}
 
@@ -452,10 +454,10 @@ class Process:
                                 hFlat.Fill(k+1, 1.0/n)
                             inputList.Add(hFlat)
                             hPUs[aname] = hFlat
-                            print "=== main.py:\n\t Warning: Using a flat pileup spectrum for data (which is missing) -> MC PU spectrum is unchanged"
+                            print "=== main.py:\n\t WARNING! Using a flat PU spectrum for data (which is missing). The MC PU spectrum is unchanged."
 
                         if dset.getPileUp() == None:
-                            raise Exception("=== main.py:\n\t Error: pileup spectrum is missing from dataset! Please switch to using newest multicrab!")
+                            raise Exception("=== main.py:\n\t Error: PU spectrum is missing from dataset! Please switch to using newest multicrab!")
                         hPUMC = dset.getPileUp().Clone()
 
                         if aname not in hPUs.keys():
@@ -483,7 +485,7 @@ class Process:
                 continue
 
             print "=== main.py:\n\t Processing dataset (%d/%d): " % (ndset, len(self._datasets))
-            info  = '{:<20} {:<40}'.format("\t dataset", ": " + dset.getName())
+            info  = '{:<20} {:<40}'.format("\t Dataset", ": " + dset.getName())
             info += '\n{:<20} {:<40}'.format("\t Is Data", ": " + str(dset.getDataVersion().isData()) )
 
             if dset.getDataVersion().isData():
@@ -670,7 +672,7 @@ class Process:
                   f.Close()
             tf.Close()
 
-            calls = ""
+            calls = 0
             if _proof is not None:
                 tchain.SetProof(False)
                 queryResult = _proof.GetQueryResult()
@@ -679,51 +681,92 @@ class Process:
             else:
                 cpuTime    = clockStop-clockStart
                 readMbytes = float(readBytesStop-readBytesStart)/1024/1024
-                calls      = "%d" % (readCallsStop-readCallsStart)
+                calls      = int(readCallsStop-readCallsStart)
+            
+            self.CalculateStatistics(dset.getName(), timeStart, timeStop, cpuTime, readMbytes, calls)
+        
+        self.PrintStatisticsTotal()
+        if self._verbose:
+            print "=== main.py:\n\t Results are in '%s'" % (outputDir)
+        return outputDir
 
-            realTime = timeStop-timeStart
 
-            # Create statistics list
-            stats = []
-            stats.append("\t %.2f" % (realTime)   )
-            stats.append("%.2f"    % (cpuTime)    )
-            stats.append("%.1f"    % (cpuTime/realTime*100) )
-            stats.append("%.2f"    % (readMbytes) )
-            stats.append("%s"      % (calls)      )
-            stats.append("%.2f"    % (readMbytes/realTime)  )
+    def CalculateStatistics(self, dataset, timeStart, timeStop, cpuTime, readMbytes, calls, bPrintStats=False, bPrintTotalStats=False):
+        '''
+        Prints a table summarising the CPU usage and time elapsed since job started.
+        '''
+        realTime = timeStop-timeStart
 
-            heading = "{:<20} {:<20} {:<20} {:<20} {:<30} {:<20}".format("\t Real Time [s]", "CPU Time [s]", "CPU Time [%]", "Read [MB]", "File Reads [Calls]", "Read Speed [MB/s]")
-            values  = "{:<20} {:<20} {:<20} {:<20} {:<30} {:<20}".format(stats[0], stats[1], stats[2], stats[3], stats[4], stats[5])
-            hLine   = len(values)*"="
-            print "=== main.py:\n\t Printing statistics:"
+        # Create statistics list
+        stats = []
+        stats.append("%s"      % (dataset)   )
+        stats.append("%.2f"    % (realTime)   )
+        stats.append("%.2f"    % (cpuTime)    )
+        stats.append("%.1f"    % (cpuTime/realTime*100) )
+        stats.append("%.2f"    % (readMbytes) )
+        stats.append("%s"      % (calls)      )
+        stats.append("%.2f"    % (readMbytes/realTime)  )
+
+        # Save the stats
+        self._datasetStats[dataset] = stats
+
+        heading = "{:<40} {:<20} {:<20} {:<20} {:<20} {:<20} {:<20}".format("\t Dataset", "Real Time [s]", "CPU Time [s]", "CPU Time [%]", "Read [MB]", "File Reads [Calls]", "Read Speed [MB/s]")
+        values  = "{:<40} {:<20} {:<20} {:<20} {:<20} {:<20} {:<20}".format("\t " + stats[0], stats[1], stats[2], stats[3], stats[4], stats[5], stats[6])
+        hLine   = len(values)*"="
+
+        if bPrintStats:
+            print "=== main.py:"
             print "\t", hLine
             print heading
             print "\t", hLine
             print values
+            
+        # Calculations (Total)
+        self._realTimeTotal   += realTime
+        self._cpuTimeTotal    += cpuTime
+        self._readMbytesTotal += readMbytes
+        self._callsTotal      += calls
 
-            # Calculations (Total)
-            realTimeTotal   += realTime
-            cpuTimeTotal    += cpuTime
-            readMbytesTotal += readMbytes
+        if len(self._datasets) > 1 and bPrintTotalStats==True:
+            self.PrintStatisticsTotal(bPrintTableLayout=False)
+        return
 
-        if len(self._datasets) > 1:
-            # Create total statistics list
-            statsTotal = []
-            statsTotal.append("\t %.2f" % (realTimeTotal)   )
-            statsTotal.append("%.2f"    % (cpuTimeTotal)    )
-            statsTotal.append("%.1f"    % (cpuTimeTotal/realTimeTotal*100) )
-            statsTotal.append("%.2f"    % (readMbytesTotal) )
-            statsTotal.append("%s"      % (callsTotal)      )
-            statsTotal.append("%.2f"    % (readMbytesTotal/realTimeTotal)  )
-            valuesTotal = "{:<20} {:<20} {:<20} {:<20} {:<30} {:<20}".format(statsTotal[0], statsTotal[1], statsTotal[2], statsTotal[3], statsTotal[4], statsTotal[5])
-            print valuesTotal
 
-        print "=== main.py:\n\t Results are in '%s'" % (outputDir)
+    def PrintStatisticsTotal(self, bPrintTableLayout=True):
+        '''
+        Prints a table summarising the CPU usage and time elapsed for all jobs (datasets).
+        '''
+        # Create total statistics list
+        stats = []
+        stats.append("TOTAL") 
+        stats.append("%.2f"    % (self._realTimeTotal)   )
+        stats.append("%.2f"    % (self._cpuTimeTotal)    )
+        stats.append("%.1f"    % (self._cpuTimeTotal/self._realTimeTotal*100) )
+        stats.append("%.2f"    % (self._readMbytesTotal) )
+        stats.append("%s"      % (self._callsTotal)      )
+        stats.append("%.2f"    % (self._readMbytesTotal/self._realTimeTotal)  )
 
-        return outputDir
+        heading = "{:<40} {:>20} {:>20} {:>20} {:>20} {:>20} {:>20}".format("\t Dataset", "Real Time [s]", "CPU Time [s]", "CPU Time [%]", "Read [MB]", "File Reads [Calls]", "Read Speed [MB/s]")
+        values  = "{:<40} {:>20} {:>20} {:>20} {:>20} {:>20} {:>20}".format("\t " + stats[0], stats[1], stats[2], stats[3], stats[4], stats[5], stats[6])
+        hLine   = len(values)*"="
+
+        print "=== main.py:"
+        if bPrintTableLayout:
+            print "\t", hLine
+        print heading
+        if bPrintTableLayout:
+            print "\t", hLine
+        for key, value in self._datasetStats.iteritems():
+            dStats = value
+            dVals  = "{:<40} {:>20} {:>20} {:>20} {:>20} {:>20} {:>20}".format("\t " + dStats[0], dStats[1], dStats[2], dStats[3], dStats[4], dStats[5], dStats[6])
+            print dVals
+        print values
+        return
+
 
 if __name__ == "__main__":
     import unittest
+
     class TestPSet(unittest.TestCase):
         def testConstruct(self):
             d = {"foo": 1, "bar": 4}
@@ -803,6 +846,7 @@ if __name__ == "__main__":
   "foo": "%s/NtupleAnalysis/python/main.py"
 }""" % aux.higgsAnalysisPath())
 
+
     class TestAnalyzer(unittest.TestCase):
         def testConstruct(self):
             a = Analyzer("Foo", foo=1, bar="plop", xyzzy = PSet(fred=42))
@@ -855,19 +899,6 @@ if __name__ == "__main__":
             self.assertEqual(a.runForDataset_("Foobar"), False)
 
     class TestProcess(unittest.TestCase):
-        #Does not work anymore, since addDataset calls DatasetPrecursor, which fails to open foo1.root since it does not exist
-        #def testDataset(self):
-            #p = Process()
-            #p.addDataset("Foo", ["foo1.root", "foo2.root"], dataVersion="data")
-            #p.addDataset("Test", dataVersion="mc")
-
-            #self.assertEqual(len(p._datasets), 2)
-            #self.assertEqual(p._datasets[0].getName(), "Foo")
-            #self.assertEqual(len(p._datasets[0].getFileNames()), 2)
-            #self.assertEqual(p._datasets[0].getFileNames(), ["foo1.root", "foo2.root"])
-            #self.assertEqual(p._datasets[1].getName(), "Test")
-            #self.assertEqual(len(p._datasets[1].getFileNames()), 2)
-            #self.assertEqual(p._datasets[1].getFileNames(), ["testfile1.root", "testfile2.root"])
 
         def testAnalyzer(self):
             p = Process()

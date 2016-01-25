@@ -116,7 +116,8 @@ void SelectorImpl::SlaveBegin(TTree * /*tree*/) {
   // The SlaveBegin() function is called after the Begin() function.
   // When running with PROOF SlaveBegin() is called on each slave server.
   // The tree argument is deprecated (on PROOF 0 is passed).
-  std::cout << "=== SelectorImpl::SlaveBegin()" << std::endl;
+
+  // std::cout << "=== SelectorImpl::SlaveBegin()" << std::endl;
 
   // Pick parameters
   const SelectorImplParams *params = dynamic_cast<const SelectorImplParams *>(fInput->FindObject("PARAMS"));
@@ -311,8 +312,8 @@ void SelectorImpl::printStatus() {
                 << std::setw(2) << std::setfill('0') << mySeconds << " ";
     }
 
-    std::cout << "\r\t Processed " << std::setprecision(4) << myFraction * 100.0 << "% at "
-              << std::setprecision(3) << (bytes/timeDiff/1024/1024) << " MB/s"
+    std::cout << "\r\t Processed " << std::setprecision(4) << myFraction * 100.0 << "% ["
+              << std::setprecision(3) << (bytes/timeDiff/1024/1024) << " MB/s]"
               << "       " // to clear
               << std::flush;
   }
@@ -322,7 +323,7 @@ void SelectorImpl::resetStatus() {
   if(!fPrintStatus) return;
 
   fStopwatch.Stop();
-  std::cout << "\n\r         Dataset processed with " << fProcessed << " entries. " << std::endl;
+  std::cout << "\n\r\t Processed " << fProcessed << " entries" << std::endl;
   //fStopwatch.Print();
   fPrintStep = 20000;
 }

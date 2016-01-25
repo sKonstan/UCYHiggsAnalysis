@@ -81,12 +81,11 @@ allSelections.__setattr__("jetEtaCutMax",    2.5  )
 # Add Analysis Variations
 #================================================================================================ 
 # For-loop: All b-tag discriminators
-print "=== testAnalysis.py:"
 for algo in ["pfCombinedInclusiveSecondaryVertexV2BJetTags"]:
     
     # For-loop: All working points
-    for wp in ["Loose", "Medium", "Tight"]:
-    #for wp in ["Loose"]:
+    #for wp in ["Loose", "Medium", "Tight"]:
+    for wp in ["Loose"]:
         selections = allSelections.clone()
         selections.BJetSelection.bjetDiscr = algo
         selections.BJetSelection.bjetDiscrWorkingPoint = wp
@@ -129,4 +128,4 @@ if "proof" in sys.argv:
 else:
     process.run()
 
-print "=== testAnalysis:\n\t DONE"
+#print "=== testAnalysis:\n\t DONE"
