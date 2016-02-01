@@ -26,9 +26,9 @@ public:
       [&](){ return this->passFlag_CSCTightHaloFilter(); },
       [&](){ return this->passFlag_eeBadScFilter(); },
       [&](){ return this->passFlag_goodVertices(); },
-      [&](){ return this->passHbheIsoNoiseToken(); },
-      [&](){ return this->passHbheNoiseTokenRun2Loose(); },
-      [&](){ return this->passHbheNoiseTokenRun2Tight(); }
+      [&](){ return this->pass_hbheIsoNoiseToken(); },
+      [&](){ return this->pass_hbheNoiseTokenRun2Loose(); },
+      [&](){ return this->pass_hbheNoiseTokenRun2Tight(); }
     };
     return values;
   }
@@ -36,9 +36,12 @@ public:
   bool passFlag_CSCTightHaloFilter() const { return fFlag_CSCTightHaloFilter->value(); }
   bool passFlag_eeBadScFilter() const { return fFlag_eeBadScFilter->value(); }
   bool passFlag_goodVertices() const { return fFlag_goodVertices->value(); }
-  bool passHbheIsoNoiseToken() const { return fHbheIsoNoiseToken->value(); }
-  bool passHbheNoiseTokenRun2Loose() const { return fHbheNoiseTokenRun2Loose->value(); }
-  bool passHbheNoiseTokenRun2Tight() const { return fHbheNoiseTokenRun2Tight->value(); }
+  bool pass_hbheIsoNoiseToken() const { return fHbheIsoNoiseToken->value(); }
+  bool pass_hbheNoiseTokenRun2Loose() const { return fHbheNoiseTokenRun2Loose->value(); }
+  bool pass_hbheNoiseTokenRun2Tight() const { return fHbheNoiseTokenRun2Tight->value(); }
+  bool passFlag_HBHENoiseFilter() const { return fFlag_HBHENoiseFilter->value(); }
+  bool passFlag_HBHENoiseIsoFilter() const { return fFlag_HBHENoiseIsoFilter->value(); }
+
 
 protected:
   const Branch<bool> *fFlag_CSCTightHaloFilter;
@@ -47,7 +50,12 @@ protected:
   const Branch<bool> *fHbheIsoNoiseToken;
   const Branch<bool> *fHbheNoiseTokenRun2Loose;
   const Branch<bool> *fHbheNoiseTokenRun2Tight;
+  const Branch<bool> *fFlag_HBHENoiseFilter;
+  const Branch<bool> *fFlag_HBHENoiseIsoFilter;
+
+
 
 };
 
 #endif
+

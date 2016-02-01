@@ -12,15 +12,15 @@ from UCYHiggsAnalysis.MiniAOD2FlatTree.tools.dataOptions import getOptionsDataVe
 bSummary         = False #Default is "False"
 bDependencies    = False #Default is "False" 
 bDumpCollections = False #Default is "False"
-iMaxEvents       = 100
-iReportEvery     = 100
-skimType         = "NoSkim" #"NoSkim #"Trigger" #"DefaultSkim"
+iMaxEvents       = 50
+iReportEvery     = 1
+skimType         = "DefaultSkim" #"NoSkim #"DefaultSkim"
 #dataset          = "/ttHJetToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8_mWCutfix/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/Miniaodsim"
 #dataset          = "/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v3/MINIAODSIM"
 #dataset          = "/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
-dataset          = "/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
+#dataset          = "/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
 #dataset          = "/DoubleMuon/Run2015D-PromptReco-v4/MINIAOD"
-#dataset          = "/DoubleEG/Run2015D-PromptReco-v4/MINIAOD"
+dataset          = "/DoubleEG/Run2015D-PromptReco-v4/MINIAOD"
 #dataset          = "/DoubleMuon/Run2015D-PromptReco-v4/MINIAOD"
 #dataset          = "/MuonEG/Run2015D-PromptReco-v4/MINIAOD"
 #dataset          = "/SingleElectron/Run2015D-PromptReco-v4/MINIAOD"
@@ -134,15 +134,17 @@ process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
                             Trigger = cms.PSet(
 	                        TriggerResults = cms.InputTag("TriggerResults::HLT"),
 	                        TriggerBits    = cms.vstring(
-            "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",
-            "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",            
-            "HLT_IsoMu20_v",
-            "HLT_IsoTkMu20_v",
-            "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",
-            "HLT_Ele23_WPLoose_Gsf_v",
+            "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*",
+            "HLT_Ele23_WPLoose_Gsf_v*", #"HLT_BIT_HLT_Ele23_WPLoose_Gsf_v*"
+            "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v*", 
+            "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v*",
+            "HLT_IsoMu20_v*", #"HLT_BIT_IsoMu20_v*"
+            "HLT_IsoTkMu20_v*",
+            "HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v", 
+            "HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v", 
+            "HLT_Ele23_WPLoose_Gsf_v*", # Only Data in 74X, both Data and MC in 76X
+            # Not used by ttH-leptonic (?)
             "HLT_Ele23_CaloIdL_TrackIdL_IsoVL_v", #MC
-            "HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",
-            "HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v",
             "HLT_DiMu9_Ele9_CaloIdL_TrackIdL_v",
             "HLT_Mu8_DiEle12_CaloIdL_TrackIdL_v",
             "HLT_TripleMu_12_10_5_v",
@@ -151,15 +153,17 @@ process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
 	                        L1Extra        = cms.InputTag("l1extraParticles:MET"),
 	                        TriggerObjects = cms.InputTag("selectedPatTrigger"),
                                 TriggerMatch   = cms.untracked.vstring(
-            "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v",
-            "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v",            
-            "HLT_IsoMu20_v",
-            "HLT_IsoTkMu20_v",
-            "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v",
-            "HLT_Ele23_WPLoose_Gsf_v",
+            "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*",
+            "HLT_Ele23_WPLoose_Gsf_v*", #"HLT_BIT_HLT_Ele23_WPLoose_Gsf_v*",
+            "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v*", 
+            "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v*",
+            "HLT_IsoMu20_v*", #"HLT_BIT_IsoMu20_v*",
+            "HLT_IsoTkMu20_v*",
+            "HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v", 
+            "HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v", 
+            "HLT_Ele23_WPLoose_Gsf_v*", # Only Data in 74X, both Data and MC in 76X
+            # Not used by ttH-leptonic (?)
             "HLT_Ele23_CaloIdL_TrackIdL_IsoVL_v", #MC
-            "HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v",
-            "HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v",
             "HLT_DiMu9_Ele9_CaloIdL_TrackIdL_v",
             "HLT_Mu8_DiEle12_CaloIdL_TrackIdL_v",
             "HLT_TripleMu_12_10_5_v",
@@ -254,6 +258,9 @@ process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
 #================================================================================================
 # Setup skim counters
 #================================================================================================ 
+if (bDebug):
+    print "=== runMiniAOD2FlatTree_DefaultSkim_cfg.py:\n\t Setting Skim-Type", 
+
 if (skimType != None):
     process.load("UCYHiggsAnalysis.MiniAOD2FlatTree.%s_cfi" % (skimType))
 process.skimCounterAll    = cms.EDProducer("EventCountProducer")

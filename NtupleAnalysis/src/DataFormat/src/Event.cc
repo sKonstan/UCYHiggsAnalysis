@@ -6,10 +6,15 @@
 
 Event::Event(const ParameterSet& config):
   fJetCollection(config.getParameter<std::string>("JetSelection.jetType", "Jets")),
+  fJetPFCHSCollection("Jets"),
+  fJetPuppiCollection("JetsPuppi"),
   fGenMET("GenMET"),
   fMET_Type1("MET_Type1"),
+  fMET_Type1_NoHF("MET_Type1_NoHF"),
+  fMET_Puppi("MET_Puppi"),
   fMET(config.getParameter<std::string>("METSelection.METType", "MET_Type1")),
   fCaloMET("CaloMET"),
+  fHLTMET("HLTMET"),
   fL1MET("L1MET"),
   fL1extraMET("L1MET_l1extra"),
   fGenWeight("GenWeight"),
@@ -72,7 +77,7 @@ Event::Event(const ParameterSet& config):
   boost::optional<std::string> muIDDiscr = config.getParameterOptional<std::string>("MuonSelection.muonID");
   if (muIDDiscr)
     fMuonCollection.setMuonIDDiscriminator(*muIDDiscr);
-  
+
   // Electron discriminators
   boost::optional<std::string> eIDDiscr = config.getParameterOptional<std::string>("ElectronSelection.electronID");
   if (eIDDiscr)
@@ -85,6 +90,7 @@ Event::Event(const ParameterSet& config):
   boost::optional<std::string> jetPUIDDiscr = config.getParameterOptional<std::string>("JetSelection.jetPUIDDiscr");
   if (jetPUIDDiscr)
     fJetCollection.setJetPUIDDiscriminator(*jetPUIDDiscr);
+
 
   // B jet discriminators
   boost::optional<std::string> bjetDiscr = config.getParameterOptional<std::string>("BJetSelection.bjetDiscr");
@@ -107,6 +113,8 @@ void Event::setupBranches(BranchManager& mgr) {
   fTriggerTauCollection.setupBranches(mgr);
   fTauCollection.setupBranches(mgr);
   fJetCollection.setupBranches(mgr);
+  fJetPFCHSCollection.setupBranches(mgr);
+  fJetPuppiCollection.setupBranches(mgr);
   fGenJetCollection.setupBranches(mgr);
   fMuonCollection.setupBranches(mgr);
   fElectronCollection.setupBranches(mgr);
@@ -115,8 +123,11 @@ void Event::setupBranches(BranchManager& mgr) {
   fGenWeight.setupBranches(mgr);
   fTopPtWeight.setupBranches(mgr);
   fMET_Type1.setupBranches(mgr);
+  fMET_Type1_NoHF.setupBranches(mgr);
+  fMET_Puppi.setupBranches(mgr);
   fMET.setupBranches(mgr);
   fCaloMET.setupBranches(mgr);
+  fHLTMET.setupBranches(mgr);
   fL1MET.setupBranches(mgr);
   fL1extraMET.setupBranches(mgr);
   fPFCandidates.setupBranches(mgr);

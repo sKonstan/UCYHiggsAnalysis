@@ -11,5 +11,8 @@ void METFilterGenerated::setupBranches(BranchManager& mgr) {
   mgr.book("METFilter_hbheIsoNoiseToken"      , &fHbheIsoNoiseToken);
   mgr.book("METFilter_hbheNoiseTokenRun2Loose", &fHbheNoiseTokenRun2Loose);
   mgr.book("METFilter_hbheNoiseTokenRun2Tight", &fHbheNoiseTokenRun2Tight);
+  mgr.book("METFilter_Flag_HBHENoiseFilter"   , &fFlag_HBHENoiseFilter);
+  mgr.book("METFilter_Flag_HBHENoiseIsoFilter", &fFlag_HBHENoiseIsoFilter);
+
 
 }

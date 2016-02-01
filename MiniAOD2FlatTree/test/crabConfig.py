@@ -54,15 +54,16 @@ config.JobType.outputFiles = ['miniAOD2FlatTree.root']
 #================================================================================================
 config.section_("Data")
 config.Data.inputDataset  = dataset
-config.Data.inputDBS      = 'global' #'phys03'
-config.Data.splitting     = 'FileBased' # EventBased, FileBased, LumiBased (1 lumi ~= 300 events)
+config.Data.inputDBS      = 'global'    # 'phys03'
+config.Data.splitting     = 'LumiBased' # EventBased, FileBased, LumiBased (1 lumi ~= 300 events)
 config.Data.unitsPerJob   = 5
 config.Data.publication   = False
 config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
-# Optional: How many files (when Data.splitting='FileBased'), lumi sections (when Data.splitting='LumiBased') or events (when Data.splitting='EventAwareLumiBased') to analyze
-config.Data.totalUnits    = 100000                 # Used with "config.Data.splitting"
-config.Data.splitting     = "EventAwareLumiBased" # Used with "config.Data.totalUnits"
-config.Data.unitsPerJob   = 5000
+config.Data.totalUnits    = -1
+### MC: How many files (when Data.splitting='FileBased'), lumi sections (when Data.splitting='LumiBased') or events (when Data.splitting='EventAwareLumiBased') to analyze
+#config.Data.splitting     = "EventAwareLumiBased"  # Used with "config.Data.totalUnits"
+#config.Data.totalUnits    = 100000                 # Used with "config.Data.splitting"
+#config.Data.unitsPerJob   = 5000
 
 # config.Data.allowNonValidInputDatase
 # config.Data.outputPrimaryDataset

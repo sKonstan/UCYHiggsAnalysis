@@ -4,6 +4,7 @@
 #include "Framework/interface/SelectorFactory.h"
 #include "Framework/interface/EventSaver.h"
 
+#include "TROOT.h"
 #include "TTree.h"
 #include "TFile.h"
 #include "TProofOutputFile.h"
@@ -245,6 +246,8 @@ void SelectorImpl::SlaveTerminate() {
 
   if(fOutputFile) {
     fOutputFile->Write();
+    std::cout << "=== SelectorImpl::SlaveBegin()\n\t Saved output file" << std::endl;
+    gROOT->GetListOfFiles()->Remove(fOutputFile);
     fOutputFile->Close();
     if(fProofFile) {
       fOutput->Add(fProofFile);

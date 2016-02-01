@@ -24,6 +24,12 @@ protected:
   const Branch<std::vector<float>> *fIPTwrtPV;
   const Branch<std::vector<float>> *fIPzSignificance;
   const Branch<std::vector<float>> *fIPzwrtPV;
+  const Branch<std::vector<short>> *fNumOfHits;
+  const Branch<std::vector<short>> *fNumOfPixHits;
+  const Branch<std::vector<float>> *fIPTwrtPVError;
+  const Branch<std::vector<float>> *fIPzwrtPVError;
+
+
 };
 
 
@@ -38,10 +44,15 @@ public:
 
 
 
-  float IPTSignificance() const { return this->fCollection->fIPTSignificance->value()[this->index()]; }
+  short NumOfHits() const { return this->fCollection->fNumOfHits->value()[this->index()]; }
+  short NumOfPixHits() const { return this->fCollection->fNumOfPixHits->value()[this->index()]; }
   float IPTwrtPV() const { return this->fCollection->fIPTwrtPV->value()[this->index()]; }
-  float IPzSignificance() const { return this->fCollection->fIPzSignificance->value()[this->index()]; }
+  float IPTwrtPVError() const { return this->fCollection->fIPTwrtPVError->value()[this->index()]; }
   float IPzwrtPV() const { return this->fCollection->fIPzwrtPV->value()[this->index()]; }
+  float IPzwrtPVError() const { return this->fCollection->fIPzwrtPVError->value()[this->index()]; }
+  float IPTSignificance() const { return this->fCollection->fIPTSignificance->value()[this->index()]; }
+  float IPzSignificance() const { return this->fCollection->fIPzSignificance->value()[this->index()]; }
+
 
 protected:
 

@@ -8,7 +8,7 @@ This script is used to launch multicrab jobs, with certain customisable options.
 The file datasets.py is used an an auxiliary file to determine the samples to be processesed.
 
 Launching the command with a multicrab-dir as a parameter:
-[username@lxplus0036:test]$ multicrabCreate.py <multicrab_dir>
+[username@lxp lus0036:test]$ multicrabCreate.py <multicrab_dir>
 resubmits some crab tasks within the multicrab dir. 
 
 Links:
@@ -97,23 +97,11 @@ def GetDatasetList(skimType, verbose=False):
     myDatasets  = Datasets(False)
 
     if skimType == "Default":        
-        #datasetList  = myDatasets.GetDatasetObjects(miniAODversion="RunIISpring15MiniAODv2", datasetType = "CollisionData")
-        #datasetList.append(myDatasets.GetDatasetObject("/MuonEG/Run2015D-PromptReco-v4/MINIAOD"))
-
-        dataList = [
-            '/ttHJetToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8_mWCutfix/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
-            '/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v3/MINIAODSIM',
-            #'/ST_tW_top_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v2/MINIAODSIM',
-            #'/ST_t-channel_top_4f_leptonDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
-            #'/ST_s-channel_4f_leptonDecays_13TeV-amcatnlo-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
-            '/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
-            '/WW_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
-            '/WZ_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
-            '/ZZ_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
-            '/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
-            ]
-        for d in dataList: 
-            datasetList.append(myDatasets.GetDatasetObject(d))
+        # Available datasetTypes: "All", "Signal", "Background", "CollisionData", "SelectedMC"
+        datasetList  = myDatasets.GetDatasetObjects(miniAODversion="RunIISpring15MiniAODv2", datasetType = opts.datasetType)
+        # datasetList  = myDatasets.GetDatasetObjects(miniAODversion="RunIISpring15MiniAODv2", datasetType = "CollisionData") 
+        # datasetList  = myDatasets.GetDatasetObjects(miniAODversion="RunIISpring15MiniAODv2", datasetType = "SelectedMC") 
+        # datasetList.append(myDatasets.GetDatasetObject("/MuonEG/Run2015D-PromptReco-v4/MINIAOD"))
     else:
         print "=== multicrabCreate.py:\n\t Unknown skim type '%s'." % (skimType), ". EXIT"
         sys.exit()
@@ -475,8 +463,18 @@ if __name__ == "__main__":
 
     parser = OptionParser(usage="Usage: %prog [options]")
     parser.add_option("-v", "--verbose", dest="verbose"    , default=False, action="store_true", help="Verbose mode")
+
     parser.add_option("-d", "--dir"    , dest="taskDirName", type="string", default="", help="Custom name for multiCRAB directory name")
 
+    parser.add_option("--datasetType"  , dest="datasetType", type="string", default="", help="The type/group of datasets to run on. Currently the available types/groups are: \"All\", \"Signal\", \"Background\", \"CollisionData\", \"SelectedMC\", \"DoubleMuon\", \"DoubleEG\", \"MuonEG\", \"SingleMuon\", \"SingleElectron\".")
+
     (opts, args) = parser.parse_args()
+
+    if opts.datasetType == "":
+        print "=== multicrabCreate.py:\n\t ERROR! The script was executed without definining the dataset type/group to use. Retry using the following syntax:"
+        print "\t\t multicrabCreate.py --datasetType=\"SelectedMC\" [or any other supported datasetType]" 
+        print "\t For help execute the script with the \"help\" option:"
+        print "\t\t multicrabCreate.py --help"
+        sys.exit()
 
     sys.exit( main(opts, args) )

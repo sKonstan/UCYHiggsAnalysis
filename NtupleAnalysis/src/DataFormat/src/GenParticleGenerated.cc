@@ -20,18 +20,29 @@ void GenParticleGeneratedCollection::setupBranches(BranchManager& mgr) {
   fGenVisibleTau.setupBranches(mgr);
   fGenW.setupBranches(mgr);
   fGenWNeutrinos.setupBranches(mgr);
+  fAllGenp.setupBranches(mgr);
+  
+  // mgr.book("GenParticles_mass"     , &fMass);
+  // mgr.book("GenParticles_vertexX"  , &fVertexX);
+  // mgr.book("GenParticles_vertexY"  , &fVertexY);
+  // mgr.book("GenParticles_vertexZ"  , &fVertexZ);
+  // mgr.book("GenParticles_charge"   , &fCharge);
+  // mgr.book("GenParticles_status"   , &fStatus);
+  // mgr.book("GenParticles_mothers"  , &fMothers);
+  // mgr.book("GenParticles_daughters", &fDaughters);
 
-  mgr.book("genParticles_GenTauAssociatedWithHpm", &fGenTauAssociatedWithHpm);
-  mgr.book("genParticles_GenTauDecaysToElectron", &fGenTauDecaysToElectron);
-  mgr.book("genParticles_GenTauDecaysToMuon", &fGenTauDecaysToMuon);
-  mgr.book("genParticles_GenTopBJetContainsLeptons", &fGenTopBJetContainsLeptons);
-  mgr.book("genParticles_GenTauRtau", &fGenTauRtau);
-  mgr.book("genParticles_GenTauSpinEffects", &fGenTauSpinEffects);
-  mgr.book("genParticles_GenTauMother", &fGenTauMother);
-  mgr.book("genParticles_GenTauNpi0", &fGenTauNpi0);
-  mgr.book("genParticles_GenTauProngs", &fGenTauProngs);
-  mgr.book("genParticles_GenTopDecayMode", &fGenTopDecayMode);
-  mgr.book("genParticles_GenWDecayMode", &fGenWDecayMode);
+  // mgr.book("genParticles_GenTauAssociatedWithHpm", &fGenTauAssociatedWithHpm);
+  // mgr.book("genParticles_GenTauDecaysToElectron", &fGenTauDecaysToElectron);
+  // mgr.book("genParticles_GenTauDecaysToMuon", &fGenTauDecaysToMuon);
+  // mgr.book("genParticles_GenTopBJetContainsLeptons", &fGenTopBJetContainsLeptons);
+  // mgr.book("genParticles_GenTauRtau", &fGenTauRtau);
+  // mgr.book("genParticles_GenTauSpinEffects", &fGenTauSpinEffects);
+  // mgr.book("genParticles_GenTauMother", &fGenTauMother);
+  // mgr.book("genParticles_GenTauNpi0", &fGenTauNpi0);
+  // mgr.book("genParticles_GenTauProngs", &fGenTauProngs);
+  // mgr.book("genParticles_GenTopDecayMode", &fGenTopDecayMode);
+  // mgr.book("genParticles_GenWDecayMode", &fGenWDecayMode);
+  
 }
 
 const std::vector<Particle<ParticleCollection<double>>> GenParticleGeneratedCollection::getGenElectronCollection() const {
@@ -110,6 +121,14 @@ const std::vector<Particle<ParticleCollection<double>>> GenParticleGeneratedColl
   std::vector<Particle<ParticleCollection<float_type>>> v;
   for (size_t i = 0; i < fGenWNeutrinos.size(); ++i)
     v.push_back(Particle<ParticleCollection<float_type>>(&fGenWNeutrinos, i));
+  return v;
+}
+
+
+const std::vector<Particle<ParticleCollection<double>>> GenParticleGeneratedCollection::getAllGenpCollection() const {
+  std::vector<Particle<ParticleCollection<float_type>>> v;
+  for (size_t i = 0; i < fAllGenp.size(); ++i)
+    v.push_back(Particle<ParticleCollection<float_type>>(&fAllGenp, i));
   return v;
 }
 

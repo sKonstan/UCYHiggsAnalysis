@@ -16,10 +16,11 @@ public:
 
   // Disable copying, assignment, and moving
   // Mainly because according to the design, there should be no need for them
-  GenWeightBase(const GenWeightBase&) = delete;
-  GenWeightBase(GenWeightBase&&) = delete;
-  GenWeightBase& operator=(const GenWeightBase&) = delete;
-  GenWeightBase& operator=(GenWeightBase&&) = delete;
+  
+  // GenWeightBase(const GenWeightBase&) = delete;
+  // GenWeightBase(GenWeightBase&&) = delete;
+  // GenWeightBase& operator=(const GenWeightBase&) = delete;
+  // GenWeightBase& operator=(GenWeightBase&&) = delete;
 
 protected:
   const std::string& prefix() const { return fPrefix; }

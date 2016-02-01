@@ -15,4 +15,13 @@ void MuonGeneratedCollection::setupBranches(BranchManager& mgr) {
   mgr.book(prefix()+"_muIDMedium", &fMuIDMedium);
   mgr.book(prefix()+"_muIDTight", &fMuIDTight);
   mgr.book(prefix()+"_relIsoDeltaBeta", &fRelIsoDeltaBeta);
+
+  mgr.book(prefix()+"_ecalIso", &fEcalIso);
+  mgr.book(prefix()+"_hcalIso", &fHcalIso);
+  mgr.book(prefix()+"_caloIso", &fCaloIso);
+  
+  // mgr.book(prefix()+"_pt_MCmuon", &fPt_MCmuon);
+  // mgr.book(prefix()+"_eta_MCmuon", &fEta_MCmuon);
+  // mgr.book(prefix()+"_phi_MCmuon", &fPhi_MCmuon);
+  // mgr.book(prefix()+"_e_MCmuon", &fE_MCmuon);
 }

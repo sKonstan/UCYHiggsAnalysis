@@ -492,7 +492,7 @@ class Process:
                 lumivalue = "--- not available in lumi.json (or lumi.json not available) ---"
                 if dset.getName() in lumidata.keys():
                     lumivalue = lumidata[dset.getName()]
-                info  += '\n{:<20} {:<40}'.format("\t Luminosity", ": " + str(lumivalue) + " (fb-1)")
+                info  += '\n{:<20} {:<40}'.format("\t Luminosity", ": " + str(lumivalue) + " [pb-1]")
             else:
                 info += '\n{:<20} {:<40}'.format("\t Luminosity", ": -")
 

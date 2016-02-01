@@ -10,7 +10,7 @@
 class GenParticleGeneratedCollection {
 public:
   using float_type = double;
-  explicit GenParticleGeneratedCollection(const std::string& prefix="genParticles")
+  explicit GenParticleGeneratedCollection(const std::string& prefix="GenParticles")
   : fGenElectron(prefix),
     fGenHplus(prefix),
     fGenHplusNeutrinos(prefix),
@@ -23,7 +23,8 @@ public:
     fGenTopBQuark(prefix),
     fGenVisibleTau(prefix),
     fGenW(prefix),
-    fGenWNeutrinos(prefix)
+    fGenWNeutrinos(prefix),
+    fAllGenp(prefix)
   {
     fGenElectron.setEnergySystematicsVariation("_GenElectron");
     fGenHplus.setEnergySystematicsVariation("_GenHplus");
@@ -38,6 +39,7 @@ public:
     fGenVisibleTau.setEnergySystematicsVariation("_GenVisibleTau");
     fGenW.setEnergySystematicsVariation("_GenW");
     fGenWNeutrinos.setEnergySystematicsVariation("_GenWNeutrinos");
+    fAllGenp.setEnergySystematicsVariation("");
   }
   ~GenParticleGeneratedCollection() {}
 
@@ -56,6 +58,10 @@ public:
   const std::vector<Particle<ParticleCollection<float_type>>> getGenVisibleTauCollection() const;
   const std::vector<Particle<ParticleCollection<float_type>>> getGenWCollection() const;
   const std::vector<Particle<ParticleCollection<float_type>>> getGenWNeutrinosCollection() const;
+  const std::vector<Particle<ParticleCollection<float_type>>> getAllGenpCollection() const;
+
+  //  GenParticle 
+
 protected:
   ParticleCollection<float_type> fGenElectron;
   ParticleCollection<float_type> fGenHplus;
@@ -70,6 +76,7 @@ protected:
   ParticleCollection<float_type> fGenVisibleTau;
   ParticleCollection<float_type> fGenW;
   ParticleCollection<float_type> fGenWNeutrinos;
+  ParticleCollection<float_type> fAllGenp;
 
 
 public:
@@ -84,6 +91,17 @@ public:
   const std::vector<short> getGenTauProngs() const { return fGenTauProngs->value(); }
   const std::vector<short> getGenTopDecayMode() const { return fGenTopDecayMode->value(); }
   const std::vector<short> getGenWDecayMode() const { return fGenWDecayMode->value(); }
+  //  const std::vector<short> getGenWDecayMode() const { return fGenWDecayMode->value(); }
+
+  //const std::vector<double> mass()  const { return fMass->value();}
+  // const Branch<std::vector<double> >                  *fVertexX;
+  // const Branch<std::vector<double> >                  *fVertexY;
+  // const Branch<std::vector<double> >                  *fVertexZ;
+  // const Branch<std::vector<short> >                   *fCharge;
+  // const Branch<std::vector<short> >                   *fStatus;
+  // const Branch<std::vector<vector<unsigned short> > > *fMothers;
+  // const Branch<std::vector<vector<unsigned short> > > *fDaughters;
+  
 
 protected:
   const Branch<Short_t> *fGenTauAssociatedWithHpm;
@@ -97,6 +115,20 @@ protected:
   const Branch<std::vector<short>> *fGenTauProngs;
   const Branch<std::vector<short>> *fGenTopDecayMode;
   const Branch<std::vector<short>> *fGenWDecayMode;
+
+
+  // const Branch<std::vector<double> >                  *fMass;
+  // const Branch<std::vector<double> >                  *fVertexX;
+  // const Branch<std::vector<double> >                  *fVertexY;
+  // const Branch<std::vector<double> >                  *fVertexZ;
+  // const Branch<std::vector<short> >                   *fCharge;
+  // const Branch<std::vector<short> >                   *fStatus;
+  // const Branch<std::vector<std::vector<unsigned short> > > *fMothers;
+  // const Branch<std::vector<std::vector<unsigned short> > > *fDaughters;
+
+
+
+
 };
 
 #endif

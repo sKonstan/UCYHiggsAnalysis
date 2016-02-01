@@ -17,9 +17,15 @@ public:
 
   void setupBranches(BranchManager& mgr);
 
-
-
 protected:
+
+  const Branch<std::vector<double> >  *fEmEnergy;
+  const Branch<std::vector<double> >  *fHadEnergy;
+  const Branch<std::vector<double> >  *fAuxEnergy;
+  const Branch<std::vector<double> >  *fInvisEnergy;
+  const Branch<std::vector<short> >   *fNGenConstituents;
+
+
 
 };
 
@@ -33,6 +39,12 @@ public:
   {}
   ~GenJetGenerated() {}
 
+  
+  double emEnergy() const { return this->fCollection->fEmEnergy->value()[this->index()]; }
+  double hadEnergy() const { return this->fCollection->fHadEnergy->value()[this->index()]; }
+  double auxEnergy() const { return this->fCollection->fAuxEnergy->value()[this->index()]; }
+  double invisEnergy() const { return this->fCollection->fInvisEnergy->value()[this->index()]; }
+  short nGenConstituents() const { return this->fCollection->fNGenConstituents->value()[this->index()]; }
 
 
 

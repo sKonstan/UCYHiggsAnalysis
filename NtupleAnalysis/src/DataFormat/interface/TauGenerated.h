@@ -58,6 +58,7 @@ protected:
   const Branch<std::vector<bool>> *fByLooseCombinedIsolationDeltaBetaCorr3Hits;
   const Branch<std::vector<bool>> *fByLooseIsolationMVA3newDMwLT;
   const Branch<std::vector<bool>> *fByLooseIsolationMVA3oldDMwLT;
+  const Branch<std::vector<bool>> *fByLoosePileupWeightedIsolation3Hits;
   const Branch<std::vector<bool>> *fByMediumCombinedIsolationDeltaBetaCorr3Hits;
   const Branch<std::vector<bool>> *fByMediumIsolationMVA3newDMwLT;
   const Branch<std::vector<bool>> *fByMediumIsolationMVA3oldDMwLT;
@@ -86,6 +87,41 @@ protected:
   const Branch<std::vector<short>> *fMcNProngs;
   const Branch<std::vector<short>> *fNProngs;
   const Branch<std::vector<short>> *fPdgOrigin;
+  //const Branch<std::vector<int>>    *fPdgId;
+  const Branch<std::vector<double>> *fmcPt;
+  const Branch<std::vector<double>> *fmcEta;
+  const Branch<std::vector<double>> *fmcPhi;
+  const Branch<std::vector<double>> *fmcE;
+  const Branch<std::vector<double>> *fjetPt;
+  const Branch<std::vector<double>> *fjetEta;
+  const Branch<std::vector<double>> *fjetPhi;
+  const Branch<std::vector<double>> *fjetE;
+  const Branch<std::vector<bool>> *fAgainstElectronMVA5raw;
+  const Branch<std::vector<bool>> *fByMediumPileupWeightedIsolation3Hits;
+  const Branch<std::vector<bool>> *fByPhotonPtSumOutsideSignalCone;
+  const Branch<std::vector<bool>> *fByPileupWeightedIsolationRaw3Hits;
+  const Branch<std::vector<bool>> *fByTightPileupWeightedIsolation3Hits;
+  const Branch<std::vector<bool>> *fFootprintCorrection;
+  const Branch<std::vector<bool>> *fNeutralIsoPtSumWeight;
+  const Branch<std::vector<bool>> *fPhotonPtSumOutsideSignalCone;
+  const Branch<std::vector<double>> *fTESupPt;
+  const Branch<std::vector<double>> *fTESupEta;
+  const Branch<std::vector<double>> *fTESupPhi;
+  const Branch<std::vector<double>> *fTESupE;
+  const Branch<std::vector<double>> *fTESdownPt;
+  const Branch<std::vector<double>> *fTESdownEta;
+  const Branch<std::vector<double>> *fTESdownPhi;
+  const Branch<std::vector<double>> *fTESdownE;
+  const Branch<std::vector<double>> *fTESexupPt;
+  const Branch<std::vector<double>> *fTESexupEta;
+  const Branch<std::vector<double>> *fTESexupPhi;
+  const Branch<std::vector<double>> *fTESexupE;
+  const Branch<std::vector<double>> *fTESexdownPt;
+  const Branch<std::vector<double>> *fTESexdownEta;
+  const Branch<std::vector<double>> *fTESexdownPhi;
+  const Branch<std::vector<double>> *fTESexdownE;
+
+
 };
 
 
@@ -160,6 +196,7 @@ public:
   bool byLooseCombinedIsolationDeltaBetaCorr3Hits() const { return this->fCollection->fByLooseCombinedIsolationDeltaBetaCorr3Hits->value()[this->index()]; }
   bool byLooseIsolationMVA3newDMwLT() const { return this->fCollection->fByLooseIsolationMVA3newDMwLT->value()[this->index()]; }
   bool byLooseIsolationMVA3oldDMwLT() const { return this->fCollection->fByLooseIsolationMVA3oldDMwLT->value()[this->index()]; }
+  bool byLoosePileupWeightedIsolation3Hits() const { return this->fCollection->fByLoosePileupWeightedIsolation3Hits->value()[this->index()]; }
   bool byMediumCombinedIsolationDeltaBetaCorr3Hits() const { return this->fCollection->fByMediumCombinedIsolationDeltaBetaCorr3Hits->value()[this->index()]; }
   bool byMediumIsolationMVA3newDMwLT() const { return this->fCollection->fByMediumIsolationMVA3newDMwLT->value()[this->index()]; }
   bool byMediumIsolationMVA3oldDMwLT() const { return this->fCollection->fByMediumIsolationMVA3oldDMwLT->value()[this->index()]; }
@@ -188,6 +225,47 @@ public:
   short mcNProngs() const { return this->fCollection->fMcNProngs->value()[this->index()]; }
   short nProngs() const { return this->fCollection->fNProngs->value()[this->index()]; }
   short pdgOrigin() const { return this->fCollection->fPdgOrigin->value()[this->index()]; }
+
+
+  //  int pdgId() const { return this->fCollection->fPdgId->value()[this->index()]; }
+  // double mcPt() const { return this->fCollection->fmcPt->value()[this->index()]; }
+  // double mcEta() const { return this->fCollection->fmcEta->value()[this->index()]; }
+  // double mcPhi() const { return this->fCollection->fmcPhi->value()[this->index()]; }
+  // double mcE() const { return this->fCollection->fmcE->value()[this->index()]; }
+
+  // double jetPt() const { return this->fCollection->fjetPt->value()[this->index()]; }
+  // double jetEta() const { return this->fCollection->fjetEta->value()[this->index()]; }
+  // double jetPhi() const { return this->fCollection->fjetPhi->value()[this->index()]; }
+  // double jetE() const { return this->fCollection->fjetE->value()[this->index()]; }
+  
+  bool againstElectronMVA5raw() const { return this->fCollection->fAgainstElectronMVA5raw->value()[this->index()]; }
+  bool byMediumPileupWeightedIsolation3Hits() const { return this->fCollection->fByMediumPileupWeightedIsolation3Hits->value()[this->index()]; }
+  bool byPhotonPtSumOutsideSignalCone() const { return this->fCollection->fByPhotonPtSumOutsideSignalCone->value()[this->index()]; }
+  bool byPileupWeightedIsolationRaw3Hits() const { return this->fCollection->fByPileupWeightedIsolationRaw3Hits->value()[this->index()]; }
+  bool byTightPileupWeightedIsolation3Hits() const { return this->fCollection->fByTightPileupWeightedIsolation3Hits->value()[this->index()]; }
+  bool footprintCorrection() const { return this->fCollection->fFootprintCorrection->value()[this->index()]; }
+  bool neutralIsoPtSumWeight() const { return this->fCollection->fNeutralIsoPtSumWeight->value()[this->index()]; }
+  bool photonPtSumOutsideSignalCone() const { return this->fCollection->fPhotonPtSumOutsideSignalCone->value()[this->index()]; }
+  
+  double TESupPt() const { return this->fCollection->fTESupPt->value()[this->index()]; }
+  double TESupEta() const { return this->fCollection->fTESupEta->value()[this->index()]; }
+  double TESupPhi() const { return this->fCollection->fTESupPhi->value()[this->index()]; }
+  double TESupE() const { return this->fCollection->fTESupE->value()[this->index()]; }
+
+  double TESdownPt() const { return this->fCollection->fTESdownPt->value()[this->index()]; }
+  double TESdownEta() const { return this->fCollection->fTESdownEta->value()[this->index()]; }
+  double TESdownPhi() const { return this->fCollection->fTESdownPhi->value()[this->index()]; }
+  double TESdownE() const { return this->fCollection->fTESdownE->value()[this->index()]; }
+
+  double TESexupPt() const { return this->fCollection->fTESexupPt->value()[this->index()]; }
+  double TESexupEta() const { return this->fCollection->fTESexupEta->value()[this->index()]; }
+  double TESexupPhi() const { return this->fCollection->fTESexupPhi->value()[this->index()]; }
+  double TESexupE() const { return this->fCollection->fTESexupE->value()[this->index()]; }
+
+  double TESexdownPt() const { return this->fCollection->fTESexdownPt->value()[this->index()]; }
+  double TESexdownEta() const { return this->fCollection->fTESexdownEta->value()[this->index()]; }
+  double TESexdownPhi() const { return this->fCollection->fTESexdownPhi->value()[this->index()]; }
+  double TESexdownE() const { return this->fCollection->fTESexdownE->value()[this->index()]; }
 
 protected:
   Particle<ParticleCollection<double>> fMCVisibleTau;

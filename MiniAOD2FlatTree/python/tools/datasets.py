@@ -16,7 +16,8 @@ import sys
 lumiMask50ns       = "/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/Cert_246908-255031_13TeV_PromptReco_Collisions15_50ns_JSON_v2.txt"
 lumiMask25ns       = "/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/Cert_246908-260426_13TeV_PromptReco_Collisions15_25ns_JSON.txt"
 lumiMask25nsSilver = "/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/Cert_246908-260426_13TeV_PromptReco_Collisions15_25ns_JSON_Silver.txt"
-
+# NOTE: "lumiMask25ns" is the one that is usually used
+lumiMask = lumiMask25ns
 
 #================================================================================================
 # Class  declaration
@@ -88,11 +89,22 @@ class Datasets:
         
         datasetObjects = []
         datasetNames   = []
+        selectedMcList = [
+            '/ttHJetToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8_mWCutfix/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
+            '/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v3/MINIAODSIM',
+            '/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
+            '/WW_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
+            '/WZ_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
+            '/ZZ_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
+            '/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
+            ]
+
         if miniAODversion=="RunIISpring15MiniAODv2":
             datasetNames.extend(self.DataDatasets_MiniAODv2)
-            datasetNames.extend(self.McDatasets_MiniAODv2)        
+            datasetNames.extend(self.McDatasets_MiniAODv2)
 
-        datasetTypes = ["All", "Signal", "Background"]
+        datasetTypes = ["All", "Signal", "Background", "CollisionData", "SelectedMC", "DoubleMuon", "DoubleEG", "MuonEG", "SingleMuon", "SingleElectron"]
+
         # For-loop: All dataset names
         for dataset in datasetNames:
             if datasetType == "All":
@@ -106,8 +118,26 @@ class Datasets:
             elif datasetType == "CollisionData":
                 if self.GetDatasetObject(dataset).isData():
                     datasetObjects.append(self.GetDatasetObject(dataset))
+            elif datasetType == "SelectedMC":
+                if dataset in selectedMcList:
+                    datasetObjects.append(self.GetDatasetObject(dataset))
+            elif datasetType == "DoubleMuon":
+                datasetObjects.append(self.GetDatasetObject("/DoubleMuon/Run2015D-PromptReco-v4/MINIAOD"))
+                break
+            elif datasetType == "DoubleEG":
+                datasetObjects.append(self.GetDatasetObject("/DoubleEG/Run2015D-PromptReco-v4/MINIAOD"))
+                break
+            elif datasetType == "MuonEG":
+                datasetObjects.append(self.GetDatasetObject("/MuonEG/Run2015D-PromptReco-v4/MINIAOD"))
+                break
+            elif datasetType == "SingleMuon":
+                datasetObjects.append(self.GetDatasetObject("/SingleMuon/Run2015D-PromptReco-v4/MINIAOD"))
+                break
+            elif datasetType == "SingleElectron":
+                datasetObjects.append(self.GetDatasetObject("/SingleElectron/Run2015D-PromptReco-v4/MINIAOD"))
+                break
             else:
-                raise Exception("Couldnot determine datasets for dataset type '%s'. Please select one of the following:\n\t%s" % (datasetType, "\n\t".join(datasetTypes)) )
+                raise Exception("=== datasets.py:\n\t Could not determine datasets for dataset type '%s'. Available types are:\n\t %s" % (datasetType, "\n\t ".join(datasetTypes)) )
 
         return datasetObjects
 
@@ -153,7 +183,6 @@ class Datasets:
             '/WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
             '/WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM' ,
             ]
-
 
         # Merge MC and Data Dataset lists
         self.AllDatasets_MiniAODv2.extend(self.McDatasets_MiniAODv2)

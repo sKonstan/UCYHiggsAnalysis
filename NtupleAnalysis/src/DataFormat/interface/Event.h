@@ -56,7 +56,11 @@ public:
   const METFilter& metFilter() const { return fMETFilter; }
   const HLTTauCollection& triggerTaus() const { return fTriggerTauCollection; }
   const TauCollection& taus() const { return fTauCollection; }
+
   const JetCollection& jets() const { return fJetCollection; }
+  const JetCollection& jets_pfchs() const { return fJetPFCHSCollection; }  
+  const JetCollection& jets_puppi() const { return fJetPuppiCollection; }
+  
   const GenJetCollection& genjets() const { return fGenJetCollection; }
   const ElectronCollection& electrons() const { return fElectronCollection; }
   const MuonCollection& muons() const { return fMuonCollection; }
@@ -66,7 +70,11 @@ public:
   const MET& genMET() const { return fGenMET; }
   const MET& met() const { return fMET; }
   const MET& met_Type1() const { return fMET_Type1; }
+  const MET& met_Type1_NoHF() const { return fMET_Type1_NoHF; }
+  const MET& met_Puppi() const { return fMET_Puppi; }
+  
   const MET& calomet() const { return fCaloMET; }
+  const MET& HLTmet() const { return fHLTMET; }
   const MET& L1met() const { 
     if(isMC()) return L1extramet();
     return fL1MET; 
@@ -87,7 +95,11 @@ private:
 
   HLTTauCollection fTriggerTauCollection;
   TauCollection fTauCollection;
+  
   JetCollection fJetCollection;
+  JetCollection fJetPFCHSCollection;
+  JetCollection fJetPuppiCollection;
+  
   GenJetCollection fGenJetCollection;
   ElectronCollection fElectronCollection;
   MuonCollection fMuonCollection;
@@ -95,8 +107,11 @@ private:
   PFCandsCollection fPFCandidates;
   MET fGenMET;
   MET fMET_Type1;
+  MET fMET_Type1_NoHF;
+  MET fMET_Puppi;
   MET fMET;
   MET fCaloMET;
+  MET fHLTMET;
   MET fL1MET;
   MET fL1extraMET;
 
