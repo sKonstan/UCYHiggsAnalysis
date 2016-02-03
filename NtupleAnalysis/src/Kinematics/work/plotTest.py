@@ -16,6 +16,8 @@ ROOT.gROOT.SetBatch(True)
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 def findModuleNames(multicrabdir, prefix):
+    '''
+    '''
     items = os.listdir(multicrabdir)
     for i in items:
         if os.path.isdir(os.path.join(multicrabdir, i)):
@@ -40,40 +42,14 @@ def findModuleNames(multicrabdir, prefix):
                 return myList
     return []
 
-def findProperBinning(hPassed, hAll, binEdges, errorlevel):
-    # Obtain minimum bin for skipping zero bins 
-    myMinBinIndex = 999
-    for k in range(1, hPassed.GetNbinsX()+1):
-        if hAll.GetBinContent(k) > 0:
-            myMinBinIndex = min(k,myMinBinIndex)
-    for k in range(0,myMinBinIndex-1):
-        #print "initial remove:",binEdges[0]
-        binEdges.remove(binEdges[0])
-    # Calculate efficiency curve
-    #hEff = ROOT.TEfficiency(hPassed, hAll) #attikis
-    hEff = hAll
-    
-    for k in range(myMinBinIndex, hPassed.GetNbinsX()):
-        deltaLow = 1.0
-        deltaHigh = 1.0
-        #if hEff.GetEfficiency(k) > 0.0: #attikis
-        #    deltaLow = hEff.GetEfficiencyErrorLow(k)/hEff.GetEfficiency(k) #attikis 
-        #    deltaHigh = hEff.GetEfficiencyErrorUp(k)/hEff.GetEfficiency(k) # attikis
-        #print "idx",k,hPassed.GetXaxis().GetBinLowEdge(k),deltaLow,deltaHigh
-        if max(deltaLow,deltaHigh) > float(errorlevel):
-            # merge to next bin and rebin
-            #print "remove",hPassed.GetXaxis().GetBinLowEdge(k+1), binEdges
-            binEdges.remove(hPassed.GetXaxis().GetBinLowEdge(k+1))
-            myArray = array.array("d", binEdges)
-            hAllNew = hAll.Rebin(len(myArray)-1, "", myArray)
-            hPassedNew = hPassed.Rebin(len(myArray)-1, "", myArray)
-            return findProperBinning(hPassedNew, hAllNew, binEdges, errorlevel)
-    return (hPassed, hAll)
 
 def doPlot(name, dset, errorlevel):
-    myPartons = ["B", "C", "G", "Light"]
+    '''
+    '''
+    myPartons      = ["B", "C", "G", "Light"]
     myPartonLabels = ["b#rightarrowb", "c#rightarrowb", "g#rightarrowb", "uds#rightarrowb"]
-    histoObjects = []
+    histoObjects    = []
+    # For-loop; All partons
     for i in range(len(myPartons)):
         n = "All%sjets"%myPartons[i]
         (hAll, hAllName) = dset.getRootHisto(n)
@@ -98,26 +74,25 @@ def doPlot(name, dset, errorlevel):
         hobj.setIsDataMC(False, True)
         histoObjects.append(hobj)
     myPlot = plots.PlotBase(histoObjects)
-    #myPlot.setLuminosity(-1) # Do not set 
+    myPlot.setLuminosity(10)
     myPlot.setEnergy("13")
-    #myPlot.setDefaultStyles()
     myParams = {}
     myParams["xlabel"] = "Jet p_{T}, GeV"
     myParams["ylabel"] = "Probability for passing b tagging"
     myParams["log"] = True
     myParams["cmsExtraText"] = "Simulation"
     myParams["cmsTextPosition"] = "outframe" # options: left, right, outframe
-    myParams["opts"] = {"ymin": 1e-3, "ymax": 1.0}
-    #myParams["opts2"] = {"ymin": 0.5, "ymax":1.5}
-    #myParams["moveLegend"] = {"dx": -0.08, "dy": -0.12, "dh": 0.1} # for MC EWK+tt
-    #myParams["moveLegend"] = {"dx": -0.15, "dy": -0.12, "dh":0.05} # for data-driven
+    myParams["opts"]  = {"ymin": 1e-3, "ymax": 1.0}
+    myParams["opts2"] = {"ymin": 0.5, "ymax":1.5}
+    #myParams["moveLegend"] = {"dx": -0.08, "dy": -0.12, "dh": 0.1}
     myParams["moveLegend"] = {"dx": 0.0, "dy": -0.46} # for data-driven
     
     drawPlot = plots.PlotDrawer(ratio=False, 
-                            #stackMCHistograms=False, addMCUncertainty=True,
-                            addLuminosityText=False,
-                            cmsTextPosition="outframe")
-    #drawPlot(myPlot, "%s_%s"%(dset.name, name), **myParams) #attikis
+                                #stackMCHistograms=False,
+                                #addMCUncertainty=True,
+                                addLuminosityText=False,
+                                cmsTextPosition="outframe")
+    drawPlot(myPlot, "%s_%s"%(dset.name, name), **myParams)
 
 
 def main():
@@ -138,6 +113,8 @@ def main():
 
     # Find module names
     myNames = findModuleNames(opts.mcrab, "Kinematics")
+    print myNames
+    exit()
 
     # Get dataset managers
     for n in myNames:

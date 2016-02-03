@@ -1,33 +1,49 @@
-## \package crosssection
+#================================================================================================
+# \package crosssection
 # Background and signal cross sections
-#
 # All cross sections are in pb
+#================================================================================================
 
-########################################
-# Background cross section table
-
-## Cross section of a single process (physical dataset)
+#================================================================================================
+# Class Definition
+#================================================================================================
 class CrossSection:
-    ## Constructor
-    #
-    # \parma name              Name of the process
-    # \param energyDictionary  Dictionary of energy -> cross section (energy as string in TeV, cross section as float in pb)
+    '''
+    Cross section of a single process (physical dataset)
+    '''
     def __init__(self, name, energyDictionary):
+        '''
+        Constructor
+        
+        \parma name              Name of the process
+        \param energyDictionary  Dictionary of energy -> cross section (energy as string in TeV, cross section as float in pb)
+        '''
         self.name = name
         for key, value in energyDictionary.iteritems():
             setattr(self, key, value)
+        return
 
-    ## Get cross section
-    #
-    # \param energy  Energy as string in TeV
     def get(self, energy):
+        '''
+        Get cross section
+        
+        \param energy  Energy as string in TeV
+        '''
         try:
             return getattr(self, energy)
         except AttributeError:
             raise Exception("No cross section set for process %s for energy %s" % (self.name, energy))
 
-## List of CrossSection objects
+        return
+
+
+#================================================================================================
+# Class Definition
+#================================================================================================
 class CrossSectionList:
+    '''
+    ## List of CrossSection objects
+    '''
     def __init__(self, *args):
         self.crossSections = args[:]
 
