@@ -147,8 +147,10 @@ def main():
     '''
 
     # Find module names
-    mcrab = m_multicrab.Multicrab(verbose=False)
+    mcrab   = m_multicrab.Multicrab(verbose=False)
     myNames = mcrab.FindModuleNames(opts.mcrab, "Kinematics")
+    print "=== draw_template.py:\n\t myNames = ", myNames
+    exit()
 
     # Get dataset managers
     for n in myNames:
