@@ -199,7 +199,7 @@ class Multicrab(object):
         
         # For-loop: All multiCRAB directories
         for d in multiDirs:
-            self.Print(["Accessing dataset ", d])
+            self.Verbose(["Accessing dir %s " % (d)])
             if isinstance(d, str):
                 dset = self.GetDatasetsFromMulticrabCfg(directory=d, **kwargs)
             else:

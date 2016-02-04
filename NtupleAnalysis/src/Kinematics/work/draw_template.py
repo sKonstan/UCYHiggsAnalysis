@@ -146,59 +146,29 @@ def DoPlots(hList, dataset, bColourPalette=False, saveExt=""):
 def main():
     '''
     '''
+    
+    mcrab         = m_multicrab.Multicrab(verbose=False)  
+    analysisNames = mcrab.FindModuleNames(opts.mcrab, "Kinematics") 
+    datasets      = []
+    if opts.dataset == None:
+         for aName in analysisNames:
+             datasets = mcrab.GetDatasetsFromMulticrabDirs(opts.mcrab, analysisNames=aName)
 
-#    # Find module names
-#    mcrab           = m_multicrab.Multicrab(verbose=False)
-#    analysisNames   = mcrab.FindModuleNames(opts.mcrab, "Kinematics")
-#    datasets        = mcrab.GetDatasetManagersFromMuldicrabDirs(opts.mcrab, analysisNames) #TTree
-#    mcDatasets    = datasets.getMCDatasets()
-#    for dataset in mcDatasets:
-#        print "dataset = ", dataset
-#        DoPlots( [AllElectronsPt], [dataset], bColourPalette )
-#        #if dset.name.startswith(opts.dataset):
-#        #doPlot(n, dset, opts.errorlevel)
+    mcDatasets = datasets.getMCDatasets()
+    print "datasets = ", datasets
+    print "datasets = ", mcDatasets
+    sys.exit()
+    for dataset in datasets:
+        DoPlots( [AllElectronsPt], [dataset], True )
 
-    myModuleSelector = m_analysisModuleSelector.AnalysisModuleSelector()
-
-    parser = OptionParser(usage="Usage: %prog [options]",add_help_option=True,conflict_handler="resolve")
-    myModuleSelector.addParserOptions(parser)
-
-    mcrab           = m_multicrab.Multicrab(verbose=False)
-    analysisNames   = mcrab.FindModuleNames(opts.mcrab, "Kinematics")
-
-    dsetMgrCreator = mcrab.ReadFromMulticrabCfg(directory=opts.mcrab)    
-    myModuleSelector.setPrimarySource("Kinematics", dsetMgrCreator)
-
-    # Obtain dsetMgrCreator and register it to module selector  
-    myModuleSelector.setPrimarySource("analysis", dsetMgrCreator)
-
-    # Select modules
-    myModuleSelector.doSelect(opts)
-    myModuleSelector.printSelectedCombinationCount()
-    results = []
-    for era in myModuleSelector.getSelectedEras():
-        for searchMode in myModuleSelector.getSelectedSearchModes():
-            for optimizationMode in myModuleSelector.getSelectedOptimizationModes():
-                dsetMgr = dsetMgrCreator.createDatasetManager(dataEra=era,searchMode=searchMode,optimizationMode=optimizationMode)
-                dsetMgr.loadLuminosities()
-                dsetMgr.updateNAllEventsToPUWeighted()
-                # plots.mergeRenameReorderForDataMC(dsetMgr)
-                # lumi = dsetMgr.getDataset("Data").getLuminosity()
-                lumi = 3
-                for dataset in mcDatasets:
-                    print "dataset.name = ", dataset.name
-                    DoPlots( [AllElectronsPt], [dataset], bColourPalette )
-        #if dset.name.startswith(opts.dataset):
-        #doPlot(n, dset, opts.errorlevel)
-        
 
 
 #================================================================================================
 if __name__ == "__main__":
 
     parser = OptionParser(usage="Usage: %prog [options]",add_help_option=False,conflict_handler="resolve")
-    parser.add_option("-m", "--mcrab"  , dest="mcrab"     , action="store", help="Path to the multicrab directory for input")
-    parser.add_option("-d", "--dataset", dest="dataset"   , action="store", help="Name of the dataset to be plotted")
+    parser.add_option("-m", "--mcrab"  , dest="mcrab"  , action="store", help="Path to the multicrab directory for input")
+    parser.add_option("-d", "--dataset", dest="dataset", action="store", help="Name of the dataset to be plotted")
     #parser.add_option("-e", "--error"  , dest="errorlevel", action="store", help="Maximum relative uncertainty per bin (default=10%%)", default=0.10)
     (opts, args) = parser.parse_args()
 
@@ -206,8 +176,8 @@ if __name__ == "__main__":
         raise Exception("Please provide input multicrab directory with -m")
     if not os.path.exists(opts.mcrab):
         raise Exception("The input root file '%s' does not exist!" % opts.mcrab)
-    if opts.dataset == None:
-        raise Exception("Please provide dataset name with -d")
+    #if opts.dataset == None:
+    #    raise Exception("Please provide dataset name with -d")
 
     main()
 
