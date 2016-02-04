@@ -4466,11 +4466,12 @@ class DatasetManagerCreator:
         Creates DatasetPrecursor objects for each ROOT file, reads the
         contents of first MC file to get list of available analyses.
         '''
-        self._precursors = [DatasetPrecursor(name, filenames) for name, filenames in rootFileList]
+        self._precursors    = [DatasetPrecursor(name, filenames) for name, filenames in rootFileList]
         self._baseDirectory = kwargs.get("baseDirectory", "")
         
         mcRead = False
         for d in self._precursors:
+            print "d = ", d
             #if d.isMC() or d.isPseudo():
             self._readAnalysisContent(d)
             mcRead = True

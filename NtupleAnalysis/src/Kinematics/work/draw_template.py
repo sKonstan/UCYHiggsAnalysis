@@ -28,6 +28,7 @@ import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.histos as m_histos
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.styles as m_styles
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.datasets as m_datasets
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.aux as m_aux
+import UCYHiggsAnalysis.NtupleAnalysis.tools.analysisModuleSelector as m_analysisModuleSelector
 pi = 4*math.atan(1)
 
 
@@ -146,19 +147,50 @@ def main():
     '''
     '''
 
-    # Find module names
-    mcrab   = m_multicrab.Multicrab(verbose=False)
-    myNames = mcrab.FindModuleNames(opts.mcrab, "Kinematics")
-    print "=== draw_template.py:\n\t myNames = ", myNames
-    exit()
+#    # Find module names
+#    mcrab           = m_multicrab.Multicrab(verbose=False)
+#    analysisNames   = mcrab.FindModuleNames(opts.mcrab, "Kinematics")
+#    datasets        = mcrab.GetDatasetManagersFromMuldicrabDirs(opts.mcrab, analysisNames) #TTree
+#    mcDatasets    = datasets.getMCDatasets()
+#    for dataset in mcDatasets:
+#        print "dataset = ", dataset
+#        DoPlots( [AllElectronsPt], [dataset], bColourPalette )
+#        #if dset.name.startswith(opts.dataset):
+#        #doPlot(n, dset, opts.errorlevel)
 
-    # Get dataset managers
-    for n in myNames:
-        datasets = dataset.getDatasetsFromMulticrabDirs([opts.mcrab], analysisName=n)
-        for dset in datasets.getMCDatasets():
-            if dset.name.startswith(opts.dataset):
-                doPlot(n, dset, opts.errorlevel)
-                #DoPlots( [hGenJet_e], datasetList, bColourPalette )
+    myModuleSelector = m_analysisModuleSelector.AnalysisModuleSelector()
+
+    parser = OptionParser(usage="Usage: %prog [options]",add_help_option=True,conflict_handler="resolve")
+    myModuleSelector.addParserOptions(parser)
+
+    mcrab           = m_multicrab.Multicrab(verbose=False)
+    analysisNames   = mcrab.FindModuleNames(opts.mcrab, "Kinematics")
+
+    dsetMgrCreator = mcrab.ReadFromMulticrabCfg(directory=opts.mcrab)    
+    myModuleSelector.setPrimarySource("Kinematics", dsetMgrCreator)
+
+    # Obtain dsetMgrCreator and register it to module selector  
+    myModuleSelector.setPrimarySource("analysis", dsetMgrCreator)
+
+    # Select modules
+    myModuleSelector.doSelect(opts)
+    myModuleSelector.printSelectedCombinationCount()
+    results = []
+    for era in myModuleSelector.getSelectedEras():
+        for searchMode in myModuleSelector.getSelectedSearchModes():
+            for optimizationMode in myModuleSelector.getSelectedOptimizationModes():
+                dsetMgr = dsetMgrCreator.createDatasetManager(dataEra=era,searchMode=searchMode,optimizationMode=optimizationMode)
+                dsetMgr.loadLuminosities()
+                dsetMgr.updateNAllEventsToPUWeighted()
+                # plots.mergeRenameReorderForDataMC(dsetMgr)
+                # lumi = dsetMgr.getDataset("Data").getLuminosity()
+                lumi = 3
+                for dataset in mcDatasets:
+                    print "dataset.name = ", dataset.name
+                    DoPlots( [AllElectronsPt], [dataset], bColourPalette )
+        #if dset.name.startswith(opts.dataset):
+        #doPlot(n, dset, opts.errorlevel)
+        
 
 
 #================================================================================================
