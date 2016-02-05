@@ -124,6 +124,7 @@ def main():
         rootFile = mcrab.GetDatasetRootFile(opts.mcrab, dName)
         dObject  = dataset.Dataset(dName, energy, rootFile, verbose=False, **args)
         datasetObjects.append(dObject)
+        dObject.PrintProperties()    
 
     for h in histoList:
         DoPlots( h, datasetObjects, True )
