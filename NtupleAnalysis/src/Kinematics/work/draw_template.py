@@ -22,22 +22,26 @@ import numpy
 import math
 from optparse import OptionParser
 
-import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.multicrab as m_multicrab
-import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.dataset as m_dataset
-import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.crossSection as m_crossSection
-import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.plotter as m_plotter
-import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.histos as m_histos
-import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.styles as m_styles
-import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.aux as m_aux
-#pi = 4*math.atan(1)
+import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.multicrab as multicrab
+import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.dataset as dataset
+#import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.crossSection as crossSection
+import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.plotter as plotter
+import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.histos as histos
+import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.styles as styles
+import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.aux as aux
+
+from UCYHiggsAnalysis.NtupleAnalysis.pyROOT.crossSection import xSections
+
 
 #================================================================================================
 # General Settings
 #================================================================================================
-bRatio        = True
+ratio         = True
+energy        = "13"
 folder        = "Kinematics"
 saveFormats   = ["png"]
 savePath      = ""
+#pi = 4*math.atan(1)
 
 
 #================================================================================================
@@ -74,11 +78,11 @@ Eta = {
 #================================================================================================
 # Create Histos OBjects
 #================================================================================================
-AllElectronsPt      = m_histos.TH1orTH2( folder, "AllElectronsPt"   , "all"    , None, **Pt )
-PassedElectronsPt   = m_histos.TH1orTH2( folder, "PassedElectronsPt", "passed ", None, **Pt )
+AllElectronsPt      = histos.TH1orTH2( folder, "AllElectronsPt"   , "all"    , None, **Pt )
+PassedElectronsPt   = histos.TH1orTH2( folder, "PassedElectronsPt", "passed ", None, **Pt )
 
-AllElectronsEta     = m_histos.TH1orTH2( folder, "PassedElectronsPt", "Canvas Legend", None, **Eta )
-PassedElectronsEta  = m_histos.TH1orTH2( folder, "PassedElectronsPt", "Canvas Legend", None, **Eta )
+AllElectronsEta     = histos.TH1orTH2( folder, "PassedElectronsPt", "Canvas Legend", None, **Eta )
+PassedElectronsEta  = histos.TH1orTH2( folder, "PassedElectronsPt", "Canvas Legend", None, **Eta )
 
 
 #================================================================================================
@@ -86,7 +90,7 @@ PassedElectronsEta  = m_histos.TH1orTH2( folder, "PassedElectronsPt", "Canvas Le
 #================================================================================================
 def DoPlots(histo, datasetObjects, bColourPalette=False, saveExt=""):
 
-    p = m_plotter.Plotter( Verbose=False, BatchMode=True )
+    p = plotter.Plotter( Verbose=False, BatchMode=True )
     p.SetBoolUseDatasetAsLegEntry(bColourPalette)
     p.AddDatasets(datasetObjects)
 
@@ -104,27 +108,22 @@ def DoPlots(histo, datasetObjects, bColourPalette=False, saveExt=""):
     p.SaveHistos(True, savePath, saveFormats, saveExt)
     return
 
+
 #================================================================================================
 def main():
     '''
     '''
 
-    xSections = m_crossSection.backgroundCrossSections
-    #print xSections.crossSections
-    #sys.exit()
-    print xSections.crossSection("QCD_Pt_30to50", "8")
-    #for x in xSections:
-    #    print x.name
-    sys.exit()
     args         = {}
-    histoList    = [PassedElectronsPt, AllElectronsPt]
-    mcrab        = m_multicrab.Multicrab(verbose=False)
-    datasetNames = mcrab.GetDatasetsFromMulticrabDir(opts.mcrab, **args)
     datasetObjects = []
+    histoList    = [PassedElectronsPt, AllElectronsPt]
+    mcrab        = multicrab.Multicrab(verbose=False)
+    datasetNames = mcrab.GetDatasetsFromMulticrabDir(opts.mcrab, **args)
+    
     for dName in datasetNames:
         rootFile = mcrab.GetDatasetRootFile(opts.mcrab, dName)
-        dataset = m_dataset.Dataset(dName, rootFile, verbose=False, **args)
-        datasetObjects.append(dataset)
+        dObject  = dataset.Dataset(dName, energy, rootFile, verbose=False, **args)
+        datasetObjects.append(dObject)
 
     for h in histoList:
         DoPlots( h, datasetObjects, True )

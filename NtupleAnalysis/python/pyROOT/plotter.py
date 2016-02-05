@@ -41,14 +41,14 @@ import collections #for ordered dictionaries
 ###############################################################
 class Plotter(object): 
     def __init__(self, Verbose=False, BatchMode=True):
-        self.bVerbose          = Verbose
+        self.verbose           = Verbose
         self.BatchMode         = BatchMode
         self.SetupROOT()       
         self.TDRStyleObject    = m_tdrstyle.TDRStyle()
-        self.StyleObject       = m_styles.StyleClass(verbose = self.bVerbose)
-        self.TextObject        = m_text.TextClass(verbose=self.bVerbose)
-        self.AuxObject         = m_aux.AuxClass(verbose=self.bVerbose)
-        #self.DatasetObject     = m_datasets.Dataset(verbose=self.bVerbose)
+        self.StyleObject       = m_styles.StyleClass(verbose = self.verbose)
+        self.TextObject        = m_text.TextClass(verbose=self.verbose)
+        self.AuxObject         = m_aux.AuxClass(verbose=self.verbose)
+        #self.DatasetObject     = m_datasets.Dataset(verbose=self.verbose)
         self.CanvasFactor      = 1.25
         #self.DatasetToRootFileMap  = collections.OrderedDict()
         self.DatasetToHistoMap     = collections.OrderedDict()
@@ -92,7 +92,7 @@ class Plotter(object):
         Custome made verbose system. Will print all messages in the messageList
         only if the verbosity boolean is set to true.
         '''
-        if self.bVerbose == False:
+        if self.verbose == False:
             return
         
         print "%s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
@@ -250,8 +250,8 @@ class Plotter(object):
         '''
         self.Verbose()
 
-        self.bVerbose = verbose
-        self.Verbose(["Verbose mode = ", self.bVerbose])
+        self.verbose = verbose
+        self.Verbose(["Verbose mode = ", self.verbose])
         return
 
 
@@ -710,7 +710,7 @@ class Plotter(object):
         return f.Get(histoPath)
 
 
-    def PrintHistoInfo(self, histo, bVerbose=False):
+    def PrintHistoInfo(self, histo, verbose=False):
         '''
         '''
         self.Verbose()
@@ -718,7 +718,7 @@ class Plotter(object):
         if histo.TH1orTH2.Integral() == 0:
             self.Print(["WARNING!", "File: '%s'" % (histo.TFileName), "Dataset: '%s'" % (histo.dataset), "HistoPath: '%s'" % (histo.path), "HistoName: '%s'" % (histo.name), 
                         "Integral(): '%s'" % (histo.rangeIntegral), "Integral(0, nBins+1): '%s'" % (histo.integral), "normaliseTo: '%s'" % (histo.normaliseTo)])
-        elif bVerbose == True:
+        elif verbose == True:
             self.Print(["File: '%s'" % (histo.TFileName), "Dataset: '%s'" % (histo.dataset), "HistoPath: '%s'" % (histo.path), "HistoName: '%s'" % (histo.name), 
                         "Integral(): '%s'" % (histo.rangeIntegral), "Integral(0, nBins+1): '%s'" % (histo.integral), "normaliseTo: '%s'" % (histo.normaliseTo)])
         else:
@@ -1287,13 +1287,13 @@ class Plotter(object):
         This was designed to be used  in conjuction with GetHistos(). 
         For example:
 
-        p1 = m_plotter.Plotter( bVerbose, bBatchMode )
+        p1 = m_plotter.Plotter( verbose, bBatchMode )
         for dataset in datasetList:
            p1.AddDataset(dataset, datasetPaths[dataset])
         p1.AddHisto(hList1)
         p1.Draw(THStackDrawOpt="nostack", bStackInclusive = False)
         
-        p2 = m_plotter.Plotter( bVerbose, bBatchMode )
+        p2 = m_plotter.Plotter( verbose, bBatchMode )
         for dataset in datasetList:
            p2.AddDataset(dataset, datasetPaths_D[dataset])
         p2.AddHisto(hList2)

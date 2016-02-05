@@ -29,22 +29,21 @@ class Multicrab(object):
     '''
     '''
     def __init__(self, verbose=False):
-        self.bVerbose = verbose
+        self.verbose = verbose
         return
 
 
-    def Verbose(self, messageList=None):
+    def Verbose(self, message=None):
         '''
         Custome made verbose system. Will print all messages in the messageList
         only if the verbosity boolean is set to true.
         '''
-        if self.bVerbose == True:
+        if self.verbose:
             print "*** %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
-            if messageList==None:
+            if message==None:
                 return
             else:
-                for message in messageList:
-                    print "\t", message
+                print "\t", message
         return
 
 
@@ -83,7 +82,7 @@ class Multicrab(object):
         self.Verbose()
 
         if not isinstance(mcrabDir, str):
-            self.Print("Expected argument \"multicrabDir\" as type str, got %s instead. EXIT" % type(mcrabDir))
+            self.Print("Expected argument \"mcrabDir\" as type str, got %s instead. EXIT" % type(mcrabDir))
             sys.exit()
 
         self.Verbose("Accessing multicrab directory %s" % (mcrabDir))
@@ -92,7 +91,7 @@ class Multicrab(object):
             sys.exit()
         else:
             return self.GetTaskDirectories(mcrabDir)
-            
+        
         return []
 
 
@@ -105,8 +104,8 @@ class Multicrab(object):
         dirsList = glob.glob(os.path.join(mcrab, "*"))
 
         # Remove from dirs list non-directory items
-        dirsList    = filter(lambda d: os.path.isdir(d), dirsList)
-
+        dirsList = filter(lambda d: os.path.isdir(d), dirsList)
+        
         # Drop the mcrab path from the directories to get the datasets
         datasets = []
         for d in dirsList:
