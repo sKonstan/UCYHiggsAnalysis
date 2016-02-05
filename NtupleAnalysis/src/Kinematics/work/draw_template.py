@@ -24,6 +24,7 @@ from optparse import OptionParser
 
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.multicrab as m_multicrab
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.dataset as m_dataset
+import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.crossSection as m_crossSection
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.plotter as m_plotter
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.histos as m_histos
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.styles as m_styles
@@ -70,21 +71,6 @@ Eta = {
 }
 
 
-Phi = {
-    "xLabel": "#phi"            , "xUnits": "rads" , "xMin": -3.2 , "xMax": +3.2, "binWidthX": None, "xCutLines": [0], "xCutBoxes": [], "gridX": True, "logX": False, 
-    "yLabel": "Entries / %0.2f" , "yUnits": ""     , "yMin": +1E00, "yMax": None, "binWidthY": None, "yCutLines": [] , "yCutBoxes": [], "gridY": True, "logY": True, 
-    "ratioLabel": "Ratio", "ratio": False, "invRatio": False, "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "normaliseTo": None, "drawOptions": "P", "legOptions": "LP",
-    "logYRatio": False, "logXRatio": False, "xLegMin": 0.18, "xLegMax": 0.4, "yLegMin": 0.80, "yLegMax": 0.90
-}
-
-Energy = {
-    "xLabel": "Energy"          , "xUnits": "GeV", "xMin":   0.0, "xMax": +25.0, "binWidthX": None, "xCutLines": [20], "xCutBoxes": [], "gridX": True, "logX": False, 
-    "yLabel": "Entries / %0.2f" , "yUnits": ""   , "yMin": +1E00, "yMax": None , "binWidthY": None, "yCutLines": []  , "yCutBoxes": [], "gridY": True, "logY": True , 
-    "ratioLabel": "Ratio", "ratio": False, "invRatio": False, "yMinRatio": 1e-01, "yMaxRatio": 2.15, "normaliseTo": None, "drawOptions": "P", "legOptions": "LP",
-    "logYRatio": False, "logXRatio": False, "xLegMin": 0.18, "xLegMax": 0.4, "yLegMin": 0.80, "yLegMax": 0.90
-    }
-
-
 #================================================================================================
 # Create Histos OBjects
 #================================================================================================
@@ -123,6 +109,13 @@ def main():
     '''
     '''
 
+    xSections = m_crossSection.backgroundCrossSections
+    #print xSections.crossSections
+    #sys.exit()
+    print xSections.crossSection("QCD_Pt_30to50", "8")
+    #for x in xSections:
+    #    print x.name
+    sys.exit()
     args         = {}
     histoList    = [PassedElectronsPt, AllElectronsPt]
     mcrab        = m_multicrab.Multicrab(verbose=False)
