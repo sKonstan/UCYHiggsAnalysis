@@ -4437,11 +4437,11 @@ class DatasetPrecursor:
         '''
         Close the ROOT files
         '''
-        if self._verbose:
+        if self.bVerbose:
             print "=== dataset.py:"
         # For-loop: All ROOT files
-        for f in self._rootFiles:            
-            if self._verbose:
+        for f in self._rootFiles:
+            if self.bVerbose:
                 print "\t Closing file '%s'" % ( f.GetName() )
             f.Close("R")
             f.Delete()
