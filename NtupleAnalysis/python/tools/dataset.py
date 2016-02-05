@@ -64,13 +64,12 @@ def getDatasetsFromMulticrabDirs(multiDirs, **kwargs):
 
     # For-loop: All multiCRAB directories
     for d in multiDirs:
-        print "=== dataset.py:\n\t d = ", d
+        self.Print(["Getting %s" % d])
         if isinstance(d, str):
             dset = getDatasetsFromMulticrabCfg(directory=d, **kwargs)
         else:
             dset = getDatasetsFromMulticrabCfg(directory=d[0], namePostfix=d[1], **kwargs)
 
-        print "=== dataset.py:\n\t dset = ", dset
         datasets.extend(dset)
 
     return datasets
@@ -880,13 +879,8 @@ class TreeScan:
             tree.GetEntry(elist.GetEntry(ientry))
             self.function(tree)
 
-    ## \var tree
-    # Path to the TTree object in a file
-    ## \var function
-    # Function to call for each TTree entry
-    ## \var selection
-    # Select only these TTree entries
-
+        return
+    
 #================================================================================================ 
 # Class Definition
 #================================================================================================ 
@@ -4316,7 +4310,7 @@ class DatasetPrecursor:
     '''
     def __init__(self, name, filenames, verbose=False):
         self._name    = name
-        self._verbose = verbose
+        self.bVerbose = verbose
         if isinstance(filenames, basestring):
             self._filenames = [filenames]
         else:
@@ -4329,11 +4323,8 @@ class DatasetPrecursor:
         self._nAllEvents  = 0.0
 
         # For-loop: All ROOT file names
-        if self._verbose:
-            print "=== dataset.py:"
         for name in self._filenames:
-            if self._verbose:
-                print "\t Opening ROOT file '%s'" % (name)
+            self.Print(["Opening ROOT file '%s'" % (name)])
             rootFile = ROOT.TFile.Open(name)
 
             # Below is important to use '==' instead of 'is' to check for null file
@@ -4344,7 +4335,7 @@ class DatasetPrecursor:
             # Get the data version
             dataVersion = aux.Get(rootFile, "configInfo/dataVersion")
             if dataVersion == None:
-                print "=== dataset.py:\n\t Unable to find 'configInfo/dataVersion' from ROOT file '%s', I have no idea if this file is data, MC, or pseudo" % name
+                self.Print(["Unable to find 'configInfo/dataVersion' from ROOT file '%s', I have no idea if this file is data, MC, or pseudo" % name])
                 continue
             
             if self._dataVersion is None:
@@ -4367,8 +4358,6 @@ class DatasetPrecursor:
                         self._pileup = pileup
                 else:
                     self._pileup.Add(pileup)
-            else:
-                raise Exception("=== dataset.py:\n\t Could not find TTree with name '%s' from ROOT file '%s'" % (treeName, rootFile.GetName()))
 
             # Obtain nAllEvents
             if isTree:
@@ -4390,6 +4379,32 @@ class DatasetPrecursor:
             self._isData   = "data" in self._dataVersion
             self._isPseudo = "pseudo" in self._dataVersion
             self._isMC     = not (self._isData or self._isPseudo)
+
+
+    def Verbose(self, messageList=None):
+        '''
+        Custome made verbose system. Will print all messages in the messageList
+        only if the verbosity boolean is set to true.
+        '''
+        if self.bVerbose == True:
+            print "*** %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+            if messageList==None:
+                return
+            else:
+                for message in messageList:
+                    print "\t", message
+        return
+
+
+    def Print(self, messageList=[""]):
+        '''
+        Custome made print system. Will print all messages in the messageList
+        even if the verbosity boolean is set to false.
+        '''
+        print "*** %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+        for message in messageList:
+            print "\t", message
+        return
 
     def getName(self):
         return self._name
@@ -4449,7 +4464,7 @@ class DatasetManagerCreator:
     which then correspond to a single analysis directory within the ROOT
     files.
     '''
-    def __init__(self, rootFileList, **kwargs):
+    def __init__(self, rootFileList, verbose=False, **kwargs):
         '''
         Constructor
         
@@ -4468,10 +4483,9 @@ class DatasetManagerCreator:
         '''
         self._precursors    = [DatasetPrecursor(name, filenames) for name, filenames in rootFileList]
         self._baseDirectory = kwargs.get("baseDirectory", "")
-        
+        self.bVerbose       = verbose 
         mcRead = False
         for d in self._precursors:
-            print "d = ", d
             #if d.isMC() or d.isPseudo():
             self._readAnalysisContent(d)
             mcRead = True
@@ -4492,7 +4506,35 @@ class DatasetManagerCreator:
 
         self._dataDataEras = dataEras.keys()
         self._dataDataEras.sort()
+        return
 
+    
+    def Verbose(self, messageList=None):
+        '''
+        Custome made verbose system. Will print all messages in the messageList
+        only if the verbosity boolean is set to true.
+        '''
+        if self.bVerbose == True:
+            print "*** %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+            if messageList==None:
+                return
+            else:
+                for message in messageList:
+                    print "\t", message
+        return
+
+
+    def Print(self, messageList=[""]):
+        '''
+        Custome made print system. Will print all messages in the messageList
+        even if the verbosity boolean is set to false.
+        '''
+        print "*** %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+        for message in messageList:
+            print "\t", message
+        return
+
+    
     def _readAnalysisContent(self, precursor):
         contents = aux.listDirectoryContent(precursor.getFiles()[0], lambda key: key.IsFolder())
 
@@ -4630,7 +4672,7 @@ class DatasetManagerCreator:
                 value = _args[name]
                 if value is not None:
                     parameters.append("%s='%s'" % (name, value))
-        print "=== dataset.py:\n\t Creating DatasetManager with", ", ".join(parameters)
+        self.Print(["Creating DatasetManager with %s" % ", ".join(parameters)])
 
         # Create manager and datasets
         dataEra = _args.get("dataEra", None)
@@ -4663,6 +4705,8 @@ class DatasetManagerCreator:
                 if precursor.isData():
                     dset = Dataset(precursor.getName(), precursor.getFiles(), **_args)
                 else:
+                    #print "**_args = ", _args #xenios
+                    _args =  {'analysisName': 'Kinematics'}
                     dset = Dataset(precursor.getName(), precursor.getFiles(), availableSystematicVariationSources=self._systematicVariationSources, **_args)
             except AnalysisNotFoundException, e:
                 msg = str(e)+"\n"

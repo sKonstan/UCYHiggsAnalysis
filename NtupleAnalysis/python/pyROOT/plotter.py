@@ -194,37 +194,20 @@ class Plotter(object):
         return
     
 
-    def AddDataset(self, datasetName, rootFilePath):
+    def AddDataset(self, dataset, rootFile):
         '''
         Add a new dataset and associate it to a root file.
         '''
-        self.Verbose(["From file '%s', adding dataset '%s'." % (rootFilePath, datasetName)])
+        self.Verbose(["Adding dataset %s from file %s." % (dataset, rootFile.GetName())])
 
-        ### Try to get Pile Up
-        self.GetPileUp(datasetName.rsplit(":", 1)[0].lower())
-
-        ### Distinguish latex names and datasets
-        datasetName      = datasetName.rsplit(":", 1)[-1]
-        datasetLatexName = datasetName.rsplit(":", 1)[0]
+        ### Get the Pile Up
+        self.GetPileUp(dataset)
                 
-        ### Ensure that dataset is unique (dictionaries must have unique keys)
-        if datasetName in self.DatasetToRootFileMap.keys():
-            self.Print(["Dataset '%s' already exists, associated with file '%s'" % (datasetName, self.DatasetToRootFileMap[datasetName]), "Please ensure that dataset names used are unique. EXIT"])
-            sys.exit()
-        elif datasetName in self.DatasetToLatexNameMap.keys():
-            self.Print(["Dataset LaTeX name '%s' already exists, associated with dataset '%s'" % (datasetName), "Please ensure that dataset LaTeX names are unique. EXIT"])
-            sys.exit()
-        else:
-            pass
-
         ### Map dataset to ROOT file, append dataset (name) to datasetlist, append ROOT file (name) to TFile list
-        self.DatasetToRootFileMap[datasetName]  = self.GetRootFile(rootFilePath)
+        self.DatasetToRootFileMap[dataset]  = rootFile
         
         ### Map dataset to Latex name
-        if datasetLatexName != datasetName:
-            self.DatasetToLatexNameMap[datasetName] = datasetLatexName
-        else:
-            self.DatasetToLatexNameMap[datasetName] = self.DatasetObject.ConvertDatasetToLatex(datasetName)
+        self.DatasetToLatexNameMap[dataset] = self.DatasetObject.ConvertDatasetToLatex(dataset)
         return
 
 
@@ -233,38 +216,21 @@ class Plotter(object):
         '''
 
         if self.PileUp == None:
-            self.PileUp = self.DatasetObject.DatasetToPileUpMap[dataset]
+            #self.PileUp = self.DatasetObject.DatasetToPileUpMap[dataset]
+            self.PileUp = 140
+            self.Print(["FIXME"])
             return
-        elif self.PileUp != self.DatasetObject.DatasetToPileUpMap[dataset]:
-            self.Print(["Datasets with different PU values ('%s' and '%s'). Will display biggest one" % (self.DatasetObject.DatasetToPileUpMap[dataset] , self.PileUp)])
-            if self.DatasetObject.DatasetToPileUpMap[dataset] > self.PileUp:
-                self.PileUp = self.DatasetObject.DatasetToPileUpMap[dataset]
-            return
-        else:
-            #self.Print(["ERROR!", "This should not print!"])
-            return
+
+#        elif self.PileUp != self.DatasetObject.DatasetToPileUpMap[dataset]:
+#            self.Print(["Datasets with different PU values ('%s' and '%s'). Will display biggest one" % (self.DatasetObject.DatasetToPileUpMap[dataset] , self.PileUp)])
+#            if self.DatasetObject.DatasetToPileUpMap[dataset] > self.PileUp:
+#                self.PileUp = self.DatasetObject.DatasetToPileUpMap[dataset]
+#            return
+#        else:
+#            #self.Print(["ERROR!", "This should not print!"])
+#            return
         return
-    
-    
-    def GetDatasets(self, McProduction, MulticrabDirPath, datasetList=[""]):
-        '''
-        OBSOLETE
-        '''
-        self.Verbose()
-
-        ### First setup the datasets object
-        self.DatasetObject.SetMulticrabDirPath(MulticrabDirPath)
-        self.DatasetObject.SetMcProduction(McProduction)
-
-        ### Get the dataset to file maps
-        for dataset in datasetList:
-            dataset = dataset.lower()
-            if dataset in self.DatasetObject.GetDatasetToFileMap().keys():
-                self.DatasetToRootFileMap[dataset] = self.GetRootFile(self.DatasetObject.GetFile(dataset))                
-            else:
-                raise Exception("The dataset provided ('%s') is not valid. Please select one of the following options:\n\t%s" % (dataset, "\n\t".join(self.DatasetObject.GetDatasetToFileMap().keys())) )
-        return
-
+        
 
     def SetVerbose(self, verbose):
         '''
@@ -1060,7 +1026,7 @@ class Plotter(object):
         h = histo.TH1orTH2
         self.Print( ["Converting histo '%s' into a (1-cumulative integral) histogram" % ( h.GetName() )] )
 
-        if isinstance(h, ROOT.TH1D) == True:
+        if isinstance(h, ROOT.TH1F) == True:
             nBins = h.GetNbinsX()+1
             for b in range(0, nBins+1):
                 value = h.Integral(b, nBins) 
@@ -1140,7 +1106,7 @@ class Plotter(object):
         else:
             hPath = hObject.path + "/" + hObject.name
 
-        self.IsTH1 = isinstance( rootFile.Get(hPath), ROOT.TH1D)
+        self.IsTH1 = isinstance( rootFile.Get(hPath), ROOT.TH1F)
         self.IsTH2 = isinstance( rootFile.Get(hPath), ROOT.TH2D)
 
         if not self.IsTH1 and not self.IsTH2:
@@ -2296,31 +2262,6 @@ class Plotter(object):
             hUnity.TH1orTH2.SetBinError(i, 0)
             
         return hUnity.TH1orTH2
-
-
-    def PrintPSet(self, psetFolderPath, rootFileName = None):
-        ''' 
-        Print the PSet used when generating a particular ROOT file.
-        '''
-
-        self.Verbose()
-
-        ### Loop over all datasets
-        if rootFileName == None:
-
-            if len(self.DatasetToRootFileMap.keys()) < 1:
-                raise Exception("Cannot find PSets as no datasets are available. Either add a dataset or provide explicitly the ROOT file you want to read the PSets from." )
-            else:
-                for dataset in self.DatasetToRootFileMap.keys():
-                    f     = self.DatasetToRootFileMap[dataset]
-                    named = f.Get(psetFolderPath)
-                    rootFileName = f.GetName()
-                    break
-        else:
-            named = self.GetRootFile(rootFileName).Get(psetFolderPath)
-
-        self.Print(["Printing PSets for ROOT file '%s':" % (rootFileName), named.GetTitle() ])
-        return
 
 
     def CustomiseTGraph(self, graph, histoObject, dataset, kwargs):
