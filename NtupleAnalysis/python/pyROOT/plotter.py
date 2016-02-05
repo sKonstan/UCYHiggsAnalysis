@@ -32,7 +32,7 @@ import text as m_text
 import aux as m_aux
 import styles as m_styles
 import histos as m_histos
-import datasets as m_datasets
+import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.datasets as m_datasets
 import collections #for ordered dictionaries
 
 ###############################################################
@@ -47,11 +47,12 @@ class Plotter(object):
         self.StyleObject       = m_styles.StyleClass(verbose = self.bVerbose)
         self.TextObject        = m_text.TextClass(verbose=self.bVerbose)
         self.AuxObject         = m_aux.AuxClass(verbose=self.bVerbose)
-        self.DatasetObject     = m_datasets.DatasetClass(verbose=self.bVerbose)
+        #self.DatasetObject     = m_datasets.Dataset(verbose=self.bVerbose)
         self.CanvasFactor      = 1.25
-        self.DatasetToRootFileMap  = collections.OrderedDict()
+        #self.DatasetToRootFileMap  = collections.OrderedDict()
         self.DatasetToHistoMap     = collections.OrderedDict()
         self.DatasetToLatexNameMap = collections.OrderedDict()
+        self.Datasets          = []
         self.DivisionPoint     = 1-1/self.CanvasFactor
         self.DrawObjectList    = []
         self.DrawObjectListR   = []
@@ -194,23 +195,33 @@ class Plotter(object):
         return
     
 
-    def AddDataset(self, dataset, rootFile):
+    def AddDataset(self, dataset):
         '''
         Add a new dataset and associate it to a root file.
         '''
-        self.Verbose(["Adding dataset %s from file %s." % (dataset, rootFile.GetName())])
-
-        ### Get the Pile Up
-        self.GetPileUp(dataset)
-                
-        ### Map dataset to ROOT file, append dataset (name) to datasetlist, append ROOT file (name) to TFile list
-        self.DatasetToRootFileMap[dataset]  = rootFile
+        self.Verbose(["Adding dataset %s from file %s." % (dataset.name, dataset.rootFile.GetName())])
         
-        ### Map dataset to Latex name
-        self.DatasetToLatexNameMap[dataset] = self.DatasetObject.ConvertDatasetToLatex(dataset)
+        #### Get the Pile Up
+        #self.GetPileUp(dataset)
+                
+        #### Map dataset to ROOT file, append dataset (name) to datasetlist, append ROOT file (name) to TFile list
+        #self.DatasetToRootFileMap[dataset]  = rootFile
+        
+        #### Map dataset to Latex name
+        #self.DatasetToLatexNameMap[dataset] = self.DatasetObject.ConvertDatasetToLatex(dataset)
+        self.Datasets.append(dataset)
         return
 
 
+    def AddDatasets(self, datasetObjects):
+        '''
+        Add all datasets in the datasetObjects list to the plotter
+        '''
+        for d in datasetObjects:
+            self.Verbose(["Adding dataset %s from file %s." % (d.name, d.rootFile.GetName())])
+            self.AddDataset(d)
+        return
+    
     def GetPileUp(self, dataset):
         '''
         '''
@@ -241,29 +252,6 @@ class Plotter(object):
         self.bVerbose = verbose
         self.Verbose(["Verbose mode = ", self.bVerbose])
         return
-
-
-    def GetRootFile(self, filePath, mode = "READ"):
-        '''
-        Open a TFile from a given filePath in a given mode (default = "READ") and return it.
-        Ensure that file does exist.
-        '''
-
-        self.Verbose()
-
-        ### Check that the path actually exists
-        if os.path.exists(filePath) == False:
-            raise Exception("File '%s' does not exist! Please make sure the provided path for the file is correct." % (filePath) )
-
-        ### Open file
-        fileName = filePath.rsplit("/", 1)[-1]
-        rootFile = ROOT.TFile.Open( filePath, mode, fileName, 1, 0)
-
-        ### Ensure that file being accessed is indeed a ROOT file. If so return it, else raise exception
-        if isinstance(rootFile, ROOT.TFile) == False:
-            raise Exception("The file '%s' exists but it is not a ROOT file!" % (rootFile.GetName()) )
-        else:
-            return rootFile
 
 
     def _CreateCanvas(self):
@@ -639,7 +627,7 @@ class Plotter(object):
         self.Verbose()
         
         ### Sanity check. At least one dataset is present 
-        if len(self.DatasetToRootFileMap.keys()) < 1:
+        if len(self.Datasets)<1:
             self.Print(["ERROR!", "No datasets found! Exit"])
             sys.exit()
         else:
@@ -649,16 +637,16 @@ class Plotter(object):
         self.IsValidHistoObject(histoObject)
 
         ### Loop over all datasets
-        for dataset in self.DatasetToRootFileMap.keys():
+        for dataset in self.Datasets:
 
             ### Get the ROOT file for given dataset
-            f = self.DatasetToRootFileMap[dataset]
+            f = dataset.rootFile
 
             ### Ensure that histogram exists in the file
             self.CheckThatHistoExists(f, histoObject)
 
             ### Map histo to dataset
-            mapKey = dataset + ":" + histoObject.name
+            mapKey = dataset.name + ":" + histoObject.name
             self.Verbose(["Mapping '%s' to key '%s'." % ( histoObject.name, mapKey)])
             self.DatasetToHistoMap[mapKey] = copy.deepcopy(histoObject)
                 
@@ -1062,7 +1050,7 @@ class Plotter(object):
         
         hType = type(histoObject.TH1orTH2)
         
-        if len(self.DatasetToRootFileMap.keys())>1 and "TH2" in str(hType):
+        if len(self.Datasets)>1 and "TH2" in str(hType):
             raise Exception("Cannot draw a TH2 while more than 1 datasets are present.")
         else:
             return
@@ -1235,14 +1223,16 @@ class Plotter(object):
         elif h.normaliseTo == "MB@40MHz":
             ConvertRateTokHz  = 1.0E-3
             CrossingRate      = 40.0E+6 #Hz
-            MCEventsTotal     = self.DatasetObject.GetEvents(h.dataset)
+            MCEventsTotal     = 100.0 #self.DatasetObject.GetEvents(h.dataset)
+            self.Print(["FIXME"])
             scaleFactor       = (CrossingRate)/(MCEventsTotal)*ConvertRateTokHz
             h.scaleFactor     = scaleFactor
             h.TH1orTH2.Scale(scaleFactor)
         elif h.normaliseTo == "MB@30MHz":
             ConvertRateTokHz  = 1.0E-3
             CrossingRate      = 30.0E+6 #Hz
-            MCEventsTotal     = self.DatasetObject.GetEvents(h.dataset)
+            MCEventsTotal     = 100.0 #self.DatasetObject.GetEvents(h.dataset)
+            self.Print(["FIXME"])
             scaleFactor       = (CrossingRate)/(MCEventsTotal)*ConvertRateTokHz
             h.scaleFactor     = scaleFactor
             h.TH1orTH2.Scale(scaleFactor)
@@ -1394,7 +1384,7 @@ class Plotter(object):
         ### Loop over all histo objects
         for histo in self.HistoObjectList:
             
-            dataset = histo.dataset + ":" + histo.name
+            dataset = histo.dataset.name + ":" + histo.name
             
             h = self.DatasetToHistoMap[dataset]
             self.Verbose(["Adding histogram '%s' to the THStack" % (histo.name), 
@@ -1989,7 +1979,9 @@ class Plotter(object):
             return  entryLabel
 
         if self.UseDatasetAsLegEntry==True:
-            entryLabel   = self.DatasetToLatexNameMap[histoObject.dataset]
+            #entryLabel   = self.DatasetToLatexNameMap[histoObject.dataset.name]
+            entryLabel   = "fixme"
+            self.Print(["FixMe"])
         else:
             entryLabel = histoObject.legTitle
 
@@ -2180,7 +2172,7 @@ class Plotter(object):
         
         self.TCanvas.cd()
         self.TextObject.AddEnergyText( text = " " )
-        self.TextObject.AddCmsSimulationPhaseTwoText(self.IsTH2, self.PileUp) 
+        self.TextObject.AddCmsSimulationPhaseTwoText(self.IsTH2, 200)  #fixme
         self.TextObject.AddIntLumiText( text = "" )
 
         self.TCanvas.Update()
@@ -2299,9 +2291,14 @@ class Plotter(object):
         ### Create legend if there isn't one already
         if self.TLegend == None:
             if ":" in dataset:
-                datasetLatex = self.DatasetObject.ConvertDatasetToLatex( dataset.rsplit(":", 1)[0] )
+                #self.DatasetObject.ConvertDatasetToLatex( dataset.rsplit(":", 1)[0] )
+                datasetLatex = "fixme"
+                self.Print(["FIXME"])
             else:
-                datasetLatex = self.DatasetObject.ConvertDatasetToLatex( dataset )
+                #datasetLatex = self.DatasetObject.ConvertDatasetToLatex( dataset )
+                datasetLatex = "fixme"
+                self.Print(["FIXME"])
+
             self.TLegend = ROOT.TLegend( kwargs.get("xLegMin"), kwargs.get("yLegMin"), kwargs.get("xLegMax"), kwargs.get("yLegMax"), datasetLatex, "brNDC")
             self._CustomiseLegend()
             
@@ -3064,7 +3061,9 @@ class Plotter(object):
 
         ### Create TLegend name
         if ( nDatasets == 1 ) :
-            legHeader = self.DatasetObject.ConvertDatasetToLatex(histo.dataset)
+            #legHeader = self.DatasetObject.ConvertDatasetToLatex(histo.dataset)
+            legHeader = "fixme"
+            self.Print(["FIXME"])
         else:
             legHeader = histo.legTitle
 
@@ -3092,9 +3091,13 @@ class Plotter(object):
         self.Verbose()
         
         if secondaryHeader=="" or secondaryHeader==None:
-            self.TLegend.SetHeader( self.DatasetObject.ConvertDatasetToLatex(primaryHeader) )
+            #self.TLegend.SetHeader( self.DatasetObject.ConvertDatasetToLatex(primaryHeader) )
+            self.TLegend.SetHeader( "FIXME")
+            self.Print(["FIXME"])            
         else:
-            self.TLegend.SetHeader( self.DatasetObject.ConvertDatasetToLatex(primaryHeader) + ": " + secondaryHeader )
+            self.TLegend.SetHeader( "FIXME")
+            self.Print(["FIXME"])            
+            #self.TLegend.SetHeader( self.DatasetObject.ConvertDatasetToLatex(primaryHeader) + ": " + secondaryHeader )
         return
 
 
@@ -3123,7 +3126,10 @@ class Plotter(object):
         '''
         '''
         self.Verbose()
-        return self.DatasetToRootFileMap.keys()
+        datasetList = []
+        for d in self.Datasets:
+            datasetList.append(d.name)
+        return datasetList
 
 
     def GetDatasetAndLatexName(self, dataset):

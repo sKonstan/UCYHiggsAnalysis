@@ -295,7 +295,7 @@ class StyleClass(object):
         if histoObject.styleType != None:
             styleType = histoObject.styleType.lower()
         else:
-            styleType = histoObject.dataset.lower()
+            styleType = histoObject.dataset.name.lower()
                     
         self.Verbose(["styleType: %s" % (styleType)])
         if styleType in self.styleTypeList:

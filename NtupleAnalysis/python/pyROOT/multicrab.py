@@ -71,6 +71,11 @@ class Multicrab(object):
         return
 
 
+    def SetVerbose(self, verbose):
+        self.verbose = verbose
+        return
+
+
     def GetDatasetsFromMulticrabDir(self, mcrabDir, **kwargs):
         '''
         '''
@@ -78,13 +83,12 @@ class Multicrab(object):
 
         if not isinstance(mcrabDir, str):
             self.Print("Expected argument \"multicrabDir\" as type str, got %s instead. EXIT" % type(mcrabDir))
-            sys.exit(-1)
+            sys.exit()
 
-        self.Print("Accessing multicrab directory %s" % (mcrabDir))
-
+        self.Verbose("Accessing multicrab directory %s" % (mcrabDir))
         if "cfgfile" in kwargs:
             self.Print("This option is still under construction. EXIT")
-            sys.exit(-1)
+            sys.exit()
         else:
             return self.GetTaskDirectories(mcrabDir)
             
@@ -140,8 +144,10 @@ class Multicrab(object):
                 continue
             else:
                 rootFile = ROOT.TFile.Open( filePath, mode)            
-                self.Print("Read ROOT file %s" % filePath)
+                self.Verbose("Read ROOT file %s" % filePath)
                 break
+
+        self.IsRootFile(rootFile)        
         return rootFile
 
 
@@ -167,8 +173,9 @@ class Multicrab(object):
         Prints a the list of keys for the ROOT file passed as argument"
         '''
         self.Verbose()
-        
+
         rootFile = self.GetDatasetRootFile(mcrab, dataset)
+        self.IsRootFile(rootFile)
         self.PrintKeysFromRootFile(rootFile)
         return
 
@@ -178,9 +185,25 @@ class Multicrab(object):
         Prints a the list of keys for the ROOT file passed as argument"
         '''
         self.Verbose()
-        
-        msg      = "Printing list of keys for ROOT file %s" % rootFile.GetName()
+
+        self.IsRootFile(rootFile)
+        msg   = "Printing list of keys for ROOT file %s" % rootFile.GetName()
+        hLine = " "*len(msg)
         self.Print(msg)
+        print hLine
         rootFile.GetListOfKeys().Print()
-        print
+        print hLine
+        return
+
+    
+    def IsRootFile(self, rootFile):
+        '''
+        Ensuse that the input file is a ROOT file. 
+        '''
+        if isinstance(rootFile, ROOT.TFile):
+            return
+        else:
+            msg = "The file %s is not a ROOT file, but of type %s. EXIT" % ( rootFile.GetName(), type(rootFile) ) 
+            self.Print(msg)
+            sys.exit()
         return

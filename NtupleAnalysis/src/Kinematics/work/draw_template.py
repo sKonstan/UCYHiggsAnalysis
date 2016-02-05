@@ -23,43 +23,20 @@ import math
 from optparse import OptionParser
 
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.multicrab as m_multicrab
+import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.datasets as m_datasets
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.plotter as m_plotter
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.histos as m_histos
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.styles as m_styles
-import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.datasets as m_datasets
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.aux as m_aux
-import UCYHiggsAnalysis.NtupleAnalysis.tools.analysisModuleSelector as m_analysisModuleSelector
 #pi = 4*math.atan(1)
-
-
-#================================================================================================
-# Helper Functions
-#================================================================================================
-def CreateDatasetDict(inputPath):
-    '''
-    '''
-    datasetPaths= {}
-    for dataset in GetDatasetsList():
-        datasetPaths[dataset] = inputPath + "Histos_" + dataset + ".root"
-    return datasetPaths
-
-
-def GetDatasetsList():
-    '''
-    '''
-    datasets = ["ST_s-channel", "DYJetsToLL_M-10to50", "TTWJetsToLNu","T_tW_antitop", "TTZToLLNuNu",
-                "ZZ", "WZ", "TTJets", "ttHJetToNonbb_M125", "ST_tW_top", "DYJetsToLL_M-50"]
-    return datasets
-
 
 #================================================================================================
 # General Settings
 #================================================================================================
 bRatio        = True
+folder        = "Kinematics"
 saveFormats   = ["png"]
-datasetList   = ["ttHJetToNonbb_M125"]
 savePath      = ""
-datasetPaths  = CreateDatasetDict("/afs/cern.ch/user/a/attikis/scratch0/CMSSW_7_5_2/src/UCYHiggsAnalysis/MiniAOD2FlatTree/test/tmp/")
 
 
 #================================================================================================
@@ -111,9 +88,8 @@ Energy = {
 #================================================================================================
 # Create Histos OBjects
 #================================================================================================
-folder = "Kinematics"
-AllElectronsPt    = m_histos.TH1orTH2( folder, "AllElectronsPt"   , "all"    , None, **Pt )
-PassedElectronsPt = m_histos.TH1orTH2( folder, "PassedElectronsPt", "passed ", None, **Pt )
+AllElectronsPt      = m_histos.TH1orTH2( folder, "AllElectronsPt"   , "all"    , None, **Pt )
+PassedElectronsPt   = m_histos.TH1orTH2( folder, "PassedElectronsPt", "passed ", None, **Pt )
 
 AllElectronsEta     = m_histos.TH1orTH2( folder, "PassedElectronsPt", "Canvas Legend", None, **Eta )
 PassedElectronsEta  = m_histos.TH1orTH2( folder, "PassedElectronsPt", "Canvas Legend", None, **Eta )
@@ -122,15 +98,13 @@ PassedElectronsEta  = m_histos.TH1orTH2( folder, "PassedElectronsPt", "Canvas Le
 #================================================================================================
 # Function Definition
 #================================================================================================
-def DoPlots(histo, datasetList, bColourPalette=False, saveExt=""):
+def DoPlots(histo, datasetObjects, bColourPalette=False, saveExt=""):
 
     p = m_plotter.Plotter( Verbose=False, BatchMode=True )
     p.SetBoolUseDatasetAsLegEntry(bColourPalette)
+    p.AddDatasets(datasetObjects)
 
-    for dataset in datasetList:
-        p.AddDataset(dataset, datasetPaths[dataset])
-
-    if (len(p.DatasetToRootFileMap.keys()) > 1):
+    if (len(datasetObjects) > 1):
         p.SetBoolUseDatasetAsLegEntry(True)
     else:
         p.SetBoolUseDatasetAsLegEntry(False)
@@ -140,7 +114,7 @@ def DoPlots(histo, datasetList, bColourPalette=False, saveExt=""):
     p.SetupStatsBox(-1, -1, -1, -1, 000000000)
     p.SetupStatsBox()
     p.Draw(THStackDrawOpt="nostack", bStackInclusive = False, bAddReferenceHisto = True)
-    p.SetTLegendHeader(dataset, "" )
+    p.SetTLegendHeader("test", "" )
     p.SaveHistos(True, savePath, saveFormats, saveExt)
     return
 
@@ -149,19 +123,18 @@ def main():
     '''
     '''
 
-    args        = {}
-    mcrab       = m_multicrab.Multicrab(verbose=False)
-    datasetList = mcrab.GetDatasetsFromMulticrabDir(opts.mcrab, **args)
-    
-    for dataset in datasetList:
-        #datasetPaths[dataset] = opts.mcrab + dataset + "/res/histograms-%s.root" % dataset
-        mcrab.PrintPSet(opts.mcrab, dataset, "configInfo/dataVersion")
-        mcrab.PrintKeys(opts.mcrab, dataset)
-        datasetPaths[dataset] = mcrab.GetDatasetRootFile(opts.mcrab, dataset)
+    args         = {}
+    histoList    = [PassedElectronsPt, AllElectronsPt]
+    mcrab        = m_multicrab.Multicrab(verbose=False)
+    datasetNames = mcrab.GetDatasetsFromMulticrabDir(opts.mcrab, **args)
+    datasetObjects = []
+    for dName in datasetNames:
+        rootFile = mcrab.GetDatasetRootFile(opts.mcrab, dName)
+        dataset = m_datasets.Dataset(dName, rootFile, verbose=False, **args)
+        datasetObjects.append(dataset)
 
-    histoList = [PassedElectronsPt, AllElectronsPt]
     for h in histoList:
-        DoPlots( h, datasetList, True )
+        DoPlots( h, datasetObjects, True )
         break
 
 
