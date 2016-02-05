@@ -23,7 +23,7 @@ import math
 from optparse import OptionParser
 
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.multicrab as m_multicrab
-import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.datasets as m_datasets
+import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.dataset as m_dataset
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.plotter as m_plotter
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.histos as m_histos
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.styles as m_styles
@@ -130,7 +130,7 @@ def main():
     datasetObjects = []
     for dName in datasetNames:
         rootFile = mcrab.GetDatasetRootFile(opts.mcrab, dName)
-        dataset = m_datasets.Dataset(dName, rootFile, verbose=False, **args)
+        dataset = m_dataset.Dataset(dName, rootFile, verbose=False, **args)
         datasetObjects.append(dataset)
 
     for h in histoList:

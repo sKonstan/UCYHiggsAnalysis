@@ -12,7 +12,7 @@ import ConfigParser
 import ROOT
 
 import UCYHiggsAnalysis.NtupleAnalysis.tools.OrderedDict as OrderedDict
-import UCYHiggsAnalysis.NtupleAnalysis.tools.dataset as dataset
+#import UCYHiggsAnalysis.NtupleAnalysis.tools.dataset as dataset
 import UCYHiggsAnalysis.NtupleAnalysis.tools.multicrab as multicrab
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.aux as m_aux
 
@@ -72,6 +72,9 @@ class Multicrab(object):
 
 
     def SetVerbose(self, verbose):
+        '''
+        Manually enable/disable verbosity.
+        '''
         self.verbose = verbose
         return
 
