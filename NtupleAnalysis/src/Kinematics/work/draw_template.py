@@ -80,11 +80,12 @@ Eta = {
 #================================================================================================
 # Create Histos OBjects
 #================================================================================================
-AllElectronsPt      = histos.TH1orTH2( folder, "AllElectronsPt"   , "all"    , None, **Pt )
-PassedElectronsPt   = histos.TH1orTH2( folder, "PassedElectronsPt", "passed ", None, **Pt )
+PassedElectronsPt   = histos.TH1orTH2( folder, "PassedElectronsPt", "passed", None, **Pt )
+AllElectronsPt      = histos.TH1orTH2( folder, "AllElectronsPt"   , "all"   , None, **Pt )
 
-AllElectronsEta     = histos.TH1orTH2( folder, "PassedElectronsPt", "Canvas Legend", None, **Eta )
 PassedElectronsEta  = histos.TH1orTH2( folder, "PassedElectronsPt", "Canvas Legend", None, **Eta )
+AllElectronsEta     = histos.TH1orTH2( folder, "PassedElectronsPt", "Canvas Legend", None, **Eta )
+
 
 
 #================================================================================================
@@ -92,21 +93,14 @@ PassedElectronsEta  = histos.TH1orTH2( folder, "PassedElectronsPt", "Canvas Lege
 #================================================================================================
 def DoPlots(histo, datasetObjects, bColourPalette=False, saveExt=""):
 
-    p = plotter.Plotter( Verbose=verbose, BatchMode=batchMode )
-    p.SetBoolUseDatasetAsLegEntry(bColourPalette)
+    p = plotter.Plotter(verbose, batchMode)
+    p.SetupROOT()
     p.AddDatasets(datasetObjects)
-
-    if (len(datasetObjects) > 1):
-        p.SetBoolUseDatasetAsLegEntry(True)
-    else:
-        p.SetBoolUseDatasetAsLegEntry(False)
-
-    p.EnableColourPalette(bColourPalette)
+    p.DatasetAsLegend(True)
     p.AddHisto(histo)
     p.SetupStatsBox(-1, -1, -1, -1, 000000000)
-    p.SetupStatsBox()
     p.Draw(THStackDrawOpt="nostack", bStackInclusive = False, bAddReferenceHisto = True)
-    p.SetTLegendHeader("test", "" )
+    #p.SetTLegendHeader("")
     p.AddPreliminaryText("13", intLumi)
     p.SaveHistos(True, savePath, saveFormats, saveExt)
     return
@@ -142,9 +136,11 @@ def main():
         datasetObjects.append(dObject)
         dObject.PrintProperties()    
 
-    for h in histoList:
-        DoPlots( h, datasetObjects, False )
-        break
+    DoPlots( histoList, datasetObjects, False )
+#    for h in histoList:
+#        DoPlots( h, datasetObjects, False )
+#        break
+
 
 
 

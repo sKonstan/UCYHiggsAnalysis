@@ -20,7 +20,7 @@ from UCYHiggsAnalysis.NtupleAnalysis.pyROOT.crossSection import xSections
 # Global variables
 #================================================================================================
 latexNamesDict = {}
-latexNamesDict["ttHJetToNonbb_M125"] = "ttH (m_{H} = 125 GeV)"
+latexNamesDict["ttHJetToNonbb_M125"] = "ttH (m_{H^{0}} = 125 GeV)"
 latexNamesDict["TTJets"]             = "t#bar{t} + jets"
 
 
@@ -34,6 +34,7 @@ class Dataset(object):
         self.name        = name
         self.latexName   = latexNamesDict[name]
         self.rootFile    = rootFile
+        self.histo       = None
         self.energy      = energy
         self.xsection    = xSections.crossSection(name, energy)
         self.args        = args

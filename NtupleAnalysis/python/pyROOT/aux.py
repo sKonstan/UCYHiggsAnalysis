@@ -22,32 +22,48 @@ class AuxClass(object):
     def __init__(self, verbose=False):
         self.bVerbose = verbose
 
-    def Verbose(self, messageList=None):
+    def Verbose(self, message=""):
         '''
         Custome made verbose system. Will print all messages in the messageList
         only if the verbosity boolean is set to true.
         '''
-        if self.bVerbose == True:
-            print "*** %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
-            if messageList==None:
-                return
-            else:
-                for message in messageList:
-                    print "\t", message
+        if not self.verbose:
+            return
+        
+        print "%s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+        print "\t", message
         return
 
 
-    def Print(self, messageList=[""]):
+    def Print(self, message=""):
         '''
-        Custome made print system. Will print all messages in the messageList
-        even if the verbosity boolean is set to false.
+        Custome made print system. Will print the message even if the verbosity boolean is set to false.
         '''
         print "*** %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
-        for message in messageList:
-            print "\t", message
+        print "\t", message
+        return
+
+    
+    def PrintList(self, messageList=[""]):
+        '''
+        Custome made print system. Will print all messages in the messageList even if the verbosity boolean is set to false.
+        '''
+        for counter, message in enumerate(messageList):
+            if counter == 0:
+                self.Print(message)
+            else:
+                print "\t", message
         return
 
 
+    def SetVerbose(self, verbose):
+        '''
+        Manually enable/disable verbosity.
+        '''
+        self.verbose = verbose
+        return
+
+    
     def GetKeyFromDictValue(self, value, dictionary):
         '''
         Return the key from a dictionary given its value
@@ -74,7 +90,7 @@ class AuxClass(object):
         self.Verbose()
         
         if (denominator <= 0):
-            self.Print(["WARNING! Could not proceed with the division '%s/%s'. Returning zero." % ( numerator, denominator)])
+            self.Print("WARNING! Could not proceed with the division '%s/%s'. Returning zero." % numerator, denominator)
             return 0
         else:
             return float(numerator)/float(denominator)
@@ -100,7 +116,7 @@ class AuxClass(object):
             err      = math.sqrt(variance)
         else:
             raise Exception( "Only the 'binomial' error type is supported at the moment.")
-        self.Verbose(["eff = '%s' +/- '%s'" % (eff, err)])
+        self.Verbose("eff = '%s' +/- '%s'" % (eff, err))
 
         return eff, err
             
@@ -202,7 +218,7 @@ class AuxClass(object):
         lineList   = []
         nColumns   = 0
 
-        self.Print(["FilePath: '%s'" % (filePath), "Delimiter: '%s'" % (delimiter)])
+        self.Print("FilePath: %s, Delimiter: %s'" % (filePath, delimiter))
         ### Loop over all lines in myFile
         with open(filePath) as f:
 
@@ -249,7 +265,7 @@ class AuxClass(object):
         '''
         self.Verbose()
 
-        self.Print(["FileName: '%s'" % (fileName), "MaxDecimals: '%s'" % (maxDecimals)])
+        self.Print("FileName: %s, MaxDecimals: '%s'" % (fileName, maxDecimals))
 
         ### Declarations
         myFile = open( mySavePath+fileName, 'w')
@@ -309,65 +325,7 @@ class AuxClass(object):
         next(b, None)
         return izip(a, b)
 
-
-    def IncludeExcludeTasks(self, tasks, **kwargs):
-        '''
-        Helper function to choose tasks with includeOnlyTasks/excludeTasks
         
-        \param tasks  List of strings for task names                       
-        \param kwargs Keyword arguments (see below)                        
-        
-        <b>Keyword arguments</b>
-        \li \a excludeTasks      String, or list of strings, to specify regexps.                     
-        If a dataset name matches to any of the   
-        regexps, Dataset object is not constructed for                      
-        that. Conflicts with \a includeOnlyTasks  
-        \li \a includeOnlyTasks  String, or list of strings, to specify    
-        regexps. Only datasets whose name matches 
-        to any of the regexps are kept. Conflicts 
-        with \a excludeTasks.                     
-        
-        \return List of selected tasks (all tasks if neither excludeTasks or includeOnlyTasks is given)
-        '''
-        self.Verbose()
-        if "excludeTasks" in kwargs and "includeOnlyTasks" in kwargs:
-            raise Exception("Only one of 'excludeTasks' or 'includeOnlyTasks' is allowed")
-
-        def getRe(arg):
-            if isinstance(arg, basestring):
-                arg = [arg]
-            return [re.compile(a) for a in arg]
-
-        if "excludeTasks" in kwargs:
-            exclude = getRe(kwargs["excludeTasks"])
-            tmp     = []
-            for task in tasks:
-                found = False
-                for e_re in exclude:
-                    if e_re.search(os.path.basename(task)):
-                        found = True
-                        break
-                if found:
-                    continue
-                tmp.append(task)
-            return tmp
-
-        if "includeOnlyTasks" in kwargs:
-            include = getRe(kwargs["includeOnlyTasks"])
-            tmp = []
-            for task in tasks:
-                found = False
-                for i_re in include:
-                    if i_re.search(os.path.basename(task)):
-                        found = True
-                        break
-                if found:
-                    tmp.append(task)
-            return tmp
-
-        return tasks
-
-
 #================================================================================================
 # Function Definitions
 #================================================================================================

@@ -20,35 +20,30 @@ import time
 import numpy
 from array import array
 import re
+import collections
 
-# Other 
 import ROOT
 from ROOT import std
-import tdrstyle as m_tdrstyle
-import text as m_text
-import aux as m_aux
-import styles as m_styles
-import histos as m_histos
 
-#import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.dataset as m_dataset
-import collections #for ordered dictionaries
+import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.text as text
+import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.aux as aux
+import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.styles as styles
+import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.histos as histos
+import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.tdrstyle as tdrstyle
 
 
 #================================================================================================
 # Define class
 #================================================================================================
 class Plotter(object): 
-    def __init__(self, Verbose=False, BatchMode=True):
-        self.verbose           = Verbose
-        self.BatchMode         = BatchMode
-        self.SetupROOT()       
-        self.TDRStyleObject    = m_tdrstyle.TDRStyle()
-        self.StyleObject       = m_styles.StyleClass(verbose = self.verbose)
-        self.TextObject        = m_text.TextClass(verbose=self.verbose)
-        self.AuxObject         = m_aux.AuxClass(verbose=self.verbose)
+    def __init__(self, verbose=False, batchMode=True):
+        self.verbose           = verbose
+        self.BatchMode         = batchMode
+        self.StyleObject       = styles.StyleClass(verbose)
+        self.TextObject        = text.TextClass(verbose)
+        self.AuxObject         = aux.AuxClass(verbose)
         self.CanvasFactor      = 1.25
-        self.DatasetToHistoMap     = collections.OrderedDict()
-        self.DatasetToLatexNameMap = collections.OrderedDict()
+        #self.DatasetToHistoMap = collections.OrderedDict()
         self.Datasets          = []
         self.DivisionPoint     = 1-1/self.CanvasFactor
         self.DrawObjectList    = []
@@ -77,10 +72,10 @@ class Plotter(object):
         self.CutOption         = None
         self.IsTH1             = False
         self.IsTH2             = False
-        self.CutLineColour     = ROOT.kBlack #ROOT.kGray
+        self.CutLineColour     = ROOT.kBlack
         self.SaveContourPoints = False
         self.MaxDecimals       = None
-        self.UseDatasetAsLegEntry = False
+        self.DatasetInLegend   = False
         self.PileUp            = None
         return
 
@@ -128,15 +123,17 @@ class Plotter(object):
 
 
     def SetupROOT(self):
+
         '''
         Setup ROOT before doing anything else. Reset ROOT settings, disable statistics box,
         apply Techical Design Report (TDR) style.
         '''
         self.Verbose()
-        
+
         ROOT.gROOT.Reset()
+        tdrstyle.TDRStyle()
         ROOT.gStyle.SetOptStat(0)
-        ROOT.TGaxis.SetMaxDigits(4) #18 July 2015 (4)
+        ROOT.TGaxis.SetMaxDigits(4)
         ROOT.gROOT.SetBatch(self.BatchMode)
         self.SetupROOTErrorIgnoreLevel(2000)
         ROOT.gStyle.SetNumberContours(999)
@@ -155,17 +152,17 @@ class Plotter(object):
         m = 1 (2); mean value printed (mean and mean error values printed)
         e = 1;     number of entries printed
         n = 1;     name of histogram is printed
-        
+    
         Example: gStyle->SetOptStat(11);
         print only name of histogram and number of entries.
         '''
         self.Verbose()
-        self.PadCover
+        #self.PadCover
 
         # Beautifications/Styling
         ROOT.gStyle.SetStatBorderSize(0)
         ROOT.gStyle.SetStatColor(ROOT.kWhite)
-        ROOT.gStyle.SetStatStyle(3001) #3001
+        ROOT.gStyle.SetStatStyle(3001)
         ROOT.gStyle.SetStatTextColor(ROOT.kBlack)
         #ROOT.gStyle.SetStatFont(62)
         ROOT.gStyle.SetStatFontSize(15)
@@ -210,6 +207,7 @@ class Plotter(object):
         Add a new dataset and associate it to a root file.
         '''
         self.Verbose("Adding dataset %s from file %s." % (dataset.name, dataset.rootFile.GetName()))
+        self.Print("FIXME")
         
         ## Get the Pile Up
         #self.GetPileUp(dataset)
@@ -218,7 +216,6 @@ class Plotter(object):
         #self.DatasetToRootFileMap[dataset]  = rootFile
         
         ## Map dataset to Latex name
-        #self.DatasetToLatexNameMap[dataset] = self.DatasetObject.ConvertDatasetToLatex(dataset)
         self.Datasets.append(dataset)
         return
 
@@ -233,6 +230,7 @@ class Plotter(object):
             self.Verbose("Adding dataset %s from file %s." % (d.name, d.rootFile.GetName()))
             self.AddDataset(d)
         return
+
     
     def GetPileUp(self, dataset):
         '''
@@ -244,17 +242,6 @@ class Plotter(object):
             return
         return
         
-
-    def SetVerbose(self, verbose):
-        '''
-        Manually enable/disable verbosity.
-        '''
-        self.Verbose()
-
-        self.verbose = verbose
-        self.Verbose("Verbose mode = ", self.verbose)
-        return
-
 
     def _CreateCanvas(self):
         '''
@@ -543,7 +530,6 @@ class Plotter(object):
         self.Verbose()
         
         if isinstance(self.TLegend, ROOT.TLegend) == True:
-            #raise Exception("A TLegend has already been created. Only 1 allowed per Plotter object.")
             return
         else:
             histo = self.THDumbie
@@ -579,12 +565,13 @@ class Plotter(object):
         if type(histoObject) == list:
             for h in histoObject:
                 self._AddHistoToQueue(h)
-        elif isinstance(histoObject, m_histos.TH1orTH2):
+        elif isinstance(histoObject, histos.TH1orTH2):
             self._AddHistoToQueue(histoObject)
         else:
-            self.Print("ERROR!", "Expected object of type '%s' but got '%s' instead" % ( m_histos.TH1orTH2, type(histoObject) ), "EXIT")
+            self.Print("ERROR!", "Expected object of type '%s' but got '%s' instead" % ( histos.TH1orTH2, type(histoObject) ), "EXIT")
             sys.exit()
-
+        return
+    
 
     def _AddHistogramsToStack2D(self, ProfileAxis, firstBin, LastBin):
         '''
@@ -601,7 +588,9 @@ class Plotter(object):
         self.TCanvas.SetName( self.TCanvas.GetName() + "_Profile%s" % (ProfileAxis.upper()) )
 
         # For-loop: Histos
-        for h in self.DatasetToHistoMap.values():
+        #for h in self.DatasetToHistoMap.values():
+        for dataset in self.Datasets:
+            h = dataset.histo
             
             self.Verbose( ["Creating Profile%s for histogram '%s'  and adding to THStack." % ( ProfileAxis.upper(), h.name)] )
             if ProfileAxis == "x":
@@ -632,8 +621,6 @@ class Plotter(object):
         if len(self.Datasets)<1:
             self.Print("ERROR!", "No datasets found! Exit")
             sys.exit()
-        else:
-            pass        
 
         # Ensure that the pass argument is a valid histo object
         self.IsValidHistoObject(histoObject)
@@ -642,18 +629,19 @@ class Plotter(object):
         for dataset in self.Datasets:
 
             # Get the ROOT file for given dataset
-            f = dataset.rootFile
+            f           = dataset.rootFile
 
             # Ensure that histogram exists in the file
             self.CheckThatHistoExists(f, histoObject)
 
-            # Map histo to dataset
-            mapKey = dataset.name + ":" + histoObject.name
-            self.Verbose("Mapping '%s' to key '%s'." % ( histoObject.name, mapKey))
-            self.DatasetToHistoMap[mapKey] = copy.deepcopy(histoObject)
-                
+            ### Map histo to dataset  
+            #mapKey = dataset.name + ":" + histoObject.name
+            #self.Verbose(["Mapping '%s' to key '%s'." % ( histoObject.name, mapKey)])
+            #self.DatasetToHistoMap[mapKey] = copy.deepcopy(histoObject)
+            dataset.histo = copy.deepcopy(histoObject)
+            
             # Assign user-defined attributes to histo object
-            histoObject = self.DatasetToHistoMap[mapKey] 
+            histoObject = dataset.histo
             self._AssignHistoObjectAttributes( f, dataset, histoObject)
 
             # Print extensive histogram information
@@ -682,7 +670,7 @@ class Plotter(object):
 
         # Determine the histogram integral
         if self.IsTH2:
-            self.TDRStyleObject.setWide(True)
+            #self.TDRStyleObject.setWide(True)
             self._CheckThatNoTH2WithMoreThanOneDatasets(h)
             h.integral  = h.TH1orTH2.Integral(0, h.TH1orTH2.GetNbinsX()+1, 0, h.TH1orTH2.GetNbinsY()+1)
         else:
@@ -716,7 +704,7 @@ class Plotter(object):
         '''
         self.Verbose()
 
-        msg  = " {:<20} {:<20}".format("File"           , ": " + histo.TFileName)
+        msg  = " {:<20} {:<20}".format("File"               , ": " + histo.TFileName)
         msg += "\n\t {:<20} {:<20}".format("Dataset"        , ": " + histo.dataset.name)
         msg += "\n\t {:<20} {:<20}".format("HistoPath"      , ": " + histo.path)
         msg += "\n\t {:<20} {:<20}".format("HistoName"      , ": " + histo.name)
@@ -738,161 +726,14 @@ class Plotter(object):
         self.Verbose()
         
         # For-loop: All datasets
-        for dataset in self.DatasetToHistoMap.keys():
-            h = self.DatasetToHistoMap[dataset]
-            self._ConvertToOneMinusCumulativeHisto(h)
+        #for dataset in self.DatasetToHistoMap.keys():
+        #h = self.DatasetToHistoMap[dataset]
+        #    self._ConvertToOneMinusCumulativeHisto(h)
+        for dataset in self.Datasets:
+            self._ConvertToOneMinusCumulativeHisto(dataset.histo)
         return
 
     
-    def GetROCHistoLists(self, rateToEffMap):
-        '''
-        '''
-        self.Verbose()
-
-        rateHistoList = []
-        effHistoList  = []
-
-        # Get match for rate and eff histos
-        for key in sorted(rateToEffMap):
-            rateHistoList.append(key)
-            effHistoList.append(rateToEffMap[key])
-            trigger1 = key.name.rsplit("_", -11)[0]
-            trigger2 = rateToEffMap[key].name.rsplit("_", -1)[0]
-
-            # Make sure you match rate and eff histos of same trigger
-            if trigger1 != trigger2:
-                raise Exception("Trigger names differ. This should not happen!")
-
-        # Sanity Check
-        if len(rateHistoList) != len(effHistoList):
-            raise Exception("Length of RateHistoList ('%s') and  EffHistoList ('%s') is not the same! Cannot produce ROC curves." % (len(RateHistoList), len(EffHistoList)))
-        return rateHistoList, effHistoList
-
-
-    def ConvertToROC(self, rateHistoList, effHistoList, decimals=3, bDrawZValues=False, **kwargs):
-        '''
-        '''
-        self.Verbose()
-
-        for hRate, hEff in zip(rateHistoList, effHistoList):
-            self.ConvertHistosToROC( hRate, hEff, bDrawZValues, decimals, **kwargs)
-        return
-
-
-    def ConvertHistosToROC(self, rateHisto, effHisto, bDrawZValues=False, decimals=3, **kwargs):
-        '''
-        Will create TGraphsErrors.
-        '''
-        self.Verbose()
-
-        # Enable colour palette (change colour for same datasample, don't just use shades of same colour)
-        self.StyleObject.EnableColourPalette(True)
-        
-        # Definitions
-        et       = []
-        etUp     = []
-        etLow    = []
-        rate     = []
-        rateUp   = []
-        rateLow  = []
-        eff      = []
-        effUp    = []
-        effLow   = []
-
-        # Sanity check
-        trigger1 = rateHisto.name.rsplit("_", -1)[0]
-        trigger2 = effHisto.name.rsplit("_", -1)[0]
-        if trigger1 != trigger2:
-            raise Exception("Trigger names differ ('%s' != '%s'). This should not happen!" % (trigger1, trigger2) )
-
-        # For-loop: Rate histos
-        self.PrintHistoInfo(rateHisto, False)
-        self.PrintHistoInfo(effHisto, False)
-                
-        # Tread 2d ROCs differently
-        hRate = None
-        hEff  = None
-        if ("TH2" in str( type(rateHisto.TH1orTH2)) ):
-            hRate = self.GetDiagonalOf2DHistoAndFill1DHisto(rateHisto)
-        else:
-            hRate = rateHisto.TH1orTH2
-
-        if ("TH2" in str( type(effHisto.TH1orTH2)) ):
-            hEff = self.GetDiagonalOf2DHistoAndFill1DHisto(effHisto)
-        else:
-            hEff = effHisto.TH1orTH2
-
-        # For-loop: Target rates
-        for target_rate in self.GetRateValuesList():
-            iBin, calo_et, mb_rate, mb_rateErr  = self.FindFirstBinBelowValue(hRate, target_rate)
-            if (iBin == -1):
-                continue
-            et.append     ( round(calo_et, decimals) )
-            etUp.append   ( round(0.0, decimals) )
-            etLow.append  ( round(0.0, decimals) )
-            rate.append   ( round(mb_rate, decimals) )
-            rateUp.append ( round(mb_rateErr, decimals) )
-            rateLow.append( round(mb_rateErr, decimals) )
-            #rateUp.append ( round(math.sqrt(mb_rate), decimals) ) # conservative approach
-            #rateLow.append( round(math.sqrt(mb_rate), decimals) ) # conservative approach
-            self.Verbose("Target (kHz): '%s'" % (mb_rate), "Rate: '%s + %s - %s (kHz)'" % (mb_rate, math.sqrt(mb_rate), math.sqrt(mb_rate)), "Et: '%s'" % (et) )
-            
-
-        # Sanity Check
-        if (len(et) == len(etUp) == len(etLow) == len(rate) == len(rateUp) == len(rateLow) ):
-            pass
-        else:
-            self.Print("ERROR! Arrays have different length! EXIT")
-            sys.exit()
-        
-        # For-loop: Et (corresponding to target rates)
-        for calo_et in et:
-            etBin   = hEff.FindBin(calo_et) 
-            eff.append   ( round(hEff.GetBinContent(etBin), decimals) )
-            effUp.append ( round(hEff.GetBinError(etBin), decimals) )
-            effLow.append( round(hEff.GetBinError(etBin), decimals) )
-            self.Verbose("Dataset:'%s'" % (effHisto.dataset), "HistoName : '%s'" % (effHisto.name), "Trigger: '%s'" % (trigger1), 
-                         "Et  (GeV)  : '%s'" % (et), 
-                         "Et+ (GeV)  : '%s'" % (etUp), 
-                         "Et- (GeV)  : '%s'" % (etLow), 
-                         "Rate  (kHz): '%s'" % (rate),
-                         "Rate+ (kHz): '%s'" % (rateUp), 
-                         "Rate- (kHz): '%s'" % (rateLow), 
-                         "Efficiency : '%s'" % (eff), 
-                         "Efficiency+: '%s'" % (effUp),  
-                         "Efficiency-: '%s'" % (effLow))
-
-        # Sanity check
-        if (len(eff) == len(effUp) == len(effLow) ):
-            pass
-        else:
-            self.Print("ERROR! Arrays have different length! EXIT")
-            sys.exit()
-
-        # Use values to create a TGraphErrors
-        self.AddTGraphErrors(effHisto, eff, effUp, effLow, rate, rateUp, rateLow, et, etUp, etLow, bDrawZValues, **kwargs)
-        return
-
-
-    def GetDiagonalOf2DHistoAndFill1DHisto(self, histo):
-        '''
-        '''
-        self.Verbose()
-
-        nBinsX = histo.TH1orTH2.GetNbinsX()+1
-
-        # Reset Integral, Contents, Errors and Statistics
-        tmpHisto = copy.deepcopy( histo.TH1orTH2.ProjectionX(histo.name + "_ProjectionX", 0, -1, "") )
-        tmpHisto.Reset("ICES")
-
-        # For-loop: x-axis (get y=x bins only)
-        for bx in range(0, nBinsX):
-            tmpHisto.SetBinContent( bx, histo.TH1orTH2.GetBinContent(bx, bx) )
-            tmpHisto.SetBinError( bx, histo.TH1orTH2.GetBinError(bx, bx) )
-        
-        return tmpHisto
-
-
     def DrawEfficiency(self, cutDirection=">", errType="binomial"):
         '''
         '''
@@ -938,8 +779,11 @@ class Plotter(object):
         '''
         self.Verbose()
         
-        for dataset in self.DatasetToHistoMap:
-            h = self.DatasetToHistoMap[dataset]
+#        for dataset in self.DatasetToHistoMap:
+#            h = self.DatasetToHistoMap[dataset]
+#            self._ConvertToEfficiencyHisto(h, cutDirection, errType, **kwargs)
+        for dataset in self.Datasets:
+            h = dataset.histo
             self._ConvertToEfficiencyHisto(h, cutDirection, errType, **kwargs)
         return
 
@@ -1076,11 +920,11 @@ class Plotter(object):
 
     def IsValidHistoObject(self, histoObject):
         ''''
-        Ensure that the histoObject is of valid type (m_histos.TH1 or m_histos.TH2). Raise an exception otherwise.
+        Ensure that the histoObject is of valid type (histos.TH1 or histos.TH2). Raise an exception otherwise.
         '''
         self.Verbose()
 
-        if isinstance(histoObject, m_histos.TH1orTH2):
+        if isinstance(histoObject, histos.TH1orTH2):
             return
         else:
             self.Print("ERROR!", "Unknown histo type. Please make sure the histo object '%s' (type = '%s') is either a TH1 or a TH2" % (histoObject, type(histoObject)), "EXIT")
@@ -1105,7 +949,11 @@ class Plotter(object):
         if not self.IsTH1 and not self.IsTH2:
             raise Exception( "Could not find histo object '%s' in TFile '%s' under folder '%s'." % (hObject.name, rootFile.GetName(), hObject.path) )
         else:
-            #self.Verbose("File: '%s'" % (rootFile.GetName()), "Histo: '%s'" % (hPath), "IsTH1: '%s'" % (self.IsTH1), "IsTH2: '%s'" % (self.IsTH2))
+            msg  = " {:<20} {:<20}".format("File", ": " + rootFile.GetName())
+            msg += "\n\t {:<20} {:<20}".format("Histo", ": " + hPath)
+            msg += "\n\t {:<20} {:<20}".format("IsTH1", ": " + str( self.IsTH1) )
+            msg += "\n\t {:<20} {:<20}".format("IsTH2", ": " + str( self.IsTH2) )
+            self.Print(msg)
             return
 
         return
@@ -1121,13 +969,16 @@ class Plotter(object):
         myMax = -1E10
         myMin = +1E10
         # Loop over all TH1's and determine dataset histo with yMax
-        for dataset in self.DatasetToHistoMap.keys():
-            h = self.DatasetToHistoMap[dataset]
+        #for dataset in self.DatasetToHistoMap.keys():
+        for dataset in self.Datasets:
+            #h = self.DatasetToHistoMap[dataset]
+            h = dataset.histo
             tmpMax =  h.TH1orTH2.GetMaximum()
             if tmpMax > myMax:
                 myMax = h.yMax
                 myMin = h.yMin
-                self.THDumbie = copy.deepcopy(self.DatasetToHistoMap[dataset])                
+                #self.THDumbie = copy.deepcopy(self.DatasetToHistoMap[dataset])
+                self.THDumbie = copy.deepcopy(h)
                 self.THDumbie.TH1orTH2.SetName("THDumbie")
             else:
                 continue
@@ -1198,9 +1049,11 @@ class Plotter(object):
         self.Verbose()
         
         # Loop over all histograms and normalise according to user options
-        for mapKey in self.DatasetToHistoMap:
-            h = self.DatasetToHistoMap[mapKey]
-            self._NormaliseHisto(h)
+#        for mapKey in self.DatasetToHistoMap:
+#            h = self.DatasetToHistoMap[mapKey]
+#            self._NormaliseHisto(h)
+        for dataset in self.Datasets:
+            self._NormaliseHisto(dataset.histo)
         return
 
 
@@ -1293,13 +1146,13 @@ class Plotter(object):
         This was designed to be used  in conjuction with GetHistos(). 
         For example:
 
-        p1 = m_plotter.Plotter( verbose, bBatchMode )
+        p1 = plotter.Plotter( verbose, bBatchMode )
         for dataset in datasetList:
            p1.AddDataset(dataset, datasetPaths[dataset])
         p1.AddHisto(hList1)
         p1.Draw(THStackDrawOpt="nostack", bStackInclusive = False)
         
-        p2 = m_plotter.Plotter( verbose, bBatchMode )
+        p2 = plotter.Plotter( verbose, bBatchMode )
         for dataset in datasetList:
            p2.AddDataset(dataset, datasetPaths_D[dataset])
         p2.AddHisto(hList2)
@@ -1391,23 +1244,20 @@ class Plotter(object):
         # Loop over all histo objects
         for histo in self.HistoObjectList:
             
-            dataset = histo.dataset.name + ":" + histo.name
-            
-            h = self.DatasetToHistoMap[dataset]
-            #self.Verbose("Adding histogram '%s' to the THStack" % (histo.name), 
-            #"Dataset: '%s'" % (dataset), "Integral(): '%s'" % (histo.rangeIntegral), "Integral(0, nBins+1): '%s'" % (histo.integral), "normaliseTo: '%s'" % (histo.normaliseTo))
+            dataset = histo.dataset.name
+            #histo   = histo.dself.DatasetToHistoMap[dataset] #self.DatasetToHistoMap[dataset] 
 
-            
-            self.THStack.Add(h.TH1orTH2)
-            self.THStackHistoList.append(h.TH1orTH2)
-            
             # Add legend entries for THStack
+            self.THStack.Add(histo.TH1orTH2)
+            self.THStackHistoList.append(histo.TH1orTH2)
+            
+
             if bAddLegendEntries == False:
                 continue
 
             # Add legend entries only for TH1 type histos        
-            if h.legTitle != None:
-                self.TLegend.AddEntry( h.TH1orTH2, self._GetLegEntryLabel(h), self._GetLegEntryOptions(h) )
+            if histo.legTitle != None:
+                self.TLegend.AddEntry( histo.TH1orTH2, self._GetLegEntryLabel(histo), self._GetLegEntryOptions(histo) )
                 self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
         return
 
@@ -1956,25 +1806,6 @@ class Plotter(object):
 
         return
 
-    
-
-    def GetNumberOfHistosPerDataset(self):
-        '''
-        '''
-        self.Verbose()
-        
-        numerator    = len(self.HistoObjectList)
-        denominator  = len(self.DatasetToHistoMap.keys())
-        return float(numerator)/float(denominator)
-
-
-    def GetNumberOfDatasets(self):
-        '''
-        '''
-        self.Verbose()
-        
-        return len(self.DatasetToHistoMap.keys())
-
 
     def _GetLegEntryLabel(self, histoObject):
         '''
@@ -1986,7 +1817,7 @@ class Plotter(object):
         if histoObject.legTitle == None:            
             return  entryLabel
 
-        if self.UseDatasetAsLegEntry==True:
+        if self.DatasetInLegend:
             entryLabel = histoObject.dataset.GetLatexName()
         else:
             entryLabel = histoObject.legTitle
@@ -2163,9 +1994,11 @@ class Plotter(object):
         binZeroWidth = self.THDumbie.TH1orTH2.GetXaxis().GetBinWidth(0)
         
         # Check that the x-axis bin is same for all histograms
-        for dataset in self.DatasetToHistoMap.keys():
-            h = self.DatasetToHistoMap[dataset]
-            self._CheckHistoBinning(h)
+#        for dataset in self.DatasetToHistoMap.keys():
+#            h = self.DatasetToHistoMap[dataset]
+#            self._CheckHistoBinning(h)
+        for dataset in self.Datasets:
+            self._CheckHistoBinning(dataset.histo)
         return 
 
 
@@ -2262,514 +2095,14 @@ class Plotter(object):
             
         return hUnity.TH1orTH2
 
-
-    def CustomiseTGraph(self, graph, histoObject, dataset, kwargs):
+        
+    def DatasetAsLegend(self, flag):
         '''
         '''
         self.Verbose()
-
-        graph.SetName( histoObject.name + "_TGraph")
-
-        # Once drawn, the TGraph can be customised
-        if kwargs.get("xMin") != None and kwargs.get("xMax") != None:
-            graph.GetXaxis().SetRangeUser( kwargs.get("xMin"), kwargs.get("xMax") ) 
-        if kwargs.get("yMin") != None and kwargs.get("yMax") != None:
-            graph.GetYaxis().SetRangeUser( kwargs.get("yMin"), kwargs.get("yMax") ) 
-            graph.GetYaxis().SetLimits( kwargs.get("yMin"), kwargs.get("yMax") )         
-            
-        # Customise TGraph (colours/styles)
-        if dataset == None:
-            raise Exception("Could not determine dataset('%s'). Cannot continue." % (dataset) )
-        elif ":" in dataset:
-            styleType = dataset.rsplit(":", 1)[0].lower()    
-        else:
-            styleType = dataset
-
-        (fillColour, lineColour, markerStyle, markerSize, lineWidth, lineStyle, fillStyle, drawOptions, legOptions) = self.StyleObject.GetTGraphStyles( styleType )
-        graph.SetFillColor(fillColour)
-        graph.SetFillStyle(fillStyle)
-        graph.SetLineColor(lineColour)
-        graph.SetLineStyle(lineStyle)
-        graph.SetLineWidth(lineWidth)
-        graph.SetMarkerColor(fillColour)
-        graph.SetMarkerStyle(markerStyle)
-        graph.SetMarkerSize(markerSize)
         
-        # Create legend if there isn't one already
-        if self.TLegend == None:
-            if ":" in dataset:
-                #self.DatasetObject.ConvertDatasetToLatex( dataset.rsplit(":", 1)[0] )
-                datasetLatex = "fixme"
-                self.Print("FIXME")
-            else:
-                #datasetLatex = self.DatasetObject.ConvertDatasetToLatex( dataset )
-                datasetLatex = "fixme"
-                self.Print("FIXME")
-
-            self.TLegend = ROOT.TLegend( kwargs.get("xLegMin"), kwargs.get("yLegMin"), kwargs.get("xLegMax"), kwargs.get("yLegMax"), datasetLatex, "brNDC")
-            self._CustomiseLegend()
-            
-        # Add TGraph entry to legend
-        legOpts = kwargs.get("legOptions") 
-        if legOpts == None:
-            legOpts = "LFP"
-
-        self.TLegend.AddEntry( graph, self._GetLegEntryLabel(histoObject.dataset.GetLatexName()), legOpts)
-        self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
-        return        
-        
-
-    def DrawMultigraph(self, saveName, **kwargs):
-        '''
-        Draws a ROOT.TMultiGraph object that has been created before-hand, using the options provided with the keywords arguments.
-        '''
-        self.Verbose()
-        
-        # Create THDumbie (needed to apply kwargs options)
-        self.THDumbie = m_histos.TH1orTH2( path="", name="MGraphDumbie", legTitle="", saveName=saveName, **kwargs)
-        
-        # Create a canvas
-        self._CreateCanvas()
-
-        # Draw the multigraph and customise it 
-        self.Verbose("Drawing ROOT.TMultiGraph '%s'" % self.TMultigraph.GetName())
-        self.TMultigraph.Draw(self.THDumbie.drawOptions)
-        self.CustomiseMultigraph(kwargs)
-        self._DrawNonHistoObjectsNoPadRatio()
-        return
-
-
-    def CustomiseMultigraph(self, kwargs):
-        '''
-        '''
-        self.Verbose()
-
-        # Customise x-axis
-        xLabel = ""
-        xUnits = kwargs.get("xUnits", "")
-        xMin   = kwargs.get("xMin", None)
-        xMax   = kwargs.get("xMax", None)
-
-        if xUnits == "":
-            xLabel = kwargs.get("xLabel", "x-label")
-        else:
-            xLabel = kwargs.get("xLabel", "x-label") + " (" + xUnits + ")"
-
-        # Customise y-axis
-        yLabel = ""
-        yUnits = kwargs.get("yUnits", "")
-        yMin   = kwargs.get("yMin", None)
-        yMax   = kwargs.get("yMax", None)
-        if yUnits == "":
-            yLabel = kwargs.get("yLabel", "y-label")
-        else:
-            yLabel = kwargs.get("yLabel", "y-label") + " (" + yUnits + ")"
-            
-        # Apply options
-        self.TMultigraph.GetXaxis().SetTitle( xLabel )
-        self.TMultigraph.GetYaxis().SetTitle( yLabel )
-        self.TMultigraph.GetXaxis().SetLimits(xMin, xMax)
-        self.TMultigraph.GetYaxis().SetLimits(yMin, yMax)
-        self.TMultigraph.GetYaxis().SetRangeUser( yMin, yMax) 
-
-        # Customise/Draw TLegend
-        self.TLegend.SetX1( kwargs.get("xLegMin") )
-        self.TLegend.SetX2( kwargs.get("xLegMax") )
-        self.TLegend.SetY1( kwargs.get("yLegMin") )
-        self.TLegend.SetY2( kwargs.get("yLegMax") )
-        self.TLegend.Draw()
-
-        # Default Text
-        # self.AddPreliminaryText()
-        self.TCanvas.Update()
-
-        # Logarithmic axes
-        self.TCanvas.SetLogx( kwargs.get("logX") )
-        self.TCanvas.SetLogy( kwargs.get("logY") )
-        self.TCanvas.Update()
-
-        # Grids
-        self.TCanvas.SetGridx( kwargs.get("gridX") )
-        self.TCanvas.SetGridy( kwargs.get("gridY") )
-        self.TCanvas.Update()
-        return        
-        
-
-    def SaveTGraphArraysDataToFile(self, fileName, xVals, xErrUp, xErrDown, yVals, yErrUp, yErrDown, maxDecimals = 1, bWriteHeader=True):
-        '''
-        Reading and Writing Files in Python. The modes can be:
-        
-        'r' when the file will only be read
-        
-        'w' for only writing (an existing file with the same name will be erased)
-        
-        'a' opens the file for appending; any data written to the file is automatically
-        added to the end. 
-        
-        'r+' opens the file for both reading and writing.
-        '''
-        self.Verbose()
-
-        # Loop over all lines in myFile. Append info to file
-        self.Verbose( ["SaveName: '%s' " % (fileName), "MaxDecimals: '%s'" % (maxDecimals)])
-        
-        # Open file in append ("a") mode
-        f = open(fileName, "a")
-
-        # Define the column widths: 10 each
-        template = "{0:10} : {1:10} : {2:10} : {3:10} : {4:10} : {5:10}"
-
-        # Create the table headers
-        header = template.format("x", "xErrUp", "xErrDown", "y", "yErrUp", "yErrDown")
-        if bWriteHeader == True:
-            f.write( header + "\n" )
-     
-        # Now write the actual values
-        for x, xUp, xDown, y, yUp, yDown in  zip(xVals, xErrUp, xErrDown, yVals, yErrUp, yErrDown):
-            column1  = str( round( x    , maxDecimals) )
-            column2  = str( round( xUp  , maxDecimals) ) 
-            column3  = str( round( xDown, maxDecimals) )
-        
-            column4  = str( round( y    , maxDecimals) )
-            column5  = str( round( yUp  , maxDecimals) ) 
-            column6  = str( round( yDown, maxDecimals) )
-
-            row = column1 + column2 + column3 + column4 + column5 + column6
-
-            line = template.format(column1, column2, column3, column4, column5, column6) + "\n"
-            self.Verbose( ["Writing line: %s " % (line) ] )
-            f.write( line  )
-
-        f.close()
-        return
-
-
-
-    def SaveTGraphArraysDataToFileWithZ(self, fileName, xVals, xErrUp, xErrDown, yVals, yErrUp, yErrDown, zVals, zErrUp, zErrDown, maxDecimals = 1, bWriteHeader=True):
-        '''
-        Reading and Writing Files in Python. The modes can be:
-        
-        'r' when the file will only be read
-        
-        'w' for only writing (an existing file with the same name will be erased)
-        
-        'a' opens the file for appending; any data written to the file is automatically
-        added to the end. 
-        
-        'r+' opens the file for both reading and writing.
-        '''
-        self.Verbose()
-
-        # Sanity check: All value lists have the same number of entries
-        length = len(xVals)
-        if all(len(lst) != length for lst in [xErrUp, xErrDown, yVals, yErrDown, zVals, zErrUp, zErrDown]):
-            self.Print( ["len(xVals) = '%s'"    % (len(xVals)), "len(xErrUp) = '%s'"   % (len(xErrUp)), "len(xErrDown) = '%s'" % (len(xErrDown)), 
-                         "len(yVals) = '%s'"    % (len(yVals)), "len(yErrUp) = '%s'"   % (len(yErrUp)), "len(yErrDown) = '%s'" % (len(yErrDown)), 
-                         "len(zVals) = '%s'"    % (len(zVals)), "len(zErrUp) = '%s'"   % (len(zErrUp)), "len(zErrDown) = '%s'" % (len(zErrDown)), "EXIT"] )
-
-        # Loop over all lines in myFile. Append info to file
-        self.Verbose( ["SaveName: '%s' " % (fileName), "MaxDecimals: '%s'" % (maxDecimals)])
-        
-        # Open file in append ("a") mode
-        f = open(fileName, "a")
-
-        # Define the column widths: 10 each
-        template = "{0:10} : {1:10} : {2:10} : {3:10} : {4:10} : {5:10} : {6:10} : {7:10} : {8:10}"
-
-        # Create the table headers
-        header = template.format("x", "xErrUp", "xErrDown", "y", "yErrUp", "yErrDown", "z", "zErrUp", "zErrDown")
-        if bWriteHeader == True:
-            f.write( header + "\n" )
-
-        self.Verbose( ["(x , y , z) = (%s , %s , %s)" % (xVals , yVals , zVals)]  )
-        self.Verbose( ["(x+ , y+ , z+) = (%s , %s , %s)" % (xErrUp , yErrUp , zErrUp)]  )
-        self.Verbose( ["(x- , y- , z-) = (%s , %s , %s)" % (xErrDown , yErrDown , zErrDown)]  )
-        # Now write the actual values
-        for x, xUp, xDown, y, yUp, yDown, z, zUp, zDown in  zip(xVals, xErrUp, xErrDown, yVals, yErrUp, yErrDown, zVals, zErrUp, zErrDown):
-            column1  = str( round( x    , maxDecimals) )
-            column2  = str( round( xUp  , maxDecimals) ) 
-            column3  = str( round( xDown, maxDecimals) )
-        
-            column4  = str( round( y    , maxDecimals) )
-            column5  = str( round( yUp  , maxDecimals) ) 
-            column6  = str( round( yDown, maxDecimals) )
-
-            column7  = str( round( z    , maxDecimals) )
-            column8  = str( round( zUp  , maxDecimals) ) 
-            column9  = str( round( zDown, maxDecimals) )
-
-            row = column1 + column2 + column3 + column4 + column5 + column6 + column7 + column8 + column9
-
-            line = template.format(column1, column2, column3, column4, column5, column6, column7, column8, column9) + "\n"
-            self.Verbose( ["Writing line: %s " % (line) ] )
-            f.write( line  )
-
-        f.close()
-        return
-
-
-    def GetTGraphArraysDataFromFile(self, inputFilePath):
-        '''
-        '''
-        self.Verbose()
-
-        if os.path.exists(inputFilePath) == False:
-            raise Exception("File '%s' does not exist! Please make sure the provided path for the file is correct." % (inputFilePath) )
-        else:
-            pass
-
-        # Variable declaration            
-        xVals    = []
-        xErrUp   = []
-        xErrDown = []
-        yVals    = []
-        yErrUp   = []
-        yErrDown = []
-
-        # Loop over all lines in myFile
-        with open(inputFilePath) as f:
-            # Skip the header row and start reading a file from line2
-            next(f)
-            # Loop over all lines
-            for line in f:
-                
-                x     = ( line.rsplit(":", 5)[0] ).replace(" ", "")
-                xUp   = ( line.rsplit(":", 5)[1] ).replace(" ", "")
-                xDown = ( line.rsplit(":", 5)[2] ).replace(" ", "")
-                y     = ( line.rsplit(":", 5)[3] ).replace(" ", "")
-                yUp   = ( line.rsplit(":", 5)[4] ).replace(" ", "")
-                yDown = ( line.rsplit(":", 5)[5] ).replace(" ", "").replace("\n", "")
-
-                xVals   .append( x     )
-                xErrUp  .append( xUp   )
-                xErrDown.append( xDown )
-                yVals   .append( y     )
-                yErrUp  .append( yUp   )
-                yErrDown.append( yDown )
-
-        return xVals, xErrUp, xErrDown, yVals, yErrUp, yErrDown
-
-
-    def GetTGraphArraysDataFromFileWithZ(self, inputFilePath):
-        '''
-       '''
-        self.Verbose()
-
-        if os.path.exists(inputFilePath) == False:
-            raise Exception("File '%s' does not exist!" % (inputFilePath) )
-
-        # Variable declaration            
-        xVals    = []
-        xErrUp   = []
-        xErrDown = []
-
-        yVals    = []
-        yErrUp   = []
-        yErrDown = []
-
-        zVals    = []
-        zErrUp   = []
-        zErrDown = []
-        
-        nColumns = 8
-
-        # Loop over all lines in myFile
-        with open(inputFilePath) as f:
-            
-            # Skip the header row and start reading a file from line2
-            #next(f)
-            
-            # Loop over all lines
-            for line in f:
-
-                # Skip headers column titles (quick and dirty fix)
-                if "x" in line:
-                    continue
-
-                x     = ( line.rsplit(":", nColumns)[0] ).replace(" ", "")
-                xUp   = ( line.rsplit(":", nColumns)[1] ).replace(" ", "")
-                xDown = ( line.rsplit(":", nColumns)[2] ).replace(" ", "")
-         
-                y     = ( line.rsplit(":", nColumns)[3] ).replace(" ", "")
-                yUp   = ( line.rsplit(":", nColumns)[4] ).replace(" ", "")
-                yDown = ( line.rsplit(":", nColumns)[5] ).replace(" ", "")
-
-                z     = ( line.rsplit(":", nColumns)[6] ).replace(" ", "")
-                zUp   = ( line.rsplit(":", nColumns)[7] ).replace(" ", "")
-                zDown = ( line.rsplit(":", nColumns)[8] ).replace(" ", "").replace("\n", "")
-
-                xVals   .append( x     )
-                xErrUp  .append( xUp   )
-                xErrDown.append( xDown )
-
-                yVals   .append( y     )
-                yErrUp  .append( yUp   )
-                yErrDown.append( yDown )
-
-                zVals   .append( z     )
-                zErrUp  .append( zUp   )
-                zErrDown.append( zDown )
-
-        return xVals, xErrUp, xErrDown, yVals, yErrUp, yErrDown, zVals, zErrUp, zErrDown
-
-
-    def AddTGraphErrors(self, histoObject, x, xUp, xLow, y, yUp, yLow, z=None, zUp=None, zLow=None, bDrawZValues=False, **kwargs):
-        '''
-        '''
-        self.Verbose()
-        self.PrintHistoInfo(histoObject, False)
-
-        # Convert array items from string to float!
-        x     = [ float(item) for item in x     ]
-        xUp   = [ float(item) for item in xUp   ]
-        xLow  = [ float(item) for item in xLow ]
-
-        y     = [ float(item) for item in y     ]
-        yUp   = [ float(item) for item in yUp   ]
-        yLow  = [ float(item) for item in yLow ]
-
-        # Create the numpy arrays as input to TGraph
-        xVals    = numpy.asarray( x    )
-        xErrsUp  = numpy.asarray( xUp  )
-        xErrsLow = numpy.asarray( xLow )
-
-        yVals    = numpy.asarray( y    )
-        yErrsUp  = numpy.asarray( yUp  )
-        yErrsLow = numpy.asarray( yLow )
-        
-        if z!=None:
-            zVals    = numpy.asarray( z    )
-            zErrsUp  = numpy.asarray( zUp  )
-            zErrsLow = numpy.asarray( zLow )
-
-            # Add z-value as text  at each (x,y) point
-            if (bDrawZValues):
-                for i in range(0, len(x) ):
-                    zName = str(int( z[i]) )
-                    xPos  = x[i]
-                    yPos  = y[i]
-                    if i != 48: # with current settings this means 50kHz (older values: 12)
-                        continue
-                    self.TextObject.AddText(xPos, yPos, zName )
-                    l = ROOT.TLatex( xPos, yPos, zName)
-                    l.SetTextSize(10)
-                    l.SetTextAngle(60) #45
-                    self.DrawObjectList.append(l)
-            else:
-                pass
-
-        # Create TGraphAsymmErrors
-        histoObject.dataset = histoObject.dataset
-        
-        # Sanity checks
-        if (len(xVals) == 0):
-            self.Print("WARNING! Arrays have zero length! Skipping TGraph of histoObject '%s'" % (histoObject.name))
-            return
-        elif (len(xVals) == len(yVals) == len(xErrsUp) == len(xErrsLow) == len(yErrsUp) == len(yErrsLow) ):
-            pass
-        else:
-            self.Print("ERROR! Arrays have different length! EXIT")
-            sys.exit()
-        g = ROOT.TGraphAsymmErrors( len(xVals), xVals, yVals, xErrsUp, xErrsLow, yErrsUp, yErrsLow)
-
-        # Draw graph to enable its customisation
-        g.Draw()
-
-        # Once drawn, customise the TGraph 
-        datasetName, datasetLatexName = self.GetDatasetAndLatexName(histoObject.dataset)
-        histoObject.datasetName = datasetLatexName
-        self.CustomiseTGraph(g, histoObject, datasetLatexName, kwargs)
-
-        # Finally, add the TGraph to the TMultiGraph
-        self.Verbose("Adding TGraphAsymmErrors '%s' to TMultigraph." % ( g.GetName() ))
-        self.TMultigraph.Add(g)
-
-        return
-
-
-    def SetBoolUseDatasetAsLegEntry(self, myBool):
-        '''
-        '''
-        self.Verbose()
-        self.UseDatasetAsLegEntry = myBool
-        return
-
-
-    def AddTGraphErrorsFromFile(self, histoObject, x, xUp, xDown, y, yUp, yDown, **kwargs):
-        '''
-        '''
-        self.Verbose()
-
-        # Convert array items from string to float!
-        x     = [ float(item) for item in x     ]
-        xUp   = [ float(item) for item in xUp   ]
-        xDown = [ float(item) for item in xDown ]
-        y     = [ float(item) for item in y     ]
-        yUp   = [ float(item) for item in yUp   ]
-        yDown = [ float(item) for item in yDown ]
-
-        # Create the numpy arrays as input to TGraph
-        xVals     = numpy.asarray( x     )
-        xErrsUp   = numpy.asarray( xUp   )
-        xErrsDown = numpy.asarray( xDown )
-
-        yVals     = numpy.asarray( y     )
-        yErrsUp   = numpy.asarray( yUp   )
-        yErrsDown = numpy.asarray( yDown )
-        
-        # Create TGraphAsymmErrors
-        histoObject.dataset = kwargs.get("dataset")
-        g = ROOT.TGraphAsymmErrors( len(xVals), xVals, yVals, xErrsUp, xErrsDown, yErrsUp, yErrsDown)
-
-        # Draw graph to enable its customisation
-        g.Draw()
-
-        # Once drawn, customise the TGraph 
-        datasetName, datasetLatexName = self.GetDatasetAndLatexName(histoObject.dataset)
-        histoObject.datasetName = datasetLatexName        
-        self.CustomiseTGraph(g, histoObject, datasetLatexName, histoObject.kwargs)
-
-        # Finally, add the TGraph to the TMultiGraph
-        self.TMultigraph.Add(g)
-        return
-
-
-    def SaveTGraphErrorsDataToFile(self, fileName, dataset, effVals, effErrUp, effErrDown, effEtThresholds, rateVals, rateValsUp, rateValsDown):
-        '''
-        Save all the x-axis and y-axis values (and their corresponding errors) to a txt file. 
-        The txt file's name is given as the parameter 'fileName' and also contains the dataset information.
-        '''
-        self.Verbose()
-
-        # Declarations
-        datasetName = dataset
-        maxDecimals = 1
-        fileName    = fileName + "_"  + datasetName.replace(":", "_") + ".txt"
-        f           = open( fileName, 'w')
-
-        self.Print( ["Dataset: '%s'" % (datasetName), "SaveName: '%s' " % (fileName), "MaxDecimals: '%s'" % (maxDecimals)])
-
-        # Define the column widths: 10 each
-        template = "{0:20} & {1:20} & {2:20}" + r"\\"
-
-        # Create the table headers
-        header = template.format("Efficiency (\%)", "Rate (kHZ)", "Ldg CaloTau E_{T} (GeV)")
-        f.write( r"\begin{tabular}{ %s }" % ( " c " * 3 ) + "\n" )
-        f.write( r"\hline"  + "\n" )
-        f.write( header + "\n" )
-        f.write( r"\hline"  + "\n" )
-     
-        # Now write the actual values
-        for effVal, effErrUp, effErrDown, rateVal, rateValUp, rateValDown, etThreshold in zip(effVals, effErrUp, effErrDown, rateVals, rateValsUp, rateValsDown, effEtThresholds):
-            column1  = str( round( effVal*100  , maxDecimals) ) + "\pm " + str( round( effErrDown*100  , maxDecimals) )
-            column2  = str( round( rateVal , maxDecimals) ) + " + " + str( round( rateValUp , maxDecimals) ) + " - " + str( round( rateValDown , maxDecimals) )
-            column3  = str( etThreshold.rsplit(">=", 1)[-1] )
-            row      = column1 + column2 + column3
-            f.write( template.format(column1, column2, column3) + "\n" )
-
-        f.write( r"\hline"  + "\n" )
-        f.write( r"\end{tabular}" )
-        f.close()
+        self.DatasetInLegend = flag
+        self.EnableColourPalette(not flag)
         return
 
 
@@ -2849,231 +2182,12 @@ class Plotter(object):
         return iBin, binCenter, binContent
 
 
-    def GetTGraphValuesAsLists(self, myTGraph):
-        '''
-        See: 
-        http://root.cern.ch/phpBB3/viewtopic.php?t=2499
-
-        d1, d2 = ROOT.Long(0), ROOT.Long(0)
-        myGraph.GetPoint( 41, d1, d2 )        
-        '''
-        self.Verbose()
-        
-        # Get ploted array dimension
-        nPoints = myTGraph.GetN()
-        xVals = [None]*nPoints
-        yVals = [None]*nPoints
-
-        for p in range(0, nPoints):
-            x = ROOT.Double(0) 
-            y = ROOT.Double(0)                
-	    myTGraph.GetPoint(p, x, y)
-            xVals[p] = x
-            yVals[p] = y
-
-        # Filter the x- and y-value lists. Keep only entries that are non-None
-        xVals = filter(lambda a: a != None, xVals)
-        yVals = filter(lambda a: a != None, yVals)
-        return xVals, yVals        
-
-        
-    def SaveContourPointsToFile(self, tmpHistoDict):
-        '''
-        When option "LIST" is specified together with option "CONT", the points used to draw the contours are saved in TGraph objects:
-        
-        h->Draw("CONT LIST");
-        gPad->Update();
-    
-        The contour are saved in TGraph objects once the pad is painted. Therefore to use this functionnality in a macro, gPad->Update() should be performed after the histogram drawing. 
-        Once the list is built, the contours are accessible in the following way:
-
-        TObjArray *contours = gROOT->GetListOfSpecials()->FindObject("contours")
-        Int_t ncontours     = contours->GetSize();
-        TList *list         = (TList*)contours->At(i);
-        Where "i" is a "contour number", and "list" contains a "list of TGraph objects".     
-        For one given contour, more than one disjoint polyline may be generated. The number of TGraphs per contour is given by:
-        
-        list->GetSize();
-        
-        To access the first graph in the list one should do:
-        
-        TGraph *gr1 = (TGraph*)list->First();       
-        '''
-        self.Verbose()
-
-        if self.SaveContourPoints == False:
-            return
-    
-        # Variable declaration
-        bWriteHeader = True
-
-        # x = LdgJet ET
-        xVals        = []
-        xErrUp       = []
-        xErrDown     = []
-
-        # y = SubLdgJet ET
-        yVals        = []
-        yErrUp       = []
-        yErrDown     = []
-        
-        # z = Rate (kHz)
-        zVals        = []
-        zErrUp       = []
-        zErrDown     = []
-        
-        # 
-        failList     = []
-        failTypeList = []
-
-        # for-Loop: Over all histo types (Nominal, FluctuateUp, FluctuateDown) 
-        for typeCounter, histoType in enumerate(tmpHistoDict):
-
-            # Sanity check
-            hList       = tmpHistoDict[histoType]
-            nHistoTypes = len(tmpHistoDict)
-            if nHistoTypes != 3:
-                raise Exception("Expected the list to have size 3 (Nominal, FluctuateUp, FluctuateDown) but is '%s' instead." % (nHistoTypes) )
-
-            bSkipThisCut = False
-            # for-Loop: Over all zCutValues
-            for nZCutCounter, h in enumerate(hList):
-
-                if nZCutCounter == len(hList):
-                    break
-
-                h.Draw("cont list")
-                ROOT.gPad.Update()
-                # Save Contours values by first converting them to TGraphs...
-                contours  = ROOT.gROOT.GetListOfSpecials().FindObject("contours")
-                nContoursPerHisto = contours.GetSize()
-                self.Verbose( ["HistoNumber: '%s'/'%s'" % (nZCutCounter, len(hList)-1), "HistoType (Counter): '%s' ('%s'/'%s')" % (histoType, typeCounter, len(tmpHistoDict)-1), 
-                               "HistoName: '%s'" % (h.GetName()), "CutValue (Counter): '%s' ('%s'/'%s')" % (self.THDumbie.zCutLines[nZCutCounter], nZCutCounter, len(self.THDumbie.zCutLines)-1) ] )
-
-                # Access the first graph in the list
-                list = contours.At(nZCutCounter)
-                myTGraph = list.First()
-                if not myTGraph:
-                    bSkipThisCut = True
-                    continue
-                    
-                myTGraph.SetName( h.GetName() + "_zCut" + str(self.THDumbie.zCutLines[nZCutCounter]) )
-                x, y = self.GetTGraphValuesAsListsContours( myTGraph )
-                zVal = []
-                zErr = []
-                # In case multiple values are saved from the contour (advise against this)
-                for val in range( 0, len(x) ):
-                    if bSkipThisCut==True:
-                        break
-                    zVal.append( self.THDumbie.zCutLines[nZCutCounter] )
-                    zErr.append( h.GetBinContent( h.GetXaxis().FindBin(x[val]) , h.GetYaxis().FindBin(y[val]) ) )
-
-                if histoType == "Nominal":
-                    xVals.append(x)
-                    yVals.append(y)
-                    zVals.append( zVal )
-                elif histoType == "FluctuateUp":
-                    xErrUp.append(x)
-                    yErrUp.append(y)
-                    zErrUp.append( zErr )
-                elif histoType == "FluctuateDown":
-                    xErrDown.append(x)
-                    yErrDown.append(y)
-                    zErrDown.append( zErr )
-                else:
-                    raise Exception("Unexpected histoType '%s'. Expected histoType to be one of 'Nominal', 'FluctuateUp' or 'FluctuateDown'." % ( histoType ) )
-
-        # Sanity check
-        nValues = len(xVals)
-        nDiff   = 0
-        if all(len(lst) != nValues for lst in [yVals, zVals]):
-            self.Verbose( ["xVals ('%s') = '%s'" % (len(xVals), xVals), "yVals ('%s') = '%s'" % (len(yVals), yVals), "zVals ('%s') = '%s'" % (len(zVals), zVals)] )
-            self.Verbose( ["xErrUp ('%s') = '%s'" % (len(xErrUp), xErrUp), "yErrUp ('%s') = '%s'" % (len(yErrUp), yErrUp), "zErrUp ('%s') = '%s'" % (len(zErrUp), zErrUp)] )
-            self.Verbose( ["xErrDown ('%s') = '%s'" % (len(xErrDown), xErrDown), "yErrDown ('%s') = '%s'" % (len(yErrDown), yErrDown), "zErrDown ('%s') = '%s'" % (len(zErrDown), zErrDown)])
-            nDiff = ( nValues - len(yVals) ) + ( nValues - len(zVals) )
-        elif all(len(lst) != nValues for lst in [xErrUp, yErrUp]):
-            self.Verbose( ["xVals ('%s') = '%s'" % (len(xVals), xVals), "yVals ('%s') = '%s'" % (len(yVals), yVals), "zVals ('%s') = '%s'" % (len(zVals), zVals)] )
-            self.Verbose( ["xErrUp ('%s') = '%s'" % (len(xErrUp), xErrUp), "yErrUp ('%s') = '%s'" % (len(yErrUp), yErrUp), "zErrUp ('%s') = '%s'" % (len(zErrUp), zErrUp)] )
-            self.Verbose( ["xErrDown ('%s') = '%s'" % (len(xErrDown), xErrDown), "yErrDown ('%s') = '%s'" % (len(yErrDown), yErrDown), "zErrDown ('%s') = '%s'" % (len(zErrDown), zErrDown)])
-            nDiff = ( nValues - len(xErrUp) ) + ( nValues - len(yErrUp) ) + ( nValues - len(zErrUp) )
-        elif all(len(lst) != nValues for lst in [xErrDown, yErrDown]):
-            self.Verbose( ["xVals ('%s') = '%s'" % (len(xVals), xVals), "yVals ('%s') = '%s'" % (len(yVals), yVals), "zVals ('%s') = '%s'" % (len(zVals), zVals)] )
-            self.Verbose( ["xErrUp ('%s') = '%s'" % (len(xErrUp), xErrUp), "yErrUp ('%s') = '%s'" % (len(yErrUp), yErrUp), "zErrUp ('%s') = '%s'" % (len(zErrUp), zErrUp)] )
-            self.Verbose( ["xErrDown ('%s') = '%s'" % (len(xErrDown), xErrDown), "yErrDown ('%s') = '%s'" % (len(yErrDown), yErrDown), "zErrDown ('%s') = '%s'" % (len(zErrDown), zErrDown)])
-            nDiff = ( nValues - len(xErrDown) ) + ( nValues - len(yErrDown) ) + ( nValues - len(zErrDown) )
-        else:
-            pass
-        
-
-        # Wait untill all three are filled (x, xErrUp, xErrDown  [ditto for y, yErrUp, yErrDown] )  and then save to file
-        nPoints = nValues - abs(nDiff)
-        for i in range( 0, nPoints, +1 ):
-            
-            # Convert error values to absolute errors
-            xErrUpAbs   = []
-            xErrDownAbs = []
-            yErrUpAbs   = []
-            yErrDownAbs = []
-            zErrUpAbs   = []
-            zErrDownAbs = []
-
-            for j in range( 0, len(xVals[i]), +1 ):
-
-                xErrUpAbs  .append( round(abs( xVals[i][j] - xErrUp  [i][j] ), 2) )
-                xErrDownAbs.append( round(abs( xVals[i][j] - xErrDown[i][j] ), 2) )
-
-                yErrUpAbs  .append( round(abs( yVals[i][j] - yErrUp  [i][j] ), 2) )
-                yErrDownAbs.append( round(abs( yVals[i][j] - yErrDown[i][j] ), 2) )
-
-                zErrUpAbs  .append( round(abs( zVals[i][j] - zErrUp  [i][j] ), 2) )
-                zErrDownAbs.append( round(abs( zVals[i][j] - zErrDown[i][j] ), 2) )
-            
-            self.Verbose( ["HistoType: '%s'" % (histoType), "CutValue (%s): '%s'" % (i, self.THDumbie.zCutLines[i]), 
-                         "xVals[%s]: '%s'" % (i, xVals[i]), "xErrUp: '%s'" % (xErrUpAbs), "xErrDown: '%s'" % (xErrDownAbs), 
-                         "yVals[%s]: '%s'" % (i, yVals[i]), "yErrUp: '%s'" % (yErrUpAbs), "xErrDown: '%s'" % (yErrDownAbs),
-                         "zVals[%s]: '%s'" % (i, zVals[i]), "zErrUp: '%s'" % (zErrUpAbs), "zErrDown: '%s'" % (zErrDownAbs) ] )
-
-            self.SaveTGraphArraysDataToFileWithZ( self.THDumbie.name + "_ContourValues.txt", 
-                                             xVals[i], xErrUpAbs, xErrDownAbs, 
-                                             yVals[i], yErrUpAbs, yErrDownAbs, 
-                                             zVals[i], zErrUpAbs, zErrDownAbs, 
-                                             3, bWriteHeader )
-            bWriteHeader = False
-        return
-
-
-    def GetRateValuesList(self):
-        '''
-        In kHz.
-        '''
-        self.Verbose()
-
-        rateVals = []
-        for i in range(1, 501, 1):
-            rateVals.append(i)
-            
-        return rateVals
-
-
     def _GetLegendHeader(self):
         '''
         Create a TLegend header and return it.
         '''
         self.Verbose()
-
-        histo     = self.THDumbie         
-        header    = ""
-        nDatasets = len(self.DatasetToHistoMap.keys())
-        legHeader = "empty"
-
-        # Create TLegend name
-        if ( nDatasets == 1 ) :
-            #legHeader = self.DatasetObject.ConvertDatasetToLatex(histo.dataset)
-            legHeader = "fixme"
-            self.Print("FIXME")
-        else:
-            legHeader = histo.legTitle
-
+        legHeader = self.THDumbie.legTitle
         return legHeader
 
 
@@ -3092,19 +2206,12 @@ class Plotter(object):
 
 
 
-    def SetTLegendHeader(self, primaryHeader="", secondaryHeader=""):
+    def SetTLegendHeader(self, text):
         '''
         '''
         self.Verbose()
         
-        if secondaryHeader=="" or secondaryHeader==None:
-            #self.TLegend.SetHeader( self.DatasetObject.ConvertDatasetToLatex(primaryHeader) )
-            self.TLegend.SetHeader( "FIXME")
-            self.Print("FIXME")
-        else:
-            self.TLegend.SetHeader( "FIXME")
-            self.Print("FIXME")
-            #self.TLegend.SetHeader( self.DatasetObject.ConvertDatasetToLatex(primaryHeader) + ": " + secondaryHeader )
+        self.TLegend.SetHeader(text)
         return
 
 
@@ -3137,13 +2244,3 @@ class Plotter(object):
         for d in self.Datasets:
             datasetList.append(d.name)
         return datasetList
-
-
-    def GetDatasetAndLatexName(self, dataset):
-        '''
-        '''
-        self.Verbose()
-        
-        datasetName      = dataset.rsplit(":", 1)[-1]
-        datasetLatexName = dataset.rsplit(":", 1)[0]
-        return datasetName, datasetLatexName
