@@ -17,12 +17,22 @@ from UCYHiggsAnalysis.NtupleAnalysis.pyROOT.crossSection import xSections
 
 
 #================================================================================================
+# Global variables
+#================================================================================================
+latexNamesDict = {}
+latexNamesDict["ttHJetToNonbb_M125"] = "ttH (m_{H} = 125 GeV)"
+latexNamesDict["TTJets"]             = "t#bar{t} + jets"
+
+
+
+#================================================================================================
 # Class Definition
 #================================================================================================
 class Dataset(object):
     def __init__(self, name, energy, rootFile, verbose = False, **args):
         self.verbose     = verbose
         self.name        = name
+        self.latexName   = latexNamesDict[name]
         self.rootFile    = rootFile
         self.energy      = energy
         self.xsection    = xSections.crossSection(name, energy)
@@ -90,6 +100,10 @@ class Dataset(object):
         return
 
 
+    def GetLatexName(self):
+        return self.latexName
+    
+    
     def PrintProperties(self):
         '''
         Prints the object's most important properties

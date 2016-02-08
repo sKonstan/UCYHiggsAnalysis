@@ -1,16 +1,13 @@
-###############################################################
-### Author .........: Alexandros X. Attikis 
-### Institute ......: University Of Cyprus (UCY)
-### Email ..........: attikis@cern.ch
-###############################################################
-### Normal assignment operations (a = b) will simply point the new variable towards the existing object.
-### A deep copy ( copy.deepcopy() ) constructs a new compound object and then, recursively, inserts copies into it of the objects found in the original.
-### A shallow copy ( copy.copy() ) constructs a new compound object and then (to the extent possible) inserts references into it to the objects found in the original.
+'''
+Normal assignment operations (a = b) will simply point the new variable towards the existing object.
+A deep copy ( copy.deepcopy() ) constructs a new compound object and then, recursively, inserts copies into it of the objects found in the original.
+A shallow copy ( copy.copy() ) constructs a new compound object and then (to the extent possible) inserts references into it to the objects found in the original.
+'''
 
-###############################################################
-### All imported modules
-###############################################################
-### System modules
+#================================================================================================
+# All imported modules
+#================================================================================================
+# System modules
 import os, sys
 import array
 import math
@@ -24,7 +21,7 @@ import numpy
 from array import array
 import re
 
-### Other 
+# Other 
 import ROOT
 from ROOT import std
 import tdrstyle as m_tdrstyle
@@ -36,9 +33,10 @@ import histos as m_histos
 #import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.dataset as m_dataset
 import collections #for ordered dictionaries
 
-###############################################################
-### Define class
-###############################################################
+
+#================================================================================================
+# Define class
+#================================================================================================
 class Plotter(object): 
     def __init__(self, Verbose=False, BatchMode=True):
         self.verbose           = Verbose
@@ -48,9 +46,7 @@ class Plotter(object):
         self.StyleObject       = m_styles.StyleClass(verbose = self.verbose)
         self.TextObject        = m_text.TextClass(verbose=self.verbose)
         self.AuxObject         = m_aux.AuxClass(verbose=self.verbose)
-        #self.DatasetObject     = m_datasets.Dataset(verbose=self.verbose)
         self.CanvasFactor      = 1.25
-        #self.DatasetToRootFileMap  = collections.OrderedDict()
         self.DatasetToHistoMap     = collections.OrderedDict()
         self.DatasetToLatexNameMap = collections.OrderedDict()
         self.Datasets          = []
@@ -86,34 +82,48 @@ class Plotter(object):
         self.MaxDecimals       = None
         self.UseDatasetAsLegEntry = False
         self.PileUp            = None
-        
-    def Verbose(self, messageList=None):
+        return
+
+    
+    def Verbose(self, message=""):
         '''
         Custome made verbose system. Will print all messages in the messageList
         only if the verbosity boolean is set to true.
         '''
-        if self.verbose == False:
+        if not self.verbose:
             return
         
         print "%s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
-        if messageList==None:
-            return
-        else:
-            for message in messageList:
+        print "\t", message
+        return
+
+
+    def Print(self, message=""):
+        '''
+        Custome made print system. Will print the message even if the verbosity boolean is set to false.
+        '''
+        print "*** %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+        print "\t", message
+        return
+
+    
+    def PrintList(self, messageList=[""]):
+        '''
+        Custome made print system. Will print all messages in the messageList even if the verbosity boolean is set to false.
+        '''
+        for counter, message in enumerate(messageList):
+            if counter == 0:
+                self.Print(message)
+            else:
                 print "\t", message
         return
 
 
-    def Print(self, messageList=[""]):
+    def SetVerbose(self, verbose):
         '''
-        Custome made print system. Will print all messages in the messageList
-        even if the verbosity boolean is set to false.
+        Manually enable/disable verbosity.
         '''
-
-        self.MsgCounter = self.MsgCounter  + 1
-        print "[%s] %s:" % (self.MsgCounter, self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
-        for message in messageList:
-            print "\t", message
+        self.verbose = verbose
         return
 
 
@@ -127,7 +137,6 @@ class Plotter(object):
         ROOT.gROOT.Reset()
         ROOT.gStyle.SetOptStat(0)
         ROOT.TGaxis.SetMaxDigits(4) #18 July 2015 (4)
-        #m_tdrstyle.TDRStyle() # fotis
         ROOT.gROOT.SetBatch(self.BatchMode)
         self.SetupROOTErrorIgnoreLevel(2000)
         ROOT.gStyle.SetNumberContours(999)
@@ -153,7 +162,7 @@ class Plotter(object):
         self.Verbose()
         self.PadCover
 
-        ### Beautifications/Styling
+        # Beautifications/Styling
         ROOT.gStyle.SetStatBorderSize(0)
         ROOT.gStyle.SetStatColor(ROOT.kWhite)
         ROOT.gStyle.SetStatStyle(3001) #3001
@@ -162,14 +171,14 @@ class Plotter(object):
         ROOT.gStyle.SetStatFontSize(15)
         # ROOT.gStyle.SetStatFormat(const char* format = "6.4g")
         
-        ### Dimensions
+        # Dimensions
         ROOT.gStyle.SetStatY(yPos)
         ROOT.gStyle.SetStatX(xPos)
         ROOT.gStyle.SetStatW(width)
         ROOT.gStyle.SetStatH(height)
         ROOT.gStyle.SetOptStat(options)
 
-        ### Workaround for not being able to not remove it
+        # Workaround for not being able to not remove it
         if yPos == -1 and xPos == -1 and width==-1 and height==-1:
             ROOT.gStyle.SetStatTextColor(ROOT.kWhite)
             ROOT.gStyle.SetStatFontSize(0)
@@ -200,15 +209,15 @@ class Plotter(object):
         '''
         Add a new dataset and associate it to a root file.
         '''
-        self.Verbose(["Adding dataset %s from file %s." % (dataset.name, dataset.rootFile.GetName())])
+        self.Verbose("Adding dataset %s from file %s." % (dataset.name, dataset.rootFile.GetName()))
         
-        #### Get the Pile Up
+        ## Get the Pile Up
         #self.GetPileUp(dataset)
                 
-        #### Map dataset to ROOT file, append dataset (name) to datasetlist, append ROOT file (name) to TFile list
+        ## Map dataset to ROOT file, append dataset (name) to datasetlist, append ROOT file (name) to TFile list
         #self.DatasetToRootFileMap[dataset]  = rootFile
         
-        #### Map dataset to Latex name
+        ## Map dataset to Latex name
         #self.DatasetToLatexNameMap[dataset] = self.DatasetObject.ConvertDatasetToLatex(dataset)
         self.Datasets.append(dataset)
         return
@@ -218,29 +227,21 @@ class Plotter(object):
         '''
         Add all datasets in the datasetObjects list to the plotter
         '''
+        self.Verbose()
+        
         for d in datasetObjects:
-            self.Verbose(["Adding dataset %s from file %s." % (d.name, d.rootFile.GetName())])
+            self.Verbose("Adding dataset %s from file %s." % (d.name, d.rootFile.GetName()))
             self.AddDataset(d)
         return
     
     def GetPileUp(self, dataset):
         '''
         '''
-
+        self.Vertbose()
         if self.PileUp == None:
-            #self.PileUp = self.DatasetObject.DatasetToPileUpMap[dataset]
             self.PileUp = 140
-            self.Print(["FIXME"])
+            self.Print("FIXME")
             return
-
-#        elif self.PileUp != self.DatasetObject.DatasetToPileUpMap[dataset]:
-#            self.Print(["Datasets with different PU values ('%s' and '%s'). Will display biggest one" % (self.DatasetObject.DatasetToPileUpMap[dataset] , self.PileUp)])
-#            if self.DatasetObject.DatasetToPileUpMap[dataset] > self.PileUp:
-#                self.PileUp = self.DatasetObject.DatasetToPileUpMap[dataset]
-#            return
-#        else:
-#            #self.Print(["ERROR!", "This should not print!"])
-#            return
         return
         
 
@@ -251,7 +252,7 @@ class Plotter(object):
         self.Verbose()
 
         self.verbose = verbose
-        self.Verbose(["Verbose mode = ", self.verbose])
+        self.Verbose("Verbose mode = ", self.verbose)
         return
 
 
@@ -262,19 +263,19 @@ class Plotter(object):
         '''                    
         self.Verbose()
 
-        ### Normal assignment operations (a = b) will simply point the new variable towards the existing object.
+        # Normal assignment operations (a = b) will simply point the new variable towards the existing object.
         histo = self.THDumbie 
 
-        ### Create a name for the TCanvas
+        # Create a name for the TCanvas
         if histo.saveName == None:
             canvasName = histo.name
         else:
             canvasName = histo.saveName
 
-        ### Create TCanvas and activate it
-        self.Verbose(["Creating canvas with name '%s'" % ( canvasName)])
+        # Create TCanvas and activate it
+        self.Verbose("Creating canvas with name '%s'" % ( canvasName))
 
-        ### Add the time in the canvas name to avoid memory duplicates when handling the same histos. Truncate "@time" when saving canvas
+        # Add the time in the canvas name to avoid memory duplicates when handling the same histos. Truncate "@time" when saving canvas
         canvasName =  canvasName + "@" + str(time.time())
         self.TCanvas = ROOT.TCanvas( canvasName, canvasName, 1)
         time.sleep(0.2) #to avoid getting the same time (canvas/histo overwrite)
@@ -290,36 +291,36 @@ class Plotter(object):
         '''                    
         self.Verbose()
 
-        ### Normal assignment operations (a = b) will simply point the new variable towards the existing object.
+        # Normal assignment operations (a = b) will simply point the new variable towards the existing object.
         histo = self.THDumbie 
 
-        ### Create the THRatio histogram (PadRatio equivalent of PadPlot's THDumbie)
+        # Create the THRatio histogram (PadRatio equivalent of PadPlot's THDumbie)
         self.THRatio = copy.deepcopy(histo)
         self.THRatio.TH1orTH2.SetName("THRatio")
 
-        ### Create TCanvas name that included the dataset name
+        # Create TCanvas name that included the dataset name
         if histo.saveName == None:
             canvasName = histo.name
         else:
             canvasName = histo.saveName
 
-        ### Create TCanvas and divide it into two pads: one for plot pad, one for ratio pad
-        self.Verbose(["Creating canvas with name '%s'" % ( canvasName)])
+        # Create TCanvas and divide it into two pads: one for plot pad, one for ratio pad
+        self.Verbose("Creating canvas with name '%s'" % ( canvasName))
         canvasName =  canvasName + "@" + str(time.time())
         self.TCanvas = ROOT.TCanvas( canvasName, canvasName, ROOT.gStyle.GetCanvasDefW(), int(ROOT.gStyle.GetCanvasDefH()*self.CanvasFactor))
         self.TCanvas.Divide(1,2)
 
-        ### Remove x-axis title and labels from the THDumbie to avoid overlap with those THRatio
+        # Remove x-axis title and labels from the THDumbie to avoid overlap with those THRatio
         self._RemoveXaxisBinLabels(histo.TH1orTH2)
         self._RemoveXaxisTitle(histo.TH1orTH2)
 
-        ### Create plot, ratio and cover pads
+        # Create plot, ratio and cover pads
         self._CreatePads()
         
-        ### Take care of log-axis settings
+        # Take care of log-axis settings
         self._SetLogAxes2PadCanvas()
 
-        ### Update canvas and change back to the PadPlot
+        # Update canvas and change back to the PadPlot
         self.TCanvas.Update()
         self.PadPlot.cd()
 
@@ -401,7 +402,7 @@ class Plotter(object):
 
         bIsTH1 = isinstance(histo, ROOT.TH1)
         if bIsTH1 == False:
-            self.Print(["The histogram '%s' is not a ROOT.TH1 instance. Doing nothing" % histo.name])
+            self.Print("The histogram '%s' is not a ROOT.TH1 instance. Doing nothing" % histo.name)
             return
         histo.GetXaxis().SetLabelSize(0)
         return
@@ -415,7 +416,7 @@ class Plotter(object):
 
         bIsTH1 = isinstance(histo, ROOT.TH1)
         if bIsTH1 == False:
-            self.Print(["The histogram '%s' is not a ROOT.TH1 instance. Doing nothing" % histo.name])
+            self.Print("The histogram '%s' is not a ROOT.TH1 instance. Doing nothing" % histo.name)
             return
         histo.GetXaxis().SetTitleSize(0)
         return
@@ -427,7 +428,7 @@ class Plotter(object):
         '''
         self.Verbose()
 
-        ### Determine whether to set log for y- and x- axis.
+        # Determine whether to set log for y- and x- axis.
         self._SetLogY(self.THDumbie, self.TCanvas)
         self._SetLogX(self.THDumbie, self.TCanvas)
         self._SetLogZ(self.THDumbie, self.TCanvas)
@@ -443,7 +444,7 @@ class Plotter(object):
         if histo.logX==False:
             return
 
-        ### Set log-scale for x-axis 
+        # Set log-scale for x-axis 
         if histo.xMin == None:
             histo.xMin = histo.TH1orTH2.GetXaxis().GetXmin()
 
@@ -482,7 +483,7 @@ class Plotter(object):
         if histo.logZ==False or isinstance(histo.TH1orTH2, ROOT.TH2) == False:
             return
 
-        ### Set log-scale for z-axis 
+        # Set log-scale for z-axis 
         if histo.zMin == None:
             histo.zMin = histo.TH1orTH2.GetZaxis().GetXmin()
 
@@ -499,7 +500,7 @@ class Plotter(object):
         '''
         self.Verbose()
 
-        ### Set log-scale for y-axis 
+        # Set log-scale for y-axis 
         if histo.logYRatio==True:
             if histo.yMin == None:
                 histo.yMin = histo.TH1orTH2.GetMinimum()
@@ -509,7 +510,7 @@ class Plotter(object):
             else:
                 raise Exception("Request for TCanvas::SetLogy(True) rejected. The '%s' minimum y-value is '%s'." % (histo.name, histo.yMin))
 
-        ### Set log-scale for x-axis 
+        # Set log-scale for x-axis 
         if histo.logXRatio==True:
             if histo.xMin == None:
                 histo.xMin = histo.TH1orTH2.GetXaxis().GetXmin()
@@ -527,7 +528,7 @@ class Plotter(object):
         '''
         self.Verbose()
 
-        ### Determine whether to set log for y- and x- axis.
+        # Determine whether to set log for y- and x- axis.
         self._SetLogY(self.THDumbie, self.PadPlot)
         self._SetLogX(self.THDumbie, self.PadPlot)
         self._SetLogZ(self.THDumbie, self.PadPlot)
@@ -557,6 +558,7 @@ class Plotter(object):
         Customise a TLegend.
         '''
         self.Verbose()
+        
         self.TLegend.SetName("legend_" + str(time.time()) )
         self.TLegend.SetFillStyle(0)
         self.TLegend.SetLineColor(ROOT.kBlack)
@@ -580,7 +582,7 @@ class Plotter(object):
         elif isinstance(histoObject, m_histos.TH1orTH2):
             self._AddHistoToQueue(histoObject)
         else:
-            self.Print(["ERROR!", "Expected object of type '%s' but got '%s' instead" % ( m_histos.TH1orTH2, type(histoObject) ), "EXIT"])
+            self.Print("ERROR!", "Expected object of type '%s' but got '%s' instead" % ( m_histos.TH1orTH2, type(histoObject) ), "EXIT")
             sys.exit()
 
 
@@ -598,7 +600,7 @@ class Plotter(object):
             bAddLegendEntries = False
         self.TCanvas.SetName( self.TCanvas.GetName() + "_Profile%s" % (ProfileAxis.upper()) )
 
-        ### For-loop: Histos
+        # For-loop: Histos
         for h in self.DatasetToHistoMap.values():
             
             self.Verbose( ["Creating Profile%s for histogram '%s'  and adding to THStack." % ( ProfileAxis.upper(), h.name)] )
@@ -607,13 +609,12 @@ class Plotter(object):
                 hProfileX      = h.TH1orTH2.ProfileX(hProfileX_Name, firstBin, LastBin)
                 self.THStack.Add( hProfileX )
             else:
-                #raise Exception("Although this works, some validation would have to be carried out with a simple a well undestood 2D histo")
-                self.Print(["WARNING! Although this works, some validation would have to be carried out with a simple a well undestood 2D histo"])
+                self.Print("WARNING! Although this works, some validation would have to be carried out with a simple a well undestood 2D histo")
                 hProfileY_Name = h.name +"_ProfileY"
                 hProfileY      = h.TH1orTH2.ProfileY(hProfileY_Name, firstBin, LastBin)
                 self.THStack.Add( hProfileY )
                 
-            ### Add legend entries for THStack?
+            # Add legend entries for THStack?
             if bAddLegendEntries == True:
                 self.TLegend.AddEntry( h.TH1orTH2, self._GetLegEntryLabel(h), h.legOptions)
                 self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
@@ -627,38 +628,38 @@ class Plotter(object):
         '''
         self.Verbose()
         
-        ### Sanity check. At least one dataset is present 
+        # Sanity check. At least one dataset is present 
         if len(self.Datasets)<1:
-            self.Print(["ERROR!", "No datasets found! Exit"])
+            self.Print("ERROR!", "No datasets found! Exit")
             sys.exit()
         else:
             pass        
 
-        ### Ensure that the pass argument is a valid histo object
+        # Ensure that the pass argument is a valid histo object
         self.IsValidHistoObject(histoObject)
 
-        ### Loop over all datasets
+        # Loop over all datasets
         for dataset in self.Datasets:
 
-            ### Get the ROOT file for given dataset
+            # Get the ROOT file for given dataset
             f = dataset.rootFile
 
-            ### Ensure that histogram exists in the file
+            # Ensure that histogram exists in the file
             self.CheckThatHistoExists(f, histoObject)
 
-            ### Map histo to dataset
+            # Map histo to dataset
             mapKey = dataset.name + ":" + histoObject.name
-            self.Verbose(["Mapping '%s' to key '%s'." % ( histoObject.name, mapKey)])
+            self.Verbose("Mapping '%s' to key '%s'." % ( histoObject.name, mapKey))
             self.DatasetToHistoMap[mapKey] = copy.deepcopy(histoObject)
                 
-            ### Assign user-defined attributes to histo object
+            # Assign user-defined attributes to histo object
             histoObject = self.DatasetToHistoMap[mapKey] 
             self._AssignHistoObjectAttributes( f, dataset, histoObject)
 
-            ### Print extensive histogram information
+            # Print extensive histogram information
             self.PrintHistoInfo(histoObject, False)
 
-            ### Append to histoObject list
+            # Append to histoObject list
             self.HistoObjectList.append(histoObject)
 
         return
@@ -669,17 +670,17 @@ class Plotter(object):
         '''
         self.Verbose()
         
-        ### Declare shorter name references
+        # Declare shorter name references
         h = histoObject
         f = rootFile
 
-        ### Assign attributes
+        # Assign attributes
         h.TH1orTH2      = self.GetHistoFromFile(f, h)
         h.TFileName     = f.GetName()
         h.dataset       = dataset
         h.rangeIntegral = h.TH1orTH2.Integral()
 
-        ### Determine the histogram integral
+        # Determine the histogram integral
         if self.IsTH2:
             self.TDRStyleObject.setWide(True)
             self._CheckThatNoTH2WithMoreThanOneDatasets(h)
@@ -687,7 +688,7 @@ class Plotter(object):
         else:
             h.integral  = h.TH1orTH2.Integral(0, h.TH1orTH2.GetNbinsX()+1)
             
-        ### Assign global values
+        # Assign global values
         self.bPadRatio      = h.ratio
         self.bInvPadRatio   = h.invRatio
         self.RatioErrorType = h.ratioErrorType
@@ -714,16 +715,19 @@ class Plotter(object):
         '''
         '''
         self.Verbose()
-                
+
+        msg  = " {:<20} {:<20}".format("File"           , ": " + histo.TFileName)
+        msg += "\n\t {:<20} {:<20}".format("Dataset"        , ": " + histo.dataset.name)
+        msg += "\n\t {:<20} {:<20}".format("HistoPath"      , ": " + histo.path)
+        msg += "\n\t {:<20} {:<20}".format("HistoName"      , ": " + histo.name)
+        msg += "\n\t {:<20} {:<20}".format("Integral()"     , ": " + str(histo.rangeIntegral))
+        msg += "\n\t {:<20} {:<20}".format("Integral(0, -1)", ": " + str(histo.integral))
+        msg += "\n\t {:<20} {:<20}".format("normaliseTo"    , ": " + histo.normaliseTo)
+
         if histo.TH1orTH2.Integral() == 0:
-            self.Print(["WARNING!", "File: '%s'" % (histo.TFileName), "Dataset: '%s'" % (histo.dataset), "HistoPath: '%s'" % (histo.path), "HistoName: '%s'" % (histo.name), 
-                        "Integral(): '%s'" % (histo.rangeIntegral), "Integral(0, nBins+1): '%s'" % (histo.integral), "normaliseTo: '%s'" % (histo.normaliseTo)])
-        elif verbose == True:
-            self.Print(["File: '%s'" % (histo.TFileName), "Dataset: '%s'" % (histo.dataset), "HistoPath: '%s'" % (histo.path), "HistoName: '%s'" % (histo.name), 
-                        "Integral(): '%s'" % (histo.rangeIntegral), "Integral(0, nBins+1): '%s'" % (histo.integral), "normaliseTo: '%s'" % (histo.normaliseTo)])
-        else:
-            self.Verbose(["File: '%s'" % (histo.TFileName), "Dataset: '%s'" % (histo.dataset), "HistoPath: '%s'" % (histo.path), "HistoName: '%s'" % (histo.name), 
-                        "Integral(): '%s'" % (histo.rangeIntegral), "Integral(0, nBins+1): '%s'" % (histo.integral), "normaliseTo: '%s'" % (histo.normaliseTo)])
+            self.Print(msg)
+            
+        self.Verbose(msg)
         return
 
 
@@ -733,7 +737,7 @@ class Plotter(object):
         '''
         self.Verbose()
         
-        ### For-loop: All datasets
+        # For-loop: All datasets
         for dataset in self.DatasetToHistoMap.keys():
             h = self.DatasetToHistoMap[dataset]
             self._ConvertToOneMinusCumulativeHisto(h)
@@ -748,18 +752,18 @@ class Plotter(object):
         rateHistoList = []
         effHistoList  = []
 
-        ### Get match for rate and eff histos
+        # Get match for rate and eff histos
         for key in sorted(rateToEffMap):
             rateHistoList.append(key)
             effHistoList.append(rateToEffMap[key])
             trigger1 = key.name.rsplit("_", -11)[0]
             trigger2 = rateToEffMap[key].name.rsplit("_", -1)[0]
 
-            ### Make sure you match rate and eff histos of same trigger
+            # Make sure you match rate and eff histos of same trigger
             if trigger1 != trigger2:
                 raise Exception("Trigger names differ. This should not happen!")
 
-        ### Sanity Check
+        # Sanity Check
         if len(rateHistoList) != len(effHistoList):
             raise Exception("Length of RateHistoList ('%s') and  EffHistoList ('%s') is not the same! Cannot produce ROC curves." % (len(RateHistoList), len(EffHistoList)))
         return rateHistoList, effHistoList
@@ -781,10 +785,10 @@ class Plotter(object):
         '''
         self.Verbose()
 
-        ### Enable colour palette (change colour for same datasample, don't just use shades of same colour)
+        # Enable colour palette (change colour for same datasample, don't just use shades of same colour)
         self.StyleObject.EnableColourPalette(True)
         
-        ### Definitions
+        # Definitions
         et       = []
         etUp     = []
         etLow    = []
@@ -795,17 +799,17 @@ class Plotter(object):
         effUp    = []
         effLow   = []
 
-        ### Sanity check
+        # Sanity check
         trigger1 = rateHisto.name.rsplit("_", -1)[0]
         trigger2 = effHisto.name.rsplit("_", -1)[0]
         if trigger1 != trigger2:
             raise Exception("Trigger names differ ('%s' != '%s'). This should not happen!" % (trigger1, trigger2) )
 
-        ### For-loop: Rate histos
+        # For-loop: Rate histos
         self.PrintHistoInfo(rateHisto, False)
         self.PrintHistoInfo(effHisto, False)
                 
-        ### Tread 2d ROCs differently
+        # Tread 2d ROCs differently
         hRate = None
         hEff  = None
         if ("TH2" in str( type(rateHisto.TH1orTH2)) ):
@@ -818,7 +822,7 @@ class Plotter(object):
         else:
             hEff = effHisto.TH1orTH2
 
-        ### For-loop: Target rates
+        # For-loop: Target rates
         for target_rate in self.GetRateValuesList():
             iBin, calo_et, mb_rate, mb_rateErr  = self.FindFirstBinBelowValue(hRate, target_rate)
             if (iBin == -1):
@@ -831,23 +835,23 @@ class Plotter(object):
             rateLow.append( round(mb_rateErr, decimals) )
             #rateUp.append ( round(math.sqrt(mb_rate), decimals) ) # conservative approach
             #rateLow.append( round(math.sqrt(mb_rate), decimals) ) # conservative approach
-            self.Verbose([ "Target (kHz): '%s'" % (mb_rate), "Rate: '%s + %s - %s (kHz)'" % (mb_rate, math.sqrt(mb_rate), math.sqrt(mb_rate)), "Et: '%s'" % (et) ])
+            self.Verbose("Target (kHz): '%s'" % (mb_rate), "Rate: '%s + %s - %s (kHz)'" % (mb_rate, math.sqrt(mb_rate), math.sqrt(mb_rate)), "Et: '%s'" % (et) )
             
 
-        ### Sanity Check
+        # Sanity Check
         if (len(et) == len(etUp) == len(etLow) == len(rate) == len(rateUp) == len(rateLow) ):
             pass
         else:
-            self.Print(["ERROR! Arrays have different length! EXIT"])
+            self.Print("ERROR! Arrays have different length! EXIT")
             sys.exit()
         
-        ### For-loop: Et (corresponding to target rates)
+        # For-loop: Et (corresponding to target rates)
         for calo_et in et:
             etBin   = hEff.FindBin(calo_et) 
             eff.append   ( round(hEff.GetBinContent(etBin), decimals) )
             effUp.append ( round(hEff.GetBinError(etBin), decimals) )
             effLow.append( round(hEff.GetBinError(etBin), decimals) )
-            self.Verbose([ "Dataset:'%s'" % (effHisto.dataset), "HistoName : '%s'" % (effHisto.name), "Trigger: '%s'" % (trigger1), 
+            self.Verbose("Dataset:'%s'" % (effHisto.dataset), "HistoName : '%s'" % (effHisto.name), "Trigger: '%s'" % (trigger1), 
                          "Et  (GeV)  : '%s'" % (et), 
                          "Et+ (GeV)  : '%s'" % (etUp), 
                          "Et- (GeV)  : '%s'" % (etLow), 
@@ -856,16 +860,16 @@ class Plotter(object):
                          "Rate- (kHz): '%s'" % (rateLow), 
                          "Efficiency : '%s'" % (eff), 
                          "Efficiency+: '%s'" % (effUp),  
-                         "Efficiency-: '%s'" % (effLow)])
+                         "Efficiency-: '%s'" % (effLow))
 
-        ### Sanity check
+        # Sanity check
         if (len(eff) == len(effUp) == len(effLow) ):
             pass
         else:
-            self.Print(["ERROR! Arrays have different length! EXIT"])
+            self.Print("ERROR! Arrays have different length! EXIT")
             sys.exit()
 
-        ### Use values to create a TGraphErrors
+        # Use values to create a TGraphErrors
         self.AddTGraphErrors(effHisto, eff, effUp, effLow, rate, rateUp, rateLow, et, etUp, etLow, bDrawZValues, **kwargs)
         return
 
@@ -877,11 +881,11 @@ class Plotter(object):
 
         nBinsX = histo.TH1orTH2.GetNbinsX()+1
 
-        ### Reset Integral, Contents, Errors and Statistics
+        # Reset Integral, Contents, Errors and Statistics
         tmpHisto = copy.deepcopy( histo.TH1orTH2.ProjectionX(histo.name + "_ProjectionX", 0, -1, "") )
         tmpHisto.Reset("ICES")
 
-        ### For-loop: x-axis (get y=x bins only)
+        # For-loop: x-axis (get y=x bins only)
         for bx in range(0, nBinsX):
             tmpHisto.SetBinContent( bx, histo.TH1orTH2.GetBinContent(bx, bx) )
             tmpHisto.SetBinError( bx, histo.TH1orTH2.GetBinError(bx, bx) )
@@ -896,7 +900,7 @@ class Plotter(object):
         
         self._CustomiseHistograms()
 
-        ### Change some histoObject attributes
+        # Change some histoObject attributes
         histo = self.HistoObjectList[0]
         saveName = histo.saveName
         kwargs   = histo.kwargs
@@ -916,7 +920,7 @@ class Plotter(object):
         kwargs["drawOptions"] = "AP" #"ACE3"
         kwargs["legOptions"]  = "LP" #"FL"
 
-        ### Change histo saveName according to cut-direction
+        # Change histo saveName according to cut-direction
         if cutDirection == ">":
             saveName = saveName + "_GreaterThan"
         elif cutDirection == "<":
@@ -946,7 +950,7 @@ class Plotter(object):
         '''
         self.Verbose()
         
-        ### Declare lists
+        # Declare lists
         xVals   = []
         xLow    = []
         xUp     = []
@@ -954,7 +958,7 @@ class Plotter(object):
         effLow  = []
         effUp   = []
 
-        ### For-loop: Histo Bins
+        # For-loop: Histo Bins
         nBinsX  = histo.TH1orTH2.GetNbinsX()+1
         for b in range(0, nBinsX+1):
 
@@ -967,19 +971,19 @@ class Plotter(object):
             nTotal     = histo.TH1orTH2.Integral( 0, nBinsX )
             eff        = -1.0
 
-            ### Calculate the efficiency and its error
+            # Calculate the efficiency and its error
             eff, err = self.AuxObject.Efficiency(nPass, nTotal, errType)
             if (cutDirection == ">"):
                 pass
             elif (cutDirection == "<"):
                 eff = 1-eff
             else:
-                self.Print(["ERROR! Illegal logic operator ('%s') for cut-direction. EXIT" % (cutDirection)] )
+                self.Print("ERROR! Illegal logic operator ('%s') for cut-direction. EXIT" % (cutDirection))
                 sys.exit()
 
-            self.Verbose(["bin = %s, x %s %s,  eff = %s +/- %s" % (b, cutDirection, binUpEdge, eff, err)])
+            self.Verbose("bin = %s, x %s %s,  eff = %s +/- %s" % (b, cutDirection, binUpEdge, eff, err))
             
-            ### Save into lists
+            # Save into lists
             xVals.append(binUpEdge)
             xUp.append(0.0)
             xLow.append(0.0)
@@ -989,7 +993,7 @@ class Plotter(object):
             effLow.append(err)
 
 
-        ### Use values to create a TGraphErrors
+        # Use values to create a TGraphErrors
         histo.TH1orTH2.SetMaximum(1.0)
         self.AddTGraphErrors(histo, xVals, xUp, xLow, effVals, effUp, effLow, None, None, None, False, **kwargs)
         return
@@ -1001,17 +1005,17 @@ class Plotter(object):
         '''
         self.Verbose()
 
-        ### Sanity check: Ensure that no bin-resining has been requested
+        # Sanity check: Ensure that no bin-resining has been requested
         if (histo.binWidthX != None):
-            self.Print(["ERROR! The requested x-axis bin width ('%s') is invalid. Please set both axes bin-widths to 'None'. EXIT" % histo.binWidthX] )
+            self.Print("ERROR! The requested x-axis bin width ('%s') is invalid. Please set both axes bin-widths to 'None'. EXIT" % histo.binWidthX)
             sys.exit()
         elif (histo.binWidthY != None):
-            self.Print(["ERROR! The requested y-axis bin width ('%s') is invalid. Please set both axes bin-widths to 'None'. EXIT" % histo.binWidthY] )
+            self.Print("ERROR! The requested y-axis bin width ('%s') is invalid. Please set both axes bin-widths to 'None'. EXIT" % histo.binWidthY)
             sys.exit()
         else:
             pass
         
-        ### Loop over all histogram bins
+        # Loop over all histogram bins
         h = histo.TH1orTH2
         self.Print( ["Converting histo '%s' into a (1-cumulative integral) histogram" % ( h.GetName() )] )
 
@@ -1079,7 +1083,7 @@ class Plotter(object):
         if isinstance(histoObject, m_histos.TH1orTH2):
             return
         else:
-            self.Print(["ERROR!", "Unknown histo type. Please make sure the histo object '%s' (type = '%s') is either a TH1 or a TH2" % (histoObject, type(histoObject)), "EXIT"])
+            self.Print("ERROR!", "Unknown histo type. Please make sure the histo object '%s' (type = '%s') is either a TH1 or a TH2" % (histoObject, type(histoObject)), "EXIT")
             sys.exit()            
 
 
@@ -1101,7 +1105,8 @@ class Plotter(object):
         if not self.IsTH1 and not self.IsTH2:
             raise Exception( "Could not find histo object '%s' in TFile '%s' under folder '%s'." % (hObject.name, rootFile.GetName(), hObject.path) )
         else:
-            self.Verbose(["File: '%s'" % (rootFile.GetName()), "Histo: '%s'" % (hPath), "IsTH1: '%s'" % (self.IsTH1), "IsTH2: '%s'" % (self.IsTH2)])
+            #self.Verbose("File: '%s'" % (rootFile.GetName()), "Histo: '%s'" % (hPath), "IsTH1: '%s'" % (self.IsTH1), "IsTH2: '%s'" % (self.IsTH2))
+            return
 
         return
 
@@ -1115,7 +1120,7 @@ class Plotter(object):
 
         myMax = -1E10
         myMin = +1E10
-        ### Loop over all TH1's and determine dataset histo with yMax
+        # Loop over all TH1's and determine dataset histo with yMax
         for dataset in self.DatasetToHistoMap.keys():
             h = self.DatasetToHistoMap[dataset]
             tmpMax =  h.TH1orTH2.GetMaximum()
@@ -1127,25 +1132,25 @@ class Plotter(object):
             else:
                 continue
 
-        ### Reset only Integral, Contents, Errors and Statistics (not Minimum and Maximum)
+        # Reset only Integral, Contents, Errors and Statistics (not Minimum and Maximum)
         self.THDumbie.TH1orTH2.Reset("ICES")
 
-        ### Set custom range for x- and y- axis and pad margins            
+        # Set custom range for x- and y- axis and pad margins            
         self.THDumbie.TH1orTH2.GetYaxis().SetRangeUser(myMin, myMax)
         self.THDumbie.TH1orTH2.GetXaxis().SetRangeUser(h.xMin, h.xMax) #does nothing if xMax > max x-value when histogram was created
 
-        ### Set Number of divisions! 
+        # Set Number of divisions! 
         if (self.IsTH2):
             self.THDumbie.TH1orTH2.GetXaxis().SetNdivisions(510) 
         else:
             #self.THDumbie.TH1orTH2.GetXaxis().SetNdivisions(510) #default
             self.THDumbie.TH1orTH2.GetXaxis().SetNdivisions(505)
 
-        ### Set Line Colour and Width
+        # Set Line Colour and Width
         self.THDumbie.TH1orTH2.SetLineColor(ROOT.kBlack)
         self.THDumbie.TH1orTH2.SetLineWidth(1)
 
-        ### Increase right pad margin to accomodate z-axis scale and title
+        # Increase right pad margin to accomodate z-axis scale and title
         if isinstance(self.THDumbie.TH1orTH2, ROOT.TH2) == True:
             ROOT.gStyle.SetPadRightMargin(0.15)
             #ROOT.gStyle.SetPadRightMargin(0.15)
@@ -1180,7 +1185,7 @@ class Plotter(object):
         '''
         self.Verbose()
         
-        ### For-loop: All datasets
+        # For-loop: All datasets
         for histo in self.HistoObjectList:
             histo.ApplyStyles( self.StyleObject, type(histo.TH1orTH2))
         return
@@ -1192,7 +1197,7 @@ class Plotter(object):
         '''
         self.Verbose()
         
-        ### Loop over all histograms and normalise according to user options
+        # Loop over all histograms and normalise according to user options
         for mapKey in self.DatasetToHistoMap:
             h = self.DatasetToHistoMap[mapKey]
             self._NormaliseHisto(h)
@@ -1205,12 +1210,12 @@ class Plotter(object):
         '''
         self.Verbose()
         
-        if h.normaliseTo==None:
+        if h.normaliseTo=="":
             return
 
         scaleFactor = 1
         if h.TH1orTH2.GetEntries() == 0:
-            self.Print(["WARNING! Cannot normalise histogram.", "HistoName: '%s'" % (h.name), "Entries: '%s'" % (h.TH1orTH2.GetEntries()), "TFile: '%s'" % (h.TFileName)])
+            self.Print("WARNING! Cannot normalise histogram.", "HistoName: '%s'" % (h.name), "Entries: '%s'" % (h.TH1orTH2.GetEntries()), "TFile: '%s'" % (h.TFileName))
             return
         
         if h.normaliseTo == "One":
@@ -1219,13 +1224,13 @@ class Plotter(object):
                 h.scaleFactor = 1.0/scaleFactor
                 h.TH1orTH2.Scale(h.scaleFactor)
             else:
-                self.Print(["WARNING! Cannot normalise histogram. Will do nothing.", "HistoName: '%s'" % (h.name), "TFile: '%s'" % (h.TFileName), "ScaleFactor: '%s'" % (scaleFactor)])
+                self.Print("WARNING! Cannot normalise histogram. Will do nothing.", "HistoName: '%s'" % (h.name), "TFile: '%s'" % (h.TFileName), "ScaleFactor: '%s'" % (scaleFactor))
                 return
         elif h.normaliseTo == "MB@40MHz":
             ConvertRateTokHz  = 1.0E-3
             CrossingRate      = 40.0E+6 #Hz
             MCEventsTotal     = 100.0 #self.DatasetObject.GetEvents(h.dataset)
-            self.Print(["FIXME"])
+            self.Print("FIXME")
             scaleFactor       = (CrossingRate)/(MCEventsTotal)*ConvertRateTokHz
             h.scaleFactor     = scaleFactor
             h.TH1orTH2.Scale(scaleFactor)
@@ -1233,7 +1238,7 @@ class Plotter(object):
             ConvertRateTokHz  = 1.0E-3
             CrossingRate      = 30.0E+6 #Hz
             MCEventsTotal     = 100.0 #self.DatasetObject.GetEvents(h.dataset)
-            self.Print(["FIXME"])
+            self.Print("FIXME")
             scaleFactor       = (CrossingRate)/(MCEventsTotal)*ConvertRateTokHz
             h.scaleFactor     = scaleFactor
             h.TH1orTH2.Scale(scaleFactor)
@@ -1243,8 +1248,8 @@ class Plotter(object):
         else:
             raise Exception("Unknown histoObject normalisation option '%s'.!" % (h.normaliseTo))
         
-        self.Verbose(["File: '%s'" % (h.TFileName), "Dataset: '%s'" % (h.dataset), "HistoPath: '%s'" % (h.path), "HistoName: '%s'" % (h.name), 
-                      "Integral(): '%s'" % (h.rangeIntegral), "Integral(0, nBins+1): '%s'" % (h.integral), "normaliseTo: '%s'" % (h.normaliseTo)])
+        self.Verbose("File: '%s'" % (h.TFileName), "Dataset: '%s'" % (h.dataset), "HistoPath: '%s'" % (h.path), "HistoName: '%s'" % (h.name), 
+                      "Integral(): '%s'" % (h.rangeIntegral), "Integral(0, nBins+1): '%s'" % (h.integral), "normaliseTo: '%s'" % (h.normaliseTo))
         return
 
 
@@ -1260,14 +1265,15 @@ class Plotter(object):
         self._CreateCanvasAndLegendAndDumbie()
         self._CheckHistogramBinning()
         self._AddHistogramsToStack()
-        self.Verbose(["Drawing histo '%s'" % (self.THDumbie.name), "THStackDrawOpt: '%s'" % (THStackDrawOpt), "bStackInclusive: '%s'" % (bStackInclusive)])
+        #self.Verbose("Drawing histo '%s'" % (self.THDumbie.name) + "THStackDrawOpt: '%s'" % (THStackDrawOpt), "bStackInclusive: '%s'" % (bStackInclusive))
+        
         self._DrawHistograms(THStackDrawOpt)
         self._DrawRatioHistograms(bAddReferenceHisto)
         self._DrawNonHistoObjects()
         self._CustomiseStack()
         #self.THStack.Draw("same")            #new: needed when drawing cut-boxes
         #self.TLegend.Draw("same")            #new: needed when drawing cut-boxes
-        #self.AddDefaultCmsText()             #new: needed when drawing cut-boxes
+        #self.AddPreliminaryText()             #new: needed when drawing cut-boxes
         self.THDumbie.TH1orTH2.Draw("same")
         return
 
@@ -1340,7 +1346,7 @@ class Plotter(object):
         self._CreateCanvasAndLegendAndDumbie()
         self._CheckHistogramBinning()
         self._AddHistogramsToStack2D(ProfileAxis, firstBin, lastBin)
-        self.Verbose(["Drawing histo '%s'" % (self.THDumbie.name), "THStackDrawOpt: '%s'" % (THStackDrawOpt), "bStackInclusive: '%s'" % (bStackInclusive)])
+        self.Verbose("Drawing histo '%s'" % (self.THDumbie.name), "THStackDrawOpt: '%s'" % (THStackDrawOpt), "bStackInclusive: '%s'" % (bStackInclusive))
         self._DrawHistograms(THStackDrawOpt)
         self._DrawRatioHistograms()
         self._DrawNonHistoObjects()
@@ -1356,7 +1362,7 @@ class Plotter(object):
 
         f1 = ROOT.TF1("f1", myFunction, xMin, xMax)        
 
-        ### Customise Line Style
+        # Customise Line Style
         if kwargs.get("fillColour"):
             f1.SetFillColor( kwargs.get("fillColour") )
         if kwargs.get("fillStyle"):
@@ -1382,23 +1388,24 @@ class Plotter(object):
         bAddLegendEntries = "TH1" in str(type(self.THDumbie.TH1orTH2)) and isinstance(self.TLegend, ROOT.TLegend)
         entryLabel = ""
         
-        ### Loop over all histo objects
+        # Loop over all histo objects
         for histo in self.HistoObjectList:
             
             dataset = histo.dataset.name + ":" + histo.name
             
             h = self.DatasetToHistoMap[dataset]
-            self.Verbose(["Adding histogram '%s' to the THStack" % (histo.name), 
-                          "Dataset: '%s'" % (dataset), "Integral(): '%s'" % (histo.rangeIntegral), "Integral(0, nBins+1): '%s'" % (histo.integral), "normaliseTo: '%s'" % (histo.normaliseTo)])
+            #self.Verbose("Adding histogram '%s' to the THStack" % (histo.name), 
+            #"Dataset: '%s'" % (dataset), "Integral(): '%s'" % (histo.rangeIntegral), "Integral(0, nBins+1): '%s'" % (histo.integral), "normaliseTo: '%s'" % (histo.normaliseTo))
 
+            
             self.THStack.Add(h.TH1orTH2)
             self.THStackHistoList.append(h.TH1orTH2)
             
-            ### Add legend entries for THStack
+            # Add legend entries for THStack
             if bAddLegendEntries == False:
                 continue
 
-            ### Add legend entries only for TH1 type histos        
+            # Add legend entries only for TH1 type histos        
             if h.legTitle != None:
                 self.TLegend.AddEntry( h.TH1orTH2, self._GetLegEntryLabel(h), self._GetLegEntryOptions(h) )
                 self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
@@ -1437,14 +1444,14 @@ class Plotter(object):
         Create TLines for each cut-line defined by the user when creating a histo instance. 
         Append them to the DrawObjectList so that they can be drawn later on.
         '''
-        self.Verbose(["Creating cut-lines."])
+        self.Verbose("Creating cut-lines.")
 
-        ### Create the TLines for each axis
+        # Create the TLines for each axis
         self._AppendXYCutLinesToTLineList("x")
         self._AppendXYCutLinesToTLineList("y")
         self._DoZCutLines()
 
-        ### Extend the DrawObjectList with the TLineList
+        # Extend the DrawObjectList with the TLineList
         self.DrawObjectList.extend(self.xTLineList)
         self.DrawObjectList.extend(self.yTLineList)
 
@@ -1475,7 +1482,7 @@ class Plotter(object):
         if cLines == None:
             return
                 
-        ### Loop over all x-axis cut values
+        # Loop over all x-axis cut values
         for value in cLines:
             if bXaxisCut == True:
                 xMin = value
@@ -1517,7 +1524,7 @@ class Plotter(object):
         if zCutLines == None or len(zCutLines)==0:
             return
         
-        ### Copy list into a numpy array, otherwise ROOT will complain
+        # Copy list into a numpy array, otherwise ROOT will complain
         contours = numpy.asarray(self.THDumbie.zCutLines)
         if (self.THDumbie.zCutLinesErrors == True):
             self._DrawZCutLinesWithErrors(zCutLines)
@@ -1534,10 +1541,10 @@ class Plotter(object):
         http://root.cern.ch/root/html/THistPainter.html
         [ Look for Draw("CONT LIST") option ]
         '''
-        ### Copy list into a numpy array, otherwise ROOT will complain
+        # Copy list into a numpy array, otherwise ROOT will complain
         contours = numpy.asarray(self.THDumbie.zCutLines)
 
-        ### Set Contour bands
+        # Set Contour bands
         contourBands   = [1.0, 1.0/self.THDumbie.scaleFactor, 1.0/self.THDumbie.scaleFactor]
         lineStyles     = [ROOT.kSolid, ROOT.kDashDotted, ROOT.kDashDotted] #[ROOT.kSolid, ROOT.kSolid, ROOT.kSolid] #,ROOT.kDashed, ROOT.kDashed]
         lineColours    = [self.CutLineColour, ROOT.kRed-4, ROOT.kAzure+6, ROOT.kSpring+2, ROOT.kMagenta-2, ROOT.kYellow-4, self.CutLineColour, ROOT.kOrange+8, 
@@ -1547,22 +1554,22 @@ class Plotter(object):
         lineShades     = [+0, -3, -3]
         lineWidths     = [+3, +1, +1]
         
-        ### Get Last histogram in the stack and customise it
+        # Get Last histogram in the stack and customise it
         hStackList = []
         total = len(zCutLines)*len(contourBands)
         for i in range(0, total ):
             hStackList.append(copy.deepcopy(self.THStack.GetStack()))
 
-        ### Declare the arrays where the contours values (nominal, Up, Down) will be saved
+        # Declare the arrays where the contours values (nominal, Up, Down) will be saved
         tmpHistoDict = {}
 
-        ### for-Loop: Over all histogram types (Nominal, FluctuateUp, FluctuateDown)
+        # for-Loop: Over all histogram types (Nominal, FluctuateUp, FluctuateDown)
         for iBand in range(0, len(contourBands)): 
 
-            ### Get the total histogram
+            # Get the total histogram
             h = hStackList[iBand].Last()
 
-            ### Default, Fluctuate up or Fluctuate down
+            # Default, Fluctuate up or Fluctuate down
             if iBand == 0:
                 histoType = "Nominal"
             elif iBand == 1: # +1sigma
@@ -1577,7 +1584,7 @@ class Plotter(object):
             h.SetName(h.GetName() + "_" + histoType )
             tmpHistoList = []
 
-            ### for-Loop: Over all z-cuts, for the given iBand(0 = Nominal, 1 = +1sigma, 2 = -1sigma)
+            # for-Loop: Over all z-cuts, for the given iBand(0 = Nominal, 1 = +1sigma, 2 = -1sigma)
             for i in range(0, len(zCutLines)):
                 self.Verbose( ["iHistoType: '%s'/'%s' (Nominal, FluctuateUp, FluctuateDown)" % (iBand+1, len(contourBands) ), "zCutNumber: '%s'/'%s'" % (i+1, len(zCutLines)) ] )
                 h.SetLineColor( lineColours[i] )
@@ -1586,18 +1593,18 @@ class Plotter(object):
                 h.SetLineWidth( lineWidths[iBand] )
                 h.SetContour(i+1, contours) #should start at 1
 
-                ### Before drawing, save the histogram to some list
+                # Before drawing, save the histogram to some list
                 if self.SaveContourPoints == True:
                     tmpHistoList.append(h)
 
-                ### Draw the histogram
+                # Draw the histogram
                 h.Draw("cont3same9")
 
                 if iBand == 0:
                     self.TLegend.AddEntry( h, "%s %s #pm 1#sigma" % (zCutLines[i], self.THDumbie.zUnits), "L" )
                     self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
 
-            ### Save the Nominal, FluctuateUp, FluctuateDown histos for the specific cut value
+            # Save the Nominal, FluctuateUp, FluctuateDown histos for the specific cut value
             tmpHistoDict[ histoType ] = tmpHistoList
 
         self.SaveContourPointsToFile(tmpHistoDict)
@@ -1608,21 +1615,21 @@ class Plotter(object):
         '''
         Draw z-cut lines defined by the user at histogram creation time.
         '''
-        ### Copy list into a numpy array, otherwise ROOT will complain
+        # Copy list into a numpy array, otherwise ROOT will complain
         contours = numpy.asarray(self.THDumbie.zCutLines)
 
-        ### Set Contour bands
+        # Set Contour bands
         lineColours    = [ROOT.kWhite, ROOT.kYellow, ROOT.kRed, ROOT.kBlack]
         
-        ### Get Last histogram in the stack and customise it
+        # Get Last histogram in the stack and customise it
         hStackList = []
         total = len(zCutLines)
         for i in range(0, total ):
             hStackList.append(copy.deepcopy(self.THStack.GetStack()))
         
-        ### Loop over all z-cuts
+        # Loop over all z-cuts
         for i in range(0, len(zCutLines)):
-            ### Get the total histogram
+            # Get the total histogram
             h = hStackList[i].Last()
             h.SetLineColor( lineColours[i] )
             h.SetFillColor( lineColours[i] )
@@ -1640,12 +1647,12 @@ class Plotter(object):
         '''
         Statistical fluctuation of histograms to enable contour error bands.
         '''
-        ### Reverse scaleFactor
+        # Reverse scaleFactor
         histo.Scale( scaleFactor )
         zeroEntriesPoissonError = 1.7 #As instructed by Ptochos
 
         if "TH1" in str(type(histo)):
-            ### Fluctate with bin content with sqrt(N)
+            # Fluctate with bin content with sqrt(N)
             for x in range(0, histo.GetNbinsX()):
                 binContent = histo.GetBinContent(x)
                 if (bFluctuateUp == True):
@@ -1659,7 +1666,7 @@ class Plotter(object):
                     else:
                         histo.SetBinContent(x, binContent) # do nothing
         elif "TH2" in str(type(histo)):
-            ### Fluctate with bin content with sqrt(N)
+            # Fluctate with bin content with sqrt(N)
             for x in range(0, histo.GetNbinsX()):
                 for y in range(0, histo.GetNbinsY()):
                     binContent = histo.GetBinContent(x, y)
@@ -1676,7 +1683,7 @@ class Plotter(object):
         else:
             raise Exception("Unsupported histo type '%s'. Cannot proceed." % (type(histo) ) )
 
-        ### Scale back to normal
+        # Scale back to normal
         histo.Scale( 1.0/scaleFactor )
         return
         
@@ -1688,11 +1695,11 @@ class Plotter(object):
         '''
         self.Verbose()
         
-        ### Loop over list of xMin-xMax-colour pairs (also a list)
+        # Loop over list of xMin-xMax-colour pairs (also a list)
         self._AppendXYCutBoxesToTBoxList("x")
         self._AppendXYCutBoxesToTBoxList("y")
 
-        ### Extend the DrawObjectList with the TLineList and TBoxList
+        # Extend the DrawObjectList with the TLineList and TBoxList
         self.DrawObjectList.extend(self.xTLineList)
         self.DrawObjectList.extend(self.yTLineList)
         self.DrawObjectList.extend(self.TBoxList)
@@ -1772,7 +1779,7 @@ class Plotter(object):
         self.DrawStackInclusive()
         self.THStack.Draw(THStackDrawOpt + "," + self.THDumbie.drawOptions + "," +  "9same") #"PADS"
         ROOT.gPad.RedrawAxis() #the histo fill area may hide the axis tick marks. Force a redraw of the axis over all the histograms.
-        self.AddDefaultCmsText()
+        # self.AddPreliminaryText()
         self.TCanvas.Update()
         self.TCanvas.SetGridx(self.THDumbie.gridX)
         self.TCanvas.SetGridy(self.THDumbie.gridY)
@@ -1792,13 +1799,13 @@ class Plotter(object):
 
         self.PadRatio.cd()        
 
-        ### Create the histogram that will divide all other histograms in the THStackRatio (Normalisation histogram)
+        # Create the histogram that will divide all other histograms in the THStackRatio (Normalisation histogram)
         UnityTH1 = self.GetUnityTH1()
         hDenominator = copy.deepcopy( self.THStackHistoList[0] ) 
-        self.Verbose(["Using histogram '%s' as denominator for ratio plots! " % (hDenominator.GetName())])
+        self.Verbose("Using histogram '%s' as denominator for ratio plots! " % (hDenominator.GetName()))
 
-        ### Add the reference ratio plot (to enable the identification of the histogram used for the normalisation)
-        ### Note: Do not add the hReference histogram  before calling the function self.CustomiseTHRatio(). 
+        # Add the reference ratio plot (to enable the identification of the histogram used for the normalisation)
+        # Note: Do not add the hReference histogram  before calling the function self.CustomiseTHRatio(). 
         if bAddReferenceHisto:
             hReference = copy.deepcopy(hDenominator)
             hReference.Divide(hReference)
@@ -1808,37 +1815,37 @@ class Plotter(object):
                 hReference.SetBinError(iBin, 0.00000000001)
             self.THStackRatio.Add(hReference)
 
-        ### Loop over all histograms in the THStack and create the THStackRatio.
+        # Loop over all histograms in the THStack and create the THStackRatio.
         for h in self.THStackHistoList:
             if h == self.THStackHistoList[0]:                
                 continue
 
-            ### Copy Active histogram
+            # Copy Active histogram
             hRatio     = copy.deepcopy(h)
             hNumerator = copy.deepcopy(h)
             
-            ### Divide the active histogram with the normalisation histogram
+            # Divide the active histogram with the normalisation histogram
             hRatio.Divide(hNumerator, hDenominator, 1.0, 1.0, self.RatioErrorType)
 
-            ### Inverts ratio histogram if requested (i.e. each bin has content 1/bin)
+            # Inverts ratio histogram if requested (i.e. each bin has content 1/bin)
             if self.bInvPadRatio == True:
                 hRatio.Divide(UnityTH1, hRatio) 
 
-            ### Save histogram values to a txt file (for later processing if needed)
+            # Save histogram values to a txt file (for later processing if needed)
             #self.SaveHistoAsTxtFile(hRatio)
 
-            ### Finally, add this ratio histogram to the THStackRatio
+            # Finally, add this ratio histogram to the THStackRatio
             self.THStackRatio.Add(hRatio)
 
-        ### Customise axes and titles
+        # Customise axes and titles
         self.CustomiseTHRatio()
 
-        ### Draw the Ratio Stack with "nostack" option
+        # Draw the Ratio Stack with "nostack" option
         self.THRatio.TH1orTH2.Draw()
         self.THStackRatio.Draw("nostack9sameAP")
         
-#        ### Finally add the reference ratio plot (to enable the identification of the histogram used for the normalisation)
-#        ### Note: Do not add the hReference histogram  before calling the function self.CustomiseTHRatio(). 
+#        # Finally add the reference ratio plot (to enable the identification of the histogram used for the normalisation)
+#        # Note: Do not add the hReference histogram  before calling the function self.CustomiseTHRatio(). 
 #        if bAddReferenceHisto:
 #            hReference = copy.deepcopy(hDenominator)
 #            hReference.Divide(hReference)
@@ -1848,7 +1855,7 @@ class Plotter(object):
 #                hReference.SetBinError(iBin, 0.00000000001)
 #            self.THStackRatio.Add(hReference)
 
-        ### Switch back to the PadPlot (necessary)
+        # Switch back to the PadPlot (necessary)
         self.PadPlot.cd()
         return
 
@@ -1867,7 +1874,7 @@ class Plotter(object):
         yErrDown  = []
         yErrUp    = []
 
-        ### Loop over all histogram bins (except under/over bins)
+        # Loop over all histogram bins (except under/over bins)
         binZeroWidth = h.GetXaxis().GetBinWidth(0)
         for iBin in range (1, h.GetNbinsX()+1):
 
@@ -1888,13 +1895,13 @@ class Plotter(object):
         Apply all necessary customisations to self.THRatio histogram.
         '''
 
-        ### Customise axes and titles
+        # Customise axes and titles
         if self.THRatio.yMinRatio == None:
             self.THRatio.yMinRatio = self.THStackRatio.GetMinimum("nostack")*self.THRatio.GetYMinFactor(self.THRatio.logYRatio)
         if self.THRatio.yMaxRatio == None:
             self.THRatio.yMaxRatio = self.THStackRatio.GetMaximum("nostack")*self.THRatio.GetYMaxFactor(self.THRatio.logYRatio)
 
-        ### Customise the title
+        # Customise the title
         self.THRatio.TH1orTH2.GetXaxis().SetTitleOffset(2.8)
         if self.THRatio.ratioLabel == None:
             if self.bInvPadRatio == False:
@@ -1903,7 +1910,7 @@ class Plotter(object):
                 self.THRatio.ratioLabel = "1/Ratio"
         self.THRatio.TH1orTH2.GetYaxis().SetTitle(self.THRatio.ratioLabel)
 
-        ### Customise the y-axis
+        # Customise the y-axis
         self.THRatio.yMax = self.THRatio.yMinRatio
         self.THRatio.yMin = self.THRatio.yMaxRatio
         self.THRatio.TH1orTH2.GetYaxis().SetNdivisions(505)
@@ -1911,7 +1918,7 @@ class Plotter(object):
         self.THRatio.TH1orTH2.GetYaxis().SetTitleOffset(1.8) 
         self.THDumbie.TH1orTH2.GetYaxis().SetTitleOffset(1.8)
         
-        ### Enable grid to easy readout of histo
+        # Enable grid to easy readout of histo
         self.PadRatio.SetGridx(self.THDumbie.gridX)
         self.PadRatio.SetGridy(self.THDumbie.gridY)
         return
@@ -1943,7 +1950,7 @@ class Plotter(object):
             pass
         inclusive.Draw("HISTsame9")
         
-        ### Add histogram entry to the legend
+        # Add histogram entry to the legend
         self.TLegend.AddEntry( inclusive, "inclusive", "L" )
         self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
 
@@ -1980,14 +1987,12 @@ class Plotter(object):
             return  entryLabel
 
         if self.UseDatasetAsLegEntry==True:
-            #entryLabel   = self.DatasetToLatexNameMap[histoObject.dataset.name]
-            entryLabel   = "fixme"
-            self.Print(["FixMe"])
+            entryLabel = histoObject.dataset.GetLatexName()
         else:
             entryLabel = histoObject.legTitle
 
         if isinstance(entryLabel, str) == True:
-            self.Verbose(["The TLegend entry name is '%s'." % (entryLabel)])
+            self.Verbose("The TLegend entry name is '%s'." % (entryLabel))
             return entryLabel
         else:
             raise Exception("The TLegend entry label cannot be returned as it is not of type string but instead of type '%s'." % ( type(entryLabel) ) )
@@ -2069,11 +2074,11 @@ class Plotter(object):
         '''
         self.Verbose()                
 
-        ### First create the draw objects (TLines, TBoxes etc..)
+        # First create the draw objects (TLines, TBoxes etc..)
         self.CreateCutBoxes()
         self.CreateCutLines()
         
-        ### Draw all objects on the PadPlot
+        # Draw all objects on the PadPlot
         for o in self.DrawObjectList:
             o.Draw("same")
         return
@@ -2085,16 +2090,16 @@ class Plotter(object):
         '''
         self.Verbose()                
 
-        ### First create the draw objects (TLines, TBoxes etc..)
+        # First create the draw objects (TLines, TBoxes etc..)
         self.CreateCutBoxes()
         self.CreateCutLines()
         
-        ### Draw all objects on the PadPlot
+        # Draw all objects on the PadPlot
         self.PadPlot.cd()
         for o in self.DrawObjectList:
             o.Draw("same")
 
-        ### Update modified canvas and re-draw the PadPlot axes
+        # Update modified canvas and re-draw the PadPlot axes
         self.PadPlot.Modified()
         self.PadPlot.RedrawAxis()
         self.PadPlot.SetGridx(self.THDumbie.gridX)
@@ -2104,7 +2109,7 @@ class Plotter(object):
         self.PadRatio.RedrawAxis()
 
 
-        ### Draw all objects on the PadRatio
+        # Draw all objects on the PadRatio
         self.PadRatio.cd()
         for o in self.DrawObjectListR:
             if isinstance(o, ROOT.TLegend) == True:
@@ -2123,7 +2128,7 @@ class Plotter(object):
                 o.SetY2(self.THDumbie.yMaxRatio)
             o.Draw("same")
 
-        ### Update modified canvas and re-draw the PadPlot axes
+        # Update modified canvas and re-draw the PadPlot axes
         self.PadRatio.Modified()
         self.PadRatio.RedrawAxis()
         
@@ -2157,14 +2162,14 @@ class Plotter(object):
         binWidthX    = self.THDumbie.binWidthX
         binZeroWidth = self.THDumbie.TH1orTH2.GetXaxis().GetBinWidth(0)
         
-        ### Check that the x-axis bin is same for all histograms
+        # Check that the x-axis bin is same for all histograms
         for dataset in self.DatasetToHistoMap.keys():
             h = self.DatasetToHistoMap[dataset]
             self._CheckHistoBinning(h)
         return 
 
 
-    def AddDefaultCmsText(self):
+    def AddPreliminaryText(self, energy, lumi):
         '''
         Add the default CMS text on the canvas. Several defaults are available. 
         For available options see the class TextClass(object) under tools/text.py.
@@ -2172,10 +2177,9 @@ class Plotter(object):
         self.Verbose()
         
         self.TCanvas.cd()
-        self.TextObject.AddEnergyText( text = " " )
-        self.TextObject.AddCmsSimulationPhaseTwoText(self.IsTH2, 200)  #fixme
-        self.TextObject.AddIntLumiText( text = "" )
-
+        self.TextObject.AddEnergyText(energy)
+        self.TextObject.AddPreliminary()
+        self.TextObject.AddLumiText(lumi)
         self.TCanvas.Update()
         return
     
@@ -2189,18 +2193,20 @@ class Plotter(object):
         if bSave == False:
             return
             
-        ### Sanity checks
+        # Sanity checks
         if savePath == "" or savePath == None:
             savePath = os.getcwd() + "/"            
         if os.path.exists(savePath) == False: 
             raise Exception("The path '%s' does not exist! Please make sure the provided path is correct." % (savePath) )
 
-        ### Define path and save
+        # Define path and save
         saveName = savePath + self.TCanvas.GetName().rsplit('@', 1)[0] + saveExtension
         #creationTime =  self.TCanvas.GetName().rsplit('@', 1)[1]
                                                               
 
-        self.Print(["SaveName: '%s' " % (saveName), "Format(s): '%s' " % ( ", ".join(saveFormats) ) ])
+        msg  = "{:<20} {:<20}".format("SaveName" , ": " + saveName)
+        msg += "{:<20} {:<20}".format("Format(s)", ": " + ", ".join(saveFormats) )
+        self.Print(msg)
         for ext in saveFormats:
             self.TCanvas.Update()
             self.TCanvas.SaveAs( saveName + "." + ext )
@@ -2250,7 +2256,7 @@ class Plotter(object):
         nBins = hUnity.TH1orTH2.GetNbinsX()
         for i in range (0, nBins+1):
             #hUnity.TH1orTH2.Fill(i, 1) # error bars are quite large. need to investigate if they are correct.
-            ### In the meantime, set the bin-error to zero. I think this is the correct way to do it
+            # In the meantime, set the bin-error to zero. I think this is the correct way to do it
             hUnity.TH1orTH2.SetBinContent(i, 1)
             hUnity.TH1orTH2.SetBinError(i, 0)
             
@@ -2264,14 +2270,14 @@ class Plotter(object):
 
         graph.SetName( histoObject.name + "_TGraph")
 
-        ### Once drawn, the TGraph can be customised
+        # Once drawn, the TGraph can be customised
         if kwargs.get("xMin") != None and kwargs.get("xMax") != None:
             graph.GetXaxis().SetRangeUser( kwargs.get("xMin"), kwargs.get("xMax") ) 
         if kwargs.get("yMin") != None and kwargs.get("yMax") != None:
             graph.GetYaxis().SetRangeUser( kwargs.get("yMin"), kwargs.get("yMax") ) 
             graph.GetYaxis().SetLimits( kwargs.get("yMin"), kwargs.get("yMax") )         
             
-        ### Customise TGraph (colours/styles)
+        # Customise TGraph (colours/styles)
         if dataset == None:
             raise Exception("Could not determine dataset('%s'). Cannot continue." % (dataset) )
         elif ":" in dataset:
@@ -2289,26 +2295,26 @@ class Plotter(object):
         graph.SetMarkerStyle(markerStyle)
         graph.SetMarkerSize(markerSize)
         
-        ### Create legend if there isn't one already
+        # Create legend if there isn't one already
         if self.TLegend == None:
             if ":" in dataset:
                 #self.DatasetObject.ConvertDatasetToLatex( dataset.rsplit(":", 1)[0] )
                 datasetLatex = "fixme"
-                self.Print(["FIXME"])
+                self.Print("FIXME")
             else:
                 #datasetLatex = self.DatasetObject.ConvertDatasetToLatex( dataset )
                 datasetLatex = "fixme"
-                self.Print(["FIXME"])
+                self.Print("FIXME")
 
             self.TLegend = ROOT.TLegend( kwargs.get("xLegMin"), kwargs.get("yLegMin"), kwargs.get("xLegMax"), kwargs.get("yLegMax"), datasetLatex, "brNDC")
             self._CustomiseLegend()
             
-        ### Add TGraph entry to legend
+        # Add TGraph entry to legend
         legOpts = kwargs.get("legOptions") 
         if legOpts == None:
             legOpts = "LFP"
 
-        self.TLegend.AddEntry( graph, self._GetLegEntryLabel(histoObject), legOpts)
+        self.TLegend.AddEntry( graph, self._GetLegEntryLabel(histoObject.dataset.GetLatexName()), legOpts)
         self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
         return        
         
@@ -2319,14 +2325,14 @@ class Plotter(object):
         '''
         self.Verbose()
         
-        ### Create THDumbie (needed to apply kwargs options)
+        # Create THDumbie (needed to apply kwargs options)
         self.THDumbie = m_histos.TH1orTH2( path="", name="MGraphDumbie", legTitle="", saveName=saveName, **kwargs)
         
-        ### Create a canvas
+        # Create a canvas
         self._CreateCanvas()
 
-        ### Draw the multigraph and customise it 
-        self.Verbose(["Drawing ROOT.TMultiGraph '%s'" % self.TMultigraph.GetName() ])
+        # Draw the multigraph and customise it 
+        self.Verbose("Drawing ROOT.TMultiGraph '%s'" % self.TMultigraph.GetName())
         self.TMultigraph.Draw(self.THDumbie.drawOptions)
         self.CustomiseMultigraph(kwargs)
         self._DrawNonHistoObjectsNoPadRatio()
@@ -2338,7 +2344,7 @@ class Plotter(object):
         '''
         self.Verbose()
 
-        ### Customise x-axis
+        # Customise x-axis
         xLabel = ""
         xUnits = kwargs.get("xUnits", "")
         xMin   = kwargs.get("xMin", None)
@@ -2349,7 +2355,7 @@ class Plotter(object):
         else:
             xLabel = kwargs.get("xLabel", "x-label") + " (" + xUnits + ")"
 
-        ### Customise y-axis
+        # Customise y-axis
         yLabel = ""
         yUnits = kwargs.get("yUnits", "")
         yMin   = kwargs.get("yMin", None)
@@ -2359,30 +2365,30 @@ class Plotter(object):
         else:
             yLabel = kwargs.get("yLabel", "y-label") + " (" + yUnits + ")"
             
-        ### Apply options
+        # Apply options
         self.TMultigraph.GetXaxis().SetTitle( xLabel )
         self.TMultigraph.GetYaxis().SetTitle( yLabel )
         self.TMultigraph.GetXaxis().SetLimits(xMin, xMax)
         self.TMultigraph.GetYaxis().SetLimits(yMin, yMax)
         self.TMultigraph.GetYaxis().SetRangeUser( yMin, yMax) 
 
-        ### Customise/Draw TLegend
+        # Customise/Draw TLegend
         self.TLegend.SetX1( kwargs.get("xLegMin") )
         self.TLegend.SetX2( kwargs.get("xLegMax") )
         self.TLegend.SetY1( kwargs.get("yLegMin") )
         self.TLegend.SetY2( kwargs.get("yLegMax") )
         self.TLegend.Draw()
 
-        ### Default Text
-        self.AddDefaultCmsText()
+        # Default Text
+        # self.AddPreliminaryText()
         self.TCanvas.Update()
 
-        ### Logarithmic axes
+        # Logarithmic axes
         self.TCanvas.SetLogx( kwargs.get("logX") )
         self.TCanvas.SetLogy( kwargs.get("logY") )
         self.TCanvas.Update()
 
-        ### Grids
+        # Grids
         self.TCanvas.SetGridx( kwargs.get("gridX") )
         self.TCanvas.SetGridy( kwargs.get("gridY") )
         self.TCanvas.Update()
@@ -2404,21 +2410,21 @@ class Plotter(object):
         '''
         self.Verbose()
 
-        ### Loop over all lines in myFile. Append info to file
+        # Loop over all lines in myFile. Append info to file
         self.Verbose( ["SaveName: '%s' " % (fileName), "MaxDecimals: '%s'" % (maxDecimals)])
         
-        ### Open file in append ("a") mode
+        # Open file in append ("a") mode
         f = open(fileName, "a")
 
-        ### Define the column widths: 10 each
+        # Define the column widths: 10 each
         template = "{0:10} : {1:10} : {2:10} : {3:10} : {4:10} : {5:10}"
 
-        ### Create the table headers
+        # Create the table headers
         header = template.format("x", "xErrUp", "xErrDown", "y", "yErrUp", "yErrDown")
         if bWriteHeader == True:
             f.write( header + "\n" )
      
-        ### Now write the actual values
+        # Now write the actual values
         for x, xUp, xDown, y, yUp, yDown in  zip(xVals, xErrUp, xErrDown, yVals, yErrUp, yErrDown):
             column1  = str( round( x    , maxDecimals) )
             column2  = str( round( xUp  , maxDecimals) ) 
@@ -2454,23 +2460,23 @@ class Plotter(object):
         '''
         self.Verbose()
 
-        ### Sanity check: All value lists have the same number of entries
+        # Sanity check: All value lists have the same number of entries
         length = len(xVals)
         if all(len(lst) != length for lst in [xErrUp, xErrDown, yVals, yErrDown, zVals, zErrUp, zErrDown]):
             self.Print( ["len(xVals) = '%s'"    % (len(xVals)), "len(xErrUp) = '%s'"   % (len(xErrUp)), "len(xErrDown) = '%s'" % (len(xErrDown)), 
                          "len(yVals) = '%s'"    % (len(yVals)), "len(yErrUp) = '%s'"   % (len(yErrUp)), "len(yErrDown) = '%s'" % (len(yErrDown)), 
                          "len(zVals) = '%s'"    % (len(zVals)), "len(zErrUp) = '%s'"   % (len(zErrUp)), "len(zErrDown) = '%s'" % (len(zErrDown)), "EXIT"] )
 
-        ### Loop over all lines in myFile. Append info to file
+        # Loop over all lines in myFile. Append info to file
         self.Verbose( ["SaveName: '%s' " % (fileName), "MaxDecimals: '%s'" % (maxDecimals)])
         
-        ### Open file in append ("a") mode
+        # Open file in append ("a") mode
         f = open(fileName, "a")
 
-        ### Define the column widths: 10 each
+        # Define the column widths: 10 each
         template = "{0:10} : {1:10} : {2:10} : {3:10} : {4:10} : {5:10} : {6:10} : {7:10} : {8:10}"
 
-        ### Create the table headers
+        # Create the table headers
         header = template.format("x", "xErrUp", "xErrDown", "y", "yErrUp", "yErrDown", "z", "zErrUp", "zErrDown")
         if bWriteHeader == True:
             f.write( header + "\n" )
@@ -2478,7 +2484,7 @@ class Plotter(object):
         self.Verbose( ["(x , y , z) = (%s , %s , %s)" % (xVals , yVals , zVals)]  )
         self.Verbose( ["(x+ , y+ , z+) = (%s , %s , %s)" % (xErrUp , yErrUp , zErrUp)]  )
         self.Verbose( ["(x- , y- , z-) = (%s , %s , %s)" % (xErrDown , yErrDown , zErrDown)]  )
-        ### Now write the actual values
+        # Now write the actual values
         for x, xUp, xDown, y, yUp, yDown, z, zUp, zDown in  zip(xVals, xErrUp, xErrDown, yVals, yErrUp, yErrDown, zVals, zErrUp, zErrDown):
             column1  = str( round( x    , maxDecimals) )
             column2  = str( round( xUp  , maxDecimals) ) 
@@ -2512,7 +2518,7 @@ class Plotter(object):
         else:
             pass
 
-        ### Variable declaration            
+        # Variable declaration            
         xVals    = []
         xErrUp   = []
         xErrDown = []
@@ -2520,11 +2526,11 @@ class Plotter(object):
         yErrUp   = []
         yErrDown = []
 
-        ### Loop over all lines in myFile
+        # Loop over all lines in myFile
         with open(inputFilePath) as f:
-            ### Skip the header row and start reading a file from line2
+            # Skip the header row and start reading a file from line2
             next(f)
-            ### Loop over all lines
+            # Loop over all lines
             for line in f:
                 
                 x     = ( line.rsplit(":", 5)[0] ).replace(" ", "")
@@ -2552,7 +2558,7 @@ class Plotter(object):
         if os.path.exists(inputFilePath) == False:
             raise Exception("File '%s' does not exist!" % (inputFilePath) )
 
-        ### Variable declaration            
+        # Variable declaration            
         xVals    = []
         xErrUp   = []
         xErrDown = []
@@ -2567,16 +2573,16 @@ class Plotter(object):
         
         nColumns = 8
 
-        ### Loop over all lines in myFile
+        # Loop over all lines in myFile
         with open(inputFilePath) as f:
             
-            ### Skip the header row and start reading a file from line2
+            # Skip the header row and start reading a file from line2
             #next(f)
             
-            ### Loop over all lines
+            # Loop over all lines
             for line in f:
 
-                ### Skip headers column titles (quick and dirty fix)
+                # Skip headers column titles (quick and dirty fix)
                 if "x" in line:
                     continue
 
@@ -2613,7 +2619,7 @@ class Plotter(object):
         self.Verbose()
         self.PrintHistoInfo(histoObject, False)
 
-        ### Convert array items from string to float!
+        # Convert array items from string to float!
         x     = [ float(item) for item in x     ]
         xUp   = [ float(item) for item in xUp   ]
         xLow  = [ float(item) for item in xLow ]
@@ -2622,7 +2628,7 @@ class Plotter(object):
         yUp   = [ float(item) for item in yUp   ]
         yLow  = [ float(item) for item in yLow ]
 
-        ### Create the numpy arrays as input to TGraph
+        # Create the numpy arrays as input to TGraph
         xVals    = numpy.asarray( x    )
         xErrsUp  = numpy.asarray( xUp  )
         xErrsLow = numpy.asarray( xLow )
@@ -2636,7 +2642,7 @@ class Plotter(object):
             zErrsUp  = numpy.asarray( zUp  )
             zErrsLow = numpy.asarray( zLow )
 
-            ### Add z-value as text  at each (x,y) point
+            # Add z-value as text  at each (x,y) point
             if (bDrawZValues):
                 for i in range(0, len(x) ):
                     zName = str(int( z[i]) )
@@ -2652,30 +2658,30 @@ class Plotter(object):
             else:
                 pass
 
-        ### Create TGraphAsymmErrors
+        # Create TGraphAsymmErrors
         histoObject.dataset = histoObject.dataset
         
-        ### Sanity checks
+        # Sanity checks
         if (len(xVals) == 0):
-            self.Print(["WARNING! Arrays have zero length! Skipping TGraph of histoObject '%s'" % (histoObject.name)])
+            self.Print("WARNING! Arrays have zero length! Skipping TGraph of histoObject '%s'" % (histoObject.name))
             return
         elif (len(xVals) == len(yVals) == len(xErrsUp) == len(xErrsLow) == len(yErrsUp) == len(yErrsLow) ):
             pass
         else:
-            self.Print(["ERROR! Arrays have different length! EXIT"])
+            self.Print("ERROR! Arrays have different length! EXIT")
             sys.exit()
         g = ROOT.TGraphAsymmErrors( len(xVals), xVals, yVals, xErrsUp, xErrsLow, yErrsUp, yErrsLow)
 
-        ### Draw graph to enable its customisation
+        # Draw graph to enable its customisation
         g.Draw()
 
-        ### Once drawn, customise the TGraph 
+        # Once drawn, customise the TGraph 
         datasetName, datasetLatexName = self.GetDatasetAndLatexName(histoObject.dataset)
         histoObject.datasetName = datasetLatexName
         self.CustomiseTGraph(g, histoObject, datasetLatexName, kwargs)
 
-        ### Finally, add the TGraph to the TMultiGraph
-        self.Verbose(["Adding TGraphAsymmErrors '%s' to TMultigraph." % ( g.GetName() )])
+        # Finally, add the TGraph to the TMultiGraph
+        self.Verbose("Adding TGraphAsymmErrors '%s' to TMultigraph." % ( g.GetName() ))
         self.TMultigraph.Add(g)
 
         return
@@ -2694,7 +2700,7 @@ class Plotter(object):
         '''
         self.Verbose()
 
-        ### Convert array items from string to float!
+        # Convert array items from string to float!
         x     = [ float(item) for item in x     ]
         xUp   = [ float(item) for item in xUp   ]
         xDown = [ float(item) for item in xDown ]
@@ -2702,7 +2708,7 @@ class Plotter(object):
         yUp   = [ float(item) for item in yUp   ]
         yDown = [ float(item) for item in yDown ]
 
-        ### Create the numpy arrays as input to TGraph
+        # Create the numpy arrays as input to TGraph
         xVals     = numpy.asarray( x     )
         xErrsUp   = numpy.asarray( xUp   )
         xErrsDown = numpy.asarray( xDown )
@@ -2711,19 +2717,19 @@ class Plotter(object):
         yErrsUp   = numpy.asarray( yUp   )
         yErrsDown = numpy.asarray( yDown )
         
-        ### Create TGraphAsymmErrors
+        # Create TGraphAsymmErrors
         histoObject.dataset = kwargs.get("dataset")
         g = ROOT.TGraphAsymmErrors( len(xVals), xVals, yVals, xErrsUp, xErrsDown, yErrsUp, yErrsDown)
 
-        ### Draw graph to enable its customisation
+        # Draw graph to enable its customisation
         g.Draw()
 
-        ### Once drawn, customise the TGraph 
+        # Once drawn, customise the TGraph 
         datasetName, datasetLatexName = self.GetDatasetAndLatexName(histoObject.dataset)
         histoObject.datasetName = datasetLatexName        
         self.CustomiseTGraph(g, histoObject, datasetLatexName, histoObject.kwargs)
 
-        ### Finally, add the TGraph to the TMultiGraph
+        # Finally, add the TGraph to the TMultiGraph
         self.TMultigraph.Add(g)
         return
 
@@ -2735,7 +2741,7 @@ class Plotter(object):
         '''
         self.Verbose()
 
-        ### Declarations
+        # Declarations
         datasetName = dataset
         maxDecimals = 1
         fileName    = fileName + "_"  + datasetName.replace(":", "_") + ".txt"
@@ -2743,17 +2749,17 @@ class Plotter(object):
 
         self.Print( ["Dataset: '%s'" % (datasetName), "SaveName: '%s' " % (fileName), "MaxDecimals: '%s'" % (maxDecimals)])
 
-        ### Define the column widths: 10 each
+        # Define the column widths: 10 each
         template = "{0:20} & {1:20} & {2:20}" + r"\\"
 
-        ### Create the table headers
+        # Create the table headers
         header = template.format("Efficiency (\%)", "Rate (kHZ)", "Ldg CaloTau E_{T} (GeV)")
         f.write( r"\begin{tabular}{ %s }" % ( " c " * 3 ) + "\n" )
         f.write( r"\hline"  + "\n" )
         f.write( header + "\n" )
         f.write( r"\hline"  + "\n" )
      
-        ### Now write the actual values
+        # Now write the actual values
         for effVal, effErrUp, effErrDown, rateVal, rateValUp, rateValDown, etThreshold in zip(effVals, effErrUp, effErrDown, rateVals, rateValsUp, rateValsDown, effEtThresholds):
             column1  = str( round( effVal*100  , maxDecimals) ) + "\pm " + str( round( effErrDown*100  , maxDecimals) )
             column2  = str( round( rateVal , maxDecimals) ) + " + " + str( round( rateValUp , maxDecimals) ) + " - " + str( round( rateValDown , maxDecimals) )
@@ -2784,7 +2790,7 @@ class Plotter(object):
         else:
             raise Exception("Unsupported units of time. Please choose from 'seconds', 'minutes' and 'hours'.")
             
-        self.Print(["Elapsed time%s: '%s' %s" % (marker, deltaT, units) ])
+        self.Print("Elapsed time%s: '%s' %s" % (marker, deltaT, units))
         return
 
 
@@ -2798,7 +2804,7 @@ class Plotter(object):
 
         iBin = histo.FindLastBinAbove(targetValue, axis)
         if iBin == -1:
-            self.Verbose(["WARNING! Could not find target value '%s'." % (targetValue)])
+            self.Verbose("WARNING! Could not find target value '%s'." % (targetValue))
         binCenter      = histo.GetBinCenter ( iBin   )
         binCenterUp    = histo.GetBinCenter ( iBin+1 )
         binCenterDown  = histo.GetBinCenter ( iBin-1 )
@@ -2807,7 +2813,7 @@ class Plotter(object):
         binContentDown = histo.GetBinContent( iBin-1 )
         binError       = histo.GetBinError( iBin )
 
-        ### Sanity check
+        # Sanity check
         if binContent != 0:
             percentageOffset = ((binContent - targetValue)/binContent )*100
         else:
@@ -2828,11 +2834,11 @@ class Plotter(object):
         if iBin == -1:
             raise Exception("Could not find target value '%s'!" % (targetValue))
 
-        ### Get actual values
+        # Get actual values
         binCenter  = histo.GetBinCenter(  iBin )
         binContent = histo.GetBinContent( iBin)
 
-        ### Sanity check
+        # Sanity check
         if binContent != 0:
             percentageOffset = ((binContent - targetValue)/binContent )*100
         else:
@@ -2853,7 +2859,7 @@ class Plotter(object):
         '''
         self.Verbose()
         
-        ### Get ploted array dimension
+        # Get ploted array dimension
         nPoints = myTGraph.GetN()
         xVals = [None]*nPoints
         yVals = [None]*nPoints
@@ -2865,7 +2871,7 @@ class Plotter(object):
             xVals[p] = x
             yVals[p] = y
 
-        ### Filter the x- and y-value lists. Keep only entries that are non-None
+        # Filter the x- and y-value lists. Keep only entries that are non-None
         xVals = filter(lambda a: a != None, xVals)
         yVals = filter(lambda a: a != None, yVals)
         return xVals, yVals        
@@ -2898,39 +2904,39 @@ class Plotter(object):
         if self.SaveContourPoints == False:
             return
     
-        ### Variable declaration
+        # Variable declaration
         bWriteHeader = True
 
-        ### x = LdgJet ET
+        # x = LdgJet ET
         xVals        = []
         xErrUp       = []
         xErrDown     = []
 
-        ### y = SubLdgJet ET
+        # y = SubLdgJet ET
         yVals        = []
         yErrUp       = []
         yErrDown     = []
         
-        ### z = Rate (kHz)
+        # z = Rate (kHz)
         zVals        = []
         zErrUp       = []
         zErrDown     = []
         
-        ### 
+        # 
         failList     = []
         failTypeList = []
 
-        ### for-Loop: Over all histo types (Nominal, FluctuateUp, FluctuateDown) 
+        # for-Loop: Over all histo types (Nominal, FluctuateUp, FluctuateDown) 
         for typeCounter, histoType in enumerate(tmpHistoDict):
 
-            ### Sanity check
+            # Sanity check
             hList       = tmpHistoDict[histoType]
             nHistoTypes = len(tmpHistoDict)
             if nHistoTypes != 3:
                 raise Exception("Expected the list to have size 3 (Nominal, FluctuateUp, FluctuateDown) but is '%s' instead." % (nHistoTypes) )
 
             bSkipThisCut = False
-            ### for-Loop: Over all zCutValues
+            # for-Loop: Over all zCutValues
             for nZCutCounter, h in enumerate(hList):
 
                 if nZCutCounter == len(hList):
@@ -2938,13 +2944,13 @@ class Plotter(object):
 
                 h.Draw("cont list")
                 ROOT.gPad.Update()
-                ### Save Contours values by first converting them to TGraphs...
+                # Save Contours values by first converting them to TGraphs...
                 contours  = ROOT.gROOT.GetListOfSpecials().FindObject("contours")
                 nContoursPerHisto = contours.GetSize()
                 self.Verbose( ["HistoNumber: '%s'/'%s'" % (nZCutCounter, len(hList)-1), "HistoType (Counter): '%s' ('%s'/'%s')" % (histoType, typeCounter, len(tmpHistoDict)-1), 
                                "HistoName: '%s'" % (h.GetName()), "CutValue (Counter): '%s' ('%s'/'%s')" % (self.THDumbie.zCutLines[nZCutCounter], nZCutCounter, len(self.THDumbie.zCutLines)-1) ] )
 
-                ### Access the first graph in the list
+                # Access the first graph in the list
                 list = contours.At(nZCutCounter)
                 myTGraph = list.First()
                 if not myTGraph:
@@ -2955,7 +2961,7 @@ class Plotter(object):
                 x, y = self.GetTGraphValuesAsListsContours( myTGraph )
                 zVal = []
                 zErr = []
-                ### In case multiple values are saved from the contour (advise against this)
+                # In case multiple values are saved from the contour (advise against this)
                 for val in range( 0, len(x) ):
                     if bSkipThisCut==True:
                         break
@@ -2977,7 +2983,7 @@ class Plotter(object):
                 else:
                     raise Exception("Unexpected histoType '%s'. Expected histoType to be one of 'Nominal', 'FluctuateUp' or 'FluctuateDown'." % ( histoType ) )
 
-        ### Sanity check
+        # Sanity check
         nValues = len(xVals)
         nDiff   = 0
         if all(len(lst) != nValues for lst in [yVals, zVals]):
@@ -2999,11 +3005,11 @@ class Plotter(object):
             pass
         
 
-        ### Wait untill all three are filled (x, xErrUp, xErrDown  [ditto for y, yErrUp, yErrDown] )  and then save to file
+        # Wait untill all three are filled (x, xErrUp, xErrDown  [ditto for y, yErrUp, yErrDown] )  and then save to file
         nPoints = nValues - abs(nDiff)
         for i in range( 0, nPoints, +1 ):
             
-            ### Convert error values to absolute errors
+            # Convert error values to absolute errors
             xErrUpAbs   = []
             xErrDownAbs = []
             yErrUpAbs   = []
@@ -3060,11 +3066,11 @@ class Plotter(object):
         nDatasets = len(self.DatasetToHistoMap.keys())
         legHeader = "empty"
 
-        ### Create TLegend name
+        # Create TLegend name
         if ( nDatasets == 1 ) :
             #legHeader = self.DatasetObject.ConvertDatasetToLatex(histo.dataset)
             legHeader = "fixme"
-            self.Print(["FIXME"])
+            self.Print("FIXME")
         else:
             legHeader = histo.legTitle
 
@@ -3094,10 +3100,10 @@ class Plotter(object):
         if secondaryHeader=="" or secondaryHeader==None:
             #self.TLegend.SetHeader( self.DatasetObject.ConvertDatasetToLatex(primaryHeader) )
             self.TLegend.SetHeader( "FIXME")
-            self.Print(["FIXME"])            
+            self.Print("FIXME")
         else:
             self.TLegend.SetHeader( "FIXME")
-            self.Print(["FIXME"])            
+            self.Print("FIXME")
             #self.TLegend.SetHeader( self.DatasetObject.ConvertDatasetToLatex(primaryHeader) + ": " + secondaryHeader )
         return
 

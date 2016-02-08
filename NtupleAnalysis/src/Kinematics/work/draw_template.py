@@ -36,8 +36,11 @@ from UCYHiggsAnalysis.NtupleAnalysis.pyROOT.crossSection import xSections
 #================================================================================================
 # General Settings
 #================================================================================================
+verbose       = True
+batchMode     = False
 ratio         = True
 energy        = "13"
+intLumi       = "2.26 fb^{-1}"
 folder        = "Kinematics"
 saveFormats   = ["png"]
 savePath      = ""
@@ -61,16 +64,15 @@ EtaRange   = [[-etaMax, -1.6, ROOT.kRed+1], [+etaMax, +1.6, ROOT.kRed+1], [-1.6,
 #================================================================================================
 Pt = {
     "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00, "xMax": ptMax, "binWidthX": None, "xCutLines": [], "xCutBoxes": [], "gridX": True, "logX": False, 
-    "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E00, "yMax": None , "binWidthY": None, "yCutLines": [], "yCutBoxes": [], "gridY": True, "logY": True
-    , 
-    "ratioLabel": "Ratio", "ratio": False, "invRatio": False, "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "normaliseTo": None, "drawOptions": "P", "legOptions": "LP",
+    "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E00, "yMax": None , "binWidthY": None, "yCutLines": [], "yCutBoxes": [], "gridY": True, "logY": True , 
+    "ratioLabel": "Ratio", "ratio": False, "invRatio": False, "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "normaliseTo": ""  , "drawOptions": "HIST", "legOptions": "FL",
     "logYRatio": False, "xLegMin": 0.18, "xLegMax": 0.4, "yLegMin": 0.80, "yLegMax": 0.90
 }
 
 Eta = {
-    "xLabel": "#eta"           , "xUnits": ""     , "xMin": -etaMax , "xMax": +etaMax, "binWidthX": None, "xCutLines": [0], "gridX": True, "logX": False, 
-    "yLabel": "Entries / %0.2f", "yUnits": ""     , "yMin": +1e00, "yMax": None, "binWidthY": None, "yCutLines": [] , "yCutBoxes": [], "gridY": True, "logY": True , 
-    "ratioLabel": "Ratio", "ratio": False, "invRatio": False, "yMinRatio": 1e-01, "yMaxRatio": 2.15 , "normaliseTo": None, "drawOptions": "P", "legOptions": "LP", 
+    "xLabel": "#eta"           , "xUnits": ""     , "xMin": -etaMax , "xMax": +etaMax, "binWidthX": None, "xCutLines": [0], "gridX": True, "logX": False, "xCutBoxes": [],  
+    "yLabel": "Entries / %0.2f", "yUnits": ""     , "yMin": +1e00   , "yMax": None   , "binWidthY": None, "yCutLines": [] , "gridY": True, "logY": True , "yCutBoxes": [],  
+    "ratioLabel": "Ratio"      , "ratio": False   , "invRatio": False, "yMinRatio": 1e-01, "yMaxRatio": 2.15 , "normaliseTo": "", "drawOptions": "P", "legOptions": "LP", 
     "logYRatio": False, "logXRatio": False, "xLegMin": 0.18, "xLegMax": 0.4, "yLegMin": 0.80, "yLegMax": 0.90, "xCutBoxes": [[-1.0, -1.6, ROOT.kBlue], [+1.0, +1.6, ROOT.kBlue]]
 }
 
@@ -90,7 +92,7 @@ PassedElectronsEta  = histos.TH1orTH2( folder, "PassedElectronsPt", "Canvas Lege
 #================================================================================================
 def DoPlots(histo, datasetObjects, bColourPalette=False, saveExt=""):
 
-    p = plotter.Plotter( Verbose=False, BatchMode=True )
+    p = plotter.Plotter( Verbose=verbose, BatchMode=batchMode )
     p.SetBoolUseDatasetAsLegEntry(bColourPalette)
     p.AddDatasets(datasetObjects)
 
@@ -105,7 +107,21 @@ def DoPlots(histo, datasetObjects, bColourPalette=False, saveExt=""):
     p.SetupStatsBox()
     p.Draw(THStackDrawOpt="nostack", bStackInclusive = False, bAddReferenceHisto = True)
     p.SetTLegendHeader("test", "" )
+    p.AddPreliminaryText("13", intLumi)
     p.SaveHistos(True, savePath, saveFormats, saveExt)
+    return
+
+
+#================================================================================================
+def IsBatchMode():
+    '''
+    Forces user to press 'q' before exiting ROOT from batch mode.
+    '''
+    if batchMode:
+        key = ""
+        while key != "q":
+            key = raw_input("\r=== draw_template.py:\n\t Press 'q' to quit ROOT: ")
+        sys.exit()
     return
 
 
@@ -127,7 +143,7 @@ def main():
         dObject.PrintProperties()    
 
     for h in histoList:
-        DoPlots( h, datasetObjects, True )
+        DoPlots( h, datasetObjects, False )
         break
 
 
@@ -149,6 +165,5 @@ if __name__ == "__main__":
     #    raise Exception("Please provide dataset name with -d")
 
     main()
-
-        
-#########################################################
+    IsBatchMode()
+#================================================================================================

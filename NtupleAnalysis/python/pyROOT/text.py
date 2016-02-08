@@ -1,13 +1,6 @@
-###############################################################
-### Author .........: Alexandros X. Attikis 
-### Institute ......: University Of Cyprus (UCY)
-### Email ..........: attikis@cern.ch
-###############################################################
-
-###############################################################
-### All imported modules
-###############################################################
-### System modules
+#================================================================================================
+# All imported modules
+#================================================================================================
 import os, sys
 import array
 import math
@@ -15,14 +8,14 @@ import copy
 import inspect
 import glob
 from optparse import OptionParser
-### Other
+
 import ROOT
 
-###############################################################
-### Define class here
-###############################################################
-class TextClass(object):
 
+#================================================================================================
+# Define class here
+#================================================================================================
+class TextClass(object):
     def __init__(self, xPos=0.0, yPos=0.0, text="", size=None, bold=False, align="left", color=ROOT.kBlack, verbose = False):
         self.verbose = verbose
         self.xPos    = xPos
@@ -41,83 +34,72 @@ class TextClass(object):
         elif align.lower() == "right":
             self.tlatex.SetTextAlign(31)
         else:
-            raise Exception("Error: Invalid option '%s' for text alignment! Options are: 'left', 'center', 'right'."%align)
+            raise Exception("Error: Invalid option '%s' for text alignment! Options are: 'left', 'center', 'right'." % align)
         self.tlatex.SetTextColor(color)
-        self._SetDefaults("cmsPreliminary", xPos=0.62, yPos=0.96, text = "CMS Preliminary")
-        self._SetDefaults("cmsSimulation", xPos=0.62, yPos=0.96, text = "CMS Simulation")
-        self._SetDefaults("cmsSimulationPhaseTwo", xPos=0.46, yPos=0.96, text = "CMS Simulation, Phase-2")
-        self._SetDefaults("PU140", xPos=0.2, yPos=0.96, text = "<PU>=140")
-        self._SetDefaults("cmsPreliminarySimulation", xPos=0.62, yPos=0.96, text = "CMS Preliminary Simulation")
-        self._SetDefaults("cmsPreliminarySimulationPhaseTwo", xPos=0.25, yPos=0.96, text = "CMS Preliminary Simulation, Phase-2")
-        self._SetDefaults("cms", xPos=0.62, yPos=0.96, text = "CMS")
-        self._SetDefaults("comEnergy", xPos=0.16, yPos=0.96, text = "#sqrt{s}=14 TeV") #HPlus: x=0.19
-        self._SetDefaults("intLumi", xPos=0.43, yPos=0.96, text = "L=10 fb^{-1} ")
-        self._SetDefaults("COM_PU200-TP", xPos=0.63, yPos=0.96, text = "PU=200, 14 TeV")
-        self._SetDefaults("COM_PU140-TP", xPos=0.63, yPos=0.96, text = "PU=140, 14 TeV")
-        self._SetDefaults("COM_PU0-TP", xPos=0.63, yPos=0.96, text = "PU=0, 14 TeV")
-        self._SetDefaults("cmsSimPhase2-TP", xPos=0.45, yPos=0.90, text = "#font[62]{CMS PhaseII Simulation}")  #tools/tdrstyle.py: self.rightMargin = 0.05
-        self._SetDefaults("Preliminary-TP", xPos=0.71, yPos=0.86, text = "#font[52]{Preliminary}")  #tools/tdrstyle.py: self.rightMargin = 0.05
-        #self._SetDefaults("cmsSimPhase2-TP", xPos=0.41, yPos=0.90, text = "#font[62]{CMS PhaseII Simulation}")  #tools/tdrstyle.py: self.rightMargin = 0.1
-        #self._SetDefaults("Preliminary-TP", xPos=0.67, yPos=0.86, text = "#font[52]{Preliminary}")  #tools/tdrstyle.py: self.rightMargin = 0.1
-
+        self._SetDefaults("lumi"       , xPos=0.64, yPos=0.955, text = "")
+        self._SetDefaults("energy"     , xPos=0.80, yPos=0.955, text = "")
+        self._SetDefaults("preliminary", xPos=0.18, yPos=0.955, text = "#font[62]{CMS} #font[52]{Preliminary}")
         self.Verbose()
+        return
+    
 
-
-    def Verbose(self, messageList=None):
+    def Verbose(self, message=""):
         '''
         Custome made verbose system. Will print all messages in the messageList
         only if the verbosity boolean is set to true.
         '''
-        if self.verbose == False:
+        if not self.verbose:
             return
         
         print "%s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
-        if messageList==None:
-            return
-        else:
-            for message in messageList:
+        print "\t", message
+        return
+
+
+    def Print(self, message=""):
+        '''
+        Custome made print system. Will print the message even if the verbosity boolean is set to false.
+        '''
+        print "*** %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+        print "\t", message
+        return
+
+    
+    def PrintList(self, messageList=[""]):
+        '''
+        Custome made print system. Will print all messages in the messageList even if the verbosity boolean is set to false.
+        '''
+        for counter, message in enumerate(messageList):
+            if counter == 0:
+                self.Print(message)
+            else:
                 print "\t", message
         return
 
 
-    def Print(self, messageList=[""]):
-        '''
-        Custome made print system. Will print all messages in the messageList
-        even if the verbosity boolean is set to false.
-        '''
-
-        self.MsgCounter = self.MsgCounter  + 1
-        print "[%s] %s:" % (self.MsgCounter, self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
-        for message in messageList:
-            print "\t", message
-        return
-
-
     def SetVerbose(self, verbose):
+        '''
+        Manually enable/disable verbosity.
+        '''
         self.verbose = verbose
-        self.Verbose(["self.verbose = %s" % (self.verbose)])
         return
 
 
     def _SetDefaults(self, name, **kwargs):
         self.Verbose()
 
-        ### Set all arguments and their values
+        # Set all arguments and their values
         for argument, value in kwargs.iteritems():
-            ### Set values to all the arguments
             setattr(self, name + "_" + argument, value)
         return
 
 
-    def _GetValues(self, name, xPos, yPos, text):
+    def _GetValues(self, name):
         self.Verbose()
 
-        if xPos == None:
-            xPos = getattr(self, name + "_xPos" )
-        if yPos == None:
-            yPos = getattr(self, name + "_yPos" )
-        if text == None:
-            text = getattr(self, name + "_text" )
+        xPos = getattr(self, name + "_xPos" )
+        yPos = getattr(self, name + "_yPos" )
+        text = getattr(self, name + "_text" )
         return (xPos, yPos, text)
 
 
@@ -128,83 +110,29 @@ class TextClass(object):
         return
 
 
-    def AddEnergyText(self, xPos=None, yPos=None, text=None):
+    def AddEnergyText(self, energy=""):
         self.Verbose()
 
-        (_x, _y, _text) = self._GetValues("comEnergy", xPos, yPos, text)
-        self.AddText(_x, _y, _text)
+        (_x, _y, _text) = self._GetValues("energy")
+        self.AddText(_x, _y, "(" + energy + " TeV)" )
         return
-
-
-    def AddCmsPreliminaryText(self, xPos=None, yPos=None, text=None):
-        self.Verbose()
-
-        (_x, _y, _text) = self._GetValues("cmsPreliminary", xPos, yPos, text)
-        self.AddText(_x, _y, _text)
-        return
-
-
-    def AddCmsText(self, xPos=None, yPos=None, text=None):
-        self.Verbose()
-
-        (_x, _y, _text) = self._GetValues("cms", xPos, yPos, text)
-        self.AddText(_x, _y, _text)
-        return
-
-
-    def AddCmsSimulationText(self, xPos=None, yPos=None, text=None):
-        self.Verbose()
-
-        (_x, _y, _text) = self._GetValues("cmsSimulation", xPos, yPos, text)
-        self.AddText(_x, _y, _text)
-        return
-
-
-    def AddCmsPreliminarySimulationText(self, xPos=None, yPos=None, text=None):
-        self.Verbose()
-
-        (_x, _y, _text) = self._GetValues("cmsPreliminarySimulation", xPos, yPos, text)
-        self.AddText(_x, _y, _text)
-        return
-
-
-    def AddCmsSimulationPhaseTwoText(self, bIsTH2, PileUp=0, xPos=None, yPos=None, text=None):
-        self.Verbose()
     
-        if bIsTH2 == False:
-            (_x1, _y1, _text1) = self._GetValues("cmsSimPhase2-TP", xPos, yPos, text)
-        else:
-            (_x1, _y1, _text1) = self._GetValues("cmsSimPhase2-TP", 0.4, 0.9, text)
-            
-        #(_x2, _y2, _text2) = self._GetValues("COM_PU140-TP", xPos, yPos, text) #xenios
-        (_x2, _y2, _text2) = self._GetValues("COM_PU%0.0f-TP" %(PileUp), xPos, yPos, text)
-        
-        if bIsTH2 == False:
-            (_x3, _y3, _text3) = self._GetValues("Preliminary-TP", xPos, yPos, text)
-        else:
-            (_x3, _y3, _text3) = self._GetValues("Preliminary-TP", 0.64, 0.86, text)
 
-        self.AddText(_x1, _y1, _text1)
-        self.AddText(_x2, _y2, _text2)
-        self.AddText(_x3, _y3, _text3)
-        return
-
-
-    def AddCmsPreliminarySimulationPhaseTwoText(self, xPos=None, yPos=None, text=None):
+    def AddLumiText(self, lumi):
         self.Verbose()
 
-        (_x, _y, _text) = self._GetValues("cmsPreliminarySimulationPhaseTwo", xPos, yPos, text)
-        self.AddText(_x, _y, _text)
+        (_x, _y, _text) = self._GetValues("lumi")
+        self.AddText(_x, _y, lumi)
         return
 
 
-    def AddIntLumiText(self, xPos=None, yPos=None, text=None):
+    def AddPreliminary(self, text=""):
         self.Verbose()
 
-        (_x, _y, _text) = self._GetValues("intLumi", xPos, yPos, text)
+        (_x, _y, _text) = self._GetValues("preliminary")
         self.AddText(_x, _y, _text)
         return
-
+    
 
     def AddText(self,xPos, yPos, text, *args, **kwargs):
         self.Verbose()
@@ -212,8 +140,3 @@ class TextClass(object):
         t = TextClass(xPos, yPos, text, *args, **kwargs)
         t.Draw()
         return
-
-    def ConvertLatexToText(self, myString):
-        self.Verbose()
-        #return myString.replace("-", "").replace("#", "").replace("{", "").replace("}", "").replace("rightarrow", "to").replace(" ", "")
-        return myString.replace("-", "").replace("#", "").replace("{", "").replace("}", "").replace("rightarrow", "to").replace(" ", "").replace("()","").replace("TMath::", "").replace("Sqrt(", "").replace("(", "").replace(")", "").replace(".", "_")
