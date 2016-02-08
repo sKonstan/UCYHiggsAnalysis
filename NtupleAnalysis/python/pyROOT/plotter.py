@@ -1,9 +1,3 @@
-'''
-Normal assignment operations (a = b) will simply point the new variable towards the existing object.
-A deep copy ( copy.deepcopy() ) constructs a new compound object and then, recursively, inserts copies into it of the objects found in the original.
-A shallow copy ( copy.copy() ) constructs a new compound object and then (to the extent possible) inserts references into it to the objects found in the original.
-'''
-
 #================================================================================================
 # All imported modules
 #================================================================================================
@@ -37,46 +31,39 @@ import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.tdrstyle as tdrstyle
 #================================================================================================
 class Plotter(object): 
     def __init__(self, verbose=False, batchMode=True):
-        self.verbose           = verbose
-        self.BatchMode         = batchMode
-        self.StyleObject       = styles.StyleClass(verbose)
-        self.TextObject        = text.TextClass(verbose)
-        self.AuxObject         = aux.AuxClass(verbose)
-        self.CanvasFactor      = 1.25
-        #self.DatasetToHistoMap = collections.OrderedDict()
+        self.DatasetInLegend   = False
         self.Datasets          = []
-        self.DivisionPoint     = 1-1/self.CanvasFactor
-        self.DrawObjectList    = []
-        self.DrawObjectListR   = []
-        self.HistoObjectList   = []
-        self.TCanvas           = None
-        self.TLegend           = None
+        self.isTH1             = False
+        self.isTH2             = False
         self.PadCover          = None
         self.PadPlot           = None
         self.PadRatio          = None        
         self.TBoxList          = []
-        self.xTLineList        = []
-        self.yTLineList        = []
-        self.THRatio           = None
+        self.TCanvas           = None
         self.THDumbie          = None
+        self.THRatio           = None
         self.THStack           = ROOT.THStack("THStack" + "@" + str(time.time()), "Stack for PadPlot Histograms")
         self.THStackHistoList  = [] #needed because looping over self.THSTack.GetHists() crashes!
         self.THStackRatio      = ROOT.THStack("THStackRatio" + "@" + str(time.time()), "Stack for PadRatio Histograms")
-        self.bInvPadRatio      = False
-        self.bPadRatio         = False
-        self.RatioErrorType    = None
-        self.bStackInclusive   = False
+        self.TLegend           = None
         self.TMultigraph       = ROOT.TMultiGraph("TMultigraph"  + "@" + str(time.time()), "ROOT.TMultiGraph holding various ROOT.TGraphs")
+        self.auxObject         = aux.AuxClass(verbose)
+        self.batchMode         = batchMode
+        self.canvasFactor      = 1.25
+        self.divisionPoint     = 1-1/self.canvasFactor
+        self.drawObjectList    = []
+        self.drawObjectListR   = []
+        self.includeSTack      = False
+        self.invPadRatio      = False
+        self.padRatio          = False
+        self.pileUp            = None
+        self.ratioErrorType    = None
         self.startTime         = time.time()        
-        self.MsgCounter        = 0
-        self.CutOption         = None
-        self.IsTH1             = False
-        self.IsTH2             = False
-        self.CutLineColour     = ROOT.kBlack
-        self.SaveContourPoints = False
-        self.MaxDecimals       = None
-        self.DatasetInLegend   = False
-        self.PileUp            = None
+        self.styleObject       = styles.StyleClass(verbose)
+        self.textObject        = text.TextClass(verbose)
+        self.verbose           = verbose
+        self.xTLineList        = []
+        self.yTLineList        = []
         return
 
     
@@ -88,11 +75,12 @@ class Plotter(object):
         if not self.verbose:
             return
         
-        print "%s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
-        print "\t", message
+        print "*** %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+        if message!="":
+            print "\t", message
         return
 
-
+    
     def Print(self, message=""):
         '''
         Custome made print system. Will print the message even if the verbosity boolean is set to false.
@@ -122,21 +110,30 @@ class Plotter(object):
         return
 
 
-    def SetupROOT(self):
+    def SetupRoot(self, maxDigits=4, nContours=999, errIgnoreLevel=2000):
 
         '''
         Setup ROOT before doing anything else. Reset ROOT settings, disable statistics box,
         apply Techical Design Report (TDR) style.
+
+        The available options for the Error-Ignore-Level are (const Int_t):
+        kUnset    =  -1
+        kPrint    =   0
+        kInfo     =   1000
+        kWarning  =   2000
+        kError    =   3000
+        kBreak    =   4000
+        kSysError =   5000
+        kFatal    =   6000
         '''
         self.Verbose()
-
         ROOT.gROOT.Reset()
-        tdrstyle.TDRStyle()
         ROOT.gStyle.SetOptStat(0)
-        ROOT.TGaxis.SetMaxDigits(4)
-        ROOT.gROOT.SetBatch(self.BatchMode)
-        self.SetupROOTErrorIgnoreLevel(2000)
-        ROOT.gStyle.SetNumberContours(999)
+        ROOT.gStyle.SetNumberContours(nContours)
+        ROOT.TGaxis.SetMaxDigits(maxDigits)
+        ROOT.gROOT.SetBatch(self.batchMode)
+        ROOT.gErrorIgnoreLevel = errIgnoreLevel
+        tdrstyle.TDRStyle()
         return
 
 
@@ -157,16 +154,15 @@ class Plotter(object):
         print only name of histogram and number of entries.
         '''
         self.Verbose()
-        #self.PadCover
+        self.Print("FIXME")
+        self.PadCover
 
         # Beautifications/Styling
         ROOT.gStyle.SetStatBorderSize(0)
         ROOT.gStyle.SetStatColor(ROOT.kWhite)
         ROOT.gStyle.SetStatStyle(3001)
         ROOT.gStyle.SetStatTextColor(ROOT.kBlack)
-        #ROOT.gStyle.SetStatFont(62)
         ROOT.gStyle.SetStatFontSize(15)
-        # ROOT.gStyle.SetStatFormat(const char* format = "6.4g")
         
         # Dimensions
         ROOT.gStyle.SetStatY(yPos)
@@ -179,26 +175,7 @@ class Plotter(object):
         if yPos == -1 and xPos == -1 and width==-1 and height==-1:
             ROOT.gStyle.SetStatTextColor(ROOT.kWhite)
             ROOT.gStyle.SetStatFontSize(0)
-            ROOT.gStyle.SetStatStyle(0)
-            
-        return
-
-
-    def SetupROOTErrorIgnoreLevel(self, level):
-        '''
-        Available options (const Int_t):
-        kUnset    =  -1
-        kPrint    =   0
-        kInfo     =   1000
-        kWarning  =   2000
-        kError    =   3000
-        kBreak    =   4000
-        kSysError =   5000
-        kFatal    =   6000
-        '''
-        self.Verbose()
-
-        ROOT.gErrorIgnoreLevel = level
+            ROOT.gStyle.SetStatStyle(0)            
         return
     
 
@@ -236,8 +213,8 @@ class Plotter(object):
         '''
         '''
         self.Vertbose()
-        if self.PileUp == None:
-            self.PileUp = 140
+        if self.pileUp == None:
+            self.pileUp = 140
             self.Print("FIXME")
             return
         return
@@ -259,13 +236,10 @@ class Plotter(object):
         else:
             canvasName = histo.saveName
 
-        # Create TCanvas and activate it
-        self.Verbose("Creating canvas with name '%s'" % ( canvasName))
-
         # Add the time in the canvas name to avoid memory duplicates when handling the same histos. Truncate "@time" when saving canvas
         canvasName =  canvasName + "@" + str(time.time())
         self.TCanvas = ROOT.TCanvas( canvasName, canvasName, 1)
-        time.sleep(0.2) #to avoid getting the same time (canvas/histo overwrite)
+        time.sleep(0.01) #to avoid getting the same time (canvas/histo overwrite)
 
         self._SetLogAxesCanvas()
         self.TCanvas.cd()
@@ -294,7 +268,7 @@ class Plotter(object):
         # Create TCanvas and divide it into two pads: one for plot pad, one for ratio pad
         self.Verbose("Creating canvas with name '%s'" % ( canvasName))
         canvasName =  canvasName + "@" + str(time.time())
-        self.TCanvas = ROOT.TCanvas( canvasName, canvasName, ROOT.gStyle.GetCanvasDefW(), int(ROOT.gStyle.GetCanvasDefH()*self.CanvasFactor))
+        self.TCanvas = ROOT.TCanvas( canvasName, canvasName, ROOT.gStyle.GetCanvasDefW(), int(ROOT.gStyle.GetCanvasDefH()*self.canvasFactor))
         self.TCanvas.Divide(1,2)
 
         # Remove x-axis title and labels from the THDumbie to avoid overlap with those THRatio
@@ -354,7 +328,7 @@ class Plotter(object):
         self.PadPlot.SetName("PadPlot")
         (xlow, ylow, xup, yup) = [ROOT.Double(x) for x in [0.0]*4]
         self.PadPlot.GetPadPar(xlow, ylow, xup, yup)
-        self.PadPlot.SetPad(xlow, self.DivisionPoint, xup, yup)
+        self.PadPlot.SetPad(xlow, self.divisionPoint, xup, yup)
         self.PadPlot.Draw()
         self.TCanvas.Update()
         return
@@ -372,7 +346,7 @@ class Plotter(object):
         self.PadRatio.SetName("PadRatio")
         (xlow, ylow, xup, yup) = [ROOT.Double(x) for x in [0.0]*4]
         self.PadRatio.GetPadPar(xlow, ylow, xup, yup)
-        self.PadRatio.SetPad(xlow, ylow, xup, self.DivisionPoint + ROOT.gStyle.GetPadBottomMargin() - ROOT.gStyle.GetPadTopMargin() + CanvasHeightCorr)
+        self.PadRatio.SetPad(xlow, ylow, xup, self.divisionPoint + ROOT.gStyle.GetPadBottomMargin() - ROOT.gStyle.GetPadTopMargin() + CanvasHeightCorr)
         self.PadRatio.SetFillStyle(4000)
         self.PadRatio.SetTopMargin(0.0)
         self.PadRatio.SetBottomMargin(self.PadRatio.GetBottomMargin()+0.16)
@@ -533,11 +507,11 @@ class Plotter(object):
             return
         else:
             histo = self.THDumbie
-            self.TLegend = ROOT.TLegend(histo.xLegMin, histo.yLegMin, histo.xLegMax, histo.yLegMax, self._GetLegendHeader(), "brNDC")
+            self.TLegend = ROOT.TLegend(histo.xLegMin, histo.yLegMin, histo.xLegMax, histo.yLegMax, "", "brNDC")
             self._CustomiseLegend()
-            self.DrawObjectList.append( self.TLegend )
+            self.drawObjectList.append( self.TLegend )
         return
-
+        
 
     def _CustomiseLegend(self):
         '''
@@ -563,13 +537,16 @@ class Plotter(object):
         self.Verbose()
         
         if type(histoObject) == list:
-            for h in histoObject:
-                self._AddHistoToQueue(h)
-        elif isinstance(histoObject, histos.TH1orTH2):
-            self._AddHistoToQueue(histoObject)
-        else:
-            self.Print("ERROR!", "Expected object of type '%s' but got '%s' instead" % ( histos.TH1orTH2, type(histoObject) ), "EXIT")
+            self.Print("FIXME! EXIT")
             sys.exit()
+        else:
+            self._AddHistoToQueue(histoObject)
+
+#        if type(histoObject) == list:
+#            for h in histoObject:
+#                self._AddHistoToQueue(h)
+#        elif isinstance(histoObject, histos.TH1orTH2):
+#            self._AddHistoToQueue(histoObject)
         return
     
 
@@ -587,8 +564,7 @@ class Plotter(object):
             bAddLegendEntries = False
         self.TCanvas.SetName( self.TCanvas.GetName() + "_Profile%s" % (ProfileAxis.upper()) )
 
-        # For-loop: Histos
-        #for h in self.DatasetToHistoMap.values():
+        # For-loop: All Datasets
         for dataset in self.Datasets:
             h = dataset.histo
             
@@ -619,36 +595,27 @@ class Plotter(object):
         
         # Sanity check. At least one dataset is present 
         if len(self.Datasets)<1:
-            self.Print("ERROR!", "No datasets found! Exit")
+            self.Print("ERROR! No datasets found. EXIT")
             sys.exit()
 
         # Ensure that the pass argument is a valid histo object
         self.IsValidHistoObject(histoObject)
 
-        # Loop over all datasets
-        for dataset in self.Datasets:
-
-            # Get the ROOT file for given dataset
-            f           = dataset.rootFile
+        # For-loop: All datasets
+        for i, dataset in enumerate(self.Datasets):
 
             # Ensure that histogram exists in the file
-            self.CheckThatHistoExists(f, histoObject)
+            self.CheckHistoExists(dataset.rootFile, histoObject)
 
             ### Map histo to dataset  
-            #mapKey = dataset.name + ":" + histoObject.name
-            #self.Verbose(["Mapping '%s' to key '%s'." % ( histoObject.name, mapKey)])
-            #self.DatasetToHistoMap[mapKey] = copy.deepcopy(histoObject)
-            dataset.histo = copy.deepcopy(histoObject)
+            self.Datasets[i].histo = copy.deepcopy(histoObject)
             
             # Assign user-defined attributes to histo object
-            histoObject = dataset.histo
-            self._AssignHistoObjectAttributes( f, dataset, histoObject)
+            histoObject = self.Datasets[i].histo
+            self._AssignHistoObjectAttributes(dataset.rootFile, dataset, histoObject)
 
             # Print extensive histogram information
             self.PrintHistoInfo(histoObject, False)
-
-            # Append to histoObject list
-            self.HistoObjectList.append(histoObject)
 
         return
 
@@ -669,17 +636,17 @@ class Plotter(object):
         h.rangeIntegral = h.TH1orTH2.Integral()
 
         # Determine the histogram integral
-        if self.IsTH2:
+        if self.isTH2:
             #self.TDRStyleObject.setWide(True)
-            self._CheckThatNoTH2WithMoreThanOneDatasets(h)
+            self._CheckNoTH2WithMoreThanOneDatasets(h)
             h.integral  = h.TH1orTH2.Integral(0, h.TH1orTH2.GetNbinsX()+1, 0, h.TH1orTH2.GetNbinsY()+1)
         else:
             h.integral  = h.TH1orTH2.Integral(0, h.TH1orTH2.GetNbinsX()+1)
             
         # Assign global values
-        self.bPadRatio      = h.ratio
-        self.bInvPadRatio   = h.invRatio
-        self.RatioErrorType = h.ratioErrorType
+        self.padRatio      = h.ratio
+        self.invPadRatio   = h.invRatio
+        self.ratioErrorType = h.ratioErrorType
             
         return
         
@@ -704,13 +671,13 @@ class Plotter(object):
         '''
         self.Verbose()
 
-        msg  = " {:<20} {:<20}".format("File"               , ": " + histo.TFileName)
-        msg += "\n\t {:<20} {:<20}".format("Dataset"        , ": " + histo.dataset.name)
-        msg += "\n\t {:<20} {:<20}".format("HistoPath"      , ": " + histo.path)
-        msg += "\n\t {:<20} {:<20}".format("HistoName"      , ": " + histo.name)
-        msg += "\n\t {:<20} {:<20}".format("Integral()"     , ": " + str(histo.rangeIntegral))
-        msg += "\n\t {:<20} {:<20}".format("Integral(0, -1)", ": " + str(histo.integral))
-        msg += "\n\t {:<20} {:<20}".format("normaliseTo"    , ": " + histo.normaliseTo)
+        msg  = " {:<15} {:<20}".format("Dataset"            , ": " + histo.dataset.name)
+        msg += "\n\t {:<15} {:<20}".format("File"           , ": " + histo.TFileName)
+        msg += "\n\t {:<15} {:<20}".format("HistoPath"      , ": " + histo.path)
+        msg += "\n\t {:<15} {:<20}".format("HistoName"      , ": " + histo.name)
+        msg += "\n\t {:<15} {:<20}".format("Integral()"     , ": " + str(histo.rangeIntegral))
+        msg += "\n\t {:<15} {:<20}".format("Integral(0, -1)", ": " + str(histo.integral))
+        msg += "\n\t {:<15} {:<20}".format("normaliseTo"    , ": " + histo.normaliseTo)
 
         if histo.TH1orTH2.Integral() == 0:
             self.Print(msg)
@@ -726,9 +693,6 @@ class Plotter(object):
         self.Verbose()
         
         # For-loop: All datasets
-        #for dataset in self.DatasetToHistoMap.keys():
-        #h = self.DatasetToHistoMap[dataset]
-        #    self._ConvertToOneMinusCumulativeHisto(h)
         for dataset in self.Datasets:
             self._ConvertToOneMinusCumulativeHisto(dataset.histo)
         return
@@ -742,9 +706,10 @@ class Plotter(object):
         self._CustomiseHistograms()
 
         # Change some histoObject attributes
-        histo = self.HistoObjectList[0]
-        saveName = histo.saveName
-        kwargs   = histo.kwargs
+        self.Print("FIXME")
+        histo     =  self.GetHistos()[0]
+        saveName  = histo.saveName
+        kwargs    = histo.kwargs
         binWidthX = histo.binWidthX
         if histo.binWidthX == None:
             binWidthX = histo.TH1orTH2.GetBinWidth(0)
@@ -779,9 +744,7 @@ class Plotter(object):
         '''
         self.Verbose()
         
-#        for dataset in self.DatasetToHistoMap:
-#            h = self.DatasetToHistoMap[dataset]
-#            self._ConvertToEfficiencyHisto(h, cutDirection, errType, **kwargs)
+        # For-loop: All Datasets
         for dataset in self.Datasets:
             h = dataset.histo
             self._ConvertToEfficiencyHisto(h, cutDirection, errType, **kwargs)
@@ -816,7 +779,7 @@ class Plotter(object):
             eff        = -1.0
 
             # Calculate the efficiency and its error
-            eff, err = self.AuxObject.Efficiency(nPass, nTotal, errType)
+            eff, err = self.auxObject.Efficiency(nPass, nTotal, errType)
             if (cutDirection == ">"):
                 pass
             elif (cutDirection == "<"):
@@ -843,55 +806,7 @@ class Plotter(object):
         return
 
 
-    def _ConvertToOneMinusCumulativeHisto(self, histo):
-        '''
-        This method convert a given histogram to a (1-cumulative integral) histogram. 
-        '''
-        self.Verbose()
-
-        # Sanity check: Ensure that no bin-resining has been requested
-        if (histo.binWidthX != None):
-            self.Print("ERROR! The requested x-axis bin width ('%s') is invalid. Please set both axes bin-widths to 'None'. EXIT" % histo.binWidthX)
-            sys.exit()
-        elif (histo.binWidthY != None):
-            self.Print("ERROR! The requested y-axis bin width ('%s') is invalid. Please set both axes bin-widths to 'None'. EXIT" % histo.binWidthY)
-            sys.exit()
-        else:
-            pass
-        
-        # Loop over all histogram bins
-        h = histo.TH1orTH2
-        self.Print( ["Converting histo '%s' into a (1-cumulative integral) histogram" % ( h.GetName() )] )
-
-        if isinstance(h, ROOT.TH1F) == True:
-            nBins = h.GetNbinsX()+1
-            for b in range(0, nBins+1):
-                value = h.Integral(b, nBins) 
-                error = math.sqrt(value)
-                h.SetBinContent( b, value )
-                h.SetBinError  ( b, error )
-            return
-        elif isinstance(h, ROOT.TH2D) == True:
-            nBinsX = h.GetNbinsX()+1
-            nBinsY = h.GetNbinsY()+1
-            for bX in range(0, nBinsX+1):
-                for bY in range(0, nBinsY+1):
-                    # Draw only y<= x values
-                    if bY >= bX and self.SaveContourPoints == False: 
-                        break
-                    else: #if you want to calculate thresholds proceed as normal
-                        pass
-                    value = h.Integral(bX, nBinsX, bY, nBinsY)
-                    error = math.sqrt(value)
-                    h.SetBinContent( bX, bY, value)
-                    h.SetBinError  ( bX, bY, error)
-            return
-        else:
-            raise Exception("Cannot only convert a TH1D or a TH2D into a rate histogram, but instead got an object of type '%s'." % (type(h) ) )
-        return
-
-
-    def _CheckThatNoTH2WithMoreThanOneDatasets(self, histoObject):
+    def _CheckNoTH2WithMoreThanOneDatasets(self, histoObject):
         ''''
         Ensure that no TH2 is drawn where more than 1 dataset is created. Very difficult to distinguish so we need to take care.
         '''
@@ -931,7 +846,7 @@ class Plotter(object):
             sys.exit()            
 
 
-    def CheckThatHistoExists(self, rootFile, hObject):
+    def CheckHistoExists(self, rootFile, hObject):
         '''
         Ensure that the histogram you are trying to get from a TFile really exists.
         '''
@@ -943,16 +858,16 @@ class Plotter(object):
         else:
             hPath = hObject.path + "/" + hObject.name
 
-        self.IsTH1 = isinstance( rootFile.Get(hPath), ROOT.TH1F)
-        self.IsTH2 = isinstance( rootFile.Get(hPath), ROOT.TH2D)
+        self.isTH1 = isinstance( rootFile.Get(hPath), ROOT.TH1F)
+        self.isTH2 = isinstance( rootFile.Get(hPath), ROOT.TH2D)
 
-        if not self.IsTH1 and not self.IsTH2:
+        if not self.isTH1 and not self.isTH2:
             raise Exception( "Could not find histo object '%s' in TFile '%s' under folder '%s'." % (hObject.name, rootFile.GetName(), hObject.path) )
         else:
             msg  = " {:<20} {:<20}".format("File", ": " + rootFile.GetName())
             msg += "\n\t {:<20} {:<20}".format("Histo", ": " + hPath)
-            msg += "\n\t {:<20} {:<20}".format("IsTH1", ": " + str( self.IsTH1) )
-            msg += "\n\t {:<20} {:<20}".format("IsTH2", ": " + str( self.IsTH2) )
+            msg += "\n\t {:<20} {:<20}".format("IsTH1", ": " + str( self.isTH1) )
+            msg += "\n\t {:<20} {:<20}".format("IsTH2", ": " + str( self.isTH2) )
             self.Print(msg)
             return
 
@@ -968,16 +883,13 @@ class Plotter(object):
 
         myMax = -1E10
         myMin = +1E10
-        # Loop over all TH1's and determine dataset histo with yMax
-        #for dataset in self.DatasetToHistoMap.keys():
+        # For-loop: All datasets
         for dataset in self.Datasets:
-            #h = self.DatasetToHistoMap[dataset]
-            h = dataset.histo
+            h      = dataset.histo
             tmpMax =  h.TH1orTH2.GetMaximum()
             if tmpMax > myMax:
                 myMax = h.yMax
                 myMin = h.yMin
-                #self.THDumbie = copy.deepcopy(self.DatasetToHistoMap[dataset])
                 self.THDumbie = copy.deepcopy(h)
                 self.THDumbie.TH1orTH2.SetName("THDumbie")
             else:
@@ -991,7 +903,7 @@ class Plotter(object):
         self.THDumbie.TH1orTH2.GetXaxis().SetRangeUser(h.xMin, h.xMax) #does nothing if xMax > max x-value when histogram was created
 
         # Set Number of divisions! 
-        if (self.IsTH2):
+        if (self.isTH2):
             self.THDumbie.TH1orTH2.GetXaxis().SetNdivisions(510) 
         else:
             #self.THDumbie.TH1orTH2.GetXaxis().SetNdivisions(510) #default
@@ -1015,8 +927,8 @@ class Plotter(object):
         '''
         self.Verbose()
 
-        self.DrawObjectList.append(objectToBeDrawn)
-        self.DrawObjectListR.append(copy.deepcopy(objectToBeDrawn))
+        self.drawObjectList.append(objectToBeDrawn)
+        self.drawObjectListR.append(copy.deepcopy(objectToBeDrawn))
         return 
 
         
@@ -1026,32 +938,29 @@ class Plotter(object):
         '''
         self.Verbose()
         
-        self.StyleObject.EnableColourPalette(bEnable)
+        self.styleObject.EnableColourPalette(bEnable)
         return
 
 
     def _CustomiseHistograms(self):
         '''
-        Customise all histograms found inside the DatasetToHistoMap.
+        Customise all histograms
         '''
         self.Verbose()
         
         # For-loop: All datasets
-        for histo in self.HistoObjectList:
-            histo.ApplyStyles( self.StyleObject, type(histo.TH1orTH2))
+        for d in self.Datasets:
+            d.histo.ApplyStyles( self.styleObject, type(d.histo.TH1orTH2))
         return
 
     
     def _NormaliseHistograms(self):
         '''
-        Normalise all histograms found inside the DatasetToHistoMap.
+        Normalise all histograms
         '''
         self.Verbose()
         
-        # Loop over all histograms and normalise according to user options
-#        for mapKey in self.DatasetToHistoMap:
-#            h = self.DatasetToHistoMap[mapKey]
-#            self._NormaliseHisto(h)
+        # For-loop: All datasets
         for dataset in self.Datasets:
             self._NormaliseHisto(dataset.histo)
         return
@@ -1064,6 +973,7 @@ class Plotter(object):
         self.Verbose()
         
         if h.normaliseTo=="":
+            self.PrintHistoInfo(h, True)
             return
 
         scaleFactor = 1
@@ -1079,53 +989,34 @@ class Plotter(object):
             else:
                 self.Print("WARNING! Cannot normalise histogram. Will do nothing.", "HistoName: '%s'" % (h.name), "TFile: '%s'" % (h.TFileName), "ScaleFactor: '%s'" % (scaleFactor))
                 return
-        elif h.normaliseTo == "MB@40MHz":
-            ConvertRateTokHz  = 1.0E-3
-            CrossingRate      = 40.0E+6 #Hz
-            MCEventsTotal     = 100.0 #self.DatasetObject.GetEvents(h.dataset)
-            self.Print("FIXME")
-            scaleFactor       = (CrossingRate)/(MCEventsTotal)*ConvertRateTokHz
-            h.scaleFactor     = scaleFactor
-            h.TH1orTH2.Scale(scaleFactor)
-        elif h.normaliseTo == "MB@30MHz":
-            ConvertRateTokHz  = 1.0E-3
-            CrossingRate      = 30.0E+6 #Hz
-            MCEventsTotal     = 100.0 #self.DatasetObject.GetEvents(h.dataset)
-            self.Print("FIXME")
-            scaleFactor       = (CrossingRate)/(MCEventsTotal)*ConvertRateTokHz
-            h.scaleFactor     = scaleFactor
-            h.TH1orTH2.Scale(scaleFactor)
         elif type(h.normaliseTo) == float:
             h.scaleFactor     = float(h.normaliseTo)
             h.TH1orTH2.Scale(h.scaleFactor)
         else:
             raise Exception("Unknown histoObject normalisation option '%s'.!" % (h.normaliseTo))
-        
-        self.Verbose("File: '%s'" % (h.TFileName), "Dataset: '%s'" % (h.dataset), "HistoPath: '%s'" % (h.path), "HistoName: '%s'" % (h.name), 
-                      "Integral(): '%s'" % (h.rangeIntegral), "Integral(0, nBins+1): '%s'" % (h.integral), "normaliseTo: '%s'" % (h.normaliseTo))
+
+        self.PrintHistoInfo(h, True)
         return
 
 
-    def Draw(self, THStackDrawOpt="nostack", bStackInclusive=False, bAddReferenceHisto=True):
+    def Draw(self, THStackDrawOpt="nostack", includeStack=False, bAddReferenceHisto=True):
         '''
         Draw all necessary histograms for all datasets.
         '''
         self.Verbose()
 
-        self.bStackInclusive = bStackInclusive
+        self.includeStack = includeStack
         self._NormaliseHistograms()
         self._CustomiseHistograms()
         self._CreateCanvasAndLegendAndDumbie()
         self._CheckHistogramBinning()
         self._AddHistogramsToStack()
-        #self.Verbose("Drawing histo '%s'" % (self.THDumbie.name) + "THStackDrawOpt: '%s'" % (THStackDrawOpt), "bStackInclusive: '%s'" % (bStackInclusive))
-        
         self._DrawHistograms(THStackDrawOpt)
         self._DrawRatioHistograms(bAddReferenceHisto)
         self._DrawNonHistoObjects()
         self._CustomiseStack()
-        #self.THStack.Draw("same")            #new: needed when drawing cut-boxes
-        #self.TLegend.Draw("same")            #new: needed when drawing cut-boxes
+        #self.THStack.Draw("same")             #new: needed when drawing cut-boxes
+        #self.TLegend.Draw("same")             #new: needed when drawing cut-boxes
         #self.AddPreliminaryText()             #new: needed when drawing cut-boxes
         self.THDumbie.TH1orTH2.Draw("same")
         return
@@ -1144,27 +1035,13 @@ class Plotter(object):
     def DrawSame(self, HistoObjectList, TLegendHeader=""):
         '''
         This was designed to be used  in conjuction with GetHistos(). 
-        For example:
-
-        p1 = plotter.Plotter( verbose, bBatchMode )
-        for dataset in datasetList:
-           p1.AddDataset(dataset, datasetPaths[dataset])
-        p1.AddHisto(hList1)
-        p1.Draw(THStackDrawOpt="nostack", bStackInclusive = False)
-        
-        p2 = plotter.Plotter( verbose, bBatchMode )
-        for dataset in datasetList:
-           p2.AddDataset(dataset, datasetPaths_D[dataset])
-        p2.AddHisto(hList2)
-        p2.Draw(THStackDrawOpt="nostack", bStackInclusive = False)
-        p2.DrawSame(p1.GetHistos())
-        p2.SaveHistos(bSavePlots, mySavePath, mySaveFormats)
         '''
         self.Verbose()
 
+        
         for h in HistoObjectList:
             self.IsValidHistoObject(h)
-            h.ApplyStyles( self.StyleObject, type(h.TH1orTH2))
+            h.ApplyStyles( self.styleObject, type(h.TH1orTH2))
             h.TH1orTH2.Draw(h.drawOptions + ",9same,")
             self.TLegend.AddEntry( h.TH1orTH2, h.legTitle, self._GetLegEntryOptions(h) )
             self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
@@ -1174,7 +1051,7 @@ class Plotter(object):
         return
 
 
-    def Draw2DProfile(self, THStackDrawOpt="nostack", bStackInclusive=False, ProfileAxis=None, firstBin=1, lastBin=-1):
+    def Draw2DProfile(self, THStackDrawOpt="nostack", includeStack=False, ProfileAxis=None, firstBin=1, lastBin=-1):
         '''
         Draw a ProfileX or ProfileY of a TH2D. Basically, this will plot a weighted 2D histo with a single entry replacing 
         all entries in X (or Y axis). The entry that replaces all other entries in the Profile direction is the average.
@@ -1192,14 +1069,13 @@ class Plotter(object):
         if ProfileAxis not in allowedValues:
             raise Exception("Invalid ProfileAxis option selected ('%s'). You need to speficy the axis of the Profile (x or y). Available options are 'x' and 'y'." % (ProfileAxis) )
 
-        self.bStackInclusive = bStackInclusive
+        self.includeStack = includestack
         self.EnableColourPalette(True)
         self._NormaliseHistograms()
         self._CustomiseHistograms()
         self._CreateCanvasAndLegendAndDumbie()
         self._CheckHistogramBinning()
         self._AddHistogramsToStack2D(ProfileAxis, firstBin, lastBin)
-        self.Verbose("Drawing histo '%s'" % (self.THDumbie.name), "THStackDrawOpt: '%s'" % (THStackDrawOpt), "bStackInclusive: '%s'" % (bStackInclusive))
         self._DrawHistograms(THStackDrawOpt)
         self._DrawRatioHistograms()
         self._DrawNonHistoObjects()
@@ -1238,27 +1114,13 @@ class Plotter(object):
         '''
         self.Verbose()
 
-        bAddLegendEntries = "TH1" in str(type(self.THDumbie.TH1orTH2)) and isinstance(self.TLegend, ROOT.TLegend)
-        entryLabel = ""
-        
-        # Loop over all histo objects
-        for histo in self.HistoObjectList:
+        # For-loop: All histos
+        for histo in self.GetHistos():
             
-            dataset = histo.dataset.name
-            #histo   = histo.dself.DatasetToHistoMap[dataset] #self.DatasetToHistoMap[dataset] 
-
-            # Add legend entries for THStack
             self.THStack.Add(histo.TH1orTH2)
-            self.THStackHistoList.append(histo.TH1orTH2)
-            
-
-            if bAddLegendEntries == False:
-                continue
-
-            # Add legend entries only for TH1 type histos        
-            if histo.legTitle != None:
-                self.TLegend.AddEntry( histo.TH1orTH2, self._GetLegEntryLabel(histo), self._GetLegEntryOptions(histo) )
-                self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
+            self.THStackHistoList.append(histo.TH1orTH2) #xenios
+            self.TLegend.AddEntry( histo.TH1orTH2, self._GetLegEntryLabel(histo), self._GetLegEntryOptions(histo) ) #xenios
+            self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
         return
 
 
@@ -1280,7 +1142,7 @@ class Plotter(object):
         self.Verbose()
 
         self.CreateDumbie()
-        if self.bPadRatio == True or self.bInvPadRatio == True:
+        if self.padRatio == True or self.invPadRatio == True:
             self._Create2PadCanvas()
         else:
             self._CreateCanvas()
@@ -1299,15 +1161,14 @@ class Plotter(object):
         # Create the TLines for each axis
         self._AppendXYCutLinesToTLineList("x")
         self._AppendXYCutLinesToTLineList("y")
-        self._DoZCutLines()
 
         # Extend the DrawObjectList with the TLineList
-        self.DrawObjectList.extend(self.xTLineList)
-        self.DrawObjectList.extend(self.yTLineList)
+        self.drawObjectList.extend(self.xTLineList)
+        self.drawObjectList.extend(self.yTLineList)
 
-        self.DrawObjectListR.extend( copy.deepcopy(self.xTLineList) )
+        self.drawObjectListR.extend( copy.deepcopy(self.xTLineList) )
         if (self.THDumbie.yCutLinesRatioPad == True):
-            self.DrawObjectListR.extend( copy.deepcopy(self.yTLineList) )
+            self.drawObjectListR.extend( copy.deepcopy(self.yTLineList) )
         return
 
 
@@ -1349,192 +1210,10 @@ class Plotter(object):
                 yMax = self.THDumbie.yMax
 
             line = ROOT.TLine(xMin, yMin, xMax, yMax)
-            self._CustomiseTLine(line, lineColour=self.CutLineColour, lineWidth=3, lineStyle=ROOT.kDashed) #ROOT.kDashDotted
+            self._CustomiseTLine(line, lineColour=ROOT.kBlack, lineWidth=3, lineStyle=ROOT.kDashed) #ROOT.kDashDotted
             self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
             self.AppendToTLineList( line, axis)
 
-        return
-
-
-    def _DoZCutLines(self):
-        '''
-        Create, customise and append z-axis cut lines to the TLineList. Also add entry to TLegend and provide extra space for another TLegened entry.
-        "CONT"	 Draw a contour plot (same as CONT0).
-        "CONT0"	 Draw a contour plot using surface colors to distinguish contours.
-        "CONT1"	 Draw a contour plot using line styles to distinguish contours.
-        "CONT2"	 Draw a contour plot using the same line style for all contours.
-        "CONT3"	 Draw a contour plot using fill area colors.
-        "CONT4"	 Draw a contour plot using surface colors (SURF option at theta = 0).
-        "CONT5"	 (TGraph2D only) Draw a contour plot using Delaunay triangles.
-        See http://root.cern.ch/root/html/THistPainter.html for contour draw options!
-        '''
-        self.Verbose()
-
-        zCutLines = self.THDumbie.zCutLines
-        if zCutLines == None or len(zCutLines)==0:
-            return
-        
-        # Copy list into a numpy array, otherwise ROOT will complain
-        contours = numpy.asarray(self.THDumbie.zCutLines)
-        if (self.THDumbie.zCutLinesErrors == True):
-            self._DrawZCutLinesWithErrors(zCutLines)
-        else:
-            self.DrawZCutLines(zCutLines)
-        return
-
-
-    def _DrawZCutLinesWithErrors(self, zCutLines):
-        '''
-        Draw z-cut lines defined by the user at histogram creation time.
-        Add error bands around the nominal contour that correspond to +/- 1 sigma.
-        For information regarding the extraction of the contours as TGraphs see:
-        http://root.cern.ch/root/html/THistPainter.html
-        [ Look for Draw("CONT LIST") option ]
-        '''
-        # Copy list into a numpy array, otherwise ROOT will complain
-        contours = numpy.asarray(self.THDumbie.zCutLines)
-
-        # Set Contour bands
-        contourBands   = [1.0, 1.0/self.THDumbie.scaleFactor, 1.0/self.THDumbie.scaleFactor]
-        lineStyles     = [ROOT.kSolid, ROOT.kDashDotted, ROOT.kDashDotted] #[ROOT.kSolid, ROOT.kSolid, ROOT.kSolid] #,ROOT.kDashed, ROOT.kDashed]
-        lineColours    = [self.CutLineColour, ROOT.kRed-4, ROOT.kAzure+6, ROOT.kSpring+2, ROOT.kMagenta-2, ROOT.kYellow-4, self.CutLineColour, ROOT.kOrange+8, 
-                          ROOT.kBlue-4, ROOT.kGreen-2, ROOT.kViolet-5, ROOT.kPink-8, ROOT.kTeal-1, ROOT.kCyan-7, 
-                          self.CutLineColour, ROOT.kRed-4, ROOT.kAzure+6, ROOT.kSpring+2, ROOT.kMagenta-2, ROOT.kYellow-4, self.CutLineColour, ROOT.kOrange+8,
-                          ROOT.kBlue-4, ROOT.kGreen-2, ROOT.kViolet-5, ROOT.kPink-8, ROOT.kTeal-1, ROOT.kCyan-7]
-        lineShades     = [+0, -3, -3]
-        lineWidths     = [+3, +1, +1]
-        
-        # Get Last histogram in the stack and customise it
-        hStackList = []
-        total = len(zCutLines)*len(contourBands)
-        for i in range(0, total ):
-            hStackList.append(copy.deepcopy(self.THStack.GetStack()))
-
-        # Declare the arrays where the contours values (nominal, Up, Down) will be saved
-        tmpHistoDict = {}
-
-        # for-Loop: Over all histogram types (Nominal, FluctuateUp, FluctuateDown)
-        for iBand in range(0, len(contourBands)): 
-
-            # Get the total histogram
-            h = hStackList[iBand].Last()
-
-            # Default, Fluctuate up or Fluctuate down
-            if iBand == 0:
-                histoType = "Nominal"
-            elif iBand == 1: # +1sigma
-                self.FluctuateHisto(h, contourBands[iBand], True)
-                histoType = "FluctuateUp"
-            elif iBand == 2: # -1sigma
-                self.FluctuateHisto(h, contourBands[iBand], False)
-                histoType = "FluctuateDown"
-            else:
-                pass
-
-            h.SetName(h.GetName() + "_" + histoType )
-            tmpHistoList = []
-
-            # for-Loop: Over all z-cuts, for the given iBand(0 = Nominal, 1 = +1sigma, 2 = -1sigma)
-            for i in range(0, len(zCutLines)):
-                self.Verbose( ["iHistoType: '%s'/'%s' (Nominal, FluctuateUp, FluctuateDown)" % (iBand+1, len(contourBands) ), "zCutNumber: '%s'/'%s'" % (i+1, len(zCutLines)) ] )
-                h.SetLineColor( lineColours[i] )
-                h.SetFillColor( lineColours[i] + lineShades[iBand] )
-                h.SetLineStyle( lineStyles[iBand] )
-                h.SetLineWidth( lineWidths[iBand] )
-                h.SetContour(i+1, contours) #should start at 1
-
-                # Before drawing, save the histogram to some list
-                if self.SaveContourPoints == True:
-                    tmpHistoList.append(h)
-
-                # Draw the histogram
-                h.Draw("cont3same9")
-
-                if iBand == 0:
-                    self.TLegend.AddEntry( h, "%s %s #pm 1#sigma" % (zCutLines[i], self.THDumbie.zUnits), "L" )
-                    self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
-
-            # Save the Nominal, FluctuateUp, FluctuateDown histos for the specific cut value
-            tmpHistoDict[ histoType ] = tmpHistoList
-
-        self.SaveContourPointsToFile(tmpHistoDict)
-        return
-
-
-    def DrawZCutLines(self, zCutLines):
-        '''
-        Draw z-cut lines defined by the user at histogram creation time.
-        '''
-        # Copy list into a numpy array, otherwise ROOT will complain
-        contours = numpy.asarray(self.THDumbie.zCutLines)
-
-        # Set Contour bands
-        lineColours    = [ROOT.kWhite, ROOT.kYellow, ROOT.kRed, ROOT.kBlack]
-        
-        # Get Last histogram in the stack and customise it
-        hStackList = []
-        total = len(zCutLines)
-        for i in range(0, total ):
-            hStackList.append(copy.deepcopy(self.THStack.GetStack()))
-        
-        # Loop over all z-cuts
-        for i in range(0, len(zCutLines)):
-            # Get the total histogram
-            h = hStackList[i].Last()
-            h.SetLineColor( lineColours[i] )
-            h.SetFillColor( lineColours[i] )
-            h.SetLineStyle( ROOT.kSolid )
-            h.SetLineWidth( 3 )
-            h.SetContour(i+1, contours) #should start at 1
-            h.Draw("cont3same9")
-            self.TLegend.AddEntry( h, "%s %s" % (zCutLines[i], self.THDumbie.zUnits), "L" )
-            self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
-        return
-
-
-
-    def FluctuateHisto(self, histo, scaleFactor, bFluctuateUp):
-        '''
-        Statistical fluctuation of histograms to enable contour error bands.
-        '''
-        # Reverse scaleFactor
-        histo.Scale( scaleFactor )
-        zeroEntriesPoissonError = 1.7 #As instructed by Ptochos
-
-        if "TH1" in str(type(histo)):
-            # Fluctate with bin content with sqrt(N)
-            for x in range(0, histo.GetNbinsX()):
-                binContent = histo.GetBinContent(x)
-                if (bFluctuateUp == True):
-                    if binContent < 1.0:
-                        histo.SetBinContent(x, histo.GetBinContent(x) + scaleFactor*zeroEntriesPoissonError )
-                    else:
-                        histo.SetBinContent(x, histo.GetBinContent(x) + scaleFactor*math.sqrt(histo.GetBinContent(x)) )
-                else:
-                    if binContent > 0.0:
-                        histo.SetBinContent(x, histo.GetBinContent(x ) - scaleFactor*math.sqrt(histo.GetBinContent(x)) )
-                    else:
-                        histo.SetBinContent(x, binContent) # do nothing
-        elif "TH2" in str(type(histo)):
-            # Fluctate with bin content with sqrt(N)
-            for x in range(0, histo.GetNbinsX()):
-                for y in range(0, histo.GetNbinsY()):
-                    binContent = histo.GetBinContent(x, y)
-                    if (bFluctuateUp == True):
-                        if binContent < 1.0:
-                            histo.SetBinContent(x, y, histo.GetBinContent(x, y) + scaleFactor*zeroEntriesPoissonError )
-                        else:
-                            histo.SetBinContent(x, y, histo.GetBinContent(x, y) + scaleFactor*math.sqrt(histo.GetBinContent(x, y)) )
-                    elif (bFluctuateUp == False):
-                        if binContent > 0.0:
-                            histo.SetBinContent(x, y, histo.GetBinContent(x, y) - scaleFactor*math.sqrt(histo.GetBinContent(x, y)) )
-                        else:
-                            histo.SetBinContent(x, y, binContent) # do nothing
-        else:
-            raise Exception("Unsupported histo type '%s'. Cannot proceed." % (type(histo) ) )
-
-        # Scale back to normal
-        histo.Scale( 1.0/scaleFactor )
         return
         
 
@@ -1550,14 +1229,14 @@ class Plotter(object):
         self._AppendXYCutBoxesToTBoxList("y")
 
         # Extend the DrawObjectList with the TLineList and TBoxList
-        self.DrawObjectList.extend(self.xTLineList)
-        self.DrawObjectList.extend(self.yTLineList)
-        self.DrawObjectList.extend(self.TBoxList)
+        self.drawObjectList.extend(self.xTLineList)
+        self.drawObjectList.extend(self.yTLineList)
+        self.drawObjectList.extend(self.TBoxList)
 
-        self.DrawObjectListR.extend(copy.deepcopy(self.xTLineList))
+        self.drawObjectListR.extend(copy.deepcopy(self.xTLineList))
         if (self.THDumbie.yCutLinesRatioPad == True):
-            self.DrawObjectListR.extend(copy.deepcopy(self.yTLineList))
-            self.DrawObjectListR.extend(copy.deepcopy(self.TBoxList))
+            self.drawObjectListR.extend(copy.deepcopy(self.yTLineList))
+            self.drawObjectListR.extend(copy.deepcopy(self.TBoxList))
         return
 
 
@@ -1644,7 +1323,7 @@ class Plotter(object):
         '''
         self.Verbose()
 
-        if self.bPadRatio == False and self.bInvPadRatio == False:
+        if self.padRatio == False and self.invPadRatio == False:
             return
 
         self.PadRatio.cd()        
@@ -1675,10 +1354,10 @@ class Plotter(object):
             hNumerator = copy.deepcopy(h)
             
             # Divide the active histogram with the normalisation histogram
-            hRatio.Divide(hNumerator, hDenominator, 1.0, 1.0, self.RatioErrorType)
+            hRatio.Divide(hNumerator, hDenominator, 1.0, 1.0, self.ratioErrorType)
 
             # Inverts ratio histogram if requested (i.e. each bin has content 1/bin)
-            if self.bInvPadRatio == True:
+            if self.invPadRatio == True:
                 hRatio.Divide(UnityTH1, hRatio) 
 
             # Save histogram values to a txt file (for later processing if needed)
@@ -1694,51 +1373,11 @@ class Plotter(object):
         self.THRatio.TH1orTH2.Draw()
         self.THStackRatio.Draw("nostack9sameAP")
         
-#        # Finally add the reference ratio plot (to enable the identification of the histogram used for the normalisation)
-#        # Note: Do not add the hReference histogram  before calling the function self.CustomiseTHRatio(). 
-#        if bAddReferenceHisto:
-#            hReference = copy.deepcopy(hDenominator)
-#            hReference.Divide(hReference)
-#            hReference.SetMarkerSize(0)
-#            hReference.SetLineStyle(ROOT.kSolid)            
-#            for iBin in range (1, hReference.GetNbinsX()+1):
-#                hReference.SetBinError(iBin, 0.00000000001)
-#            self.THStackRatio.Add(hReference)
-
         # Switch back to the PadPlot (necessary)
         self.PadPlot.cd()
         return
 
     
-    def SaveHistoAsTxtFile(self, h):
-        '''
-        '''
-        self.Verbose()
-        print "Fix me. Saving as .txt not needed anymore. EXIT"
-        sys.exit()
-
-        xVals     = []
-        xErrDown  = []
-        xErrUp    = []
-        yVals     = []
-        yErrDown  = []
-        yErrUp    = []
-
-        # Loop over all histogram bins (except under/over bins)
-        binZeroWidth = h.GetXaxis().GetBinWidth(0)
-        for iBin in range (1, h.GetNbinsX()+1):
-
-            xVals.append( h.GetBinCenter(iBin) ) #h.GetBinCenter(iBin)
-            xErrUp.append( binZeroWidth/2.0 )
-            xErrDown.append( binZeroWidth/2.0 )
-
-            yVals.append( h.GetBinContent(iBin) )
-            yErrUp.append( h.GetBinErrorUp(iBin) )
-            yErrDown.append( h.GetBinErrorLow(iBin) )
-        self.SaveTGraphArraysDataToFile( h.GetName() + ".txt", xVals, xErrUp, xErrDown, yVals, yErrUp, yErrDown, 3)
-        return
-
-
 
     def CustomiseTHRatio(self):
         '''
@@ -1754,7 +1393,7 @@ class Plotter(object):
         # Customise the title
         self.THRatio.TH1orTH2.GetXaxis().SetTitleOffset(2.8)
         if self.THRatio.ratioLabel == None:
-            if self.bInvPadRatio == False:
+            if self.invPadRatio == False:
                 self.THRatio.ratioLabel = "Ratio"
             else:
                 self.THRatio.ratioLabel = "1/Ratio"
@@ -1781,7 +1420,7 @@ class Plotter(object):
         For help see: http://root.cern.ch/phpBB3/viewtopic.php?f=3&t=12138
         '''
         self.Verbose()
-        if self.bStackInclusive==False:
+        if self.includeStack==False:
             return
 
         inclusive = self.THStack.GetStack().Last()
@@ -1817,7 +1456,7 @@ class Plotter(object):
         if histoObject.legTitle == None:            
             return  entryLabel
 
-        if self.DatasetInLegend:
+        if self.DatasetInLegend: #xenios
             entryLabel = histoObject.dataset.GetLatexName()
         else:
             entryLabel = histoObject.legTitle
@@ -1840,7 +1479,7 @@ class Plotter(object):
         self.Verbose()
         
         options = histoObject.legOptions
-        #if self.bPadRatio == False and  self.bInvPadRatio == False:
+        #if self.padRatio == False and  self.invPadRatio == False:
         #    options = histoObject.legOptions
         #else:
         #    options = histoObject.legOptions + "P"
@@ -1888,11 +1527,11 @@ class Plotter(object):
 
     def _DrawNonHistoObjects(self):
         '''
-        Draw all drawable objects found in self.DrawObjectList.
+        Draw all drawable objects found in self.drawObjectList.
         '''
         self.Verbose()                
 
-        if (self.bPadRatio == True or self.bInvPadRatio == True):
+        if (self.padRatio == True or self.invPadRatio == True):
             self._DrawNonHistoObjectsWithPadRatio()
         else:
             self._DrawNonHistoObjectsNoPadRatio()        
@@ -1901,7 +1540,7 @@ class Plotter(object):
 
     def _DrawNonHistoObjectsNoPadRatio(self):
         '''
-        Draw all drawable objects found in self.DrawObjectList.
+        Draw all drawable objects found in self.drawObjectList.
         '''
         self.Verbose()                
 
@@ -1910,14 +1549,14 @@ class Plotter(object):
         self.CreateCutLines()
         
         # Draw all objects on the PadPlot
-        for o in self.DrawObjectList:
+        for o in self.drawObjectList:
             o.Draw("same")
         return
 
 
     def _DrawNonHistoObjectsWithPadRatio(self):
         '''
-        Draw all drawable objects found in self.DrawObjectList.
+        Draw all drawable objects found in self.drawObjectList.
         '''
         self.Verbose()                
 
@@ -1927,7 +1566,7 @@ class Plotter(object):
         
         # Draw all objects on the PadPlot
         self.PadPlot.cd()
-        for o in self.DrawObjectList:
+        for o in self.drawObjectList:
             o.Draw("same")
 
         # Update modified canvas and re-draw the PadPlot axes
@@ -1942,7 +1581,7 @@ class Plotter(object):
 
         # Draw all objects on the PadRatio
         self.PadRatio.cd()
-        for o in self.DrawObjectListR:
+        for o in self.drawObjectListR:
             if isinstance(o, ROOT.TLegend) == True:
                 continue
 
@@ -1993,10 +1632,7 @@ class Plotter(object):
         binWidthX    = self.THDumbie.binWidthX
         binZeroWidth = self.THDumbie.TH1orTH2.GetXaxis().GetBinWidth(0)
         
-        # Check that the x-axis bin is same for all histograms
-#        for dataset in self.DatasetToHistoMap.keys():
-#            h = self.DatasetToHistoMap[dataset]
-#            self._CheckHistoBinning(h)
+        # For-loop: All datasets
         for dataset in self.Datasets:
             self._CheckHistoBinning(dataset.histo)
         return 
@@ -2010,9 +1646,9 @@ class Plotter(object):
         self.Verbose()
         
         self.TCanvas.cd()
-        self.TextObject.AddEnergyText(energy)
-        self.TextObject.AddPreliminary()
-        self.TextObject.AddLumiText(lumi)
+        self.textObject.AddEnergyText(energy)
+        self.textObject.AddPreliminary()
+        self.textObject.AddLumiText(lumi)
         self.TCanvas.Update()
         return
     
@@ -2034,11 +1670,9 @@ class Plotter(object):
 
         # Define path and save
         saveName = savePath + self.TCanvas.GetName().rsplit('@', 1)[0] + saveExtension
-        #creationTime =  self.TCanvas.GetName().rsplit('@', 1)[1]
-                                                              
 
-        msg  = "{:<20} {:<20}".format("SaveName" , ": " + saveName)
-        msg += "{:<20} {:<20}".format("Format(s)", ": " + ", ".join(saveFormats) )
+        msg  = " {:<15} {:<15}".format("SaveName" , ": " + saveName)
+        msg  += "\n\t {:<15} {:<15}".format("Format(s)", ": " + ", ".join(saveFormats) )
         self.Print(msg)
         for ext in saveFormats:
             self.TCanvas.Update()
@@ -2053,7 +1687,7 @@ class Plotter(object):
         Return canvas name upon which the plotter objects histograms will be saved on.
         '''
         self.Verbose()
-        
+
         return self.TCanvas.GetName()
 
 
@@ -2061,7 +1695,7 @@ class Plotter(object):
         '''
         '''
         self.Verbose()
-        
+
         self.TCanvas.SetName(canvasName)
         return
 
@@ -2182,21 +1816,16 @@ class Plotter(object):
         return iBin, binCenter, binContent
 
 
-    def _GetLegendHeader(self):
-        '''
-        Create a TLegend header and return it.
-        '''
-        self.Verbose()
-        legHeader = self.THDumbie.legTitle
-        return legHeader
-
 
     def GetHistos(self):
         '''
         '''
         self.Verbose()
-        return self.HistoObjectList
-
+        hObjects = []
+        for d in self.Datasets:
+            hObjects.append(d.histo)
+        return hObjects
+        
 
     def GetTLegend(self):
         '''

@@ -43,9 +43,15 @@ class StyleClass(object):
         self.lineStyleCounter       = {}
         self.colourShade            = {}
         self.MsgCounter             = 0
-        self._SetDefaults("ttHJetToNonbb_M125", colour=ROOT.kRed+1    , mStyle=ROOT.kOpenCircle, lWidth=2, lStyle=ROOT.kDashed, fStyle=1001, drawOpts="HIST", legOpts="F")
-        self._SetDefaults("TTJets"            , colour=ROOT.kMagenta+2, mStyle=ROOT.kFullCircle, lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, drawOpts="HIST", legOpts="F")
-        self._SetSpecials("random", colour = cycle(self.colourPaletteList).next(), mStyle=ROOT.kFullCircle, lineWidth=3, lineStyle=0, fillStyle=3001, drawOpts="HIST", legOpts="F")
+        self._SetDefaults("ttHJetToNonbb_M125" , colour=ROOT.kRed+1    , mStyle=ROOT.kOpenCircle      , lWidth=2, lStyle=ROOT.kDashed, fStyle=1001, drawOpts="HIST", legOpts="F")
+        self._SetDefaults("TTJets"             , colour=ROOT.kMagenta+2, mStyle=ROOT.kFullCircle      , lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, drawOpts="HIST", legOpts="F")
+        self._SetDefaults("DYJetsToLL_M_10to50", colour=ROOT.kYellow-7 , mStyle=ROOT.kFullTriangleUp  , lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, drawOpts="HIST", legOpts="F")
+        self._SetDefaults("WJetsToLNu"         , colour=ROOT.kBlue+1   , mStyle=ROOT.kFullTriangleDown, lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, drawOpts="HIST", legOpts="F")
+        self._SetDefaults("WW"                 , colour=ROOT.kGreen    , mStyle=ROOT.kOpenTriangleUp  , lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, drawOpts="HIST", legOpts="F")
+        self._SetDefaults("WZ"                 , colour=ROOT.kGreen+2  , mStyle=ROOT.kOpenTriangleUp  , lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, drawOpts="HIST", legOpts="F")
+        self._SetDefaults("ZZ"                 , colour=ROOT.kGreen-2  , mStyle=ROOT.kOpenTriangleUp  , lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, drawOpts="HIST", legOpts="F")
+        self._SetDefaults("Data"               , colour=ROOT.kBlack    , mStyle=ROOT.kOpenCircle, lWidth=2, lStyle=ROOT.kDashed, fStyle=1001, drawOpts="HIST", legOpts="F")
+        self._SetSpecials("random", colour = cycle(self.colourPaletteList).next(), mStyle=ROOT.kFullCircle, lWidth=3, lStyle=0, fStyle=3001, drawOpts="HIST", legOpts="F")
         self.Verbose()
         return
 
@@ -300,11 +306,6 @@ class StyleClass(object):
             if (styleType == None or styleType == "") and dataset == None:            
                 self.Print(msg)
                 sys.exit()
-            else:
-                pass
-        else:
-            styleType = self.TextObject.ConvertLatexToText(dataset).lower()
-
 
         styleType = styleType.lower()
         if styleType in self.styleTypeList:

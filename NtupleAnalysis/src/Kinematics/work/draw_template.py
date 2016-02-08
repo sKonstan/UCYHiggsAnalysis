@@ -66,7 +66,7 @@ Pt = {
     "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00, "xMax": ptMax, "binWidthX": None, "xCutLines": [], "xCutBoxes": [], "gridX": True, "logX": False, 
     "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E00, "yMax": None , "binWidthY": None, "yCutLines": [], "yCutBoxes": [], "gridY": True, "logY": True , 
     "ratioLabel": "Ratio", "ratio": False, "invRatio": False, "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "normaliseTo": ""  , "drawOptions": "HIST", "legOptions": "FL",
-    "logYRatio": False, "xLegMin": 0.18, "xLegMax": 0.4, "yLegMin": 0.80, "yLegMax": 0.90
+    "logYRatio": False, "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
 }
 
 Eta = {
@@ -83,8 +83,8 @@ Eta = {
 PassedElectronsPt   = histos.TH1orTH2( folder, "PassedElectronsPt", "passed", None, **Pt )
 AllElectronsPt      = histos.TH1orTH2( folder, "AllElectronsPt"   , "all"   , None, **Pt )
 
-PassedElectronsEta  = histos.TH1orTH2( folder, "PassedElectronsPt", "Canvas Legend", None, **Eta )
-AllElectronsEta     = histos.TH1orTH2( folder, "PassedElectronsPt", "Canvas Legend", None, **Eta )
+PassedElectronsEta  = histos.TH1orTH2( folder, "PassedElectronsPt", "passed", None, **Eta )
+AllElectronsEta     = histos.TH1orTH2( folder, "PassedElectronsPt", "all"   , None, **Eta )
 
 
 
@@ -94,13 +94,14 @@ AllElectronsEta     = histos.TH1orTH2( folder, "PassedElectronsPt", "Canvas Lege
 def DoPlots(histo, datasetObjects, bColourPalette=False, saveExt=""):
 
     p = plotter.Plotter(verbose, batchMode)
-    p.SetupROOT()
+    p.SetupRoot()
     p.AddDatasets(datasetObjects)
     p.DatasetAsLegend(True)
     p.AddHisto(histo)
-    p.SetupStatsBox(-1, -1, -1, -1, 000000000)
-    p.Draw(THStackDrawOpt="nostack", bStackInclusive = False, bAddReferenceHisto = True)
-    #p.SetTLegendHeader("")
+    # p.SetupStatsBox(0.90, 0.88, 0.20, 0.12, 111111111)
+    # p.Draw(THStackDrawOpt="nostack", includeStack = False, bAddReferenceHisto = True)
+    p.Draw(THStackDrawOpt="stack", includeStack = False, bAddReferenceHisto = True)
+    # p.SetTLegendHeader("")
     p.AddPreliminaryText("13", intLumi)
     p.SaveHistos(True, savePath, saveFormats, saveExt)
     return
@@ -136,11 +137,11 @@ def main():
         datasetObjects.append(dObject)
         dObject.PrintProperties()    
 
-    DoPlots( histoList, datasetObjects, False )
-#    for h in histoList:
-#        DoPlots( h, datasetObjects, False )
-#        break
 
+    for h in histoList:
+        DoPlots( h, datasetObjects, False )
+        break
+#    DoPlots( histoList, datasetObjects, False )
 
 
 

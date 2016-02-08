@@ -20,9 +20,14 @@ from UCYHiggsAnalysis.NtupleAnalysis.pyROOT.crossSection import xSections
 # Global variables
 #================================================================================================
 latexNamesDict = {}
-latexNamesDict["ttHJetToNonbb_M125"] = "ttH (m_{H^{0}} = 125 GeV)"
-latexNamesDict["TTJets"]             = "t#bar{t} + jets"
-
+latexNamesDict["ttHJetToNonbb_M125"]  = "ttH"               # (m_{H^{0}} = 125 GeV)"
+latexNamesDict["TTJets"]              = "t#bar{t} + jets"
+latexNamesDict["DYJetsToLL_M_10to50"] = "DY"                # (m_{#ell#ell}=10-50 GeV)"
+latexNamesDict["WJetsToLNu"]          = "W^{#pm} #rightarrow l #nu_{l}" #to #ell #nu_{#ell}"
+latexNamesDict["WW"]                  = "WW"                # "W^{#pm} W^{#mp}"
+latexNamesDict["WZ"]                  = "WZ"                # "W^{#pm} Z^{0}"
+latexNamesDict["ZZ"]                  = "ZZ"                # "Z^{0} Z^{0}"
+latexNamesDict["MuonEG_246908_260426_25ns_Silver"]= "Data"
 
 
 #================================================================================================
@@ -42,18 +47,15 @@ class Dataset(object):
         return
 
 
-    def Verbose(self, messageList=None):
+    def Verbose(self, message=""):
         '''
         Custome made verbose system. Will print all messages in the messageList
         only if the verbosity boolean is set to true.
         '''
         if self.verbose:
             print "*** %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
-            if messageList==None:
-                return
-            else:
-                for message in messageList:
-                    print "\t", message
+            if message!="":
+                print "\t", message
         return
 
 
