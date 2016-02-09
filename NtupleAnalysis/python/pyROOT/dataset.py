@@ -36,10 +36,11 @@ latexNamesDict["MuonEG_246908_260426_25ns_Silver"]= "Data"
 # Class Definition
 #================================================================================================
 class Dataset(object):
-    def __init__(self, baseDir, name, rootFile, verbose = False, **args):
+    def __init__(self, baseDir, name, analysisName, rootFile, verbose = False, **args):
         self.verbose            = verbose
         self.auxObject          = aux.AuxClass(verbose)
         self.name               = name
+        self.analysisName       = analysisName
         self.baseDir            = baseDir
         self.latexName          = latexNamesDict[name]
         self.rootFile           = rootFile
@@ -50,6 +51,9 @@ class Dataset(object):
         self.dataVersion        = self._GetDataVersion()
         self.energy             = self._GetEnergy()
         self.xsection           = self._GetXSection()
+        self.allEvents          = 0 #self._GetUnweightedEvents() #xenios
+        self.unweightedEvents   = 0 #self._GetUnweightedEvents() #xenios
+        self.weightedEvents     = 0 #self._GetWeightedEvents() #xenios
         self.isData             = self._IsData()
         self.isPseudo           = self._IsPseudo()
         self.isMC               = self._IsMC()
@@ -57,6 +61,7 @@ class Dataset(object):
         self.isTopPtReweighted  = self._IsTopPtReweighted()
         self.pileupWeight       = self._GetPileUpWeight()
         self.topPtWeight        = self._GetTopPtWeight()
+        self._ReadCounters()
         self.Verbose()
         return
 
@@ -121,7 +126,7 @@ class Dataset(object):
             self.Print("ERROR! configInfo directory is missing from file %s. EXIT" % self.rootFile.GetName())
             sys.exit()
             
-        info    = self.auxObject.Get(configInfo, "configinfo")
+        info = self.auxObject.Get(configInfo, "configinfo")
         return info
 
     
@@ -152,22 +157,29 @@ class Dataset(object):
         '''
         '''
         self.Verbose()
-        if "isPileupReweighted" in self.info and self.info["isPileupReweighted"]:
-            return True
-        else:
-            return False
+
+        nBinsX  = self.info.GetNbinsX()
+        for i in range(0, nBinsX):
+            if (self.info.GetXaxis().GetBinLabel(i) == "isPileupReweighted"):
+                return True
+        return False
 
 
     def _GetPileUpWeight(self):
         '''
         '''
         self.Verbose()
-        if self.isPileupReweighted:
-            return self.info["isPileupReweighted"]
-        else:
+
+        if not self.isPileupReweighted:
             return 1.0
+            
+        nBinsX = self.info.GetNbinsX()
+        for i in range(0, nBinsX):
+            if (self.info.GetXaxis().GetBinLabel(i) == "isPileupReweighted"):
+                return self.info.GetBinContent(i)
+        return -1.0
 
-
+    
     def GetPileUpWeight(self):
         '''
         '''
@@ -179,20 +191,28 @@ class Dataset(object):
         '''
         '''
         self.Verbose()
-        if "isTopPtReweighted" in self.info and self.info["isTopPtReweighted"]:
-            return True
-        else:
-            return False
 
+        nBinsX  = self.info.GetNbinsX()
+        for i in range(0, nBinsX):
+            if (self.info.GetXaxis().GetBinLabel(i) == "isPileupReweighted"):
+                w = self.info.GetBinContent(i)
+                return True
+        return False
 
+    
     def _GetTopPtWeight(self):
         '''
         '''
         self.Verbose()
-        if self.isPileupReweighted:
-            return self.info["isTopPtReweighted"]
-        else:
+
+        if not self.isTopPtReweighted:
             return 1.0
+            
+        nBinsX = self.info.GetNbinsX()
+        for i in range(0, nBinsX):
+            if (self.info.GetXaxis().GetBinLabel(i) == "isTopPtReweighted"):
+                return self.info.GetBinContent(i)
+        return -1.0
             
 
     def GetTopPtWeight(self):
@@ -332,7 +352,187 @@ class Dataset(object):
         self.Verbose()
         return self.rootFile
 
+
+    def GetRootHisto(self, name, **kwargs):
+        '''
+        Get ROOT histogram
+
+        \param name    Path of the ROOT histogram relative to the analysis root directory
+
+        \param kwargs  Keyword arguments, forwarded to getRootObjects()
+
+        \return pair (\a histogram, \a realName)                                                
     
+        If name starts with slash ('/'), it is interpreted as a absolute  
+        path within the ROOT file. If dataset consists of multiple files, the histograms are added with the ROOT.TH1.Add() method.
+        
+        If dataset.TreeDraw object is given (or actually anything with
+        draw() method), the draw() method is called by giving the Dataset object as parameters. The draw() method is expected to
+        return a TH1 which is then returned.
+         '''
+        self.Verbose()
+        
+        (histos, realName) = self.GetRootObjects(name, **kwargs)
+        if len(histos) == 1:
+            h = histos[0]
+        else:
+            h = histos[0]
+            h = auxObject.Clone(h, h.GetName() + "_cloned")
+            for h2 in histos[1:]:
+                h.Add(h2)
+        return (h, realName)
+
+    
+    def GetRootObject(self, name, **kwargs):
+        '''
+        Get arbitrary ROOT object from the file
+        \param name    Path of the ROOT object relative to the analysis root directory           
+        
+        \param kwargs  Keyword arguments, forwarded to getRootObjects()
+        
+        \return pair (\a object, \a realName)
+        
+        If name starts with slash ('/'), it is interpreted as a absolute path within the ROOT file.
+        
+        If the dataset consists of multiple files, raise an Exception.
+        
+        User should use GetRootObjects() method instead.
+        '''
+        self.Verbose()
+        
+        (lst, realName) = self.getRootObjects(name, **kwargs)
+        return (lst[0], realName)
+
+
+    def GetRootObjects(self, name, **kwargs):
+        '''
+        Get list of arbitrary ROOT objects from the file
+        \param name    Path of the ROOT object relative to the analysis root directory           
+
+        \param kwargs  Keyword arguments, forwarded to _translateName()
+
+        \return pair (\a list, \a realName), where \a list is the list of ROOT objects, one per file, 
+        and \a realName is the physical name of the objects
+
+        If name starts with slash ('/'), it is interpreted as a absolute path within the ROOT file
+        '''
+        self.Verbose()
+
+        ret      = []        
+        realName = self._TranslateName(name, **kwargs)
+        o        = self.auxObject.Get(self.rootFile, realName)
+        
+        # Important to use '==' instead of 'is', because null TObject == None, but is not None
+        if o == None:
+            self.Print("Unable to find object '%s' (requested '%s') from file '%s'" % (realName, name, self.rootFile.GetName()) )
+        ret.append(o)
+        return (ret, realName)
+    
+    
+    def _TranslateName(self, name, analysisPostfix=""):
+        '''
+        '''
+        self.Verbose("Translating name '%s' with analysisPostFix '%s'" % (name, analysisPostfix))
+
+        ret = ""
+        
+        if len(name) > 0 and name[0] == '/':
+            ret = name[1:]
+            return ret
+        else:
+            #ret = self._analysisDirectoryName
+            if analysisPostfix != "":
+                ret = ret.replace("/", analysisPostfix+"/")
+            
+            ret += name
+            
+            if ret[-1] == "/":
+                return ret[0:-1]
+            return ret
+
+        
+    def _GetBinNumberFromBinLabel(self, histo, binLabel):
+        '''
+        '''
+        self.Verbose()
+
+        if not isinstance(histo, ROOT.TH1):
+            self.Print("ERROR! The histo parameter provided (%s) is not an instance ROOT.TH1. The bin number of bin '%s' cannot be found. EXIT" % (histo, binLabel))
+            sys.exit()
+
+        binNumber = None
+        nBinsX    = histo.GetNbinsX()
+        for i in range(nBinsX):
+            label = histo.GetXaxis().GetBinLabel(i) #xenios 
+            if label == binLabel:
+                binNumber =  i
+                break
+        if binNumber == None:
+            self.Print("ERROR! Could not find bin with label %s in histogram %s. EXIT" % (binLabel, histo.GetName()))
+            sys.exit()
+        return binNumber
+                    
+    
+    def _ReadCounters(self):
+        '''
+        TDirectory name containing the counters, relative to the analysis directory (default: analysisDirectory+'/counters')")
+          
+        # Read unweighted counters
+        # The unweighted counters are allowed to not exist unless
+        # weightedCounters are also enabled
+
+        '''
+        counterDir = self.analysisName
+        normalizationCheckStatus = True
+        
+        counterPath = counterDir + "/counters/counter"        
+        (counter, realName) = self.GetRootHisto(counterPath)
+
+        # Convert the counter histogram (TH1) to a list of (name, count) pairs
+        countObject = self.auxObject.ConvertHistoToCounter(counter)
+
+        # First counter (index 0), second element (index 1) of the tuple      
+        self.unweightedEvents = countObject[0][1].value()
+
+        
+        # Useful in case of trouble
+        if not self.verbose:
+            self.Print("Printing contents of counter '%s' in ROOT file '%s'" % (counterPath, self.GetRootFile().GetName()))
+            for i, c in enumerate(counter): 
+                if i == len(counter)-2: #why?
+                    break
+                print "\t'%s' has %s entries" % (countObject[i][0], countObject[i][1].value())
+
+                
+        # Check normalization from weighted counters
+        counterPath = counterDir + "/counters/weighted/counter"
+        (counter, realName) = self.GetRootHisto(counterPath)
+
+        print "-> here "
+        allEventsBin = self._GetBinNumberFromBinLabel(histo=counter, binLabel="Base::AllEvents")
+        print "allEventsBin = ", allEventsBin
+        print "counter.GetBinContent(allEventsBin) = ", counter.GetBinContent(allEventsBin+1)
+        if counter.GetBinContent(allEventsBin) < counter.GetBinContent(allEventsBin+1):
+            normalizationCheckStatus = False
+
+        if not normalizationCheckStatus:
+            raise Exception("Error: dset=%s: Unweighted skimcounter is smaller than all events counter of analysis!" % self.name)
+
+        self.weightedEvents = None
+        self.allEvents      = self.unweightedEvents
+
+        # Read weighted counters           
+        if 1:#self._weightedCounters:
+            counterDir = self.analysisName + "/weighted"
+            (counter, realName) = self.GetRootHisto(counterDir+"/counter")
+            countObject = self.auxObject.ConvertHistoToCounter(counter)
+            self.weightedEvents = countObject[0][1].value() # first counter, second element of the tuple
+            self.allEvents = self.nAllEventsWeighted
+            #except e:
+            #    raise Exception("Could not find counter histogram, message: %s" % str(e))
+        return
+
+
     def PrintProperties(self):
         '''
         Prints the object's most important properties
@@ -370,18 +570,19 @@ class DatasetManager:
     map for convenient access by dataset name.
     
     '''
-    def __init__(self, baseDir, verbose=False):
+    def __init__(self, baseDir, analysisName, verbose=False):
         '''
         The parameter "baseDir" is the (multicrab) directory (absolute or relative to the cwd) 
         where the luminosity JSON file is located (see self.LoadLuminosities())
         
         DatasetManager is constructed as empty
         '''
-        self.verbose    = []
-        self.intLumi    = 0
-        self.datasets   = []
-        self.datasetMap = {}
-        self.mcrab      = multicrab.Multicrab(verbose)
+        self.verbose      = []
+        self.intLumi      = 0
+        self.datasets     = []
+        self.datasetMap   = {}
+        self.mcrab        = multicrab.Multicrab(verbose)
+        self.analysisName = analysisName
         self._SetBaseDirectory(baseDir)
         self._AppendDatasets(baseDir)
         return
@@ -463,7 +664,7 @@ class DatasetManager:
         self.Print("Appending %s datasets found under directory %s" % (len(datasetNames), baseDir))
         for dName in datasetNames:
             rootFile      = self.mcrab.GetDatasetRootFile(baseDir, dName)
-            datasetObject = Dataset(baseDir, dName, rootFile, self.verbose)
+            datasetObject = Dataset(baseDir, dName, self.analysisName, rootFile, self.verbose)            
             self.Append(datasetObject)
         return
 
@@ -604,8 +805,37 @@ class DatasetManager:
         '''
         self.Verbose()
         return self.datasets
+        
 
+    def _GetUnweightedEvents(self): #xenios
+        '''
+        '''        
+        self.Verbose()
+        return -1
+
+
+    def _GetWeightedEvents(self): #xenios
+        '''
+        '''        
+        self.Verbose()    
+        if not self.isMC():
+            return
+
+        ratio = 1.0
     
+        if self.isPileupReweighted:
+            delta = (self.pileupWeight - self.unweightedEvents) / self.unweightedEvents
+            ratio = ratio * self.pileupWeight / self.unweightedEvents
+            self.Print("Dataset (%s): Updated NAllEvents to pileUpReweighted NAllEvents, change: %0.6f %%" % (self.getName(), delta*100.0) )
+
+        if self.isTopPtReweighted:
+            delta = (self.topPtReweighted - self.unweightedEvents) / self.unweightedEvents
+            self.Print("Dataset (%s): Updated NAllEvents to isTopPtReweighted NAllEvents, change: %0.6f %%"%(self.getName(), delta*100.0) )
+            ratio = ratio * self.topPtWeight / self.unweightedEvents
+        weightedEvents = ratio * self.unweightedEvents
+        return weightedEvents    
+        
+
     def GetMCDatasets(self):
         '''
         Get a list of MC dataset.Dataset objects.
@@ -952,7 +1182,7 @@ class DatasetManager:
         
         # For-loop: All datasets
         for dataset in self.datasets:
-            dataset.updateNAllEventsToPUWeighted(**kwargs)
+            dataset.UpdateNAllEventsToPUWeighted(**kwargs)
         #self.printInfo()
         return
 
@@ -980,42 +1210,23 @@ class DatasetManager:
         Format dataset information
         '''
         self.Verbose()
-        out = StringIO.StringIO()
-        col1hdr = "Dataset"
-        col2hdr = "Cross section (pb)"
-        col3hdr = "Norm. factor"
-        col4hdr = "Int. lumi (pb^-1)" 
 
-        maxlen = max([len(x.GetName()) for x in self.datasets]+[len(col1hdr)])
-        c1fmt = "%%-%ds" % (maxlen+2)
-        c2fmt = "%%%d.4g" % (len(col2hdr)+2)
-        c3fmt = "%%%d.4g" % (len(col3hdr)+2)
-        c4fmt = "%%%d.10g" % (len(col4hdr)+2)
-
-        c2skip = " "*(len(col2hdr)+2)
-        c3skip = " "*(len(col3hdr)+2)
-        c4skip = " "*(len(col4hdr)+2)
-
-        out.write((c1fmt%col1hdr)+"  "+col2hdr+"  "+col3hdr+"  "+col4hdr+"\n")
-
-        # For-loop: All datasets
+        rows   = []
+        info   = []
+        header = "{:<40} {:>20} {:>20} {:>20}".format("Dataset", "Cross-Section (pb)", "Int. Lumi (1/pb)", "Norm. Factor")
+        hLine  = "="*len(header)
+        info.append(hLine)
+        info.append(header)
+        info.append(hLine)
         for dataset in self.datasets:
-            line = (c1fmt % dataset.GetName())
-            if dataset.GetIsMC():
-                line += c2fmt % dataset.GetXSection()
-                normFactor = 0# dataset.getNormFactor()
-                if normFactor != None:
-                    line += c3fmt % normFactor
-                else:
-                    line += c3skip
-            else:
-                line += c2skip+c3skip + c4fmt%dataset.GetLuminosity()
-            out.write(line)
-            out.write("\n")
-
-        ret = out.getvalue()
-        out.close()
-        return ret
+            name = dataset.GetName()
+            xsec = dataset.GetXSection()
+            lumi = dataset.GetLuminosity()
+            norm = 0.0 #dataset.GetNormFactor()
+            line  = "{:<40} {:>20} {:>20} {:>20}".format(name, xsec, lumi, norm)
+            info.append(line)
+        info.append(hLine)
+        return info
 
     
     def PrintInfo(self):
@@ -1023,7 +1234,8 @@ class DatasetManager:
         Print dataset information.
         '''
         self.Verbose()
-        print self.FormatInfo()
+        for row in self.FormatInfo():
+            print row
         return
     
         

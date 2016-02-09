@@ -16,7 +16,7 @@ import ROOT
 
 
 #================================================================================================
-# Define class here
+# Class Definition
 #================================================================================================
 class AuxClass(object): 
     def __init__(self, verbose=False):
@@ -90,8 +90,8 @@ class AuxClass(object):
 
         This one seems to save quite a lot of "garbage collection" time
         '''
-        self.Verbose()
-        
+        self.Verbose("Getting %s from %s" % (name, tdir.GetName()))
+
         o = tdir.Get(name)
         if o == None:
             return o
@@ -344,11 +344,175 @@ class AuxClass(object):
         next(b, None)
         return izip(a, b)
 
+
+    def ConvertHistoToCounter(self, histo):
+        '''
+        Transform histogram (TH1) to a list of (name, Count) pairs.
+        The name is taken from the x axis label and the count is Count object with value and (statistical) uncertainty.        
+        '''
+        self.Verbose()
+
+        if not isinstance(histo, ROOT.TH1):
+            self.Print("The 'histo' parameter provided (%s) is not an instance of ROOT.TH1. EXIT" % (histo) )
+            sys.exit()
+            
+        ret    = []
+        nBinsX = histo.GetNbinsX()+1;
+        for bin in xrange(1, nBinsX):            
+            name        = histo.GetXaxis().GetBinLabel(bin)
+            countObject = Count(float(histo.GetBinContent(bin)), float(histo.GetBinError(bin)))
+            ret.append( (name, countObject) )
+            
+        return ret
+
+
+#================================================================================================
+# Class Definition
+#================================================================================================
+class Count:
+    '''
+    Represents counter count value with uncertainty.
+    '''
+    def __init__(self, value, uncertainty=0.0, systUncertainty=0.0, verbose=False):
+        '''
+        Constructor
+        '''
+        self.verbose          = verbose
+        self._value           = value
+        self._uncertainty     = uncertainty
+        self._systUncertainty = systUncertainty
+        self.Verbose()
+        return
+
+
+    def Verbose(self, message=""):
+        '''
+        Custome made verbose system. Will print all messages in the messageList
+        only if the verbosity boolean is set to true.
+        '''
+        if not self.verbose:
+            return
         
+        print "%s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+        print "\t", message
+        return
+
+
+    def Print(self, message=""):
+        '''
+        Custome made print system. Will print the message even if the verbosity boolean is set to false.
+        '''
+        print "*** %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+        print "\t", message
+        return
+
+    
+    def PrintList(self, messageList=[""]):
+        '''
+        Custome made print system. Will print all messages in the messageList even if the verbosity boolean is set to false.
+        '''        
+        for counter, message in enumerate(messageList):
+            if counter == 0:
+                self.Print(message)
+            else:
+                print "\t", message
+        return
+
+
+    def SetVerbose(self, verbose):
+        '''
+        Manually enable/disable verbosity.
+        '''
+        self.verbose = verbose
+        return
+
+    
+    def copy(self):
+        self.Verbose()
+        return Count(self._value, self._uncertainty, self._systUncertainty)
+
+
+    def clone(self):
+        self.Verbose()
+        return self.copy()
+
+    
+    def value(self):
+        self.Verbose()
+        return self._value
+
+    
+    def uncertainty(self):
+        self.Verbose()
+        return self._uncertainty
+
+    
+    def uncertaintyLow(self):
+        self.Verbose()
+        return self.uncertainty()
+
+    
+    def uncertaintyHigh(self):
+        self.Verbose()
+        return self.uncertainty()
+
+    
+    def systUncertainty(self):
+        self.Verbose()
+        return self._systUncertainty
+
+    
+    def add(self, count):
+        self.Verbose()
+        
+        self._value += count._value
+        self._uncertainty = math.sqrt(self._uncertainty**2 + count._uncertainty**2)
+        self._systUncertainty = math.sqrt(self._systUncertainty**2 + count._systUncertainty**2)
+        return
+
+    
+    ## self = self - count
+    def subtract(self, count):
+        self.Verbose()
+        
+        self.add(Count(-count._value, count._uncertainty, count._systUncertainty))
+        return
+        
+
+    ## self = self * count
+    def multiply(self, count):
+        '''
+        '''
+        self.Verbose()
+
+        self._systUncertainty = math.sqrt( (count._value * self._systUncertainty)**2 +
+                                       (self._value  * count._systUncertainty)**2 )
+        self._uncertainty = math.sqrt( (count._value * self._uncertainty)**2 +
+                                       (self._value  * count._uncertainty)**2 )
+        self._value = self._value * count._value
+        return
+
+    
+    ## self = self / count
+    def divide(self, count):
+        '''
+        '''
+        self.Verbose()
+        
+        self._systUncertainty = math.sqrt( (self._systUncertainty / count._value)**2 +
+                                       (self._value*count._systUncertainty / (count._value**2) )**2 )
+        self._uncertainty = math.sqrt( (self._uncertainty / count._value)**2 +
+                                       (self._value*count._uncertainty / (count._value**2) )**2 )
+        self._value = self._value / count._value
+        return
+        
+
 #================================================================================================
 # Function Definitions
 #================================================================================================
 def format(value, maxDecimals):
+    '''
+    '''
     if type(value)==float:
         return str( round( value , maxDecimals) )
     elif type(value)==int:
@@ -356,3 +520,5 @@ def format(value, maxDecimals):
     else:
         raise Exception("ERROR! A float or int is required but got a '%s' instead with value '%s'" % (type(value), value))
         return str(value)
+
+    

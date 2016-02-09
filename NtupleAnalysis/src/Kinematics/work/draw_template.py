@@ -41,6 +41,7 @@ batchMode     = False
 ratio         = True
 #intLumi       = 2.26 #fb-1
 folder        = "Kinematics"
+analysis      = folder
 saveFormats   = ["png"]
 savePath      = ""
 #pi = 4*math.atan(1)
@@ -130,15 +131,15 @@ def main():
     histoList      = [PassedElectronsPt, AllElectronsPt]
 
     # Datasets
-    datasetManager = dataset.DatasetManager(opts.mcrab)
+    datasetManager = dataset.DatasetManager(opts.mcrab, analysis)
     datasetManager.LoadLuminosities("lumi.json")
     datasetObjects = datasetManager.GetMCDatasets() # datasetObjects = datasetManager.GetAllDatasets
     datasetManager.SetLuminosityForMC( datasetManager.GetLuminosity() )
     intLumi        = datasetManager.GetLuminosityString("fb")
-    #datasetManager.PrintInfo()
+    datasetManager.PrintInfo()
     #datasetManager.
-    for d in datasetObjects:
-        d.PrintProperties()
+    #for d in datasetObjects:
+    #    d.PrintProperties()
     
     # Histos
     for h in histoList:
