@@ -680,12 +680,13 @@ class DatasetManager:
             else:
                 data = json.load(open(jsonName))
                 for name, value in data.iteritems():
+                    self.Print("Dataset %s has luminosity %s pb" % (name, value)
                     if self.HasDataset(name):
                         self.GetDataset(name).SetLuminosity(value)
                         self.intLumi = value
 
         self.Print("Luminosity is %s pb" % (self.intLumi) )
-        return self.intLumi
+        return
 
 
                     
