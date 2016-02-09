@@ -194,6 +194,9 @@ class Plotter(object):
         
         ## Map dataset to Latex name
         self.Datasets.append(dataset)
+
+        if self.verbose:
+            dataset.PrintProperties()
         return
 
 
@@ -239,7 +242,9 @@ class Plotter(object):
         # Add the time in the canvas name to avoid memory duplicates when handling the same histos. Truncate "@time" when saving canvas
         canvasName =  canvasName + "@" + str(time.time())
         self.TCanvas = ROOT.TCanvas( canvasName, canvasName, 1)
-        time.sleep(0.01) #to avoid getting the same time (canvas/histo overwrite)
+
+        # Avoid getting the same time (canvas/histo overwrite)
+        time.sleep(0.01)
 
         self._SetLogAxesCanvas()
         self.TCanvas.cd()
@@ -858,18 +863,10 @@ class Plotter(object):
         else:
             hPath = hObject.path + "/" + hObject.name
 
-        self.isTH1 = isinstance( rootFile.Get(hPath), ROOT.TH1F)
-        self.isTH2 = isinstance( rootFile.Get(hPath), ROOT.TH2D)
-
-        if not self.isTH1 and not self.isTH2:
+        self.isTH1 = isinstance( rootFile.Get(hPath), ROOT.TH1F) or isinstance( rootFile.Get(hPath), ROOT.TH1D)
+        self.isTH2 = isinstance( rootFile.Get(hPath), ROOT.TH2F) or isinstance( rootFile.Get(hPath), ROOT.TH2D)
+        if  not self.isTH1 and not self.isTH2:
             raise Exception( "Could not find histo object '%s' in TFile '%s' under folder '%s'." % (hObject.name, rootFile.GetName(), hObject.path) )
-        else:
-            msg  = " {:<20} {:<20}".format("File", ": " + rootFile.GetName())
-            msg += "\n\t {:<20} {:<20}".format("Histo", ": " + hPath)
-            msg += "\n\t {:<20} {:<20}".format("IsTH1", ": " + str( self.isTH1) )
-            msg += "\n\t {:<20} {:<20}".format("IsTH2", ": " + str( self.isTH2) )
-            self.Print(msg)
-            return
 
         return
 

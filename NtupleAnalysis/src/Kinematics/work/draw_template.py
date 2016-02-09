@@ -22,7 +22,7 @@ import numpy
 import math
 from optparse import OptionParser
 
-import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.multicrab as multicrab
+#
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.dataset as dataset
 #import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.crossSection as crossSection
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.plotter as plotter
@@ -36,11 +36,11 @@ from UCYHiggsAnalysis.NtupleAnalysis.pyROOT.crossSection import xSections
 #================================================================================================
 # General Settings
 #================================================================================================
-verbose       = True
+verbose       = False
 batchMode     = False
 ratio         = True
 energy        = "13"
-intLumi       = "2.26 fb^{-1}"
+#intLumi       = 2.26 #fb-1
 folder        = "Kinematics"
 saveFormats   = ["png"]
 savePath      = ""
@@ -66,14 +66,15 @@ Pt = {
     "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00, "xMax": ptMax, "binWidthX": None, "xCutLines": [], "xCutBoxes": [], "gridX": True, "logX": False, 
     "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E00, "yMax": None , "binWidthY": None, "yCutLines": [], "yCutBoxes": [], "gridY": True, "logY": True , 
     "ratioLabel": "Ratio", "ratio": False, "invRatio": False, "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "normaliseTo": ""  , "drawOptions": "HIST", "legOptions": "FL",
-    "logYRatio": False, "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
+    "logYRatio": False, "logXRatio": False, "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
 }
 
 Eta = {
     "xLabel": "#eta"           , "xUnits": ""     , "xMin": -etaMax , "xMax": +etaMax, "binWidthX": None, "xCutLines": [0], "gridX": True, "logX": False, "xCutBoxes": [],  
     "yLabel": "Entries / %0.2f", "yUnits": ""     , "yMin": +1e00   , "yMax": None   , "binWidthY": None, "yCutLines": [] , "gridY": True, "logY": True , "yCutBoxes": [],  
     "ratioLabel": "Ratio"      , "ratio": False   , "invRatio": False, "yMinRatio": 1e-01, "yMaxRatio": 2.15 , "normaliseTo": "", "drawOptions": "P", "legOptions": "LP", 
-    "logYRatio": False, "logXRatio": False, "xLegMin": 0.18, "xLegMax": 0.4, "yLegMin": 0.80, "yLegMax": 0.90, "xCutBoxes": [[-1.0, -1.6, ROOT.kBlue], [+1.0, +1.6, ROOT.kBlue]]
+    "xCutBoxes": [[-1.0, -1.6, ROOT.kBlue], [+1.0, +1.6, ROOT.kBlue]], "yCutBoxes": [],
+    "logYRatio": False, "logXRatio": False, "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
 }
 
 
@@ -91,7 +92,7 @@ AllElectronsEta     = histos.TH1orTH2( folder, "PassedElectronsPt", "all"   , No
 #================================================================================================
 # Function Definition
 #================================================================================================
-def DoPlots(histo, datasetObjects, bColourPalette=False, saveExt=""):
+def DoPlots(histo, datasetObjects, intLumi, bColourPalette=False, saveExt=""):
 
     p = plotter.Plotter(verbose, batchMode)
     p.SetupRoot()
@@ -125,21 +126,19 @@ def main():
     '''
     '''
 
-    args         = {}
+    args           = {}
     datasetObjects = []
-    histoList    = [PassedElectronsPt, AllElectronsPt]
-    mcrab        = multicrab.Multicrab(verbose=False)
-    datasetNames = mcrab.GetDatasetsFromMulticrabDir(opts.mcrab, **args)
-    
-    for dName in datasetNames:
-        rootFile = mcrab.GetDatasetRootFile(opts.mcrab, dName)
-        dObject  = dataset.Dataset(dName, energy, rootFile, verbose=False, **args)
-        datasetObjects.append(dObject)
-        dObject.PrintProperties()    
+    histoList      = [PassedElectronsPt, AllElectronsPt]
 
+    # Datasets
+    datasetManager = dataset.DatasetManager(opts.mcrab, energy, -1)
+    datasetManager.LoadLuminosities("lumi.json")
+    datasetObjects = datasetManager.GetAllDatasets()
+    intLumi        = datasetManager.GetLuminosityString("fb")
 
+    # Histos
     for h in histoList:
-        DoPlots( h, datasetObjects, False )
+        DoPlots( h, datasetObjects, intLumi, False )
         break
 #    DoPlots( histoList, datasetObjects, False )
 
