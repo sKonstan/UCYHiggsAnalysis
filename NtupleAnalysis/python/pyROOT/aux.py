@@ -20,7 +20,7 @@ import ROOT
 #================================================================================================
 class AuxClass(object): 
     def __init__(self, verbose=False):
-        self.bVerbose = verbose
+        self.verbose = verbose
 
     def Verbose(self, message=""):
         '''
@@ -81,6 +81,25 @@ class AuxClass(object):
         else:
             pass
         return myKey
+
+
+
+    def Get(self, tdir, name):
+        '''
+        http://root.cern.ch/phpBB3/viewtopic.php?f=14&t=15496
+
+        This one seems to save quite a lot of "garbage collection" time
+        '''
+        self.Verbose()
+        
+        o = tdir.Get(name)
+        if o == None:
+            return o
+        
+        ROOT.SetOwnership(o, True)
+        if hasattr(o, "SetDirectory"):
+            o.SetDirectory(0)
+        return o
 
 
     def Divide(self, numerator, denominator):

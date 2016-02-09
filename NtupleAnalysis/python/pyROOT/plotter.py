@@ -56,7 +56,6 @@ class Plotter(object):
         self.includeSTack      = False
         self.invPadRatio      = False
         self.padRatio          = False
-        self.pileUp            = None
         self.ratioErrorType    = None
         self.startTime         = time.time()        
         self.styleObject       = styles.StyleClass(verbose)
@@ -183,20 +182,10 @@ class Plotter(object):
         '''
         Add a new dataset and associate it to a root file.
         '''
-        self.Verbose("Adding dataset %s from file %s." % (dataset.name, dataset.rootFile.GetName()))
-        self.Print("FIXME")
-        
-        ## Get the Pile Up
-        #self.GetPileUp(dataset)
-                
-        ## Map dataset to ROOT file, append dataset (name) to datasetlist, append ROOT file (name) to TFile list
-        #self.DatasetToRootFileMap[dataset]  = rootFile
-        
-        ## Map dataset to Latex name
-        self.Datasets.append(dataset)
-
+        self.Verbose()
         if self.verbose:
             dataset.PrintProperties()
+        self.Datasets.append(dataset)
         return
 
 
@@ -210,18 +199,7 @@ class Plotter(object):
             self.Verbose("Adding dataset %s from file %s." % (d.name, d.rootFile.GetName()))
             self.AddDataset(d)
         return
-
-    
-    def GetPileUp(self, dataset):
-        '''
-        '''
-        self.Vertbose()
-        if self.pileUp == None:
-            self.pileUp = 140
-            self.Print("FIXME")
-            return
-        return
-        
+            
 
     def _CreateCanvas(self):
         '''
@@ -676,13 +654,13 @@ class Plotter(object):
         '''
         self.Verbose()
 
-        msg  = " {:<15} {:<20}".format("Dataset"            , ": " + histo.dataset.name)
-        msg += "\n\t {:<15} {:<20}".format("File"           , ": " + histo.TFileName)
-        msg += "\n\t {:<15} {:<20}".format("HistoPath"      , ": " + histo.path)
-        msg += "\n\t {:<15} {:<20}".format("HistoName"      , ": " + histo.name)
-        msg += "\n\t {:<15} {:<20}".format("Integral()"     , ": " + str(histo.rangeIntegral))
-        msg += "\n\t {:<15} {:<20}".format("Integral(0, -1)", ": " + str(histo.integral))
-        msg += "\n\t {:<15} {:<20}".format("normaliseTo"    , ": " + histo.normaliseTo)
+        msg  = "{:<15} {:<20}".format("Dataset"            , ": " + histo.dataset.name)
+        msg += "\n\t{:<15} {:<20}".format("File"           , ": " + histo.TFileName)
+        msg += "\n\t{:<15} {:<20}".format("HistoPath"      , ": " + histo.path)
+        msg += "\n\t{:<15} {:<20}".format("HistoName"      , ": " + histo.name)
+        msg += "\n\t{:<15} {:<20}".format("Integral()"     , ": " + str(histo.rangeIntegral))
+        msg += "\n\t{:<15} {:<20}".format("Integral(0, -1)", ": " + str(histo.integral))
+        msg += "\n\t{:<15} {:<20}".format("normaliseTo"    , ": " + histo.normaliseTo)
 
         if histo.TH1orTH2.Integral() == 0:
             self.Print(msg)
@@ -1014,7 +992,6 @@ class Plotter(object):
         self._CustomiseStack()
         #self.THStack.Draw("same")             #new: needed when drawing cut-boxes
         #self.TLegend.Draw("same")             #new: needed when drawing cut-boxes
-        #self.AddPreliminaryText()             #new: needed when drawing cut-boxes
         self.THDumbie.TH1orTH2.Draw("same")
         return
 
@@ -1305,7 +1282,6 @@ class Plotter(object):
         self.DrawStackInclusive()
         self.THStack.Draw(THStackDrawOpt + "," + self.THDumbie.drawOptions + "," +  "9same") #"PADS"
         ROOT.gPad.RedrawAxis() #the histo fill area may hide the axis tick marks. Force a redraw of the axis over all the histograms.
-        # self.AddPreliminaryText()
         self.TCanvas.Update()
         self.TCanvas.SetGridx(self.THDumbie.gridX)
         self.TCanvas.SetGridy(self.THDumbie.gridY)
@@ -1668,8 +1644,8 @@ class Plotter(object):
         # Define path and save
         saveName = savePath + self.TCanvas.GetName().rsplit('@', 1)[0] + saveExtension
 
-        msg  = " {:<15} {:<15}".format("SaveName" , ": " + saveName)
-        msg  += "\n\t {:<15} {:<15}".format("Format(s)", ": " + ", ".join(saveFormats) )
+        msg  = "{:<15} {:<15}".format("SaveName" , ": " + saveName)
+        msg  += "\n\t{:<15} {:<15}".format("Format(s)", ": " + ", ".join(saveFormats) )
         self.Print(msg)
         for ext in saveFormats:
             self.TCanvas.Update()

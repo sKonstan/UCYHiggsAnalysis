@@ -39,7 +39,6 @@ from UCYHiggsAnalysis.NtupleAnalysis.pyROOT.crossSection import xSections
 verbose       = False
 batchMode     = False
 ratio         = True
-energy        = "13"
 #intLumi       = 2.26 #fb-1
 folder        = "Kinematics"
 saveFormats   = ["png"]
@@ -126,16 +125,21 @@ def main():
     '''
     '''
 
+    # Variables
     args           = {}
-    datasetObjects = []
     histoList      = [PassedElectronsPt, AllElectronsPt]
 
     # Datasets
-    datasetManager = dataset.DatasetManager(opts.mcrab, energy, -1)
+    datasetManager = dataset.DatasetManager(opts.mcrab)
     datasetManager.LoadLuminosities("lumi.json")
-    datasetObjects = datasetManager.GetAllDatasets()
+    datasetObjects = datasetManager.GetMCDatasets() # datasetObjects = datasetManager.GetAllDatasets
+    datasetManager.SetLuminosityForMC( datasetManager.GetLuminosity() )
     intLumi        = datasetManager.GetLuminosityString("fb")
-
+    #datasetManager.PrintInfo()
+    #datasetManager.
+    for d in datasetObjects:
+        d.PrintProperties()
+    
     # Histos
     for h in histoList:
         DoPlots( h, datasetObjects, intLumi, False )

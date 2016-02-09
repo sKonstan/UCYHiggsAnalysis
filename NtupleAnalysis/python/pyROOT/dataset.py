@@ -9,11 +9,13 @@ import inspect
 import glob
 from optparse import OptionParser
 from itertools import cycle
+import StringIO
 
 import ROOT
 
 from UCYHiggsAnalysis.NtupleAnalysis.pyROOT.crossSection import xSections
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.multicrab as multicrab
+import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.aux as aux
 
 
 #================================================================================================
@@ -34,17 +36,27 @@ latexNamesDict["MuonEG_246908_260426_25ns_Silver"]= "Data"
 # Class Definition
 #================================================================================================
 class Dataset(object):
-    def __init__(self, baseDir, name, energy, rootFile, intLumi, verbose = False, **args):
-        self.verbose     = verbose
-        self.name        = name
-        self.baseDir     = baseDir
-        self.latexName   = latexNamesDict[name]
-        self.rootFile    = rootFile
-        self.histo       = None
-        self.lumi        = intLumi
-        self.energy      = energy
-        self.xsection    = xSections.crossSection(name, energy)
-        self.args        = args
+    def __init__(self, baseDir, name, rootFile, verbose = False, **args):
+        self.verbose            = verbose
+        self.auxObject          = aux.AuxClass(verbose)
+        self.name               = name
+        self.baseDir            = baseDir
+        self.latexName          = latexNamesDict[name]
+        self.rootFile           = rootFile
+        self.histo              = None
+        self.lumi               = 0
+        self.args               = args
+        self.info               = self._GetInfo()
+        self.dataVersion        = self._GetDataVersion()
+        self.energy             = self._GetEnergy()
+        self.xsection           = self._GetXSection()
+        self.isData             = self._IsData()
+        self.isPseudo           = self._IsPseudo()
+        self.isMC               = self._IsMC()
+        self.isPileupReweighted = self._IsPileUpReweighted()
+        self.isTopPtReweighted  = self._IsTopPtReweighted()
+        self.pileupWeight       = self._GetPileUpWeight()
+        self.topPtWeight        = self._GetTopPtWeight()
         self.Verbose()
         return
 
@@ -92,16 +104,196 @@ class Dataset(object):
         return
 
 
+    def _GetDataVersion(self):
+        '''
+        '''
+        self.Verbose()
+        dataVersion = self.auxObject.Get(self.rootFile, "configInfo/dataVersion")
+        return dataVersion.GetTitle()
+
+
+    def _GetInfo(self):
+        '''
+        '''
+        self.Verbose()
+        configInfo = self.auxObject.Get(self.rootFile, "configInfo")
+        if configInfo == None:
+            self.Print("ERROR! configInfo directory is missing from file %s. EXIT" % self.rootFile.GetName())
+            sys.exit()
+            
+        info    = self.auxObject.Get(configInfo, "configinfo")
+        return info
+
+    
+    def _GetXSection(self):
+        '''
+        '''
+        self.Verbose()
+        return xSections.crossSection(self.name, "%0.0f" % (self.energy))
+        
+
+    def _GetEnergy(self):
+        '''
+        '''
+        energy  = -1
+        control = -1
+        nBinsX  = self.info.GetNbinsX()
+        for i in range(0, nBinsX):
+            if (self.info.GetXaxis().GetBinLabel(i) == "energy"):
+                energyVal = self.info.GetBinContent(i)
+            if (self.info.GetXaxis().GetBinLabel(i) == "control"):
+                controlVal = self.info.GetBinContent(i)
+
+        energy = energyVal/controlVal
+        return energy
+
+    
+    def _IsPileUpReweighted(self):
+        '''
+        '''
+        self.Verbose()
+        if "isPileupReweighted" in self.info and self.info["isPileupReweighted"]:
+            return True
+        else:
+            return False
+
+
+    def _GetPileUpWeight(self):
+        '''
+        '''
+        self.Verbose()
+        if self.isPileupReweighted:
+            return self.info["isPileupReweighted"]
+        else:
+            return 1.0
+
+
+    def GetPileUpWeight(self):
+        '''
+        '''
+        self.Verbose()
+        return self.pileupWeight
+        
+        
+    def _IsTopPtReweighted(self):
+        '''
+        '''
+        self.Verbose()
+        if "isTopPtReweighted" in self.info and self.info["isTopPtReweighted"]:
+            return True
+        else:
+            return False
+
+
+    def _GetTopPtWeight(self):
+        '''
+        '''
+        self.Verbose()
+        if self.isPileupReweighted:
+            return self.info["isTopPtReweighted"]
+        else:
+            return 1.0
+            
+
+    def GetTopPtWeight(self):
+        '''
+        '''
+        self.Verbose()
+        return self.topPtWeight
+
+    
+    def GetIsPileupReweighted(self):
+        '''
+        '''
+        self.Verbose()
+        return self.isPileupReweighted
+
+
+    def GetIsTopPtReweighted(self):
+        '''
+        '''
+        self.Verbose()
+        return self.isTopPtReweighted
+
+    
+    def GetDataVersion(self):
+        '''
+        '''
+        self.Verbose()
+        return self.dataVersion
+    
+
+    def _IsData(self):
+        '''
+        '''
+        self.Verbose()
+
+        isData = "data" in self.dataVersion
+        return isData
+
+
+    def GetIsData(self):
+        '''
+        '''
+        self.Verbose()
+        return self.isData
+    
+
+    def _IsMC(self):
+        '''
+        '''
+        self.Verbose()
+
+        isData    = "data" in self.dataVersion
+        isPseudo  = "pseudo" in self.dataVersion
+        
+        isMC      = not (isData or isPseudo)
+        return isMC
+
+
+    def GetIsMC(self):
+        '''
+        '''
+        self.Verbose()
+        return self.isMC
+
+    
+    def _IsPseudo(self):
+        '''
+        '''
+        self.Verbose()
+
+        isPseudo = "pseudo" in self.dataVersion
+        return isPseudo
+
+    
+    def GetIsPseudo(self):
+        '''
+        '''
+        self.Verbose()
+        return self.isPseudo
+
+    
     def SetEnergy(self, energy):
         self.Verbose()
         self.energy   = energy
         self.xsection = xSections.crossSection(self.name, energy)
         return
 
+    def GetEnergy(self):
+        self.Verbose()
+        return self.energy
+        return
+    
 
     def SetLuminosity(self, lumi):
         self.Verbose()
         self.lumi = lumi
+        return
+
+    def GetLuminosity(self):
+        self.Verbose()
+        return self.lumi
         return
     
         
@@ -112,11 +304,33 @@ class Dataset(object):
 
 
     def GetLatexName(self):
+        self.Verbose()
         return self.latexName
 
     
-    def GetName(self):
+    def GetName(self):    
+        self.Verbose()
         return self.name
+
+
+    def GetXSection(self):    
+        self.Verbose()
+        return self.xsection
+
+
+    def GetHisto(self):    
+        self.Verbose()
+        return self.histo
+    
+    
+    def GetBaseDir(self):
+        self.Verbose()
+        return self.baseDir
+
+    
+    def GetRootFile(self):
+        self.Verbose()
+        return self.rootFile
 
     
     def PrintProperties(self):
@@ -124,11 +338,23 @@ class Dataset(object):
         Prints the object's most important properties
         '''
         self.Verbose()
-        msg  = " {:<20} {:<20}".format("Name"                   , ": " + self.name)
-        msg += "\n\t {:<20} {:<20}".format("ROOT"              , ": " + self.rootFile.GetName())
-        msg += "\n\t {:<20} {:<20}".format("Cross-Section (pb)", ": " + str(self.xsection) )
-        msg += "\n\t {:<20} {:<20}".format("Energy (TeV)"      , ": " + self.energy)
-
+        msg  = "{:<20} {:<20}".format("Name "                   , ": " + self.GetName() + " (" + self.GetLatexName() + ")" )
+        msg += "\n\t{:<20} {:<20}".format("Base Directory"      , ": " + self.GetBaseDir() )
+        msg += "\n\t{:<20} {:<20}".format("ROOT"                , ": " + self.GetRootFile().GetName() )
+        msg += "\n\t{:<20} {:<20}".format("Cross-Section (pb)"  , ": " + str(self.GetXSection()) )
+        msg += "\n\t{:<20} {:<20}".format("Energy (TeV)"        , ": " + str(self.GetEnergy()) )
+        msg += "\n\t{:<20} {:<20}".format("Luminosity (1/pb)"   , ": " + str(self.GetLuminosity()) )
+        msg += "\n\t{:<20} {:<20}".format("Data Version"        , ": " + str(self.GetDataVersion()) )
+        msg += "\n\t{:<20} {:<20}".format("Is MC"               , ": " + str(self.GetIsMC()) )
+        msg += "\n\t{:<20} {:<20}".format("Is Data"             , ": " + str(self.GetIsData()) )
+        msg += "\n\t{:<20} {:<20}".format("Is Pseudo"           , ": " + str(self.GetIsPseudo()) )
+        msg += "\n\t{:<20} {:<20}".format("Is PU Reweighted"    , ": " + str(self.GetIsPileupReweighted()) )
+        msg += "\n\t{:<20} {:<20}".format("Is TopPt Reweighted" , ": " + str(self.GetIsTopPtReweighted()) )
+        msg += "\n\t{:<20} {:<20}".format("Is PU Reweighted"    , ": " + str(self.GetIsPileupReweighted())  + " (" + str(self.GetPileUpWeight()) + ")" )
+        msg += "\n\t{:<20} {:<20}".format("Is TopPt Reweighted" , ": " + str(self.GetIsTopPtReweighted())   + " (" + str(self.GetTopPtWeight()) + ")" )
+    
+        if self.GetHisto() != None:
+            msg += "\n\t {:<20} {:<20}".format("Histo Name"     , ": " + self.GetHisto().GetName() )
         self.Print(msg)
         return
 
@@ -144,20 +370,20 @@ class DatasetManager:
     map for convenient access by dataset name.
     
     '''
-    def __init__(self, baseDir, energy, intLumi, verbose=False):
+    def __init__(self, baseDir, verbose=False):
         '''
         The parameter "baseDir" is the (multicrab) directory (absolute or relative to the cwd) 
-        where the luminosity JSON file is located (see loadLuminosities())
+        where the luminosity JSON file is located (see self.LoadLuminosities())
         
         DatasetManager is constructed as empty
         '''
         self.verbose    = []
-        self.intLumi    = -1
+        self.intLumi    = 0
         self.datasets   = []
         self.datasetMap = {}
         self.mcrab      = multicrab.Multicrab(verbose)
         self._SetBaseDirectory(baseDir)
-        self._AppendDatasets(baseDir, energy, intLumi)
+        self._AppendDatasets(baseDir)
         return
     
         
@@ -228,15 +454,16 @@ class DatasetManager:
         return
     
 
-    def _AppendDatasets(self, baseDir, energy, intLumi):
+    def _AppendDatasets(self, baseDir):
         '''
         '''
         self.Verbose()
         
-        datasetNames   = self.mcrab.GetDatasetsFromMulticrabDir(baseDir)
+        datasetNames = self.mcrab.GetDatasetsFromMulticrabDir(baseDir)
+        self.Print("Appending %s datasets found under directory %s" % (len(datasetNames), baseDir))
         for dName in datasetNames:
-            rootFile       = self.mcrab.GetDatasetRootFile(baseDir, dName)
-            datasetObject = Dataset(baseDir, dName, energy, rootFile, self.verbose)
+            rootFile      = self.mcrab.GetDatasetRootFile(baseDir, dName)
+            datasetObject = Dataset(baseDir, dName, rootFile, self.verbose)
             self.Append(datasetObject)
         return
 
@@ -265,7 +492,7 @@ class DatasetManager:
         self.Verbose()
         
         if dataset.GetName() in self.datasetMap:
-            raise Exception("=== dataset.py:\n\t Dataset '%s' already exists in this DatasetManager" % dataset.GetName())
+            raise Exception("=== dataset.py:\n\tDataset '%s' already exists in this DatasetManager" % dataset.GetName())
 
         self.datasets.append(dataset)
         self.datasetMap[dataset.GetName()] = dataset
@@ -382,14 +609,13 @@ class DatasetManager:
     def GetMCDatasets(self):
         '''
         Get a list of MC dataset.Dataset objects.
-        
         \todo Implementation would be simpler with filter() method
         '''
         self.Verbose()
         
         ret = []
         for d in self.datasets:
-            if d.isMC():
+            if d.GetIsMC():
                 ret.append(d)
         return ret
 
@@ -398,13 +624,12 @@ class DatasetManager:
         '''
         Get a list of data dataset.Dataset objects.
         
-        \todo Implementation would be simpler with filter() method
         '''
         self.Verbose()
         
         ret = []
         for d in self.datasets:
-            if d.isData():
+            if d.GetIsData():
                 ret.append(d)
         return ret
 
@@ -414,7 +639,7 @@ class DatasetManager:
         Get a list of pseudo dataset.Dataset objects.
         '''
         self.Verbose()
-        return filter(lambda d: d.isPseudo(), self.datasets)
+        return filter(lambda d: d.GetIsPseudo(), self.datasets)
 
     
     def GetAllDatasetNames(self):
@@ -464,7 +689,7 @@ class DatasetManager:
             try:
                 selected.append(self.datasetMap[name])
             except KeyError:
-                print >> sys.stderr, "=== dataset.py:\n\t WARNING: Dataset selectAndReorder: dataset %s doesn't exist" % name
+                print >> sys.stderr, "=== dataset.py:\n\tWARNING! Dataset selectAndReorder: dataset %s doesn't exist" % name
 
         self.datasets = selected
         self._populateMap()
@@ -532,13 +757,13 @@ class DatasetManager:
                 continue
 
             if newName in self.datasetMap:
-                raise Exception("=== dataset.py:\n\t Trying to rename datasets '%s' to '%s', but a dataset with the new name already exists!" % (oldName, newName))
+                raise Exception("=== dataset.py:\n\tTrying to rename datasets '%s' to '%s', but a dataset with the new name already exists!" % (oldName, newName))
 
             try:
                 self.datasetMap[oldName].setName(newName)
             except KeyError, e:
                 if not silent:
-                    raise Exception("=== dataset.py:\n\t Trying to rename dataset '%s' to '%s', but '%s' doesn't exist!" % (oldName, newName, oldName))
+                    raise Exception("=== dataset.py:\n\tTrying to rename dataset '%s' to '%s', but '%s' doesn't exist!" % (oldName, newName, oldName))
         self._populateMap()
         return
 
@@ -622,7 +847,7 @@ class DatasetManager:
         
         (selected, notSelected, firstIndex) = _mergeStackHelper(self.datasets, nameList, "merge", allowMissingDatasets)
         if len(selected) == 0:
-            message = "=== dataset.py:\n\t Dataset merge: no datasets '" +", ".join(nameList) + "' found, not doing anything"
+            message = "=== dataset.py:\n\tDataset merge: no datasets '" +", ".join(nameList) + "' found, not doing anything"
             if allowMissingDatasets:
                 if not silent:
                     print >> sys.stderr, message
@@ -631,7 +856,7 @@ class DatasetManager:
             return
         elif len(selected) == 1 and not keepSources:
             if not silent:
-                print >> sys.stderr, "=== dataset.py:\n\t Dataset merge: one dataset '" + selected[0].GetName() + "' found from list '" + ", ".join(nameList)+"', renaming it to '%s'" % newName
+                print >> sys.stderr, "=== dataset.py:\n\tDataset merge: one dataset '" + selected[0].GetName() + "' found from list '" + ", ".join(nameList)+"', renaming it to '%s'" % newName
             self.rename(selected[0].GetName(), newName)
             return
 
@@ -669,23 +894,21 @@ class DatasetManager:
         self.Verbose()
         import json
 
-        self.Print("Loading luminosities from %s" % (fName) )
-
         # For-loop: All datasets
         for d in self.datasets:
             jsonName = os.path.join(d.baseDir, fName)
             if not os.path.exists(jsonName):
-                msg = "=== dataset.py:\n\t Luminosity JSON file '%s' does not exist. Have you run 'hplusLumiCalc.py' in your multicrab directory?" % jsonname
+                msg = "=== dataset.py:\n\tLuminosity JSON file '%s' does not exist. Have you run 'hplusLumiCalc.py' in your multicrab directory?" % jsonname
                 raise Exception(msg)
             else:
                 data = json.load(open(jsonName))
                 for name, value in data.iteritems():
-                    self.Print("Dataset %s has luminosity %s pb" % (name, value)
                     if self.HasDataset(name):
+                        # print "name = %s, value = %s " % (name, value)
                         self.GetDataset(name).SetLuminosity(value)
                         self.intLumi = value
 
-        self.Print("Luminosity is %s pb" % (self.intLumi) )
+        self.Print("Luminosity is %s pb (read from %s)" % (self.intLumi, os.path.join(d.baseDir, fName)) )
         return
 
 
@@ -733,6 +956,24 @@ class DatasetManager:
         #self.printInfo()
         return
 
+
+    def SetLuminosityForMC(self, intLumi=-1):
+        '''
+        Set luminosity to all MC samples
+        '''
+        self.Verbose()
+
+        if intLumi < 0:
+            intLumi = self.intLumi
+        self.Print("Setting Luminosity for all MC samples to %s " % (intLumi) )
+                   
+        # For-loop: All datasets
+        for dataset in self.datasets:
+            if not dataset.GetIsMC():
+                continue
+            dataset.SetLuminosity(intLumi)
+        return
+    
     
     def FormatInfo(self):
         '''
@@ -760,15 +1001,15 @@ class DatasetManager:
         # For-loop: All datasets
         for dataset in self.datasets:
             line = (c1fmt % dataset.GetName())
-            if dataset.isMC():
-                line += c2fmt % dataset.getCrossSection()
-                normFactor = dataset.getNormFactor()
+            if dataset.GetIsMC():
+                line += c2fmt % dataset.GetXSection()
+                normFactor = 0# dataset.getNormFactor()
                 if normFactor != None:
                     line += c3fmt % normFactor
                 else:
                     line += c3skip
             else:
-                line += c2skip+c3skip + c4fmt%dataset.getLuminosity()
+                line += c2skip+c3skip + c4fmt%dataset.GetLuminosity()
             out.write(line)
             out.write("\n")
 
@@ -782,26 +1023,9 @@ class DatasetManager:
         Print dataset information.
         '''
         self.Verbose()
-        print self.formatInfo()
+        print self.FormatInfo()
         return
-
     
-    def FormatDatasetTree(self):
-        '''
-        '''
-        self.Verbose()
-
-        ret = "DatasetManager.datasets = [\n"
-        for dataset in self.datasets:
-            ret += dataset.formatDatasetTree(indent="  ")
-        ret += "]"
-        return ret
-
-    
-    def PrintDatasetTree(self):
-        self.Verbose()
-        print self.formatDatasetTree()
-
         
     def PrintSelections(self):
         '''
@@ -813,7 +1037,7 @@ class DatasetManager:
         self.Verbose()
         
         namePSets = self.datasets[0].forEach(lambda d: (d.GetName(), d.getParameterSet()))
-        print "=== dataset.py:\n\t ParameterSet for dataset", namePSets[0][0]
+        self.Print("ParameterSet for dataset %s " % namePSets[0][0])
         print namePSets[0][1]
         return
     
@@ -822,6 +1046,4 @@ class DatasetManager:
         self.Verbose()
         
         namePSets = self.datasets[0].forEach(lambda d: (d.GetName(), d.getParameterSet()))
-        #print "ParameterSet for dataset", namePSets[0][0]
         return namePSets[0][1]
-    
