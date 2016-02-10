@@ -43,7 +43,7 @@ class Multicrab(object):
             if message==None:
                 return
             else:
-                print "\t ", message
+                print "\t", message
         return
 
 
@@ -52,7 +52,7 @@ class Multicrab(object):
         Custome made print system. Will print the message even if the verbosity boolean is set to false.
         '''
         print "*** %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
-        print "\t ", message
+        print "\t", message
         return
 
     
@@ -64,7 +64,7 @@ class Multicrab(object):
             if counter == 0:
                 self.Print(message)
             else:
-                print "\t ", message
+                print "\t", message
         return
 
 
@@ -111,7 +111,8 @@ class Multicrab(object):
         for d in dirsList:
             datasets.append(d.split("/")[-1])
 
-        self.Print("Found the following task directories under %s:\n\t  %s" % (mcrab, datasets))
+        self.Print("Found %s task directories under %s" % (len(datasets), mcrab) )
+        #self.Print("Found the following task directories under %s:\n\t%s" % (mcrab, datasets))
         return datasets
 
 
@@ -162,9 +163,9 @@ class Multicrab(object):
         named     = rootFile.Get(psetPath)
         psetValue = named.GetTitle()
         msg  = "{:<15} {:<15}".format("Multicrab"     , ": " + mcrab)
-        msg += "\n\t {:<15} {:<15}".format("Dataset"   , ": " + dataset)
-        msg += "\n\t {:<15} {:<15}".format("PSet Path" , ": " + psetPath)
-        msg += "\n\t {:<15} {:<15}".format("PSet Value", ": " + psetValue)
+        msg += "\n\t{:<15} {:<15}".format("Dataset"   , ": " + dataset)
+        msg += "\n\t{:<15} {:<15}".format("PSet Path" , ": " + psetPath)
+        msg += "\n\t{:<15} {:<15}".format("PSet Value", ": " + psetValue)
         self.Print(msg)
         return
 

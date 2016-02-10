@@ -49,6 +49,8 @@ class Dataset(object):
         self.normFactor         = None
         self.args               = args
         self.dataVersion        = self._GetDataVersion()
+        self.codeVersion        = self._GetCodeVersion()
+        self.pSet               = self._GetParameterSet()
         self.isData             = self._IsData()
         self.isPseudo           = self._IsPseudo()
         self.isMC               = self._IsMC()        
@@ -60,7 +62,7 @@ class Dataset(object):
         self.weightedEvents     = None #self._GetWeightedEvents() #xenios
         self.isPileupReweighted = self._IsPileUpReweighted()
         self.isTopPtReweighted  = self._IsTopPtReweighted()
-        self.pileupWeight       = self._GetPileUpWeight()
+        self.pileupWeight       = self._GetPileupWeight()
         self.topPtWeight        = self._GetTopPtWeight()
         self._ReadCounters()
         self.normFactor         = self._GetNormFactor()
@@ -111,13 +113,49 @@ class Dataset(object):
         return
 
 
+    def ForEach(self, function):
+        '''
+        '''
+        self.Verbose()
+        return [function(self)]
+
+    
     def _GetDataVersion(self):
         '''
         '''
         self.Verbose()
         dataVersion = self.auxObject.Get(self.rootFile, "configInfo/dataVersion")
-        return dataVersion.GetTitle()
+        name        = dataVersion.GetName()
+        title       = dataVersion.GetTitle()
+        return title
 
+
+    def _GetCodeVersion(self):
+        '''
+        '''
+        self.Verbose()
+        codeVersion = self.auxObject.Get(self.rootFile, "configInfo/codeVersionAnalysis")
+        name        = codeVersion.GetName()
+        title       = codeVersion.GetTitle()
+        return codeVersion.GetTitle()
+
+
+    def _GetParameterSet(self):
+        '''
+        '''
+        self.Verbose()
+        pSet  = self.auxObject.Get(self.rootFile, self.analysisName + "/config")
+        name  = pSet.GetName()
+        title = pSet.GetTitle()
+        return title
+
+    
+    def GetParameterSet(self):
+        '''
+        '''
+        self.Verbose()
+        return self.pSet
+    
 
     def _GetInfo(self):
         '''
@@ -143,6 +181,50 @@ class Dataset(object):
         return xsection
         
 
+    def _GetUnweightedEvents(self): #xenios
+        '''
+        '''        
+        self.Verbose()
+        return -1
+
+
+    def GetUnweightedEvents(self):
+        '''
+        '''        
+        self.Verbose()
+        return self.unweightedEvents
+    
+
+    def _GetWeightedEvents(self): #xenios
+        '''
+        '''        
+        self.Verbose()    
+        if not self.isMC():
+            return
+
+        ratio = 1.0
+    
+        if self.isPileupReweighted:
+            delta = (self.pileupWeight - self.unweightedEvents) / self.unweightedEvents
+            ratio = ratio * self.pileupWeight / self.unweightedEvents
+            self.Print("Dataset (%s): Updated NAllEvents to pileUpReweighted NAllEvents, change: %0.6f %%" % (self.getName(), delta*100.0) )
+
+        if self.isTopPtReweighted:
+            delta = (self.topPtReweighted - self.unweightedEvents) / self.unweightedEvents
+            self.Print("Dataset (%s): Updated NAllEvents to isTopPtReweighted NAllEvents, change: %0.6f %%"%(self.getName(), delta*100.0) )
+            ratio = ratio * self.topPtWeight / self.unweightedEvents
+        weightedEvents = ratio * self.unweightedEvents
+        return weightedEvents    
+
+
+    def GetWeightedEvents(self):
+        '''
+        '''        
+        self.Verbose()
+        return self.weightedEvents
+    
+
+    
     def GetAllEvents(self):
         if not hasattr(self, "allEvents"):
             raise Exception("Number of all events is not set for dataset %s! The counter directory was not given, and SetAllEvents() was not called." % self.name)
@@ -207,29 +289,35 @@ class Dataset(object):
         '''
         self.Verbose()
 
-        nBinsX  = self.info.GetNbinsX()
-        for i in range(0, nBinsX):
-            if (self.info.GetXaxis().GetBinLabel(i) == "isPileupReweighted"):
-                return True
+        binLabel  = "isPileupReweighted"
+        binNumber = self._GetBinNumberFromBinLabel(self.info, binLabel)
+        weight    = self.info.GetBinContent(binNumber)
+        if isinstance(weight, float):
+            return True
+        else:
+            raise Exception("The weight '%s' for dataset '%s' is not an instance of float." % (binLabel, self.name) )
         return False
 
 
-    def _GetPileUpWeight(self):
+    def _GetPileupWeight(self):
         '''
         '''
         self.Verbose()
 
+        binLabel = "isPileupReweighted"
         if not self.isPileupReweighted:
-            return 1.0
-            
-        nBinsX = self.info.GetNbinsX()
-        for i in range(0, nBinsX):
-            if (self.info.GetXaxis().GetBinLabel(i) == "isPileupReweighted"):
-                return self.info.GetBinContent(i)
-        return -1.0
+            raise Exception("Cannot determine weight '%s' for dataset '%s' because it was not found to be weighted." % (binLabel, self.name) )
+        
+        binNumber = self._GetBinNumberFromBinLabel(self.info, binLabel)
+        weight    = self.info.GetBinContent(binNumber)
+        if isinstance(weight, float):
+            return weight
+        else:
+            raise Exception("The weight '%s' for dataset '%s' is not an instance of float." % (binLabel, self.name) )
+        return None
 
     
-    def GetPileUpWeight(self):
+    def GetPileupWeight(self):
         '''
         '''
         self.Verbose()
@@ -241,11 +329,13 @@ class Dataset(object):
         '''
         self.Verbose()
 
-        nBinsX  = self.info.GetNbinsX()
-        for i in range(0, nBinsX):
-            if (self.info.GetXaxis().GetBinLabel(i) == "isPileupReweighted"):
-                w = self.info.GetBinContent(i)
-                return True
+        binLabel  = "isTopPtReweighted"    
+        binNumber = self._GetBinNumberFromBinLabel(self.info, binLabel)
+        weight    = self.info.GetBinContent(binNumber)
+        if isinstance(weight, float):
+            return True
+        else:
+            raise Exception("The weight '%s' for dataset '%s' is not an instance of float." % (binLabel, self.name) )
         return False
 
     
@@ -254,15 +344,18 @@ class Dataset(object):
         '''
         self.Verbose()
 
-        if not self.isTopPtReweighted:
-            return 1.0
-            
-        nBinsX = self.info.GetNbinsX()
-        for i in range(0, nBinsX):
-            if (self.info.GetXaxis().GetBinLabel(i) == "isTopPtReweighted"):
-                return self.info.GetBinContent(i)
-        return -1.0
-            
+        binLabel  = "isTopPtReweighted"
+        if not self.isPileupReweighted:
+            raise Exception("Cannot determine weight '%s' for dataset '%s' because it was not found to be weighted." % (binLabel, self.name) )
+        
+        binNumber = self._GetBinNumberFromBinLabel(self.info, binLabel)
+        weight    = self.info.GetBinContent(binNumber)
+        if isinstance(weight, float):
+            return weight
+        else:
+            raise Exception("The weight '%s' for dataset '%s' is not an instance of float." % (binLabel, self.name) )
+        return None
+    
 
     def GetTopPtWeight(self):
         '''
@@ -290,6 +383,13 @@ class Dataset(object):
         '''
         self.Verbose()
         return self.dataVersion
+
+
+    def GetCodeVersion(self):
+        '''
+        '''
+        self.Verbose()
+        return self.codeVersion
     
 
     def _IsData(self):
@@ -408,7 +508,7 @@ class Dataset(object):
 
         \param name    Path of the ROOT histogram relative to the analysis root directory
 
-        \param kwargs  Keyword arguments, forwarded to getRootObjects()
+        \param kwargs  Keyword arguments, forwarded to GetRootObjects()
 
         \return pair (\a histogram, \a realName)                                                
     
@@ -498,8 +598,8 @@ class Dataset(object):
             if ret[-1] == "/":
                 return ret[0:-1]
             return ret
+           
 
-        
     def _GetNormFactor(self):
         self.Verbose()
 
@@ -529,15 +629,14 @@ class Dataset(object):
             sys.exit()
 
         binNumber = None
-        nBinsX    = histo.GetNbinsX()
+        nBinsX    = histo.GetNbinsX()+1
         for i in range(nBinsX):
-            label = histo.GetXaxis().GetBinLabel(i) #xenios 
+            label = histo.GetXaxis().GetBinLabel(i)
             if label == binLabel:
                 binNumber =  i
                 break
         if binNumber == None:
-            self.Print("ERROR! Could not find bin with label %s in histogram %s. EXIT" % (binLabel, histo.GetName()))
-            sys.exit()
+            raise Exception("Could not find bin labelled '%s' in histogram with name '%s'" % (binLabel, histo.GetName()) )
         return binNumber
                     
     
@@ -636,7 +735,7 @@ class Dataset(object):
         msg += "\n\t{:<20} {:<20}".format("Is Pseudo"           , ": " + str(self.GetIsPseudo()) )
         msg += "\n\t{:<20} {:<20}".format("Is PU Reweighted"    , ": " + str(self.GetIsPileupReweighted()) )
         msg += "\n\t{:<20} {:<20}".format("Is TopPt Reweighted" , ": " + str(self.GetIsTopPtReweighted()) )
-        msg += "\n\t{:<20} {:<20}".format("Is PU Reweighted"    , ": " + str(self.GetIsPileupReweighted())  + " (" + str(self.GetPileUpWeight()) + ")" )
+        msg += "\n\t{:<20} {:<20}".format("Is PU Reweighted"    , ": " + str(self.GetIsPileupReweighted())  + " (" + str(self.GetPileupWeight()) + ")" )
         msg += "\n\t{:<20} {:<20}".format("Is TopPt Reweighted" , ": " + str(self.GetIsTopPtReweighted())   + " (" + str(self.GetTopPtWeight()) + ")" )
     
         if self.GetHisto() != None:
@@ -747,7 +846,9 @@ class DatasetManager:
         self.Verbose()
         
         datasetNames = self.mcrab.GetDatasetsFromMulticrabDir(baseDir)
-        self.Print("Appending %s datasets found under directory %s" % (len(datasetNames), baseDir))
+        #self.Print("Appending %s datasets found under directory %s" % (len(datasetNames), baseDir))
+        self.Print("Appending %s datasets to the dataset manager:\n\t%s" % (len(datasetNames), datasetNames))
+                
         for dName in datasetNames:
             rootFile      = self.mcrab.GetDatasetRootFile(baseDir, dName)
             datasetObject = Dataset(baseDir, dName, self.analysisName, rootFile, self.verbose)            
@@ -866,23 +967,14 @@ class DatasetManager:
 
     
     def GetDataset(self, name):
-        self.Verbose()
-        return self.datasetMap[name]
-
-    
-    def GetDatasetRootHistos(self, histoName, **kwargs):
         '''
-        Get a list of dataset.DatasetRootHisto objects for a given name.
-        
-        \param histoName   Path to the histogram in each ROOT file.
-
-        \param kwargs      Keyword arguments, forwarder to get
-        getDatasetRootHisto() of the contained Dataset objects
-    
-        \see dataset.Dataset.getDatasetRootHisto()
         '''
         self.Verbose()
-        return [d.getDatasetRootHisto(histoName, **kwargs) for d in self.datasets]
+
+        if name in self.datasetMap:
+            return self.datasetMap[name]
+        else:
+            raise Exception("Dataset '%s' could not be found in dataset map!" % (name))        
 
     
     def GetAllDatasets(self):
@@ -891,36 +983,7 @@ class DatasetManager:
         '''
         self.Verbose()
         return self.datasets
-        
-
-    def _GetUnweightedEvents(self): #xenios
-        '''
-        '''        
-        self.Verbose()
-        return -1
-
-
-    def _GetWeightedEvents(self): #xenios
-        '''
-        '''        
-        self.Verbose()    
-        if not self.isMC():
-            return
-
-        ratio = 1.0
-    
-        if self.isPileupReweighted:
-            delta = (self.pileupWeight - self.unweightedEvents) / self.unweightedEvents
-            ratio = ratio * self.pileupWeight / self.unweightedEvents
-            self.Print("Dataset (%s): Updated NAllEvents to pileUpReweighted NAllEvents, change: %0.6f %%" % (self.getName(), delta*100.0) )
-
-        if self.isTopPtReweighted:
-            delta = (self.topPtReweighted - self.unweightedEvents) / self.unweightedEvents
-            self.Print("Dataset (%s): Updated NAllEvents to isTopPtReweighted NAllEvents, change: %0.6f %%"%(self.getName(), delta*100.0) )
-            ratio = ratio * self.topPtWeight / self.unweightedEvents
-        weightedEvents = ratio * self.unweightedEvents
-        return weightedEvents    
-        
+                
 
     def GetMCDatasets(self):
         '''
@@ -1220,7 +1283,6 @@ class DatasetManager:
                 data = json.load(open(jsonName))
                 for name, value in data.iteritems():
                     if self.HasDataset(name):
-                        # print "name = %s, value = %s " % (name, value)
                         self.GetDataset(name).SetLuminosity(value)
                         self.intLumi = value
 
@@ -1269,7 +1331,7 @@ class DatasetManager:
         # For-loop: All datasets
         for dataset in self.datasets:
             dataset.UpdateNAllEventsToPUWeighted(**kwargs)
-        #self.printInfo()
+        #self.printInfo() #xenios
         return
 
 
@@ -1291,7 +1353,7 @@ class DatasetManager:
         return
     
     
-    def FormatInfo(self):
+    def FormatSummary(self):
         '''
         Format dataset information
         '''
@@ -1299,33 +1361,55 @@ class DatasetManager:
 
         rows   = []
         info   = []
-        header = "{:<40} {:>20} {:>20} {:>20}".format("Dataset", "Cross-Section (pb)", "Int. Lumi (1/pb)", "Norm. Factor")
+        align  = "{:^35} {:^10} {:^10} {:^15} {:^15} {:^20} {:>15} {:>15} {:>15}"
+        header = align.format("Dataset", "Version", "E (TeV)", "XSection (pb)", "Lumi (1/pb)", "Norm Factor", "Events", "Unweighted", "Weighted")
         hLine  = "="*len(header)
+        info.append("")
         info.append(hLine)
         info.append(header)
         info.append(hLine)
         for dataset in self.datasets:
-            name = dataset.GetName()
-            xsec = dataset.GetXSection()
-            lumi = dataset.GetLuminosity()
-            norm = dataset.GetNormFactor()
-            line = "{:<40} {:>20} {:>20} {:>20}".format(name, xsec, lumi, norm)
+            name             = dataset.GetName()
+            xsec             = dataset.GetXSection()
+            lumi             = dataset.GetLuminosity()
+            norm             = dataset.GetNormFactor()
+            dataVersion      = dataset.GetDataVersion()
+            energy           = dataset.GetEnergy()
+            allEvents        = dataset.GetAllEvents()
+            unweightedEvents = dataset.GetUnweightedEvents()
+            weightedEvents   = dataset.GetWeightedEvents()
+            alldEvents       = dataset.GetAllEvents()
+            #pileupWeight     = dataset.GetPileupWeight()
+            #topPtWeight      = dataset.GetTopPtWeight()
+            align  = "{:<35} {:^10} {:^10} {:>15} {:>15} {:>20} {:>15} {:>15} {:>15}"
+            line = align.format(name, dataVersion, energy, xsec, lumi, norm, allEvents, unweightedEvents, weightedEvents)
             info.append(line)
         info.append(hLine)
+        info.append("")
         return info
 
     
-    def PrintInfo(self):
+    def PrintSummary(self):
         '''
         Print dataset information.
         '''
         self.Verbose()
-        for row in self.FormatInfo():
+        for row in self.FormatSummary():
             print row
         return
     
         
-    def PrintSelections(self):
+    def PrintDatasets(self):
+        '''
+        Print dataset information.
+        '''
+        self.Verbose()
+        for dataset in self.datasets:
+            dataset.PrintProperties()
+        return
+        
+
+    def PrintSelections(self, datasetName=None):
         '''
         Prints the parameterSet of some Dataset
         
@@ -1333,15 +1417,19 @@ class DatasetManager:
         from will not be given.
         '''
         self.Verbose()
-        
-        namePSets = self.datasets[0].forEach(lambda d: (d.GetName(), d.getParameterSet()))
-        self.Print("ParameterSet for dataset %s " % namePSets[0][0])
-        print namePSets[0][1]
+        if datasetName == None:
+            self.Print("Printing PSet for all datasets")
+            for dataset in self.datasets:
+                print dataset.GetParameterSet()
+        else:
+            self.Print("Printing PSet for dataset '%s'" % (datasetName))
+            print self.GetDataset(datasetName).GetParameterSet()
         return
     
         
     def GetSelections(self):
         self.Verbose()
         
-        namePSets = self.datasets[0].forEach(lambda d: (d.GetName(), d.getParameterSet()))
+        namePSets = self.datasets[0].ForEach(lambda d: (d.GetName(), d.GetParameterSet()))
         return namePSets[0][1]
+    

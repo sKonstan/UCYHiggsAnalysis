@@ -92,7 +92,7 @@ AllElectronsEta     = histos.TH1orTH2( folder, "PassedElectronsPt", "all"   , No
 #================================================================================================
 # Function Definition
 #================================================================================================
-def DoPlots(histo, datasetObjects, intLumi, bColourPalette=False, saveExt=""):
+def doPlots(histo, datasetObjects, intLumi, bColourPalette=False, saveExt=""):
 
     p = plotter.Plotter(verbose, batchMode)
     p.SetupRoot()
@@ -105,12 +105,12 @@ def DoPlots(histo, datasetObjects, intLumi, bColourPalette=False, saveExt=""):
     # p.SetTLegendHeader("")
     p.AddPreliminaryText("13", intLumi)
     p.SaveHistos(True, savePath, saveFormats, saveExt)
-    p.PrintElapsedTime(self, units = "seconds", marker = "")
+    p.PrintElapsedTime(units = "seconds")
     return
 
 
 #================================================================================================
-def IsBatchMode():
+def isBatchMode():
     '''
     Forces user to press 'q' before exiting ROOT from batch mode.
     '''
@@ -137,16 +137,16 @@ def main():
     datasetObjects = datasetManager.GetMCDatasets() # datasetObjects = datasetManager.GetAllDatasets
     datasetManager.SetLuminosityForMC( datasetManager.GetLuminosity() )
     intLumi        = datasetManager.GetLuminosityString("fb")
-    datasetManager.PrintInfo()
-    #datasetManager.
-    #for d in datasetObjects:
-    #    d.PrintProperties()
+    datasetManager.PrintSummary()
+    #datasetManager.PrintDatasets()
+    #datasetManager.PrintSelections("DYJetsToLL_M_10to50")
     
-    # Histos
+    # One Histogram on a given canvas (many datasets)
     for h in histoList:
-        DoPlots( h, datasetObjects, intLumi, False )
-        break
-#    DoPlots( histoList, datasetObjects, False )
+        doPlots( h, datasetObjects, intLumi, False )
+
+    # Many Histograms on a given canvas (many datasets)
+    #doPlots( histoList, datasetObjects, False )
 
 
 
@@ -156,7 +156,6 @@ if __name__ == "__main__":
     parser = OptionParser(usage="Usage: %prog [options]",add_help_option=False,conflict_handler="resolve")
     parser.add_option("-m", "--mcrab"  , dest="mcrab"  , action="store", help="Path to the multicrab directory for input")
     parser.add_option("-d", "--dataset", dest="dataset", action="store", help="Name of the dataset to be plotted")
-    #parser.add_option("-e", "--error"  , dest="errorlevel", action="store", help="Maximum relative uncertainty per bin (default=10%%)", default=0.10)
     (opts, args) = parser.parse_args()
 
     if opts.mcrab == None:
@@ -164,8 +163,9 @@ if __name__ == "__main__":
     if not os.path.exists(opts.mcrab):
         raise Exception("The input root file '%s' does not exist!" % opts.mcrab)
     #if opts.dataset == None:
-    #    raise Exception("Please provide dataset name with -d")
+    #   raise Exception("Please provide dataset name with -d")
 
     main()
-    IsBatchMode()
+    isBatchMode()
+    
 #================================================================================================

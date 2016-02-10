@@ -31,13 +31,15 @@ import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.tdrstyle as tdrstyle
 #================================================================================================
 class Plotter(object): 
     def __init__(self, verbose=False, batchMode=True):
+        self.verbose           = verbose
         self.DatasetInLegend   = False
         self.Datasets          = []
         self.isTH1             = False
         self.isTH2             = False
         self.PadCover          = None
         self.PadPlot           = None
-        self.PadRatio          = None        
+        self.PadRatio          = None
+        #
         self.TBoxList          = []
         self.TCanvas           = None
         self.THDumbie          = None
@@ -47,20 +49,20 @@ class Plotter(object):
         self.THStackRatio      = ROOT.THStack("THStackRatio" + "@" + str(time.time()), "Stack for PadRatio Histograms")
         self.TLegend           = None
         self.TMultigraph       = ROOT.TMultiGraph("TMultigraph"  + "@" + str(time.time()), "ROOT.TMultiGraph holding various ROOT.TGraphs")
+        #
         self.auxObject         = aux.AuxClass(verbose)
         self.batchMode         = batchMode
         self.canvasFactor      = 1.25
         self.divisionPoint     = 1-1/self.canvasFactor
         self.drawObjectList    = []
         self.drawObjectListR   = []
-        self.includeSTack      = False
-        self.invPadRatio      = False
+        self.includeStack      = False
+        self.invPadRatio       = False
         self.padRatio          = False
         self.ratioErrorType    = None
         self.startTime         = time.time()        
         self.styleObject       = styles.StyleClass(verbose)
         self.textObject        = text.TextClass(verbose)
-        self.verbose           = verbose
         self.xTLineList        = []
         self.yTLineList        = []
         return
@@ -1713,7 +1715,7 @@ class Plotter(object):
         return
 
 
-    def PrintElapsedTime(self, units = "seconds", marker = ""):
+    def PrintElapsedTime(self, units = "seconds"):
         '''
         Print the time elapses since the creation of the plotter object.
         
@@ -1730,7 +1732,7 @@ class Plotter(object):
         else:
             raise Exception("Unsupported units of time. Please choose from 'seconds', 'minutes' and 'hours'.")
             
-        self.Print("Elapsed time%s: '%s' %s" % (marker, deltaT, units))
+        self.Print("Elapsed time: '%s' %s" % (deltaT, units))
         return
 
 
