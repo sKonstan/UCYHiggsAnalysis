@@ -22,7 +22,6 @@ import numpy
 import math
 from optparse import OptionParser
 
-#
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.dataset as dataset
 #import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.crossSection as crossSection
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.plotter as plotter
@@ -42,9 +41,8 @@ ratio         = True
 #intLumi       = 2.26 #fb-1
 folder        = "Kinematics"
 analysis      = folder
-saveFormats   = ["png"]
+saveFormats   = ["png"] #, "pdf"]
 savePath      = ""
-#pi = 4*math.atan(1)
 
 
 #================================================================================================
@@ -63,16 +61,17 @@ EtaRange   = [[-etaMax, -1.6, ROOT.kRed+1], [+etaMax, +1.6, ROOT.kRed+1], [-1.6,
 # Histogram Options
 #================================================================================================
 Pt = {
-    "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00, "xMax": ptMax, "binWidthX": None, "xCutLines": [], "xCutBoxes": [], "gridX": True, "logX": False, 
-    "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E00, "yMax": None , "binWidthY": None, "yCutLines": [], "yCutBoxes": [], "gridY": True, "logY": True , 
-    "ratioLabel": "Ratio", "ratio": False, "invRatio": False, "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "normaliseTo": ""  , "drawOptions": "HIST", "legOptions": "FL",
+    "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00 , "xMax": ptMax, "binWidthX": None, "xCutLines": [], "xCutBoxes": [], "gridX": True, "logX": False, 
+    "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E-05, "yMax": 1E+00, "binWidthY": None, "yCutLines": [], "yCutBoxes": [], "gridY": True, "logY": True , 
+    "ratioLabel": "Ratio", "ratio": False, "invRatio": False, "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "normalise": "toOne"  , "drawOptions": "HIST", "legOptions": "FL",
     "logYRatio": False, "logXRatio": False, "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
 }
+
 
 Eta = {
     "xLabel": "#eta"           , "xUnits": ""     , "xMin": -etaMax , "xMax": +etaMax, "binWidthX": None, "xCutLines": [0], "gridX": True, "logX": False, "xCutBoxes": [],  
     "yLabel": "Entries / %0.2f", "yUnits": ""     , "yMin": +1e00   , "yMax": None   , "binWidthY": None, "yCutLines": [] , "gridY": True, "logY": True , "yCutBoxes": [],  
-    "ratioLabel": "Ratio"      , "ratio": False   , "invRatio": False, "yMinRatio": 1e-01, "yMaxRatio": 2.15 , "normaliseTo": "", "drawOptions": "P", "legOptions": "LP", 
+    "ratioLabel": "Ratio"      , "ratio": False   , "invRatio": False, "yMinRatio": 1e-01, "yMaxRatio": 2.15 , "normalise": "", "drawOptions": "P", "legOptions": "LP", 
     "xCutBoxes": [[-1.0, -1.6, ROOT.kBlue], [+1.0, +1.6, ROOT.kBlue]], "yCutBoxes": [],
     "logYRatio": False, "logXRatio": False, "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
 }
@@ -92,20 +91,21 @@ AllElectronsEta     = histos.TH1orTH2( folder, "PassedElectronsPt", "all"   , No
 #================================================================================================
 # Function Definition
 #================================================================================================
-def doPlots(histo, datasetObjects, intLumi, bColourPalette=False, saveExt=""):
+def doPlots(histo, datasetObjects, intLumi, bColourPalette=False, savePostfix=""):
 
     p = plotter.Plotter(verbose, batchMode)
     p.SetupRoot()
+    # p.SetupStatsBox("ksiourmen", xPos=0.40, yPos=0.5)
     p.AddDatasets(datasetObjects)
     p.DatasetAsLegend(True)
     p.AddHisto(histo)
     # p.SetupStatsBox(0.90, 0.88, 0.20, 0.12, 111111111)
     # p.Draw(THStackDrawOpt="nostack", includeStack = False, bAddReferenceHisto = True)
     p.Draw(THStackDrawOpt="stack", includeStack = False, bAddReferenceHisto = True)
-    # p.SetTLegendHeader("")
     p.AddPreliminaryText("13", intLumi)
-    p.SaveHistos(True, savePath, saveFormats, saveExt)
-    p.PrintElapsedTime(units = "seconds")
+    p.SaveAs(savePath, savePostfix, saveFormats)
+    # p.SaveAs()
+    # p.PrintElapsedTime(units = "seconds")
     return
 
 
@@ -144,6 +144,7 @@ def main():
     # One Histogram on a given canvas (many datasets)
     for h in histoList:
         doPlots( h, datasetObjects, intLumi, False )
+        break
 
     # Many Histograms on a given canvas (many datasets)
     #doPlots( histoList, datasetObjects, False )

@@ -76,7 +76,7 @@ class Plotter(object):
         if not self.verbose:
             return
         
-        print "*** %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+        print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
         if message!="":
             print "\t", message
         return
@@ -86,8 +86,9 @@ class Plotter(object):
         '''
         Custome made print system. Will print the message even if the verbosity boolean is set to false.
         '''
-        print "*** %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
-        print "\t", message
+        print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+        if message!="":
+            print "\t", message
         return
 
     
@@ -138,7 +139,7 @@ class Plotter(object):
         return
 
 
-    def SetupStatsBox(self, xPos=0.94, yPos=0.84, width=0.20, height=0.12, options = 0):
+    def SetupStatsBox(self, options, xPos=0.94, yPos=0.84, width=0.20, height=0.12):
         '''
         The parameter mode can be = ksiourmen  (default = 000001111)
         k = 1 (2); kurtosis printed (kurtosis and kurtosis error printed)
@@ -155,7 +156,6 @@ class Plotter(object):
         print only name of histogram and number of entries.
         '''
         self.Verbose()
-        self.Print("FIXME")
         self.PadCover
 
         # Beautifications/Styling
@@ -662,9 +662,9 @@ class Plotter(object):
         msg += "\n\t{:<15} {:<20}".format("HistoName"      , ": " + histo.name)
         msg += "\n\t{:<15} {:<20}".format("Integral()"     , ": " + str(histo.rangeIntegral))
         msg += "\n\t{:<15} {:<20}".format("Integral(0, -1)", ": " + str(histo.integral))
-        msg += "\n\t{:<15} {:<20}".format("normaliseTo"    , ": " + histo.normaliseTo)
+        msg += "\n\t{:<15} {:<20}".format("normalise"      , ": " + histo.normalise)
 
-        if histo.TH1orTH2.Integral() == 0:
+        if histo.TH1orTH2.Integral() == 0 or verbose:
             self.Print(msg)
             
         self.Verbose(msg)
@@ -704,7 +704,7 @@ class Plotter(object):
         kwargs["logY"]        = False
         kwargs["yMin"]        = 0.0
         kwargs["yMax"]        = 1.15
-        kwargs["normaliseTo"] = ""
+        kwargs["normalise"]   = ""
         yTitleOld             = kwargs["yLabel"].rsplit("/", 1)[0]
         kwargs["yLabel"]      = kwargs["yLabel"].replace(yTitleOld, "Efficiency (" + cutDirection +  ") ")
         kwargs["yLabel"]      = kwargs["yLabel"]  % (binWidthX)  + " " + histo.xUnits
@@ -948,29 +948,28 @@ class Plotter(object):
         Normalise the histoObject passed to this function according to user-specified criteria. 
         '''
         self.Verbose()
+
+        options = ["", "toOne", "byXSection", "toLuminosity"]
+        norm    = h.normalise
+    
+        if norm not in options:
+            raise Exception("Unsupported normalisation option '%s'. Please choose one of the following options:\n\t \"%s\"" % (norm, "\", \"".join(opt for opt in options) ) )
+
+#        if h.TH1orTH2.GetEntries() == 0:
+#            self.Print("WARNING! Cannot normalise histogram.", "HistoName: '%s'" % (h.name), "Entries: '%s'" % (h.TH1orTH2.GetEntries()), "TFile: '%s'" % (h.TFileName))
+#            return
         
-        if h.normaliseTo=="":
+        if norm == "":
             self.PrintHistoInfo(h, True)
             return
-
-        scaleFactor = 1
-        if h.TH1orTH2.GetEntries() == 0:
-            self.Print("WARNING! Cannot normalise histogram.", "HistoName: '%s'" % (h.name), "Entries: '%s'" % (h.TH1orTH2.GetEntries()), "TFile: '%s'" % (h.TFileName))
+        elif norm == "toOne":
+            h.NormaliseToOne()
             return
-        
-        if h.normaliseTo == "One":
-            scaleFactor = h.integral #Note: Using h.rangeIntegral is wrong, as it might depend on histogram binning and maximum of x-axis!
-            if scaleFactor!=0:
-                h.scaleFactor = 1.0/scaleFactor
-                h.TH1orTH2.Scale(h.scaleFactor)
-            else:
-                self.Print("WARNING! Cannot normalise histogram. Will do nothing.", "HistoName: '%s'" % (h.name), "TFile: '%s'" % (h.TFileName), "ScaleFactor: '%s'" % (scaleFactor))
-                return
-        elif type(h.normaliseTo) == float:
-            h.scaleFactor     = float(h.normaliseTo)
+        elif type(h.normalise) == float:
+            h.scaleFactor     = float(h.normalise)
             h.TH1orTH2.Scale(h.scaleFactor)
         else:
-            raise Exception("Unknown histoObject normalisation option '%s'.!" % (h.normaliseTo))
+            raise Exception("Unknown histoObject normalisation option '%s'.!" % (h.normalise))
 
         self.PrintHistoInfo(h, True)
         return
@@ -1335,9 +1334,6 @@ class Plotter(object):
             if self.invPadRatio == True:
                 hRatio.Divide(UnityTH1, hRatio) 
 
-            # Save histogram values to a txt file (for later processing if needed)
-            #self.SaveHistoAsTxtFile(hRatio)
-
             # Finally, add this ratio histogram to the THStackRatio
             self.THStackRatio.Add(hRatio)
 
@@ -1628,32 +1624,51 @@ class Plotter(object):
         return
     
 
-    def SaveHistos(self, bSave=False, savePath=os.getcwd() + "/", saveFormats=[".png", ".C", ".eps", ".pdf"], saveExtension=""):
+    def SaveAs(self, savePath=os.getcwd() + "/", savePostfix="", saveFormats=["png", "C", "eps", "pdf"]):
         '''
-        Save all canvases to specified path and with the desirable format.
+        Save canvas to a specified path and with the desirable format.
+        '''
+        self.Print()
+            
+        self._IsValidSavePath(savePath)
+        saveName = self._GetCanvasSaveName(savePath, savePostfix)
+        self._SaveAs(saveFormats, saveName)
+        return
+
+    
+    def _IsValidSavePath(self, savePath):
+        '''
+        Make sure that the full path below which files will be saved exists and has the correct format
+        '''
+        if not isinstance(savePath, str):
+            raise Exception("The save path '%s' is not valid! Please make sure the path provided is a string." % (savePath) )
+        
+        if savePath!="":
+            if not savePath.endswith("/"):
+                savePath += "/" 
+            if not os.path.exists(savePath):
+                raise Exception("The path '%s' does not exist! Please make sure the provided path is correct." % (savePath) )
+        return
+
+    
+    def _GetCanvasSaveName(self, savePath, savePostfix):
+        '''
         '''
         self.Verbose()
-        
-        if bSave == False:
-            return
-            
-        # Sanity checks
-        if savePath == "" or savePath == None:
-            savePath = os.getcwd() + "/"            
-        if os.path.exists(savePath) == False: 
-            raise Exception("The path '%s' does not exist! Please make sure the provided path is correct." % (savePath) )
+        return savePath + self.TCanvas.GetName().rsplit('@', 1)[0] + savePostfix
+                
+    
+    def _SaveAs(self, saveFormats, saveName):
+        '''
+        Loop over all formats and save the canvas to 
+        '''
+        self.Verbose()
 
-        # Define path and save
-        saveName = savePath + self.TCanvas.GetName().rsplit('@', 1)[0] + saveExtension
-
-        msg  = "{:<15} {:<15}".format("SaveName" , ": " + saveName)
-        msg  += "\n\t{:<15} {:<15}".format("Format(s)", ": " + ", ".join(saveFormats) )
-        self.Print(msg)
         for ext in saveFormats:
+            savePath = saveName + "." + ext
             self.TCanvas.Update()
-            self.TCanvas.SaveAs( saveName + "." + ext )
-
-        #ROOT.gDirectory.ls()
+            self.TCanvas.SaveAs(savePath)
+            print "\t%s" % savePath
         return
 
 

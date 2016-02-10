@@ -39,7 +39,7 @@ class Multicrab(object):
         only if the verbosity boolean is set to true.
         '''
         if self.verbose:
-            print "*** %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+            print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
             if message==None:
                 return
             else:
@@ -51,8 +51,9 @@ class Multicrab(object):
         '''
         Custome made print system. Will print the message even if the verbosity boolean is set to false.
         '''
-        print "*** %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
-        print "\t", message
+        print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+        if message!="":
+            print "\t", message
         return
 
     

@@ -1,13 +1,6 @@
-###############################################################
-### Author .........: Alexandros X. Attikis 
-### Institute ......: University Of Cyprus (UCY)
-### Email ..........: attikis@cern.ch
-###############################################################
-
-###############################################################
-### All imported modules
-###############################################################
-### System modules
+#================================================================================================
+# All imported modules
+#================================================================================================
 import os, sys
 import array
 import math
@@ -16,18 +9,18 @@ import inspect
 import glob
 from optparse import OptionParser
 from itertools import cycle
-### Other
-import text as m_text
+
+import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.text as text
 import ROOT
 
-###############################################################
-### Define class here
-###############################################################
+#================================================================================================
+# Class Definition 
+#================================================================================================
 class StyleClass(object):
     def __init__(self, verbose = False):
         self.verbose                = verbose
         self.bEnableColourPalette   = False
-        self.TextObject             = m_text.TextClass(verbose=self.verbose)
+        self.TextObject             = text.TextClass(verbose=self.verbose)
         self.styleTypeList          = []
         self.styleTypeSpecialList   = []
         self.colourPaletteList      = [ROOT.kBlack, ROOT.kRed-4, ROOT.kAzure+6, ROOT.kSpring+2, ROOT.kMagenta-2, ROOT.kGray, ROOT.kOrange+5, ROOT.kYellow-4, ROOT.kBlue-4,
@@ -55,6 +48,7 @@ class StyleClass(object):
         self.Verbose()
         return
 
+    
     def Verbose(self, messageList=None):
         '''
         Custome made verbose system. Will print all messages in the messageList
@@ -75,7 +69,8 @@ class StyleClass(object):
         Custome made print system. Will print the message even if the verbosity boolean is set to false.
         '''
         print "*** %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
-        print "\t", message
+        if message!="":
+            print "\t", message
         return
 
     

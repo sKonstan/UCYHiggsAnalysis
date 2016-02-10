@@ -76,7 +76,7 @@ class Dataset(object):
         only if the verbosity boolean is set to true.
         '''
         if self.verbose:
-            print "*** %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+            print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
             if message!="":
                 print "\t", message
         return
@@ -86,8 +86,9 @@ class Dataset(object):
         '''
         Custome made print system. Will print the message even if the verbosity boolean is set to false.
         '''
-        print "*** %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
-        print "\t", message
+        print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+        if message!="":
+            print "\t", message
         return
 
     
@@ -267,6 +268,7 @@ class Dataset(object):
             raise Exception(msg + causes)
         return self.GetXSection() / allEvents
 
+    
 
     def _GetEnergy(self):
         '''
@@ -583,8 +585,7 @@ class Dataset(object):
         '''
         self.Verbose("Translating name '%s' with analysisPostFix '%s'" % (name, analysisPostfix))
 
-        ret = ""
-        
+        ret = ""        
         if len(name) > 0 and name[0] == '/':
             ret = name[1:]
             return ret
@@ -781,7 +782,7 @@ class DatasetManager:
         if not self.verbose:
             return
         
-        print "*** %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+        print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
         if message!="":
             print "\t", message
         return
@@ -791,7 +792,7 @@ class DatasetManager:
         '''
         Custome made print system. Will print the message even if the verbosity boolean is set to false.
         '''
-        print "*** %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+        print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
         print "\t", message
         return
 
@@ -1364,7 +1365,6 @@ class DatasetManager:
         align  = "{:^35} {:^10} {:^10} {:^15} {:^15} {:^20} {:>15} {:>15} {:>15}"
         header = align.format("Dataset", "Version", "E (TeV)", "XSection (pb)", "Lumi (1/pb)", "Norm Factor", "Events", "Unweighted", "Weighted")
         hLine  = "="*len(header)
-        info.append("")
         info.append(hLine)
         info.append(header)
         info.append(hLine)
@@ -1385,7 +1385,6 @@ class DatasetManager:
             line = align.format(name, dataVersion, energy, xsec, lumi, norm, allEvents, unweightedEvents, weightedEvents)
             info.append(line)
         info.append(hLine)
-        info.append("")
         return info
 
     

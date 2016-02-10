@@ -1,26 +1,19 @@
-###############################################################
-### Author .........: Alexandros X. Attikis 
-### Institute ......: University Of Cyprus (UCY)
-### Email ..........: attikis@cern.ch
-###############################################################
-
-###############################################################
-### All imported modules
-###############################################################
-### System modules
+#================================================================================================
+# All imported modules
+#================================================================================================
 import os, sys
 import array
 import math
 import copy
 import inspect
 from optparse import OptionParser
-### Other
+
 import ROOT
 import styles as m_styles
 
-###############################################################
-### Class definition here
-###############################################################
+#================================================================================================
+# Class definition
+#================================================================================================
 class TH1orTH2:    
     def __init__(self, path, name, legTitle, saveName, **kwargs):
         self.path            = path
@@ -48,7 +41,7 @@ class TH1orTH2:
         self.zCutLines       = kwargs.get("zCutLines", None)
         self.yCutLinesRatioPad = kwargs.get("yCutLinesRatioPad", True)
         self.zCutLinesErrors = kwargs.get("zCutLinesErrors", True)
-        self.normaliseTo     = kwargs.get("normaliseTo", None)
+        self.normalise       = kwargs.get("normalise", "")
         self.ratio           = kwargs.get("ratio", False)
         self.ratioErrorType  = kwargs.get("ratioErrorType", "") #"B" = Binomial
         self.invRatio        = kwargs.get("invRatio", False) #inverse ratio = 1/ratio
@@ -94,36 +87,41 @@ class TH1orTH2:
         if self.saveName == None or self.saveName == "":
             self.saveName = self.name
         self.MsgCounter      = 0
+        self.Verbose()
+        
 
-
-    def Verbose(self, messageList=None):
+    def Verbose(self, message=""):
         '''
         Custome made verbose system. Will print all messages in the messageList
         only if the verbosity boolean is set to true.
         '''
-        if self.verbose == False:
-            return
-
-        self.MsgCounter = self.MsgCounter  + 1            
-        print "[%s] %s:" % (self.MsgCounter, self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
-        if messageList==None:
-            return
-        else:
-            for message in messageList:
+        if self.verbose:
+            print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+            if message!="":
                 print "\t", message
         return
 
 
-    def Print(self, messageList=[""]):
+    def Print(self, message=""):
         '''
-        Custome made print system. Will print all messages in the messageList
-        even if the verbosity boolean is set to false.
+        Custome made print system. Will print the message even if the verbosity boolean is set to false.
         '''
-
-        self.MsgCounter = self.MsgCounter  + 1            
-        print "[%s] %s:" % (self.MsgCounter, self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
-        for message in messageList:
+        print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+        if message!="":
             print "\t", message
+        return
+
+    
+    def PrintList(self, messageList=[""]):
+        '''
+        Custome made print system. Will print all messages in the messageList even if the verbosity boolean is set to false.
+        '''
+        self.Verbose()
+        for counter, message in enumerate(messageList):
+            if counter == 0:
+                self.Print(message)
+            else:
+                print "\t", message
         return
 
 
@@ -132,9 +130,7 @@ class TH1orTH2:
         Manually enable/disable verbosity.
         '''
         self.Verbose()
-        
         self.verbose = verbose
-        self.Verbose(["Verbose mode = ", self.verbose])
         return
 
 
@@ -142,7 +138,7 @@ class TH1orTH2:
         '''
         Call this function to print all histogram attributes.
         '''
-        self.Print(["Attributes: %s" % (self.__dict__)])
+        self.Print("Attributes: %s" % (self.__dict__))
         return
 
 
@@ -161,6 +157,13 @@ class TH1orTH2:
         return
 
 
+    def GetName(self):
+        '''
+        '''
+        self.Verbose()
+        return self.name
+    
+
     def _SetAxisStyle(self, histoObjectType):
         '''
         Sets the x- and y-axis defaults, like offset, label size, label font and yMax.
@@ -172,7 +175,7 @@ class TH1orTH2:
         self.binWidthX = self.TH1orTH2.GetXaxis().GetBinWidth(0)
 
         if "%" not in self.yLabel:
-            self.Print(["WARNING! No provision for y-units provided for '%s' in yLabel(='%s'). " % (self.TH1orTH2.GetName(), self.yLabel) ])
+            self.Print("WARNING! No provision for y-units provided for '%s' in yLabel(='%s'). " % (self.TH1orTH2.GetName(), self.yLabel) )
 
         if "TH1" in str(histoObjectType):
             self.TH1orTH2.GetXaxis().SetTitle( self.xLabel )
@@ -180,7 +183,7 @@ class TH1orTH2:
         elif "TH2" in str(histoObjectType):
             self.yLabel = self.yLabel# + " " + self.yUnits
             if "%" not in self.xLabel:
-                self.Print(["WARNING! No provision for x-units provided in xLabel(='%s'). " % (self.xLabel) ])
+                self.Print("WARNING! No provision for x-units provided in xLabel(='%s'). " % (self.xLabel) )
             self.binWidthY = self.TH1orTH2.GetYaxis().GetBinWidth(0)
             self.TH1orTH2.GetXaxis().SetTitle( self.xLabel % (self.binWidthX) )
             self.TH1orTH2.GetYaxis().SetTitle( self.yLabel % (self.binWidthY) )
@@ -356,13 +359,13 @@ class TH1orTH2:
         if intBinsX !=0:
             remainderX = self.TH1orTH2.GetNbinsX() % intBinsX
         else:
-            self.Print( ["Cannot achieve requested binning. Integer modulo by zero (intBinsX = %s). Skipping this histo." % (intBinsX)] )
+            self.Print("Cannot achieve requested binning. Integer modulo by zero (intBinsX = %s). Skipping this histo." % (intBinsX))
             return
             
         self.Verbose(["remainderX = %s %s %s = %s" % (self.TH1orTH2.GetNbinsX(), "%", intBinsX, remainderX)])
         
         if remainderX != 0:
-            self.Print(["WARNING! Trying to rebin histogram '%s' of x-axis bin-width '%s' to new bin-width of '%s'. The xMin is '%g' and xMax '%g' => number of bins would be '%g', which is not divisor of the number of bins '%d', remainder is '%d'. Will do nothing." % (hName, originalBinWidthX, self.binWidthX, xMin, xMax, nBinsX, originalNBinsX, remainderX)])
+            self.Print("WARNING! Trying to rebin histogram '%s' of x-axis bin-width '%s' to new bin-width of '%s'. The xMin is '%g' and xMax '%g' => number of bins would be '%g', which is not divisor of the number of bins '%d', remainder is '%d'. Will do nothing." % (hName, originalBinWidthX, self.binWidthX, xMin, xMax, nBinsX, originalNBinsX, remainderX))
             return
             
         rebinNBinsToOne = self.TH1orTH2.GetNbinsX()/intBinsX
@@ -375,7 +378,7 @@ class TH1orTH2:
 
         ### Send a warning message if the user-defined binWidthX could not be achieved exactly.
         if self.TH1orTH2.GetXaxis().GetBinWidth(0) != self.binWidthX:
-            self.Print(["WARNING! Could not achieve bin-width of '%f' for x-axis of hist '%s'. Actual bin-width is '%f'" % ( self.binWidthX,  self.name, self.TH1orTH2.GetXaxis().GetBinWidth(0))])
+            self.Print("WARNING! Could not achieve bin-width of '%f' for x-axis of hist '%s'. Actual bin-width is '%f'" % ( self.binWidthX,  self.name, self.TH1orTH2.GetXaxis().GetBinWidth(0)))
 
 
         return
@@ -412,13 +415,59 @@ class TH1orTH2:
         self.Verbose(["remainderX = %s %s %s = %s" % (self.TH1orTH2.GetNbinsY(), "%", intBinsY, remainderY)])
         
         if remainderY != 0:
-            self.Print(["WARNING! Trying to rebin histogram '%s' of y-axis bin-width '%s' to new bin-width of '%s'. The yMin is '%g' and yMax '%g' => number of bins would be '%g', which is not divisor of the number of bins '%d', remainder is '%d'. Will do nothing." % (hName, originalBinWidthY, self.binWidthY, yMin, yMax, nBinsY, originalNBinsY, remainderY)])
+            self.Print("WARNING! Trying to rebin histogram '%s' of y-axis bin-width '%s' to new bin-width of '%s'. The yMin is '%g' and yMax '%g' => number of bins would be '%g', which is not divisor of the number of bins '%d', remainder is '%d'. Will do nothing." % (hName, originalBinWidthY, self.binWidthY, yMin, yMax, nBinsY, originalNBinsY, remainderY))
             return
         else:    
             rebinNBinsToOne = self.TH1orTH2.GetNbinsY()/intBinsY
             self.TH1orTH2.RebinY(rebinNBinsToOne)
         ### Send a warning message if the user-defined binWidthX could not be achieved exactly.
         if self.TH1orTH2.GetYaxis().GetBinWidth(0)!=self.binWidthY:
-            self.Print(["WARNING! Could not exactly achieve a new bin-width of '%s' for y-axis. The new bin-width will instead be '%s'." % ( self.binWidthY, self.TH1orTH2.GetYaxis().GetBinWidth(0) )])
+            self.Print("WARNING! Could not exactly achieve a new bin-width of '%s' for y-axis. The new bin-width will instead be '%s'." % ( self.binWidthY, self.TH1orTH2.GetYaxis().GetBinWidth(0) ))
 
+        return
+
+
+    def NormaliseToOne(self):
+        '''
+        Normalize TH1/TH2/TH3 to unit area.
+        
+        \param h   RootHistoWithUncertainties object, or TH1/TH2/TH3 histogram
+        
+        \return Normalized histogram (same as the argument object, i.e. no copy is made).
+        '''
+        self.Verbose()
+        
+        if isinstance(self.TH1orTH2, ROOT.TH1):
+            integral = self.TH1orTH2.Integral(0, self.TH1orTH2.GetNbinsX()+1)
+        elif isinstance(h, ROOT.TH2):
+            integral = self.TH1orTH2.Integral(0, self.TH1orTH2.GetNbinsX()+1, 0, self.TH1orTH2.GetNbinsY()+1)
+        elif isinstance(h, ROOT.TH3):
+            integral = self.TH1orTH2.Integral(0, self.TH1orTH2.GetNbinsX()+1, 0, self.TH1orTH2.GetNbinsY()+1, 0, self.TH1orTH2.GetNbinsZ()+1)
+        else:
+            raise Exception("Unknown histogram object '%s'" % (h))
+        if integral == 0:
+            return
+        else:
+            self.NormaliseToFactor(1.0/integral)
+            return
+
+    
+    def NormaliseToFactor(self, scaleFactor):
+        '''
+        Scale TH1 with a given factor.
+    
+        \param h   TH1 histogram
+        \param f   Scale factor
+    
+        TH1.Sumw2() is called before the TH1.Scale() in order to scale the histogram errors correctly.
+        '''
+        self.Verbose()
+        
+        errorIgnoreLevel       = ROOT.gErrorIgnoreLevel
+        ROOT.gErrorIgnoreLevel = ROOT.kError
+
+        self.TH1orTH2.Sumw2() # errors are also scaled after this call 
+        self.TH1orTH2.Scale(scaleFactor)
+
+        ROOT.gErrorIgnoreLevel = errorIgnoreLevel
         return

@@ -31,7 +31,8 @@ class AuxClass(object):
             return
         
         print "%s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
-        print "\t", message
+        if message!="":
+            print "\t", message
         return
 
 
@@ -39,8 +40,9 @@ class AuxClass(object):
         '''
         Custome made print system. Will print the message even if the verbosity boolean is set to false.
         '''
-        print "*** %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
-        print "\t", message
+        print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+        if message!="":
+            print "\t", message
         return
 
     
@@ -158,7 +160,7 @@ class AuxClass(object):
         nColumnTitles = len(columnTitles)
         nColumnValues = len(columnValues)
         if( (nColumnWidths != nColumnTitles) or ( nColumnWidths!= nColumnValues) or (nColumnTitles != nColumnValues) ):
-            raise Exception("Number of column-widths ('%s'), column-titles ('%s') and number of column-values ('%s') differ!" % (nColumnWidths, nColumnTitles, nColumnValues) )            
+            raise Exception("Number of column-widths ('%s'), column-titles ('%s') and number of column-values ('%s') differ!" % (nColumnWidths, nColumnTitles, nColumnValues) )
 
         nColumns = nColumnValues
         nRows    = len(columnValues[0])
@@ -424,7 +426,7 @@ class Count:
         '''
         Custome made print system. Will print the message even if the verbosity boolean is set to false.
         '''
-        print "*** %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+        print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
         print "\t", message
         return
 
