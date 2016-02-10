@@ -336,7 +336,7 @@ class AuxClass(object):
 
         AuxObject = m_aux.AuxClass(verbose=True)
         for x1, x2 in AuxObject.AdjacentPairForLoop(xVals):
-                diff = abs( x1 - x2)
+                diff = abs( x1 - x2).q
         '''
         self.Verbose()
         
@@ -345,7 +345,7 @@ class AuxClass(object):
         return izip(a, b)
 
 
-    def ConvertHistoToCounter(self, histo):
+    def ConvertHistoToCounter(self, histo, printCounter=True):
         '''
         Transform histogram (TH1) to a list of (name, Count) pairs.
         The name is taken from the x axis label and the count is Count object with value and (statistical) uncertainty.        
@@ -358,11 +358,33 @@ class AuxClass(object):
             
         ret    = []
         nBinsX = histo.GetNbinsX()+1;
-        for bin in xrange(1, nBinsX):            
+        for bin in xrange(0, nBinsX):
             name        = histo.GetXaxis().GetBinLabel(bin)
             countObject = Count(float(histo.GetBinContent(bin)), float(histo.GetBinError(bin)))
             ret.append( (name, countObject) )
-            
+
+        if not printCounter:
+            return ret
+        
+        # Useful for debugging purposes
+        rows   = []
+        header = "{:^15} {:^50} {:^15}".format("Bin Number", "Bin Label", "Entries")
+        hLine  = "="*len(header)
+        title  = histo.GetTitle()        
+        rows.append("")
+        rows.append("{:^80}".format(title))
+        rows.append(hLine)
+        rows.append(header)
+        rows.append(hLine)        
+        for i, c in enumerate(ret): 
+            row = "{:^15} {:<50} {:>15}".format(str(i), ret[i][0], str(ret[i][1].value()) )
+            rows.append(row)
+        rows.append(hLine)
+        rows.append("")
+        
+        # Print the counter
+        for r in rows:
+            print r
         return ret
 
 

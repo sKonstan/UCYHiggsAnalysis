@@ -45,23 +45,25 @@ class Dataset(object):
         self.latexName          = latexNamesDict[name]
         self.rootFile           = rootFile
         self.histo              = None
-        self.lumi               = 0
+        self.lumi               = None
+        self.normFactor         = None
         self.args               = args
-        self.info               = self._GetInfo()
         self.dataVersion        = self._GetDataVersion()
-        self.energy             = self._GetEnergy()
-        self.xsection           = self._GetXSection()
-        self.allEvents          = 0 #self._GetUnweightedEvents() #xenios
-        self.unweightedEvents   = 0 #self._GetUnweightedEvents() #xenios
-        self.weightedEvents     = 0 #self._GetWeightedEvents() #xenios
         self.isData             = self._IsData()
         self.isPseudo           = self._IsPseudo()
-        self.isMC               = self._IsMC()
+        self.isMC               = self._IsMC()        
+        self.info               = self._GetInfo()
+        self.energy             = self._GetEnergy()
+        self.xsection           = self._GetXSection()
+        self.allEvents          = None
+        self.unweightedEvents   = None #self._GetUnweightedEvents() #xenios
+        self.weightedEvents     = None #self._GetWeightedEvents() #xenios
         self.isPileupReweighted = self._IsPileUpReweighted()
         self.isTopPtReweighted  = self._IsTopPtReweighted()
         self.pileupWeight       = self._GetPileUpWeight()
         self.topPtWeight        = self._GetTopPtWeight()
         self._ReadCounters()
+        self.normFactor         = self._GetNormFactor()
         self.Verbose()
         return
 
@@ -134,8 +136,55 @@ class Dataset(object):
         '''
         '''
         self.Verbose()
-        return xSections.crossSection(self.name, "%0.0f" % (self.energy))
+        if not self.isMC:
+            return None
+        xsection = xSections.crossSection(self.name, "%0.0f" % (self.energy))
+        self.Verbose("Setting cross-section of dataset '%s' to '%s'" % (self.name, xsection))
+        return xsection
         
+
+    def GetAllEvents(self):
+        if not hasattr(self, "allEvents"):
+            raise Exception("Number of all events is not set for dataset %s! The counter directory was not given, and SetAllEvents() was not called." % self.name)
+        return self.allEvents
+
+
+    def SetAllEvents(self, allEvents):
+        '''
+        Set the number of all events (for normalization).
+        
+        This allows both overriding the value read from the event
+        counter, or creating a dataset without event counter at all.
+        '''
+        self.allEvents = allEvents
+        return
+    
+
+    def SetNormFactor(self, normFactor):
+        self.normFactor = normFactor
+        return
+    
+
+    def GetNormFactor(self):
+        '''
+        Get the cross section normalization factor.
+        
+        The normalization factor is defined as:
+              normFactor = crossSection/N(allevents)
+        so by multiplying the number of MC events with the factor one gets the corresponding cross section.
+        '''
+        self.Verbose()
+        if not self.isMC:
+            return None
+        allEvents = self.GetAllEvents()
+        causes    = "\n\t1) Counters are weighted"
+        causes   += "\n\t2) Analysis job input was a skim"
+        causes   += "\n\t3) The method updateNAllEventsToPUWeighted() has not been called"
+        if allEvents == 0:
+            msg = "Number of all events is '%s' for dataset '%s'! Probable causes:" % (allEvents, self.name)
+            raise Exception(msg + causes)
+        return self.GetXSection() / allEvents
+
 
     def _GetEnergy(self):
         '''
@@ -266,7 +315,6 @@ class Dataset(object):
 
         isData    = "data" in self.dataVersion
         isPseudo  = "pseudo" in self.dataVersion
-        
         isMC      = not (isData or isPseudo)
         return isMC
 
@@ -310,6 +358,7 @@ class Dataset(object):
         self.Verbose()
         self.lumi = lumi
         return
+
 
     def GetLuminosity(self):
         self.Verbose()
@@ -451,6 +500,25 @@ class Dataset(object):
             return ret
 
         
+    def _GetNormFactor(self):
+        self.Verbose()
+
+        if not self.isMC:
+            return None
+
+        if not isinstance(self.xsection, float) or not hasattr(self, "xsection"):
+            print "self.xsection = ", self.xsection 
+            raise Exception("Cross-section is undefined for dataset %s" % self.name)
+        if not isinstance(self.allEvents, float) or not hasattr(self, "allEvents"):
+            raise Exception("All events is undefined for dataset %s" % self.name)
+        
+        if self.allEvents > 0:
+            return self.xsection / self.allEvents
+        else:
+            #raise Exception("Cannot determine the normalisation factor for dataset %s. Division by zero (allEvents=%s) " % (self.name, self.allEvents) )
+            return 0.0
+
+
     def _GetBinNumberFromBinLabel(self, histo, binLabel):
         '''
         '''
@@ -473,63 +541,81 @@ class Dataset(object):
         return binNumber
                     
     
+    def _ReadUnweightedCounters(self):
+        '''
+        TDirectory name containing the counters, relative to the analysis directory (default: analysisDirectory+'/counters')")
+          
+        Reads unweighted counters, saves values & performs sanity checks
+        '''
+        self.Verbose()
+
+        counterPath         = self.analysisName + "/counters/counter"
+        (counter, realName) = self.GetRootHisto(counterPath)
+        self._CheckCounter(counterPath)
+        
+        # Convert the counter histogram (TH1) to a list of (name, count) pairs
+        countObject = self.auxObject.ConvertHistoToCounter(counter, self.verbose)
+
+        # Second counter (index 1), second element (index 1) of the tuple [NOTE: First counter is usually zero - underflow bin)
+        self.unweightedEvents = countObject[1][1].value()
+        self.allEvents        = self.unweightedEvents
+
+        self.Verbose("Successfully read counters in '%s'. Number of events is '%s'" % (counterPath, self.unweightedEvents))
+        return
+
+    
+    def _ReadWeightedCounters(self):
+        '''
+        Reads weighted counters, saves values & performs sanity checks
+        '''
+        self.Verbose()
+
+        counterPath         = self.analysisName + "/counters/weighted/counter"
+        (counter, realName) = self.GetRootHisto(counterPath)
+        self._CheckCounter(counterPath)
+        
+        # Convert the counter histogram (TH1) to a list of (name, count) pairs
+        countObject = self.auxObject.ConvertHistoToCounter(counter, self.verbose)
+
+        # Second counter (index 1), second element (index 1) of the tuple [NOTE: First counter is usually zero - underflow bin)
+        self.weightedEvents = countObject[1][1].value()
+        self.allEvents      = self.weightedEvents
+
+        self.Verbose("Successfully read counters in '%s'. Number of events is '%s'" % (counterPath, self.unweightedEvents))
+        return
+
+
+    def _CheckCounter(self, counterPath):
+        '''
+        Check normalization from weighted counters
+        '''
+        self.Verbose("Checking couter '%s'" % (counterPath) )
+        
+        normalisationIsOk   = True
+        (counter, realName) = self.GetRootHisto(counterPath)
+
+        # Convert the counter histogram (TH1) to a list of (name, count) pairs
+        countObject  = self.auxObject.ConvertHistoToCounter(counter, self.verbose)
+        allEventsBin = self._GetBinNumberFromBinLabel(histo=counter, binLabel="Base::AllEvents")
+
+        if counter.GetBinContent(allEventsBin) < counter.GetBinContent(allEventsBin+1):
+            normalisationIsOk = False
+
+        if not normalisationIsOk:
+            raise Exception("Error: dset=%s: Unweighted skimcounter is smaller than all events counter of analysis!" % self.name)
+        return
+    
+
     def _ReadCounters(self):
         '''
         TDirectory name containing the counters, relative to the analysis directory (default: analysisDirectory+'/counters')")
           
         # Read unweighted counters
-        # The unweighted counters are allowed to not exist unless
-        # weightedCounters are also enabled
+        # The unweighted counters are allowed to not exist unless  weightedCounters are also enabled
 
         '''
-        counterDir = self.analysisName
-        normalizationCheckStatus = True
-        
-        counterPath = counterDir + "/counters/counter"        
-        (counter, realName) = self.GetRootHisto(counterPath)
-
-        # Convert the counter histogram (TH1) to a list of (name, count) pairs
-        countObject = self.auxObject.ConvertHistoToCounter(counter)
-
-        # First counter (index 0), second element (index 1) of the tuple      
-        self.unweightedEvents = countObject[0][1].value()
-
-        
-        # Useful in case of trouble
-        if not self.verbose:
-            self.Print("Printing contents of counter '%s' in ROOT file '%s'" % (counterPath, self.GetRootFile().GetName()))
-            for i, c in enumerate(counter): 
-                if i == len(counter)-2: #why?
-                    break
-                print "\t'%s' has %s entries" % (countObject[i][0], countObject[i][1].value())
-
-                
-        # Check normalization from weighted counters
-        counterPath = counterDir + "/counters/weighted/counter"
-        (counter, realName) = self.GetRootHisto(counterPath)
-
-        print "-> here "
-        allEventsBin = self._GetBinNumberFromBinLabel(histo=counter, binLabel="Base::AllEvents")
-        print "allEventsBin = ", allEventsBin
-        print "counter.GetBinContent(allEventsBin) = ", counter.GetBinContent(allEventsBin+1)
-        if counter.GetBinContent(allEventsBin) < counter.GetBinContent(allEventsBin+1):
-            normalizationCheckStatus = False
-
-        if not normalizationCheckStatus:
-            raise Exception("Error: dset=%s: Unweighted skimcounter is smaller than all events counter of analysis!" % self.name)
-
-        self.weightedEvents = None
-        self.allEvents      = self.unweightedEvents
-
-        # Read weighted counters           
-        if 1:#self._weightedCounters:
-            counterDir = self.analysisName + "/weighted"
-            (counter, realName) = self.GetRootHisto(counterDir+"/counter")
-            countObject = self.auxObject.ConvertHistoToCounter(counter)
-            self.weightedEvents = countObject[0][1].value() # first counter, second element of the tuple
-            self.allEvents = self.nAllEventsWeighted
-            #except e:
-            #    raise Exception("Could not find counter histogram, message: %s" % str(e))
+        self._ReadUnweightedCounters()
+        self._ReadWeightedCounters()
         return
 
 
@@ -758,7 +844,7 @@ class DatasetManager:
         for d in self.datasets:
             d.SetEnergy(energy)
         return
-
+    
 
     def GetEnergies(self):
         '''
@@ -1222,8 +1308,8 @@ class DatasetManager:
             name = dataset.GetName()
             xsec = dataset.GetXSection()
             lumi = dataset.GetLuminosity()
-            norm = 0.0 #dataset.GetNormFactor()
-            line  = "{:<40} {:>20} {:>20} {:>20}".format(name, xsec, lumi, norm)
+            norm = dataset.GetNormFactor()
+            line = "{:<40} {:>20} {:>20} {:>20}".format(name, xsec, lumi, norm)
             info.append(line)
         info.append(hLine)
         return info
