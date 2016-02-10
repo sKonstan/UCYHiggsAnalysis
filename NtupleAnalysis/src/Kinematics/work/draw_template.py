@@ -37,7 +37,7 @@ from UCYHiggsAnalysis.NtupleAnalysis.pyROOT.crossSection import xSections
 #================================================================================================
 verbose       = False
 batchMode     = False
-ratio         = True
+ratio         = False
 #intLumi       = 2.26 #fb-1
 folder        = "Kinematics"
 analysis      = folder
@@ -60,10 +60,26 @@ EtaRange   = [[-etaMax, -1.6, ROOT.kRed+1], [+etaMax, +1.6, ROOT.kRed+1], [-1.6,
 #================================================================================================
 # Histogram Options
 #================================================================================================
+#Pt = {
+#    "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00 , "xMax": ptMax, "binWidthX": None, "xCutLines": [], "xCutBoxes": [], "gridX": True, "logX": False, 
+#    "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E-05, "yMax": 1E+00, "binWidthY": None, "yCutLines": [], "yCutBoxes": [], "gridY": True, "logY": True , 
+#    "ratioLabel": "Ratio", "ratio": False, "invRatio": False, "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "normalise": "toOne"  , "drawOptions": "HIST", "legOptions": "FL",
+#    "logYRatio": False, "logXRatio": False, "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
+#}
+
+
+#Pt = {
+#    "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00 , "xMax": ptMax, "binWidthX": None, "xCutLines": [], "xCutBoxes": [], "gridX": True, "logX": False, 
+#    "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E-01, "yMax": None , "binWidthY": None, "yCutLines": [], "yCutBoxes": [], "gridY": True, "logY": True , 
+#    "ratioLabel": "Ratio", "ratio": False, "invRatio": False, "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "normalise": "byXSection"  , "drawOptions": "HIST", "legOptions": "FL",
+#    "logYRatio": False, "logXRatio": False, "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
+#}
+
+
 Pt = {
     "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00 , "xMax": ptMax, "binWidthX": None, "xCutLines": [], "xCutBoxes": [], "gridX": True, "logX": False, 
-    "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E-05, "yMax": 1E+00, "binWidthY": None, "yCutLines": [], "yCutBoxes": [], "gridY": True, "logY": True , 
-    "ratioLabel": "Ratio", "ratio": False, "invRatio": False, "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "normalise": "toOne"  , "drawOptions": "HIST", "legOptions": "FL",
+    "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E-01, "yMax": None , "binWidthY": None, "yCutLines": [], "yCutBoxes": [], "gridY": True, "logY": True , 
+    "ratioLabel": "Ratio", "ratio": False, "invRatio": False, "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "normalise": "toLuminosity"  , "drawOptions": "HIST", "legOptions": "FL",
     "logYRatio": False, "logXRatio": False, "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
 }
 
@@ -71,9 +87,8 @@ Pt = {
 Eta = {
     "xLabel": "#eta"           , "xUnits": ""     , "xMin": -etaMax , "xMax": +etaMax, "binWidthX": None, "xCutLines": [0], "gridX": True, "logX": False, "xCutBoxes": [],  
     "yLabel": "Entries / %0.2f", "yUnits": ""     , "yMin": +1e00   , "yMax": None   , "binWidthY": None, "yCutLines": [] , "gridY": True, "logY": True , "yCutBoxes": [],  
-    "ratioLabel": "Ratio"      , "ratio": False   , "invRatio": False, "yMinRatio": 1e-01, "yMaxRatio": 2.15 , "normalise": "", "drawOptions": "P", "legOptions": "LP", 
-    "xCutBoxes": [[-1.0, -1.6, ROOT.kBlue], [+1.0, +1.6, ROOT.kBlue]], "yCutBoxes": [],
-    "logYRatio": False, "logXRatio": False, "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
+    "ratioLabel": "Ratio"      , "ratio": False   , "invRatio": False, "yMinRatio": 1e-01, "yMaxRatio": 2.15 , "normalise": "toLuminosity", "drawOptions": "P", "legOptions": "LP", 
+    "xCutBoxes": [[-1.0, -1.6, ROOT.kBlue], [+1.0, +1.6, ROOT.kBlue]], "yCutBoxes": [], "logYRatio": False, "logXRatio": False, "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
 }
 
 
@@ -83,15 +98,15 @@ Eta = {
 PassedElectronsPt   = histos.TH1orTH2( folder, "PassedElectronsPt", "passed", None, **Pt )
 AllElectronsPt      = histos.TH1orTH2( folder, "AllElectronsPt"   , "all"   , None, **Pt )
 
-PassedElectronsEta  = histos.TH1orTH2( folder, "PassedElectronsPt", "passed", None, **Eta )
-AllElectronsEta     = histos.TH1orTH2( folder, "PassedElectronsPt", "all"   , None, **Eta )
+PassedElectronsEta  = histos.TH1orTH2( folder, "PassedElectronsEta", "passed", None, **Eta )
+AllElectronsEta     = histos.TH1orTH2( folder, "AllElectronsEta"   , "all"   , None, **Eta )
 
 
 
 #================================================================================================
 # Function Definition
 #================================================================================================
-def doPlots(histo, datasetObjects, intLumi, bColourPalette=False, savePostfix=""):
+def DoPlots(histo, datasetObjects, intLumi, bColourPalette=False, savePostfix=""):
 
     p = plotter.Plotter(verbose, batchMode)
     p.SetupRoot()
@@ -101,7 +116,8 @@ def doPlots(histo, datasetObjects, intLumi, bColourPalette=False, savePostfix=""
     p.AddHisto(histo)
     # p.SetupStatsBox(0.90, 0.88, 0.20, 0.12, 111111111)
     # p.Draw(THStackDrawOpt="nostack", includeStack = False, bAddReferenceHisto = True)
-    p.Draw(THStackDrawOpt="stack", includeStack = False, bAddReferenceHisto = True)
+    # p.Draw(THStackDrawOpt="stack", includeStack = False, bAddReferenceHisto = True)
+    p.Draw()
     p.AddPreliminaryText("13", intLumi)
     p.SaveAs(savePath, savePostfix, saveFormats)
     # p.SaveAs()
@@ -110,7 +126,7 @@ def doPlots(histo, datasetObjects, intLumi, bColourPalette=False, savePostfix=""
 
 
 #================================================================================================
-def isBatchMode():
+def IsBatchMode():
     '''
     Forces user to press 'q' before exiting ROOT from batch mode.
     '''
@@ -129,25 +145,26 @@ def main():
 
     # Variables
     args           = {}
-    histoList      = [PassedElectronsPt, AllElectronsPt]
+    #histoList      = [AllElectronsPt, PassedElectronsPt, AllElectronsEta, PassedElectronsEta]
+    histoList      = [AllElectronsPt, PassedElectronsPt]
 
     # Datasets
     datasetManager = dataset.DatasetManager(opts.mcrab, analysis)
     datasetManager.LoadLuminosities("lumi.json")
-    datasetObjects = datasetManager.GetMCDatasets() # datasetObjects = datasetManager.GetAllDatasets
+    # datasetObjects = datasetManager.GetAllDatasets()
+    datasetObjects = datasetManager.GetMCDatasets()
     datasetManager.SetLuminosityForMC( datasetManager.GetLuminosity() )
     intLumi        = datasetManager.GetLuminosityString("fb")
     datasetManager.PrintSummary()
-    #datasetManager.PrintDatasets()
-    #datasetManager.PrintSelections("DYJetsToLL_M_10to50")
+    # datasetManager.PrintDatasets()
+    # datasetManager.PrintSelections("DYJetsToLL_M_10to50")
     
     # One Histogram on a given canvas (many datasets)
     for h in histoList:
-        doPlots( h, datasetObjects, intLumi, False )
-        break
+        DoPlots( h, datasetObjects, intLumi, False )
 
     # Many Histograms on a given canvas (many datasets)
-    #doPlots( histoList, datasetObjects, False )
+    # DoPlots( histoList, datasetObjects, False )
 
 
 
@@ -167,6 +184,6 @@ if __name__ == "__main__":
     #   raise Exception("Please provide dataset name with -d")
 
     main()
-    isBatchMode()
+    IsBatchMode()
     
 #================================================================================================

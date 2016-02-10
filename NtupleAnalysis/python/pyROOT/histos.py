@@ -284,7 +284,7 @@ class TH1orTH2:
         if bLogY == False:
             yMaxFactor = 1.4 #1.25
         else:
-            yMaxFactor = 10.0 #50.0
+            yMaxFactor = 100.0 #50.0
         return yMaxFactor
 
 

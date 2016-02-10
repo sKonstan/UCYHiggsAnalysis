@@ -937,41 +937,36 @@ class Plotter(object):
         '''
         self.Verbose()
         
-        # For-loop: All datasets
         for dataset in self.Datasets:
-            self._NormaliseHisto(dataset.histo)
+            self._NormaliseHisto(dataset)
         return
 
 
-    def _NormaliseHisto(self, h):
+    def _NormaliseHisto(self, dataset):
         '''
         Normalise the histoObject passed to this function according to user-specified criteria. 
         '''
         self.Verbose()
 
         options = ["", "toOne", "byXSection", "toLuminosity"]
-        norm    = h.normalise
+        norm    = dataset.histo.normalise
     
         if norm not in options:
             raise Exception("Unsupported normalisation option '%s'. Please choose one of the following options:\n\t \"%s\"" % (norm, "\", \"".join(opt for opt in options) ) )
 
-#        if h.TH1orTH2.GetEntries() == 0:
-#            self.Print("WARNING! Cannot normalise histogram.", "HistoName: '%s'" % (h.name), "Entries: '%s'" % (h.TH1orTH2.GetEntries()), "TFile: '%s'" % (h.TFileName))
-#            return
-        
         if norm == "":
-            self.PrintHistoInfo(h, True)
+            self.PrintHistoInfo(dataset.histo, True)
             return
         elif norm == "toOne":
-            h.NormaliseToOne()
+            dataset.histo.NormaliseToOne()
             return
-        elif type(h.normalise) == float:
-            h.scaleFactor     = float(h.normalise)
-            h.TH1orTH2.Scale(h.scaleFactor)
+        elif norm == "byXSection":
+            dataset.histo.NormaliseToFactor(dataset.GetNormFactor())
+        elif norm == "toLuminosity":
+            dataset.histo.NormaliseToFactor(dataset.GetLuminosity())
         else:
-            raise Exception("Unknown histoObject normalisation option '%s'.!" % (h.normalise))
+            raise Exception("Unknown histoObject normalisation option '%s'.!" % (dataset.histo.normalise))
 
-        self.PrintHistoInfo(h, True)
         return
 
 
@@ -985,6 +980,14 @@ class Plotter(object):
         self._NormaliseHistograms()
         self._CustomiseHistograms()
         self._CreateCanvasAndLegendAndDumbie()
+
+        if self.THDumbie.normalise == "toOne" and THStackDrawOpt=="stack" and len(self.Datasets)>1:
+            self.Print("WARNING! Drawing '%s' stacked samples with normalisation option '%s'" % (len(self.Datasets), self.THDumbie.normalise) )
+
+        if THStackDrawOpt=="nostack":
+            for dataset in self.Datasets:
+                dataset.histo.TH1orTH2.SetFillStyle(3003)
+                
         self._CheckHistogramBinning()
         self._AddHistogramsToStack()
         self._DrawHistograms(THStackDrawOpt)
@@ -1042,7 +1045,7 @@ class Plotter(object):
 
         allowedValues = [None, "x", "y"]
         if ProfileAxis not in allowedValues:
-            raise Exception("Invalid ProfileAxis option selected ('%s'). You need to speficy the axis of the Profile (x or y). Available options are 'x' and 'y'." % (ProfileAxis) )
+            raise Exception("Invalid ProfileAxis option selected ('%s'). You need to speficy the axis of the Profile (x or y)" % (ProfileAxis) )
 
         self.includeStack = includestack
         self.EnableColourPalette(True)
