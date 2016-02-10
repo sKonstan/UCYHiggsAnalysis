@@ -105,6 +105,7 @@ def DoPlots(histo, datasetObjects, intLumi, bColourPalette=False, saveExt=""):
     # p.SetTLegendHeader("")
     p.AddPreliminaryText("13", intLumi)
     p.SaveHistos(True, savePath, saveFormats, saveExt)
+    p.PrintElapsedTime(self, units = "seconds", marker = "")
     return
 
 
