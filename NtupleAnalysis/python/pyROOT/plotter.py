@@ -10,7 +10,6 @@ import inspect
 import glob
 from optparse import OptionParser
 import itertools
-import time
 import numpy
 from array import array
 import re
@@ -43,11 +42,11 @@ class Plotter(object):
         self.TBoxList          = []
         self.THDumbie          = None
         self.THRatio           = None
-        self.THStack           = ROOT.THStack("THStack" + "@" + str(time.time()), "Stack for PadPlot Histograms")
+        self.THStack           = ROOT.THStack("THStack", "Stack for PadPlot Histograms")
         self.THStackHistoList  = [] #needed because looping over self.THSTack.GetHists() crashes!
-        self.THStackRatio      = ROOT.THStack("THStackRatio" + "@" + str(time.time()), "Stack for PadRatio Histograms")
+        self.THStackRatio      = ROOT.THStack("THStackRatio", "Stack for PadRatio Histograms")
         self.TLegend           = None
-        self.TMultigraph       = ROOT.TMultiGraph("TMultigraph"  + "@" + str(time.time()), "ROOT.TMultiGraph holding various ROOT.TGraphs")
+        self.TMultigraph       = ROOT.TMultiGraph("TMultigraph", "ROOT.TMultiGraph holding various ROOT.TGraphs")
         #
         self.auxObject         = aux.AuxClass(verbose)
         self.batchMode         = batchMode
@@ -58,11 +57,11 @@ class Plotter(object):
         self.includeStack      = False
         self.invPadRatio       = False
         self.padRatio          = False
-        self.startTime         = time.time()
         self.styleObject       = styles.StyleClass(verbose)
         self.textObject        = text.TextClass(verbose)
         self.xTLineList        = []
         self.yTLineList        = []
+        print
         return
 
     
@@ -90,12 +89,12 @@ class Plotter(object):
         return
 
     
-    def PrintList(self, messageList=[""]):
+    def PrintList(self, messageList=[""], printSelf=True):
         '''
         Custome made print system. Will print all messages in the messageList even if the verbosity boolean is set to false.
         '''
         for counter, message in enumerate(messageList):
-            if counter == 0:
+            if counter == 0 and printSelf:
                 self.Print(message)
             else:
                 print "\t", message
@@ -110,7 +109,7 @@ class Plotter(object):
         return
 
 
-    def SetupRoot(self, maxDigits=4, nContours=999, errIgnoreLevel=2000):
+    def SetupRoot(self, optStat=0, maxDigits=4, nContours=999, errIgnoreLevel=2000):
 
         '''
         Setup ROOT before doing anything else. Reset ROOT settings, disable statistics box,
@@ -127,13 +126,29 @@ class Plotter(object):
         kFatal    =   6000
         '''
         self.Verbose()
+        if hasattr(self, 'rootIsSet'):
+            return
+
+        self.Print("Resetting ROOT, setting TDR style, and setting:")
+
+        info   = []
+        align  = "{:<15} {:<10}"
+        info.append( align.format("OptStat"        , ": " + str( optStat) ) )
+        info.append( align.format("MaxDigits"      , ": " + str( maxDigits) ) ) 
+        info.append( align.format("NumberContours" , ": " + str( nContours) ) )
+        info.append( align.format("gerrIgnoreLevel", ": " + str( errIgnoreLevel) ) )
+
+        self.PrintList(info, False)
+        
         ROOT.gROOT.Reset()
-        ROOT.gStyle.SetOptStat(0)
+        ROOT.gROOT.SetBatch(self.batchMode)
+        ROOT.gStyle.SetOptStat(optStat)
         ROOT.gStyle.SetNumberContours(nContours)
         ROOT.TGaxis.SetMaxDigits(maxDigits)
-        ROOT.gROOT.SetBatch(self.batchMode)
         ROOT.gErrorIgnoreLevel = errIgnoreLevel
         tdrstyle.TDRStyle()
+        self.rootIsSet = True
+        
         return
 
 
@@ -193,7 +208,7 @@ class Plotter(object):
         '''
         Add all datasets in the datasetObjects list to the plotter
         '''
-        self.Verbose()
+        self.Print("Adding '%s' datasets to the plotter object" % (len(datasetObjects) ) )
         
         for d in datasetObjects:
             self.Verbose("Adding dataset %s from file %s." % (d.name, d.rootFile.GetName()))
@@ -217,12 +232,7 @@ class Plotter(object):
         # Create a name for the TCanvas
         canvasName = histo.GetName()
 
-        # Add the time in the canvas name to avoid memory duplicates when handling the same histos. Truncate "@time" when saving canvas
-        canvasName =  canvasName + "@" + str(time.time())
         self.TCanvas = ROOT.TCanvas( canvasName, canvasName, 1)
-
-        # Avoid getting the same time (canvas/histo overwrite)
-        time.sleep(0.01)
 
         self._SetLogAxesCanvas()
         self.TCanvas.cd()
@@ -243,14 +253,10 @@ class Plotter(object):
         self.THRatio.THisto.SetName("THRatio")
 
         # Create TCanvas name that included the dataset name
-        if histo.saveName == None:
-            canvasName = histo.name
-        else:
-            canvasName = histo.saveName
+        canvasName = histo.name
 
         # Create TCanvas and divide it into two pads: one for plot pad, one for ratio pad
         self.Verbose("Creating canvas with name '%s'" % ( canvasName))
-        canvasName =  canvasName + "@" + str(time.time())
         self.TCanvas = ROOT.TCanvas( canvasName, canvasName, ROOT.gStyle.GetCanvasDefW(), int(ROOT.gStyle.GetCanvasDefH()*self.canvasFactor))
         self.TCanvas.Divide(1,2)
 
@@ -502,7 +508,7 @@ class Plotter(object):
         '''
         self.Verbose()
         
-        self.TLegend.SetName("legend_" + str(time.time()) )
+        self.TLegend.SetName(self.GetCanvasName())
         self.TLegend.SetFillStyle(0)
         self.TLegend.SetLineColor(ROOT.kBlack)
         self.TLegend.SetLineWidth(1)
@@ -514,22 +520,21 @@ class Plotter(object):
 
     
 
-    def AddHisto(self, histoObject):
+    def AddHisto(self, histos):
         '''
         '''
         self.Verbose()
         
-        if type(histoObject) == list:
-            self.Print("FIXME! EXIT")
-            sys.exit()
+        if type(histos) == list:
+            self.Print("Adding '%s' histograms to the histogram queue: %s" % (len(histos), "\"" + "\", \"".join(h.GetName() for h in histos) + "\"") )
+            for h in histos:
+                self._AddHistoToQueue(h)
+            #self.Print("FIXME! EXIT")
+            #sys.exit()
         else:
-            self._AddHistoToQueue(histoObject)
+            self.Print("Adding '1' histogram to the histogram queue: %s" % ("\"" + histos.GetName() + "\"") )
+            self._AddHistoToQueue(histos)
 
-#        if type(histoObject) == list:
-#            for h in histoObject:
-#                self._AddHistoToQueue(h)
-#        elif isinstance(histoObject, histos.THisto):
-#            self._AddHistoToQueue(histoObject)
         return
     
 
@@ -907,7 +912,7 @@ class Plotter(object):
         
         # For-loop: All datasets
         for d in self.Datasets:
-            d.histo.ApplyStyles( self.styleObject)
+            d.histo.ApplyStyles(self.styleObject)
         return
 
     
@@ -1000,7 +1005,7 @@ class Plotter(object):
         
         for h in HistoObjectList:
             self.IsValidHistoObject(h)
-            h.ApplyStyles( self.styleObject, type(h.THisto))
+            h.ApplyStyles(self.styleObject)
             h.THisto.Draw(h.drawOptions + ",9same,")
             self.TLegend.AddEntry( h.THisto, h.legTitle, self._GetLegEntryOptions(h) )
             self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
@@ -1606,29 +1611,7 @@ class Plotter(object):
         self.textObject.AddLumiText(lumi)
         self.TCanvas.Update()
         return
-    
-
-    def SaveAs(self, savePath=os.getcwd() + "/", saveName="", savePostfix="", saveFormats=["png", "C", "eps", "pdf"]):
-        '''
-        Save canvas to a specified path and with the desirable format.
-        '''
-        self.Print()
-            
-        self._IsValidSavePath(savePath)
-        self._SaveAs(saveFormats, saveName)
-        return
-
-
-    def Save(self, savePath=os.getcwd() + "/", saveFormats=["png", "eps", "pdf"]):
-        '''
-        Save canvas with the default canvas (histogram) name to the current working directory
-        '''
-        self.Print()
-            
-        self._IsValidSavePath(savePath)
-        self._SaveAs(saveFormats, self._GetCanvasSaveName(savePath, ""))
-        return
-    
+        
     
     def _IsValidSavePath(self, savePath):
         '''
@@ -1643,55 +1626,7 @@ class Plotter(object):
             if not os.path.exists(savePath):
                 raise Exception("The path '%s' does not exist! Please make sure the provided path is correct." % (savePath) )
         return
-
-    
-    def _GetCanvasSaveName(self, savePath, savePostfix):
-        '''
-        '''
-        self.Verbose()
-        return savePath + self.TCanvas.GetName().rsplit('@', 1)[0] + savePostfix
-                
-    
-    def _SaveAs(self, saveFormats, saveName):
-        '''
-        Loop over all formats and save the canvas to 
-        '''
-        self.Verbose()
-
-        for ext in saveFormats:
-            savePath = saveName + "." + ext
-            self.TCanvas.Update()
-            self.TCanvas.SaveAs(savePath)
-            print "\t%s" % savePath
-        return
-
-
-    def GetCanvasName(self):
-        '''
-        Return canvas name upon which the plotter objects histograms will be saved on.
-        '''
-        self.Verbose()
-
-        return self.TCanvas.GetName()
-
-
-    def SetCanvasName(self, canvasName):
-        '''
-        '''
-        self.Verbose()
-
-        self.TCanvas.SetName(canvasName)
-        return
-
-
-    def AppendToCanvasName(self, canvasNameExt):
-        '''
-        '''
-        self.Verbose()
-        
-        self.TCanvas.SetName( self.TCanvas.GetName() + canvasNameExt)
-        return
-
+                   
 
     def GetUnityTH1(self):
         '''
@@ -1745,115 +1680,91 @@ class Plotter(object):
         return
 
 
-    def FindFirstBinBelowValue(self, histo, targetValue, axis=1):
-        '''
-        FindLastBinAbove(targetValue, axis=1): 
-        find last bin with content > threshold for axis (1=x, 2=y, 3=z)
-        if no bins with content > threshold is found the function returns -1.
-        '''
-        self.Verbose()
-
-        iBin = histo.FindLastBinAbove(targetValue, axis)
-        if iBin == -1:
-            self.Verbose("WARNING! Could not find target value '%s'." % (targetValue))
-        binCenter      = histo.GetBinCenter ( iBin   )
-        binCenterUp    = histo.GetBinCenter ( iBin+1 )
-        binCenterDown  = histo.GetBinCenter ( iBin-1 )
-        binContent     = histo.GetBinContent( iBin   )
-        binContentUp   = histo.GetBinContent( iBin+1 )
-        binContentDown = histo.GetBinContent( iBin-1 )
-        binError       = histo.GetBinError( iBin )
-
-        # Sanity check
-        if binContent != 0:
-            percentageOffset = ((binContent - targetValue)/binContent )*100
-        else:
-            percentageOffset = 99999.9
-
-        if abs(percentageOffset) > 50:
-            self.Verbose( ["Target: '%s'" % (targetValue) , "BinContent: '%s'" % (binContent), "BinContent (+1): '%s'" % (binContentUp), "BinContent (-1): '%s'" % (binContentDown), 
-                         "BinCenter: '%s'" % (binCenter), "BinCenter (+1): '%s'" % (binCenterUp), "BinCenter (-1): '%s'" % (binCenterDown), "Rate Offset (%%): '%f'" % (percentageOffset)] )
-        return iBin, binCenter, binContent, binError
-
-
-    def FindFirstBinAboveValue(self, histo, targetValue):
-        '''
-        '''
-        self.Verbose()
-        
-        iBin = histo.FindFirstBinAbove(targetValue)
-        if iBin == -1:
-            raise Exception("Could not find target value '%s'!" % (targetValue))
-
-        # Get actual values
-        binCenter  = histo.GetBinCenter(  iBin )
-        binContent = histo.GetBinContent( iBin)
-
-        # Sanity check
-        if binContent != 0:
-            percentageOffset = ((binContent - targetValue)/binContent )*100
-        else:
-            percentageOffset = 99999.9
-
-        if abs(percentageOffset) > 50:
-            self.Verbose( ["Target: '%s'" % (targetValue) , "BinContent: '%s'" % (binContent), "BinCenter: '%s'" % (binCenter), "Offset (%%): '%f'" % (percentageOffset)] )
-        return iBin, binCenter, binContent
-
-
-
-    def GetHistos(self):
-        '''
-        '''
-        self.Verbose()
-        hObjects = []
-        for d in self.Datasets:
-            hObjects.append(d.histo)
-        return hObjects
-        
-
-    def GetTLegend(self):
-        '''
-        '''
-        self.Verbose()
-        return self.TLegend
-
-
-
-    def SetTLegendHeader(self, text):
-        '''
-        '''
-        self.Verbose()
-        
-        self.TLegend.SetHeader(text)
-        return
-
-
     def GetTHStackHistoList(self):
-        '''
-        '''
         self.Verbose()
         return self.THStackHistoList
 
 
     def GetTHStack(self):
-        '''
-        '''
         self.Verbose()
         return self.THStack
 
 
     def GetTHDumbie(self):
-        '''
-        '''
         self.Verbose()
         return self.THDumbie
 
 
-    def GetDatasetList(self):
+    #================================================================================================
+    def GetDatasets(self):
+        self.Verbose()
+        return self.Datasets
+
+
+    def GetLegend(self):
+        self.Verbose()
+        return self.TLegend
+
+
+    def SetLegendHeader(self, text):
+        self.Verbose()
+        self.TLegend.SetHeader(text)
+        return
+
+    
+    def GetHistos(self):
+        self.Verbose()
+        hList = []
+        for d in self.Datasets:
+            hList.append(d.histo)
+        return hList
+    
+
+    def SetCanvasName(self, name):
+        self.Verbose()
+        self.TCanvas.SetName(name)
+        return
+
+
+    def GetCanvasName(self):
+        self.Verbose()
+        return self.TCanvas.GetName()
+
+    
+    def _SaveAs(self, saveName, saveFormats):
         '''
+        Loop over all formats and save the canvas to 
         '''
         self.Verbose()
-        datasetList = []
-        for d in self.Datasets:
-            datasetList.append(d.name)
-        return datasetList
+
+        self.SetCanvasName(saveName)
+        self.TCanvas.Update()
+
+        for ext in saveFormats:
+            name = self.GetCanvasName() + "." + ext
+            self.TCanvas.SaveAs(name)
+            print "\t%s" % name
+        return
+
+    
+    def SaveAs(self, savePath=os.getcwd() + "/", saveName="", savePostfix="", saveFormats=["png", "C", "eps", "pdf"]):
+        '''
+        Save canvas to a specified path and with the desirable format.
+        '''
+        self.Print()
+            
+        self._IsValidSavePath(savePath)
+        self._SaveAs(saveName, saveFormats)
+        return
+
+
+    def Save(self, savePath=os.getcwd() + "/", saveFormats=["png", "eps", "pdf"]):
+        '''
+        Save canvas with the default canvas (histogram) name to the current working directory
+        '''
+        self.Print()
+
+        self._IsValidSavePath(savePath)
+        saveName = savePath + self.GetCanvasName()
+        self._SaveAs(saveName, saveFormats)
+        return

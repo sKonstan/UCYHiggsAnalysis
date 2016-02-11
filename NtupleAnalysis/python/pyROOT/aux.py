@@ -1,5 +1,5 @@
 #================================================================================================
-# Imports
+# All imported modules
 #================================================================================================
 import os, sys
 import array
@@ -7,6 +7,7 @@ import math
 import copy
 import inspect
 import glob
+import time
 from optparse import OptionParser
 import itertools
 
@@ -18,12 +19,78 @@ import ROOT
 #================================================================================================
 # Class Definition
 #================================================================================================
-class AuxClass(object): 
+class AuxClass(object):
+    '''
+    '''
     def __init__(self, verbose=False):
-        self.verbose = verbose
+        self.verbose   = verbose
+        self.timerDict = {}
+        return
+        
+    def StartTimer(self, name):
+        '''
+        '''
+        self.Verbose()
+
+        if isinstance(name, str):
+            if name in self.timerDict:
+                raise Exception("A counter with name '%s' already exists!" % (name))
+            else:
+                self.timerDict[name] = time.time()
+        else:
+            raise Exception("The parameter '%s'  is not a string, but of type '%s'" % (str(name), type(name)))
+        return
+
+    
+    def PrintTimers(self, units = "seconds"):
+        '''
+        Print the time elapses since the creation of the plotter object.
+        
+        '''
+        self.Verbose()
+
+        info   = []
+        align  = "{:<20} {:<20} {:<20} {:<20}"
+        header = align.format("Timer Name", "Start", "Finish", "Elapsed (%s) " % (units))
+        hLine  = "="*len(header)
+        info.append(hLine)
+        info.append(header)
+        info.append(hLine)
+        
+        # For-loop: All timers and calculate start, finish and elapsed time
+        for cName, cTime in self.timerDict.iteritems():
+            (sTime, fTime, eTime) = self._CalculateTimer(cName)
+            info.append( align.format(cName, sTime, fTime, "%0.2f" % eTime) )
+
+        self.PrintList(info)
         return
     
+
+    def _CalculateTimer(self, name, units = "seconds"):
+        '''
+        Print the time elapses since the creation of the plotter object.
         
+        '''
+        self.Verbose()
+
+        start   = self.timerDict[name]
+        finish  = time.time()
+        elapsed = finish - start
+        if units == "seconds":
+            pass
+        elif units == "minutes":
+            elapsed = elapsed/60.0
+        elif units == "hours":
+            elapsed = elapsed/(60.0*60)
+        else:
+            raise Exception("Unsupported units of time. Please choose from 'seconds', 'minutes' and 'hours'.")            
+
+        sTime = time.strftime('%H:%M:%S', time.localtime(start))
+        fTime = time.strftime('%H:%M:%S', time.localtime(finish))
+        return sTime, fTime, elapsed
+
+
+
     def Verbose(self, message=""):
         '''
         Custome made verbose system. Will print all messages in the messageList

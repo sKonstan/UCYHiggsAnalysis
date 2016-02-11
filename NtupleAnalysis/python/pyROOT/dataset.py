@@ -971,7 +971,7 @@ class DatasetManager:
         '''
         '''
         self.Verbose()
-
+        
         if name in self.datasetMap:
             return self.datasetMap[name]
         else:
@@ -1287,7 +1287,7 @@ class DatasetManager:
                         self.GetDataset(name).SetLuminosity(value)
                         self.intLumi = value
 
-        self.Print("Luminosity is %s pb (read from %s)" % (self.intLumi, os.path.join(d.baseDir, fName)) )
+        self.Print("Luminosity is %s (1/pb) (read from %s)" % (self.intLumi, os.path.join(d.baseDir, fName)) )
         return
 
 
@@ -1344,7 +1344,7 @@ class DatasetManager:
 
         if intLumi < 0:
             intLumi = self.intLumi
-        self.Print("Setting Luminosity for all MC samples to %s " % (intLumi) )
+        self.Print("Setting Luminosity for all MC samples to %s (1/pb)" % (intLumi) )
                    
         # For-loop: All datasets
         for dataset in self.datasets:
@@ -1393,8 +1393,7 @@ class DatasetManager:
         Print dataset information.
         '''
         self.Verbose()
-        for row in self.FormatSummary():
-            print row
+        self.PrintList(self.FormatSummary())
         return
     
         

@@ -44,6 +44,11 @@ analysis      = folder
 saveFormats   = ["png"] #, "pdf"]
 savePath      = ""
 
+#================================================================================================
+# Object Definitions
+#================================================================================================
+auxObject = aux.AuxClass(verbose)
+
 
 #================================================================================================
 # Histogram Definitions
@@ -60,12 +65,12 @@ EtaRange   = [[-etaMax, -1.6, ROOT.kRed+1], [+etaMax, +1.6, ROOT.kRed+1], [-1.6,
 #================================================================================================
 # Histogram Options
 #================================================================================================
-#Pt = {
-#    "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00 , "xMax": ptMax, "binWidthX": None, "xCutLines": [], "xCutBoxes": [], "gridX": True, "logX": False, 
-#    "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E-05, "yMax": 1E+00, "binWidthY": None, "yCutLines": [], "yCutBoxes": [], "gridY": True, "logY": True , 
-#    "ratioLabel": "Ratio", "ratio": False, "invRatio": False, "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "normalise": "toOne"  , "drawOptions": "HIST", "legOptions": "FL",
-#    "logYRatio": False, "logXRatio": False, "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
-#}
+Pt = {
+    "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00 , "xMax": ptMax, "binWidthX": None, "xCutLines": [], "xCutBoxes": [], "gridX": True, "logX": False, 
+    "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E-05, "yMax": 1E+00, "binWidthY": None, "yCutLines": [], "yCutBoxes": [], "gridY": True, "logY": True , 
+    "ratioLabel": "Ratio", "ratio": False, "invRatio": False, "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "normalise": "toOne"  , "drawOptions": "HIST", "legOptions": "FL",
+    "logYRatio": False, "logXRatio": False, "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
+}
 
 
 #Pt = {
@@ -76,13 +81,13 @@ EtaRange   = [[-etaMax, -1.6, ROOT.kRed+1], [+etaMax, +1.6, ROOT.kRed+1], [-1.6,
 #}
 
 
-Pt = {
-    "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00 , "xMax": ptMax, "binWidthX": None, "xCutLines": [], "xCutBoxes": [], "gridX": True, "logX": False, 
-    "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E-01, "yMax": None , "binWidthY": None, "yCutLines": [], "yCutBoxes": [], "gridY": True, "logY": True , 
-    "ratioLabel": "Ratio", "ratio": False, "invRatio": False, "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "normalise": "toLuminosity"  , "drawOptions": "HIST", "legOptions": "FL",
-    "logYRatio": False, "logXRatio": False, "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
-}
-
+#Pt = {
+#    "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00 , "xMax": ptMax, "binWidthX": None, "xCutLines": [], "xCutBoxes": [], "gridX": True, "logX": False, 
+#    "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E-01, "yMax": None , "binWidthY": None, "yCutLines": [], "yCutBoxes": [], "gridY": True, "logY": True , 
+#    "ratioLabel": "Ratio", "ratio": False, "invRatio": False, "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "normalise": "toLuminosity"  , "drawOptions": "HIST", "legOptions": "FL",
+#    "logYRatio": False, "logXRatio": False, "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
+#}
+#
 
 Eta = {
     "xLabel": "#eta"           , "xUnits": ""     , "xMin": -etaMax , "xMax": +etaMax, "binWidthX": None, "xCutLines": [0], "gridX": True, "logX": False, "xCutBoxes": [],  
@@ -119,7 +124,7 @@ def DoPlots(histo, datasetObjects, intLumi, bColourPalette=False, savePostfix=""
     # p.Draw(THStackDrawOpt="stack", includeStack = False, bAddReferenceHisto = True)
     p.Draw()
     p.AddPreliminaryText("13", intLumi)
-    #p.SaveAs(savePath, savePostfix, saveFormats)
+    # p.SaveAs(savePath, histo.GetName() + "_test", savePostfix, saveFormats)
     p.Save()
     # p.PrintElapsedTime(units = "seconds")
     return
@@ -148,14 +153,17 @@ def main():
     #histoList      = [AllElectronsPt, PassedElectronsPt, AllElectronsEta, PassedElectronsEta]
     histoList      = [AllElectronsPt, PassedElectronsPt]
 
+    
     # Datasets
+    auxObject.StartTimer("Dataset Manager")
     datasetManager = dataset.DatasetManager(opts.mcrab, analysis)
     datasetManager.LoadLuminosities("lumi.json")
     # datasetObjects = datasetManager.GetAllDatasets()
-    datasetObjects = datasetManager.GetMCDatasets()
+    # datasetObjects = datasetManager.GetMCDatasets()
+    datasetObjects   = [datasetManager.GetDataset("ttHJetToNonbb_M125")]
     datasetManager.SetLuminosityForMC( datasetManager.GetLuminosity() ) #myLumi
     intLumi        = datasetManager.GetLuminosityString("fb") 
-    datasetManager.PrintSummary()
+    # datasetManager.PrintSummary()
     # datasetManager.PrintDatasets()
     # datasetManager.PrintSelections("DYJetsToLL_M_10to50")
     
@@ -164,26 +172,24 @@ def main():
         DoPlots( h, datasetObjects, intLumi, False )
 
     # Many Histograms on a given canvas (many datasets)
-    # DoPlots( histoList, datasetObjects, False )
+    #DoPlots( histoList, datasetObjects, False )
 
-
+    
 
 #================================================================================================
 if __name__ == "__main__":
-
+    
     parser = OptionParser(usage="Usage: %prog [options]",add_help_option=False,conflict_handler="resolve")
     parser.add_option("-m", "--mcrab"  , dest="mcrab"  , action="store", help="Path to the multicrab directory for input")
-    parser.add_option("-d", "--dataset", dest="dataset", action="store", help="Name of the dataset to be plotted")
     (opts, args) = parser.parse_args()
 
     if opts.mcrab == None:
         raise Exception("Please provide input multicrab directory with -m")
     if not os.path.exists(opts.mcrab):
         raise Exception("The input root file '%s' does not exist!" % opts.mcrab)
-    #if opts.dataset == None:
-    #   raise Exception("Please provide dataset name with -d")
 
+    auxObject.StartTimer("Total")
     main()
     IsBatchMode()
-    
+    auxObject.PrintTimers()
 #================================================================================================
