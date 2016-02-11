@@ -38,7 +38,7 @@ from UCYHiggsAnalysis.NtupleAnalysis.pyROOT.crossSection import xSections
 verbose       = False
 batchMode     = False
 ratio         = False
-#intLumi       = 2.26 #fb-1
+myLumi        = 2.26 # in fb
 folder        = "Kinematics"
 analysis      = folder
 saveFormats   = ["png"] #, "pdf"]
@@ -95,11 +95,11 @@ Eta = {
 #================================================================================================
 # Create Histos OBjects
 #================================================================================================
-PassedElectronsPt   = histos.TH1orTH2( folder, "PassedElectronsPt", "passed", None, **Pt )
-AllElectronsPt      = histos.TH1orTH2( folder, "AllElectronsPt"   , "all"   , None, **Pt )
+PassedElectronsPt   = histos.TH1orTH2( folder, "PassedElectronsPt", "passed", **Pt )
+AllElectronsPt      = histos.TH1orTH2( folder, "AllElectronsPt"   , "all"   , **Pt )
 
-PassedElectronsEta  = histos.TH1orTH2( folder, "PassedElectronsEta", "passed", None, **Eta )
-AllElectronsEta     = histos.TH1orTH2( folder, "AllElectronsEta"   , "all"   , None, **Eta )
+PassedElectronsEta  = histos.TH1orTH2( folder, "PassedElectronsEta", "passed", **Eta )
+AllElectronsEta     = histos.TH1orTH2( folder, "AllElectronsEta"   , "all"   , **Eta )
 
 
 
@@ -119,8 +119,8 @@ def DoPlots(histo, datasetObjects, intLumi, bColourPalette=False, savePostfix=""
     # p.Draw(THStackDrawOpt="stack", includeStack = False, bAddReferenceHisto = True)
     p.Draw()
     p.AddPreliminaryText("13", intLumi)
-    p.SaveAs(savePath, savePostfix, saveFormats)
-    # p.SaveAs()
+    #p.SaveAs(savePath, savePostfix, saveFormats)
+    p.Save()
     # p.PrintElapsedTime(units = "seconds")
     return
 
@@ -153,8 +153,8 @@ def main():
     datasetManager.LoadLuminosities("lumi.json")
     # datasetObjects = datasetManager.GetAllDatasets()
     datasetObjects = datasetManager.GetMCDatasets()
-    datasetManager.SetLuminosityForMC( datasetManager.GetLuminosity() )
-    intLumi        = datasetManager.GetLuminosityString("fb")
+    datasetManager.SetLuminosityForMC( datasetManager.GetLuminosity() ) #myLumi
+    intLumi        = datasetManager.GetLuminosityString("fb") 
     datasetManager.PrintSummary()
     # datasetManager.PrintDatasets()
     # datasetManager.PrintSelections("DYJetsToLL_M_10to50")

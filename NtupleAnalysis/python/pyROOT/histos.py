@@ -1,3 +1,4 @@
+#if hasattr(self, 'xLabel') :
 #================================================================================================
 # All imported modules
 #================================================================================================
@@ -15,81 +16,113 @@ import styles as m_styles
 # Class definition
 #================================================================================================
 class TH1orTH2:    
-    def __init__(self, path, name, legTitle, saveName, **kwargs):
+    def __init__(self, path, name, legTitle, **kwargs):
+        self.verbose         = kwargs.get("verbose", False)
         self.path            = path
         self.name            = name
         self.legTitle        = legTitle
+
         self.xUnits          = kwargs.get("xUnits", "")
+        self.yUnits          = kwargs.get("yUnits", "")
+        self.zUnits          = kwargs.get("zUnits", "")
+
+        self.xLabel          = self._GetLabelX(**kwargs)
+        self.yLabel          = self._GetLabelY(**kwargs)
+        self.zLabel          = self._GetLabelY(**kwargs)
+
         self.xMin            = kwargs.get("xMin", None)
         self.xMax            = kwargs.get("xMax", None)
-        self.yUnits          = kwargs.get("yUnits", "")
         self.yMin            = kwargs.get("yMin", None)
         self.yMax            = kwargs.get("yMax", None)
+
         self.yMinRatio       = kwargs.get("yMinRatio", None)
         self.yMaxRatio       = kwargs.get("yMaxRatio", None)
-        self.zUnits          = kwargs.get("zUnits", "")
+
         self.zMin            = kwargs.get("zMin", None)
         self.zMax            = kwargs.get("zMax", None)
+
         self.xLegMin         = kwargs.get("xLegMin", 0.62)
         self.xLegMax         = kwargs.get("xLegMax", 0.92)
         self.yLegMin         = kwargs.get("yLegMin", 0.82)
         self.yLegMax         = kwargs.get("yLegMax", 0.92)
+
         self.xCutLines       = kwargs.get("xCutLines", None)
         self.xCutBoxes       = kwargs.get("xCutBoxes", None)
+        
         self.yCutLines       = kwargs.get("yCutLines", None)
         self.yCutBoxes       = kwargs.get("yCutBoxes", None)
-        self.zCutLines       = kwargs.get("zCutLines", None)
         self.yCutLinesRatioPad = kwargs.get("yCutLinesRatioPad", True)
-        self.zCutLinesErrors = kwargs.get("zCutLinesErrors", True)
+
         self.normalise       = kwargs.get("normalise", "")
         self.ratio           = kwargs.get("ratio", False)
         self.ratioErrorType  = kwargs.get("ratioErrorType", "") #"B" = Binomial
         self.invRatio        = kwargs.get("invRatio", False) #inverse ratio = 1/ratio
+
         self.logX            = kwargs.get("logX", False)
         self.logY            = kwargs.get("logY", False)
         self.logZ            = kwargs.get("logZ", False)
+
         self.logXRatio       = kwargs.get("logXRatio", False)
         self.logYRatio       = kwargs.get("logYRatio", False)
+
         self.gridX           = kwargs.get("gridX", False)
         self.gridY           = kwargs.get("gridY", False)
+
         self.binWidthX       = kwargs.get("binWidthX", None)
         self.binWidthY       = kwargs.get("binWidthY", None)
-        self.verbose         = kwargs.get("verbose", False)
-        self.styleType       = kwargs.get("styleType", None)
-        self.saveName        = saveName
         self.dataset         = kwargs.get("dataset", None)
-        self.datasetLatex    = kwargs.get("datasetLatex", None)
-        self.zLabel          = kwargs.get("zLabel", "z-label")
-        if self.xUnits == "" or self.xUnits == None:
-            self.xLabel      = kwargs.get("xLabel", "x-label")
-        else:
-            self.xLabel      = kwargs.get("xLabel", "x-label") + " (" + self.xUnits + ")"
-
-        if self.yUnits == "" or self.yUnits == None:
-            self.yLabel      = kwargs.get("yLabel", "y-label")
-        else:
-            self.yLabel      = kwargs.get("yLabel", "y-label") + " (" + self.yUnits + ")"
-
-        if self.zUnits == "" or self.zUnits == None:
-            self.zLabel      = kwargs.get("zLabel", "z-label")
-        else:
-            self.zLabel      = kwargs.get("zLabel", "z-label") + " (" + self.zUnits + ")"
         self.ratioLabel      = kwargs.get("ratioLabel", None)
         self.drawOptions     = kwargs.get("drawOptions", None)
         self.legOptions      = kwargs.get("legOptions", None)
-        self.scaleFactor     = +1.0
-        self.rangeIntegral   = -1.0
-        self.integral        = -1.0
         self.TH1orTH2        = None
         self.TFileName       = None
         self.treeVarExp      = name
         self.kwargs          = kwargs
-        if self.saveName == None or self.saveName == "":
-            self.saveName = self.name
-        self.MsgCounter      = 0
+        self.styleType       = kwargs.get("styleType", None)
         self.Verbose()
+        return
         
 
+    def _GetLabelX(self, **args):
+        '''
+        '''
+        self.Verbose()
+
+
+        if hasattr(self, 'xUnits') and self.xUnits != "":
+            postfix = " [" + self.xUnits + "]"
+        else:
+            postfix = ""
+        return args.get("xLabel", "x-label") + postfix
+
+
+    def _GetLabelY(self, **args):
+        '''
+        '''
+        self.Verbose()
+
+
+        if hasattr(self, 'yUnits') and self.yUnits != "":
+            postfix = " [" + self.yUnits + "]"
+        else:
+            postfix = ""
+        return args.get("yLabel", "y-label") + postfix
+
+
+    def _GetLabelZ(self, **args):
+        '''
+        '''
+        self.Verbose()
+
+
+        if hasattr(self, 'zUnits') and self.zUnits != "":
+            postfix = " [" + self.zUnits + "]"
+        else:
+            postfix = ""
+        return args.get("zLabel", "z-label") + postfix
+    
+
+    
     def Verbose(self, message=""):
         '''
         Custome made verbose system. Will print all messages in the messageList
@@ -437,14 +470,7 @@ class TH1orTH2:
         '''
         self.Verbose()
         
-        if isinstance(self.TH1orTH2, ROOT.TH1):
-            integral = self.TH1orTH2.Integral(0, self.TH1orTH2.GetNbinsX()+1)
-        elif isinstance(h, ROOT.TH2):
-            integral = self.TH1orTH2.Integral(0, self.TH1orTH2.GetNbinsX()+1, 0, self.TH1orTH2.GetNbinsY()+1)
-        elif isinstance(h, ROOT.TH3):
-            integral = self.TH1orTH2.Integral(0, self.TH1orTH2.GetNbinsX()+1, 0, self.TH1orTH2.GetNbinsY()+1, 0, self.TH1orTH2.GetNbinsZ()+1)
-        else:
-            raise Exception("Unknown histogram object '%s'" % (h))
+        integral = self.GetIntegral()
         if integral == 0:
             return
         else:
@@ -471,3 +497,30 @@ class TH1orTH2:
 
         ROOT.gErrorIgnoreLevel = errorIgnoreLevel
         return
+
+    #================================================================================================
+
+    def SetName(self, name):
+        self.Verbose()
+        self.name = name
+        return
+
+    
+    def GetName(self):
+        self.Verbose()
+        return self.name
+
+
+    def GetIntegral(self):
+        self.Verbose()
+
+        if isinstance(self.TH1orTH2, ROOT.TH1):
+            integral = self.TH1orTH2.Integral(0, self.TH1orTH2.GetNbinsX()+1)
+        elif isinstance(self.TH1orTH2, ROOT.TH2):
+            integral = self.TH1orTH2.Integral(0, self.TH1orTH2.GetNbinsX()+1, 0, self.TH1orTH2.GetNbinsY()+1)
+        elif isinstance(self.TH1orTH2, ROOT.TH3):
+            integral = self.TH1orTH2.Integral(0, self.TH1orTH2.GetNbinsX()+1, 0, self.TH1orTH2.GetNbinsY()+1, 0, self.TH1orTH2.GetNbinsZ()+1)
+        else:
+            raise Exception("Unknown histogram object '%s'" % (self.TH1orTH2))
+        return integral
+    

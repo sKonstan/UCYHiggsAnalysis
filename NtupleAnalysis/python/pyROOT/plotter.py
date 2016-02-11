@@ -41,7 +41,6 @@ class Plotter(object):
         self.PadRatio          = None
         #
         self.TBoxList          = []
-        self.TCanvas           = None
         self.THDumbie          = None
         self.THRatio           = None
         self.THStack           = ROOT.THStack("THStack" + "@" + str(time.time()), "Stack for PadPlot Histograms")
@@ -60,7 +59,7 @@ class Plotter(object):
         self.invPadRatio       = False
         self.padRatio          = False
         self.ratioErrorType    = None
-        self.startTime         = time.time()        
+        self.startTime         = time.time()
         self.styleObject       = styles.StyleClass(verbose)
         self.textObject        = text.TextClass(verbose)
         self.xTLineList        = []
@@ -210,14 +209,14 @@ class Plotter(object):
         '''                    
         self.Verbose()
 
+        if hasattr(self, 'TCanvas'):
+            return
+            
         # Normal assignment operations (a = b) will simply point the new variable towards the existing object.
         histo = self.THDumbie 
 
         # Create a name for the TCanvas
-        if histo.saveName == None:
-            canvasName = histo.name
-        else:
-            canvasName = histo.saveName
+        canvasName = histo.GetName()
 
         # Add the time in the canvas name to avoid memory duplicates when handling the same histos. Truncate "@time" when saving canvas
         canvasName =  canvasName + "@" + str(time.time())
@@ -618,7 +617,6 @@ class Plotter(object):
         h.TH1orTH2      = self.GetHistoFromFile(f, h)
         h.TFileName     = f.GetName()
         h.dataset       = dataset
-        h.rangeIntegral = h.TH1orTH2.Integral()
 
         # Determine the histogram integral
         if self.isTH2:
@@ -660,8 +658,7 @@ class Plotter(object):
         msg += "\n\t{:<15} {:<20}".format("File"           , ": " + histo.TFileName)
         msg += "\n\t{:<15} {:<20}".format("HistoPath"      , ": " + histo.path)
         msg += "\n\t{:<15} {:<20}".format("HistoName"      , ": " + histo.name)
-        msg += "\n\t{:<15} {:<20}".format("Integral()"     , ": " + str(histo.rangeIntegral))
-        msg += "\n\t{:<15} {:<20}".format("Integral(0, -1)", ": " + str(histo.integral))
+        msg += "\n\t{:<15} {:<20}".format("Integral()"     , ": " + str(histo.GetIntegral()))
         msg += "\n\t{:<15} {:<20}".format("normalise"      , ": " + histo.normalise)
 
         if histo.TH1orTH2.Integral() == 0 or verbose:
@@ -967,6 +964,7 @@ class Plotter(object):
         else:
             raise Exception("Unknown histoObject normalisation option '%s'.!" % (dataset.histo.normalise))
 
+        self.PrintHistoInfo(dataset.histo, False)
         return
 
 
@@ -1627,17 +1625,27 @@ class Plotter(object):
         return
     
 
-    def SaveAs(self, savePath=os.getcwd() + "/", savePostfix="", saveFormats=["png", "C", "eps", "pdf"]):
+    def SaveAs(self, savePath=os.getcwd() + "/", saveName="", savePostfix="", saveFormats=["png", "C", "eps", "pdf"]):
         '''
         Save canvas to a specified path and with the desirable format.
         '''
         self.Print()
             
         self._IsValidSavePath(savePath)
-        saveName = self._GetCanvasSaveName(savePath, savePostfix)
         self._SaveAs(saveFormats, saveName)
         return
 
+
+    def Save(self, savePath=os.getcwd() + "/", saveFormats=["png", "eps", "pdf"]):
+        '''
+        Save canvas with the default canvas (histogram) name to the current working directory
+        '''
+        self.Print()
+            
+        self._IsValidSavePath(savePath)
+        self._SaveAs(saveFormats, self._GetCanvasSaveName(savePath, ""))
+        return
+    
     
     def _IsValidSavePath(self, savePath):
         '''

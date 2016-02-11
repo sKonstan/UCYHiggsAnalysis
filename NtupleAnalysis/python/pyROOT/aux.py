@@ -21,7 +21,9 @@ import ROOT
 class AuxClass(object): 
     def __init__(self, verbose=False):
         self.verbose = verbose
-
+        return
+    
+        
     def Verbose(self, message=""):
         '''
         Custome made verbose system. Will print all messages in the messageList
