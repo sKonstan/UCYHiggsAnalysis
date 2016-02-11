@@ -241,7 +241,7 @@ class Plotter(object):
 
         # Create the THRatio histogram (PadRatio equivalent of PadPlot's THDumbie)
         self.THRatio = copy.deepcopy(histo)
-        self.THRatio.TH1orTH2.SetName("THRatio")
+        self.THRatio.THisto.SetName("THRatio")
 
         # Create TCanvas name that included the dataset name
         if histo.saveName == None:
@@ -256,8 +256,8 @@ class Plotter(object):
         self.TCanvas.Divide(1,2)
 
         # Remove x-axis title and labels from the THDumbie to avoid overlap with those THRatio
-        self._RemoveXaxisBinLabels(histo.TH1orTH2)
-        self._RemoveXaxisTitle(histo.TH1orTH2)
+        self._RemoveXaxisBinLabels(histo.THisto)
+        self._RemoveXaxisTitle(histo.THisto)
 
         # Create plot, ratio and cover pads
         self._CreatePads()
@@ -391,7 +391,7 @@ class Plotter(object):
 
         # Set log-scale for x-axis 
         if histo.xMin == None:
-            histo.xMin = histo.TH1orTH2.GetXaxis().GetXmin()
+            histo.xMin = histo.THisto.GetXaxis().GetXmin()
 
         if histo.xMin > 0:
             PadOrCancas.SetLogx(True)
@@ -410,7 +410,7 @@ class Plotter(object):
             return
 
         if histo.yMin == None:
-            histo.yMin = histo.TH1orTH2.GetMinimum()
+            histo.yMin = histo.THisto.GetMinimum()
 
         if histo.yMin > 0:
             PadOrCancas.SetLogy(True)
@@ -425,12 +425,12 @@ class Plotter(object):
         '''
         self.Verbose()
 
-        if histo.logZ==False or isinstance(histo.TH1orTH2, ROOT.TH2) == False:
+        if histo.logZ==False or isinstance(histo.THisto, ROOT.TH2) == False:
             return
 
         # Set log-scale for z-axis 
         if histo.zMin == None:
-            histo.zMin = histo.TH1orTH2.GetZaxis().GetXmin()
+            histo.zMin = histo.THisto.GetZaxis().GetXmin()
 
         if histo.zMin > 0:
             PadOrCancas.SetLogz(True)
@@ -448,7 +448,7 @@ class Plotter(object):
         # Set log-scale for y-axis 
         if histo.logYRatio==True:
             if histo.yMin == None:
-                histo.yMin = histo.TH1orTH2.GetMinimum()
+                histo.yMin = histo.THisto.GetMinimum()
             
             if histo.yMin > 0:
                 PadOrCancas.SetLogy(True)
@@ -458,7 +458,7 @@ class Plotter(object):
         # Set log-scale for x-axis 
         if histo.logXRatio==True:
             if histo.xMin == None:
-                histo.xMin = histo.TH1orTH2.GetXaxis().GetXmin()
+                histo.xMin = histo.THisto.GetXaxis().GetXmin()
 
             if histo.xMin > 0:
                 PadOrCancas.SetLogx(True)
@@ -529,7 +529,7 @@ class Plotter(object):
 #        if type(histoObject) == list:
 #            for h in histoObject:
 #                self._AddHistoToQueue(h)
-#        elif isinstance(histoObject, histos.TH1orTH2):
+#        elif isinstance(histoObject, histos.THisto):
 #            self._AddHistoToQueue(histoObject)
         return
     
@@ -555,17 +555,17 @@ class Plotter(object):
             self.Verbose( ["Creating Profile%s for histogram '%s'  and adding to THStack." % ( ProfileAxis.upper(), h.name)] )
             if ProfileAxis == "x":
                 hProfileX_Name = h.name +"_ProfileX"
-                hProfileX      = h.TH1orTH2.ProfileX(hProfileX_Name, firstBin, LastBin)
+                hProfileX      = h.THisto.ProfileX(hProfileX_Name, firstBin, LastBin)
                 self.THStack.Add( hProfileX )
             else:
                 self.Print("WARNING! Although this works, some validation would have to be carried out with a simple a well undestood 2D histo")
                 hProfileY_Name = h.name +"_ProfileY"
-                hProfileY      = h.TH1orTH2.ProfileY(hProfileY_Name, firstBin, LastBin)
+                hProfileY      = h.THisto.ProfileY(hProfileY_Name, firstBin, LastBin)
                 self.THStack.Add( hProfileY )
                 
             # Add legend entries for THStack?
             if bAddLegendEntries == True:
-                self.TLegend.AddEntry( h.TH1orTH2, self._GetLegEntryLabel(h), h.legOptions)
+                self.TLegend.AddEntry( h.THisto, self._GetLegEntryLabel(h), h.legOptions)
                 self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
             else:
                 pass
@@ -614,7 +614,7 @@ class Plotter(object):
         f = rootFile
 
         # Assign attributes
-        h.TH1orTH2      = self.GetHistoFromFile(f, h)
+        h.THisto      = self.GetHistoFromFile(f, h)
         h.TFileName     = f.GetName()
         h.dataset       = dataset
 
@@ -622,9 +622,9 @@ class Plotter(object):
         if self.isTH2:
             #self.TDRStyleObject.setWide(True)
             self._CheckNoTH2WithMoreThanOneDatasets(h)
-            h.integral  = h.TH1orTH2.Integral(0, h.TH1orTH2.GetNbinsX()+1, 0, h.TH1orTH2.GetNbinsY()+1)
+            h.integral  = h.THisto.Integral(0, h.THisto.GetNbinsX()+1, 0, h.THisto.GetNbinsY()+1)
         else:
-            h.integral  = h.TH1orTH2.Integral(0, h.TH1orTH2.GetNbinsX()+1)
+            h.integral  = h.THisto.Integral(0, h.THisto.GetNbinsX()+1)
             
         # Assign global values
         self.padRatio      = h.ratio
@@ -661,7 +661,7 @@ class Plotter(object):
         msg += "\n\t{:<15} {:<20}".format("Integral()"     , ": " + str(histo.GetIntegral()))
         msg += "\n\t{:<15} {:<20}".format("normalise"      , ": " + histo.normalise)
 
-        if histo.TH1orTH2.Integral() == 0 or verbose:
+        if histo.THisto.Integral() == 0 or verbose:
             self.Print(msg)
             
         self.Verbose(msg)
@@ -694,7 +694,7 @@ class Plotter(object):
         kwargs    = histo.kwargs
         binWidthX = histo.binWidthX
         if histo.binWidthX == None:
-            binWidthX = histo.TH1orTH2.GetBinWidth(0)
+            binWidthX = histo.THisto.GetBinWidth(0)
         
         kwargs["yUnits"]      = ""
         kwargs["logX"]        = False
@@ -748,16 +748,16 @@ class Plotter(object):
         effUp   = []
 
         # For-loop: Histo Bins
-        nBinsX  = histo.TH1orTH2.GetNbinsX()+1
+        nBinsX  = histo.THisto.GetNbinsX()+1
         for b in range(0, nBinsX+1):
 
-            binWidth   = histo.TH1orTH2.GetBinWidth(b)
-            binCenter  = histo.TH1orTH2.GetBinCenter(b)
-            binLowEdge = histo.TH1orTH2.GetBinLowEdge(b)
+            binWidth   = histo.THisto.GetBinWidth(b)
+            binCenter  = histo.THisto.GetBinCenter(b)
+            binLowEdge = histo.THisto.GetBinLowEdge(b)
             binUpEdge  = binCenter + binWidth/2
 
-            nPass      = histo.TH1orTH2.Integral(b+1, nBinsX) #events that pass the up-edge of the bin
-            nTotal     = histo.TH1orTH2.Integral( 0, nBinsX )
+            nPass      = histo.THisto.Integral(b+1, nBinsX) #events that pass the up-edge of the bin
+            nTotal     = histo.THisto.Integral( 0, nBinsX )
             eff        = -1.0
 
             # Calculate the efficiency and its error
@@ -783,7 +783,7 @@ class Plotter(object):
 
 
         # Use values to create a TGraphErrors
-        histo.TH1orTH2.SetMaximum(1.0)
+        histo.THisto.SetMaximum(1.0)
         self.AddTGraphErrors(histo, xVals, xUp, xLow, effVals, effUp, effLow, None, None, None, False, **kwargs)
         return
 
@@ -794,7 +794,7 @@ class Plotter(object):
         '''
         self.Verbose()
         
-        hType = type(histoObject.TH1orTH2)
+        hType = type(histoObject.THisto)
         
         if len(self.Datasets)>1 and "TH2" in str(hType):
             raise Exception("Cannot draw a TH2 while more than 1 datasets are present.")
@@ -821,7 +821,7 @@ class Plotter(object):
         '''
         self.Verbose()
 
-        if isinstance(histoObject, histos.TH1orTH2):
+        if isinstance(histoObject, histos.THisto):
             return
         else:
             self.Print("ERROR!", "Unknown histo type. Please make sure the histo object '%s' (type = '%s') is either a TH1 or a TH2" % (histoObject, type(histoObject)), "EXIT")
@@ -860,35 +860,35 @@ class Plotter(object):
         # For-loop: All datasets
         for dataset in self.Datasets:
             h      = dataset.histo
-            tmpMax =  h.TH1orTH2.GetMaximum()
+            tmpMax =  h.THisto.GetMaximum()
             if tmpMax > myMax:
                 myMax = h.yMax
                 myMin = h.yMin
                 self.THDumbie = copy.deepcopy(h)
-                self.THDumbie.TH1orTH2.SetName("THDumbie")
+                self.THDumbie.THisto.SetName("THDumbie")
             else:
                 continue
 
         # Reset only Integral, Contents, Errors and Statistics (not Minimum and Maximum)
-        self.THDumbie.TH1orTH2.Reset("ICES")
+        self.THDumbie.THisto.Reset("ICES")
 
         # Set custom range for x- and y- axis and pad margins            
-        self.THDumbie.TH1orTH2.GetYaxis().SetRangeUser(myMin, myMax)
-        self.THDumbie.TH1orTH2.GetXaxis().SetRangeUser(h.xMin, h.xMax) #does nothing if xMax > max x-value when histogram was created
+        self.THDumbie.THisto.GetYaxis().SetRangeUser(myMin, myMax)
+        self.THDumbie.THisto.GetXaxis().SetRangeUser(h.xMin, h.xMax) #does nothing if xMax > max x-value when histogram was created
 
         # Set Number of divisions! 
         if (self.isTH2):
-            self.THDumbie.TH1orTH2.GetXaxis().SetNdivisions(510) 
+            self.THDumbie.THisto.GetXaxis().SetNdivisions(510) 
         else:
-            #self.THDumbie.TH1orTH2.GetXaxis().SetNdivisions(510) #default
-            self.THDumbie.TH1orTH2.GetXaxis().SetNdivisions(505)
+            #self.THDumbie.THisto.GetXaxis().SetNdivisions(510) #default
+            self.THDumbie.THisto.GetXaxis().SetNdivisions(505)
 
         # Set Line Colour and Width
-        self.THDumbie.TH1orTH2.SetLineColor(ROOT.kBlack)
-        self.THDumbie.TH1orTH2.SetLineWidth(1)
+        self.THDumbie.THisto.SetLineColor(ROOT.kBlack)
+        self.THDumbie.THisto.SetLineWidth(1)
 
         # Increase right pad margin to accomodate z-axis scale and title
-        if isinstance(self.THDumbie.TH1orTH2, ROOT.TH2) == True:
+        if isinstance(self.THDumbie.THisto, ROOT.TH2) == True:
             ROOT.gStyle.SetPadRightMargin(0.15)
             #ROOT.gStyle.SetPadRightMargin(0.15)
         return
@@ -924,7 +924,7 @@ class Plotter(object):
         
         # For-loop: All datasets
         for d in self.Datasets:
-            d.histo.ApplyStyles( self.styleObject, type(d.histo.TH1orTH2))
+            d.histo.ApplyStyles( self.styleObject, type(d.histo.THisto))
         return
 
     
@@ -984,7 +984,7 @@ class Plotter(object):
 
         if THStackDrawOpt=="nostack":
             for dataset in self.Datasets:
-                dataset.histo.TH1orTH2.SetFillStyle(3003)
+                dataset.histo.THisto.SetFillStyle(3003)
                 
         self._CheckHistogramBinning()
         self._AddHistogramsToStack()
@@ -994,7 +994,7 @@ class Plotter(object):
         self._CustomiseStack()
         #self.THStack.Draw("same")             #new: needed when drawing cut-boxes
         #self.TLegend.Draw("same")             #new: needed when drawing cut-boxes
-        self.THDumbie.TH1orTH2.Draw("same")
+        self.THDumbie.THisto.Draw("same")
         return
 
 
@@ -1017,13 +1017,13 @@ class Plotter(object):
         
         for h in HistoObjectList:
             self.IsValidHistoObject(h)
-            h.ApplyStyles( self.styleObject, type(h.TH1orTH2))
-            h.TH1orTH2.Draw(h.drawOptions + ",9same,")
-            self.TLegend.AddEntry( h.TH1orTH2, h.legTitle, self._GetLegEntryOptions(h) )
+            h.ApplyStyles( self.styleObject, type(h.THisto))
+            h.THisto.Draw(h.drawOptions + ",9same,")
+            self.TLegend.AddEntry( h.THisto, h.legTitle, self._GetLegEntryOptions(h) )
             self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
 
         self.TLegend.SetHeader(TLegendHeader)
-        self.THDumbie.TH1orTH2.Draw("same")
+        self.THDumbie.THisto.Draw("same")
         return
 
 
@@ -1056,7 +1056,7 @@ class Plotter(object):
         self._DrawRatioHistograms()
         self._DrawNonHistoObjects()
         self._CustomiseStack()
-        self.THDumbie.TH1orTH2.Draw("same")
+        self.THDumbie.THisto.Draw("same")
         return
 
 
@@ -1093,9 +1093,9 @@ class Plotter(object):
         # For-loop: All histos
         for histo in self.GetHistos():
             
-            self.THStack.Add(histo.TH1orTH2)
-            self.THStackHistoList.append(histo.TH1orTH2) #xenios
-            self.TLegend.AddEntry( histo.TH1orTH2, self._GetLegEntryLabel(histo), self._GetLegEntryOptions(histo) ) #xenios
+            self.THStack.Add(histo.THisto)
+            self.THStackHistoList.append(histo.THisto) #xenios
+            self.TLegend.AddEntry( histo.THisto, self._GetLegEntryLabel(histo), self._GetLegEntryOptions(histo) ) #xenios
             self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
         return
 
@@ -1280,7 +1280,7 @@ class Plotter(object):
         '''
         self.Verbose()
 
-        self.THDumbie.TH1orTH2.Draw(self.THDumbie.drawOptions)
+        self.THDumbie.THisto.Draw(self.THDumbie.drawOptions)
         self.DrawStackInclusive()
         self.THStack.Draw(THStackDrawOpt + "," + self.THDumbie.drawOptions + "," +  "9same") #"PADS"
         ROOT.gPad.RedrawAxis() #the histo fill area may hide the axis tick marks. Force a redraw of the axis over all the histograms.
@@ -1342,7 +1342,7 @@ class Plotter(object):
         self.CustomiseTHRatio()
 
         # Draw the Ratio Stack with "nostack" option
-        self.THRatio.TH1orTH2.Draw()
+        self.THRatio.THisto.Draw()
         self.THStackRatio.Draw("nostack9sameAP")
         
         # Switch back to the PadPlot (necessary)
@@ -1363,21 +1363,21 @@ class Plotter(object):
             self.THRatio.yMaxRatio = self.THStackRatio.GetMaximum("nostack")*self.THRatio.GetYMaxFactor(self.THRatio.logYRatio)
 
         # Customise the title
-        self.THRatio.TH1orTH2.GetXaxis().SetTitleOffset(2.8)
+        self.THRatio.THisto.GetXaxis().SetTitleOffset(2.8)
         if self.THRatio.ratioLabel == None:
             if self.invPadRatio == False:
                 self.THRatio.ratioLabel = "Ratio"
             else:
                 self.THRatio.ratioLabel = "1/Ratio"
-        self.THRatio.TH1orTH2.GetYaxis().SetTitle(self.THRatio.ratioLabel)
+        self.THRatio.THisto.GetYaxis().SetTitle(self.THRatio.ratioLabel)
 
         # Customise the y-axis
         self.THRatio.yMax = self.THRatio.yMinRatio
         self.THRatio.yMin = self.THRatio.yMaxRatio
-        self.THRatio.TH1orTH2.GetYaxis().SetNdivisions(505)
-        self.THRatio.TH1orTH2.GetYaxis().SetRangeUser(self.THRatio.yMinRatio, self.THRatio.yMaxRatio)
-        self.THRatio.TH1orTH2.GetYaxis().SetTitleOffset(1.8) 
-        self.THDumbie.TH1orTH2.GetYaxis().SetTitleOffset(1.8)
+        self.THRatio.THisto.GetYaxis().SetNdivisions(505)
+        self.THRatio.THisto.GetYaxis().SetRangeUser(self.THRatio.yMinRatio, self.THRatio.yMaxRatio)
+        self.THRatio.THisto.GetYaxis().SetTitleOffset(1.8) 
+        self.THDumbie.THisto.GetYaxis().SetTitleOffset(1.8)
         
         # Enable grid to easy readout of histo
         self.PadRatio.SetGridx(self.THDumbie.gridX)
@@ -1406,7 +1406,7 @@ class Plotter(object):
             yMaxNew = inclusive.GetMaximum()
             h       = self.THDumbie
             h.yMax  = yMaxNew*h.GetYMaxFactor(self.THDumbie.logY)
-            h.TH1orTH2.GetYaxis().SetRangeUser(h.yMin, h.yMax)        
+            h.THisto.GetYaxis().SetRangeUser(h.yMin, h.yMax)        
         else:
             pass
         inclusive.Draw("HISTsame9")
@@ -1586,9 +1586,9 @@ class Plotter(object):
 
         binningIsOk       = False
         binWidthX         = self.THDumbie.binWidthX
-        binZeroWidth      = self.THDumbie.TH1orTH2.GetXaxis().GetBinWidth(0)
+        binZeroWidth      = self.THDumbie.THisto.GetXaxis().GetBinWidth(0)
         tmpBinWidthX      = histoObject.binWidthX
-        tmpBinZeroWidth   = histoObject.TH1orTH2.GetXaxis().GetBinWidth(0)
+        tmpBinZeroWidth   = histoObject.THisto.GetXaxis().GetBinWidth(0)
         if (tmpBinWidthX != binWidthX or tmpBinZeroWidth!=binZeroWidth):
             raise Exception("At least one of the histogram in the plotting queue has a different x-axis binning! Please make sure all your histogram bins are identical.")
         return 
@@ -1602,7 +1602,7 @@ class Plotter(object):
 
         binningIsOk  = False
         binWidthX    = self.THDumbie.binWidthX
-        binZeroWidth = self.THDumbie.TH1orTH2.GetXaxis().GetBinWidth(0)
+        binZeroWidth = self.THDumbie.THisto.GetXaxis().GetBinWidth(0)
         
         # For-loop: All datasets
         for dataset in self.Datasets:
@@ -1717,18 +1717,18 @@ class Plotter(object):
         '''
         self.Verbose()
         hUnity = copy.deepcopy(self.THRatio)
-        hUnity.TH1orTH2.Reset()
-        hUnity.TH1orTH2.SetName("hUnity")
+        hUnity.THisto.Reset()
+        hUnity.THisto.SetName("hUnity")
         hUnity.name = "hUnity"
 
-        nBins = hUnity.TH1orTH2.GetNbinsX()
+        nBins = hUnity.THisto.GetNbinsX()
         for i in range (0, nBins+1):
-            #hUnity.TH1orTH2.Fill(i, 1) # error bars are quite large. need to investigate if they are correct.
+            #hUnity.THisto.Fill(i, 1) # error bars are quite large. need to investigate if they are correct.
             # In the meantime, set the bin-error to zero. I think this is the correct way to do it
-            hUnity.TH1orTH2.SetBinContent(i, 1)
-            hUnity.TH1orTH2.SetBinError(i, 0)
+            hUnity.THisto.SetBinContent(i, 1)
+            hUnity.THisto.SetBinError(i, 0)
             
-        return hUnity.TH1orTH2
+        return hUnity.THisto
 
         
     def DatasetAsLegend(self, flag):

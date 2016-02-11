@@ -15,7 +15,7 @@ import styles as m_styles
 #================================================================================================
 # Class definition
 #================================================================================================
-class TH1orTH2:    
+class TH1orTH2:
     def __init__(self, path, name, legTitle, **kwargs):
         self.verbose         = kwargs.get("verbose", False)
         self.path            = path
@@ -74,7 +74,7 @@ class TH1orTH2:
         self.ratioLabel      = kwargs.get("ratioLabel", None)
         self.drawOptions     = kwargs.get("drawOptions", None)
         self.legOptions      = kwargs.get("legOptions", None)
-        self.TH1orTH2        = None
+        self.THisto        = None
         self.TFileName       = None
         self.treeVarExp      = name
         self.kwargs          = kwargs
@@ -204,56 +204,56 @@ class TH1orTH2:
         self.Verbose()
 
         ### Set histogram axis labels
-        self.TH1orTH2.SetTitle("")
-        self.binWidthX = self.TH1orTH2.GetXaxis().GetBinWidth(0)
+        self.THisto.SetTitle("")
+        self.binWidthX = self.THisto.GetXaxis().GetBinWidth(0)
 
         if "%" not in self.yLabel:
-            self.Print("WARNING! No provision for y-units provided for '%s' in yLabel(='%s'). " % (self.TH1orTH2.GetName(), self.yLabel) )
+            self.Print("WARNING! No provision for y-units provided for '%s' in yLabel(='%s'). " % (self.THisto.GetName(), self.yLabel) )
 
         if "TH1" in str(histoObjectType):
-            self.TH1orTH2.GetXaxis().SetTitle( self.xLabel )
-            self.TH1orTH2.GetYaxis().SetTitle( self.yLabel % (self.binWidthX) + " " + self.xUnits )
+            self.THisto.GetXaxis().SetTitle( self.xLabel )
+            self.THisto.GetYaxis().SetTitle( self.yLabel % (self.binWidthX) + " " + self.xUnits )
         elif "TH2" in str(histoObjectType):
             self.yLabel = self.yLabel# + " " + self.yUnits
             if "%" not in self.xLabel:
                 self.Print("WARNING! No provision for x-units provided in xLabel(='%s'). " % (self.xLabel) )
-            self.binWidthY = self.TH1orTH2.GetYaxis().GetBinWidth(0)
-            self.TH1orTH2.GetXaxis().SetTitle( self.xLabel % (self.binWidthX) )
-            self.TH1orTH2.GetYaxis().SetTitle( self.yLabel % (self.binWidthY) )
+            self.binWidthY = self.THisto.GetYaxis().GetBinWidth(0)
+            self.THisto.GetXaxis().SetTitle( self.xLabel % (self.binWidthX) )
+            self.THisto.GetYaxis().SetTitle( self.yLabel % (self.binWidthY) )
         else:
-            raise Exception("The type of histoObject passed is not a ROOT.TH1 or a ROOT.TH2 (type = '%s')." % (type(self.TH1orTH2)) )
+            raise Exception("The type of histoObject passed is not a ROOT.TH1 or a ROOT.TH2 (type = '%s')." % (type(self.THisto)) )
     
         ### Customise x- and y-axis title font, size, offset
-        #for i in range(1, self.TH1orTH2.GetNbinsX()) :
-        #    self.TH1orTH2.GetXaxis().SetBinLabel(i, "")
-        self.TH1orTH2.GetXaxis().SetTitleSize(ROOT.gStyle.GetTitleSize("Z"))
-        self.TH1orTH2.GetXaxis().SetTitleFont(ROOT.gStyle.GetTitleFont("Z"))
-        self.TH1orTH2.GetXaxis().SetTitleOffset(1.0)
+        #for i in range(1, self.THisto.GetNbinsX()) :
+        #    self.THisto.GetXaxis().SetBinLabel(i, "")
+        self.THisto.GetXaxis().SetTitleSize(ROOT.gStyle.GetTitleSize("Z"))
+        self.THisto.GetXaxis().SetTitleFont(ROOT.gStyle.GetTitleFont("Z"))
+        self.THisto.GetXaxis().SetTitleOffset(1.0)
         
-        #for j in range(1, self.TH1orTH2.GetNbinsY()) :
-        #    self.TH1orTH2.GetYaxis().SetBinLabel(j, "")
-        self.TH1orTH2.GetYaxis().SetTitleSize(ROOT.gStyle.GetTitleSize("Z"))
-        self.TH1orTH2.GetYaxis().SetTitleFont(ROOT.gStyle.GetTitleFont("Z"))
-        #self.TH1orTH2.GetYaxis().SetTitleOffset(1.35)
-        self.TH1orTH2.GetYaxis().SetTitleOffset(1.40)
+        #for j in range(1, self.THisto.GetNbinsY()) :
+        #    self.THisto.GetYaxis().SetBinLabel(j, "")
+        self.THisto.GetYaxis().SetTitleSize(ROOT.gStyle.GetTitleSize("Z"))
+        self.THisto.GetYaxis().SetTitleFont(ROOT.gStyle.GetTitleFont("Z"))
+        #self.THisto.GetYaxis().SetTitleOffset(1.35)
+        self.THisto.GetYaxis().SetTitleOffset(1.40)
 
         ### Customise x- and y-axis label font, size, offset
-        self.TH1orTH2.GetXaxis().SetLabelSize(ROOT.gStyle.GetLabelSize("Z"))
-        self.TH1orTH2.GetXaxis().SetLabelFont(ROOT.gStyle.GetLabelFont("Z"))
-        self.TH1orTH2.GetXaxis().SetLabelOffset(ROOT.gStyle.GetLabelOffset("Z"))
+        self.THisto.GetXaxis().SetLabelSize(ROOT.gStyle.GetLabelSize("Z"))
+        self.THisto.GetXaxis().SetLabelFont(ROOT.gStyle.GetLabelFont("Z"))
+        self.THisto.GetXaxis().SetLabelOffset(ROOT.gStyle.GetLabelOffset("Z"))
         #
-        self.TH1orTH2.GetYaxis().SetLabelSize(ROOT.gStyle.GetLabelSize("Z"))
-        self.TH1orTH2.GetYaxis().SetLabelFont(ROOT.gStyle.GetLabelFont("Z"))
-        self.TH1orTH2.GetYaxis().SetLabelOffset(ROOT.gStyle.GetLabelOffset("Z"))
+        self.THisto.GetYaxis().SetLabelSize(ROOT.gStyle.GetLabelSize("Z"))
+        self.THisto.GetYaxis().SetLabelFont(ROOT.gStyle.GetLabelFont("Z"))
+        self.THisto.GetYaxis().SetLabelOffset(ROOT.gStyle.GetLabelOffset("Z"))
         
         ### Customise x- and y-axis label font, size, offset
-        self.TH1orTH2.GetXaxis().SetLabelSize(ROOT.gStyle.GetLabelSize("Z"))
-        self.TH1orTH2.GetXaxis().SetLabelFont(ROOT.gStyle.GetLabelFont("Z"))
-        self.TH1orTH2.GetXaxis().SetLabelOffset(ROOT.gStyle.GetLabelOffset("Z"))
+        self.THisto.GetXaxis().SetLabelSize(ROOT.gStyle.GetLabelSize("Z"))
+        self.THisto.GetXaxis().SetLabelFont(ROOT.gStyle.GetLabelFont("Z"))
+        self.THisto.GetXaxis().SetLabelOffset(ROOT.gStyle.GetLabelOffset("Z"))
         #
-        self.TH1orTH2.GetYaxis().SetLabelSize(ROOT.gStyle.GetLabelSize("Z"))
-        self.TH1orTH2.GetYaxis().SetLabelFont(ROOT.gStyle.GetLabelFont("Z"))
-        self.TH1orTH2.GetYaxis().SetLabelOffset(ROOT.gStyle.GetLabelOffset("Z"))
+        self.THisto.GetYaxis().SetLabelSize(ROOT.gStyle.GetLabelSize("Z"))
+        self.THisto.GetYaxis().SetLabelFont(ROOT.gStyle.GetLabelFont("Z"))
+        self.THisto.GetYaxis().SetLabelOffset(ROOT.gStyle.GetLabelOffset("Z"))
         
         xMin = None
         xMax = None
@@ -264,40 +264,40 @@ class TH1orTH2:
         if (self.xMin != None):
             xMin = self.xMin
         else:
-            self.xMin = self.TH1orTH2.GetXaxis().GetXmin()
+            self.xMin = self.THisto.GetXaxis().GetXmin()
             
         if (self.xMax != None):
             xMax = self.xMax
         else:
-            self.xMax = self.TH1orTH2.GetXaxis().GetXmax()
+            self.xMax = self.THisto.GetXaxis().GetXmax()
 
         if (self.yMin != None):
             yMin = self.yMin 
         else:
             if "TH1" in str(histoObjectType):
-                self.yMin = self.TH1orTH2.GetMinimum()
+                self.yMin = self.THisto.GetMinimum()
             else:
-                self.yMin = self.TH1orTH2.GetYaxis().GetXmin()
+                self.yMin = self.THisto.GetYaxis().GetXmin()
                 
         if (self.yMax != None):
             yMax = self.yMax
         else:
             if "TH1" in str(histoObjectType):
-                self.yMax = self.TH1orTH2.GetMaximum()*self.GetYMaxFactor(self.logY)
+                self.yMax = self.THisto.GetMaximum()*self.GetYMaxFactor(self.logY)
             else:
-                self.yMax = self.TH1orTH2.GetYaxis().GetXmax()
+                self.yMax = self.THisto.GetYaxis().GetXmax()
 
-        self.TH1orTH2.GetYaxis().SetRangeUser(self.yMin, self.yMax)
-        self.TH1orTH2.GetXaxis().SetRangeUser(self.xMin, self.xMax) #Only works if xMin (xMax) is greater (smaller) at the histogram creation time
+        self.THisto.GetYaxis().SetRangeUser(self.yMin, self.yMax)
+        self.THisto.GetXaxis().SetRangeUser(self.xMin, self.xMax) #Only works if xMin (xMax) is greater (smaller) at the histogram creation time
         
         ### Take care of z-axis range (only applicable for ROOT.TH2's)
         if "TH2" in str(histoObjectType):
-            self.TH1orTH2.GetZaxis().SetTitle( self.zLabel )
-            #self.TH1orTH2.GetZaxis().SetTitleSize( self.TH1orTH2.GetZaxis().GetTitleSize()*0.8 )
-            self.TH1orTH2.GetZaxis().SetTitleOffset(1.30)
+            self.THisto.GetZaxis().SetTitle( self.zLabel )
+            #self.THisto.GetZaxis().SetTitleSize( self.THisto.GetZaxis().GetTitleSize()*0.8 )
+            self.THisto.GetZaxis().SetTitleOffset(1.30)
             if (self.zMax != None):
                 zMax = self.zMax
-                self.TH1orTH2.GetZaxis().SetRangeUser(self.zMin, self.zMax) 
+                self.THisto.GetZaxis().SetRangeUser(self.zMin, self.zMax) 
             else:
                 pass
         else:
@@ -345,16 +345,16 @@ class TH1orTH2:
             raise Exception("The type of histoObject passed  is not a ROOT.TH1 or a ROOT.TH2 (type = '%s')." % (type(histoObjectType)) )
 
         ### Apply colours/styles
-        self.TH1orTH2.SetFillColor(fillColour)
-        self.TH1orTH2.SetFillStyle(fillStyle)
+        self.THisto.SetFillColor(fillColour)
+        self.THisto.SetFillStyle(fillStyle)
 
-        self.TH1orTH2.SetLineColor(lineColour)
-        self.TH1orTH2.SetLineStyle(lineStyle)
-        self.TH1orTH2.SetLineWidth(lineWidth)
+        self.THisto.SetLineColor(lineColour)
+        self.THisto.SetLineStyle(lineStyle)
+        self.THisto.SetLineWidth(lineWidth)
         
-        self.TH1orTH2.SetMarkerColor(fillColour)
-        self.TH1orTH2.SetMarkerStyle(markerStyle)
-        self.TH1orTH2.SetMarkerSize(markerSize)
+        self.THisto.SetMarkerColor(fillColour)
+        self.THisto.SetMarkerStyle(markerStyle)
+        self.THisto.SetMarkerSize(markerSize)
         if self.drawOptions == None:
             self.drawOptions = drawOptions
         if self.legOptions == None:
@@ -372,9 +372,9 @@ class TH1orTH2:
             return
 
 
-        hName             = self.TH1orTH2.GetName()
-        originalBinWidthX = self.TH1orTH2.GetXaxis().GetBinWidth(0)
-        originalNBinsX    = self.TH1orTH2.GetNbinsX()
+        hName             = self.THisto.GetName()
+        originalBinWidthX = self.THisto.GetXaxis().GetBinWidth(0)
+        originalNBinsX    = self.THisto.GetNbinsX()
 
         ### Exact float comparison is tricky in python
         if ( abs(originalBinWidthX - self.binWidthX) < 1e-10): 
@@ -383,35 +383,35 @@ class TH1orTH2:
 
         self.Verbose(["Rebinning histogram '%s' of original bin size '%s'." % ( hName, originalBinWidthX )])
         ### Calculate the number of bins that correspond to the new bin width. Convert number to an integer
-        xMin     = self.TH1orTH2.GetXaxis().GetXmin()
-        xMax     = self.TH1orTH2.GetXaxis().GetXmax()
+        xMin     = self.THisto.GetXaxis().GetXmin()
+        xMax     = self.THisto.GetXaxis().GetXmax()
         nBinsX   = (xMax-xMin)/self.binWidthX
         intBinsX = int(nBinsX+0.5)
 
         ### Check that the user-requested binning makes sense
         if intBinsX !=0:
-            remainderX = self.TH1orTH2.GetNbinsX() % intBinsX
+            remainderX = self.THisto.GetNbinsX() % intBinsX
         else:
             self.Print("Cannot achieve requested binning. Integer modulo by zero (intBinsX = %s). Skipping this histo." % (intBinsX))
             return
             
-        self.Verbose(["remainderX = %s %s %s = %s" % (self.TH1orTH2.GetNbinsX(), "%", intBinsX, remainderX)])
+        self.Verbose(["remainderX = %s %s %s = %s" % (self.THisto.GetNbinsX(), "%", intBinsX, remainderX)])
         
         if remainderX != 0:
             self.Print("WARNING! Trying to rebin histogram '%s' of x-axis bin-width '%s' to new bin-width of '%s'. The xMin is '%g' and xMax '%g' => number of bins would be '%g', which is not divisor of the number of bins '%d', remainder is '%d'. Will do nothing." % (hName, originalBinWidthX, self.binWidthX, xMin, xMax, nBinsX, originalNBinsX, remainderX))
             return
             
-        rebinNBinsToOne = self.TH1orTH2.GetNbinsX()/intBinsX
+        rebinNBinsToOne = self.THisto.GetNbinsX()/intBinsX
         if "TH1" in str(histoObjectType):
-            self.TH1orTH2.Rebin(rebinNBinsToOne)
+            self.THisto.Rebin(rebinNBinsToOne)
         elif "TH2" in str(histoObjectType):
-            self.TH1orTH2.RebinX(rebinNBinsToOne)
+            self.THisto.RebinX(rebinNBinsToOne)
         else:
             raise Exception("Something went wrong. This should not be printed.")
 
         ### Send a warning message if the user-defined binWidthX could not be achieved exactly.
-        if self.TH1orTH2.GetXaxis().GetBinWidth(0) != self.binWidthX:
-            self.Print("WARNING! Could not achieve bin-width of '%f' for x-axis of hist '%s'. Actual bin-width is '%f'" % ( self.binWidthX,  self.name, self.TH1orTH2.GetXaxis().GetBinWidth(0)))
+        if self.THisto.GetXaxis().GetBinWidth(0) != self.binWidthX:
+            self.Print("WARNING! Could not achieve bin-width of '%f' for x-axis of hist '%s'. Actual bin-width is '%f'" % ( self.binWidthX,  self.name, self.THisto.GetXaxis().GetBinWidth(0)))
 
 
         return
@@ -427,9 +427,9 @@ class TH1orTH2:
         if "TH1" in str(histoObjectType) == True:
             return
             
-        hName             = self.TH1orTH2.GetName()
-        originalBinWidthY = self.TH1orTH2.GetYaxis().GetBinWidth(0)
-        originalNBinsY    = self.TH1orTH2.GetNbinsY()
+        hName             = self.THisto.GetName()
+        originalBinWidthY = self.THisto.GetYaxis().GetBinWidth(0)
+        originalNBinsY    = self.THisto.GetNbinsY()
 
         if self.binWidthY==None:
             return
@@ -437,25 +437,25 @@ class TH1orTH2:
             self.Verbose(["Rebinning histogram '%s' of original bin size '%s'." % ( hName, originalBinWidthY )])
 
         ### Calculate the number of bins that correspond to the new bin width. Convert number to an integer
-        yMin     = self.TH1orTH2.GetYaxis().GetXmin()
-        yMax     = self.TH1orTH2.GetYaxis().GetXmax()
+        yMin     = self.THisto.GetYaxis().GetXmin()
+        yMax     = self.THisto.GetYaxis().GetXmax()
         nBinsY   = (yMax-yMin)/self.binWidthY
         intBinsY = int(nBinsY+0.5)
 
         ### Check that the user-requested binning makes sense
-        remainderY = self.TH1orTH2.GetNbinsY() % intBinsY
+        remainderY = self.THisto.GetNbinsY() % intBinsY
 
-        self.Verbose(["remainderX = %s %s %s = %s" % (self.TH1orTH2.GetNbinsY(), "%", intBinsY, remainderY)])
+        self.Verbose(["remainderX = %s %s %s = %s" % (self.THisto.GetNbinsY(), "%", intBinsY, remainderY)])
         
         if remainderY != 0:
             self.Print("WARNING! Trying to rebin histogram '%s' of y-axis bin-width '%s' to new bin-width of '%s'. The yMin is '%g' and yMax '%g' => number of bins would be '%g', which is not divisor of the number of bins '%d', remainder is '%d'. Will do nothing." % (hName, originalBinWidthY, self.binWidthY, yMin, yMax, nBinsY, originalNBinsY, remainderY))
             return
         else:    
-            rebinNBinsToOne = self.TH1orTH2.GetNbinsY()/intBinsY
-            self.TH1orTH2.RebinY(rebinNBinsToOne)
+            rebinNBinsToOne = self.THisto.GetNbinsY()/intBinsY
+            self.THisto.RebinY(rebinNBinsToOne)
         ### Send a warning message if the user-defined binWidthX could not be achieved exactly.
-        if self.TH1orTH2.GetYaxis().GetBinWidth(0)!=self.binWidthY:
-            self.Print("WARNING! Could not exactly achieve a new bin-width of '%s' for y-axis. The new bin-width will instead be '%s'." % ( self.binWidthY, self.TH1orTH2.GetYaxis().GetBinWidth(0) ))
+        if self.THisto.GetYaxis().GetBinWidth(0)!=self.binWidthY:
+            self.Print("WARNING! Could not exactly achieve a new bin-width of '%s' for y-axis. The new bin-width will instead be '%s'." % ( self.binWidthY, self.THisto.GetYaxis().GetBinWidth(0) ))
 
         return
 
@@ -492,8 +492,8 @@ class TH1orTH2:
         errorIgnoreLevel       = ROOT.gErrorIgnoreLevel
         ROOT.gErrorIgnoreLevel = ROOT.kError
 
-        self.TH1orTH2.Sumw2() # errors are also scaled after this call 
-        self.TH1orTH2.Scale(scaleFactor)
+        self.THisto.Sumw2() # errors are also scaled after this call 
+        self.THisto.Scale(scaleFactor)
 
         ROOT.gErrorIgnoreLevel = errorIgnoreLevel
         return
@@ -514,13 +514,13 @@ class TH1orTH2:
     def GetIntegral(self):
         self.Verbose()
 
-        if isinstance(self.TH1orTH2, ROOT.TH1):
-            integral = self.TH1orTH2.Integral(0, self.TH1orTH2.GetNbinsX()+1)
-        elif isinstance(self.TH1orTH2, ROOT.TH2):
-            integral = self.TH1orTH2.Integral(0, self.TH1orTH2.GetNbinsX()+1, 0, self.TH1orTH2.GetNbinsY()+1)
-        elif isinstance(self.TH1orTH2, ROOT.TH3):
-            integral = self.TH1orTH2.Integral(0, self.TH1orTH2.GetNbinsX()+1, 0, self.TH1orTH2.GetNbinsY()+1, 0, self.TH1orTH2.GetNbinsZ()+1)
+        if isinstance(self.THisto, ROOT.TH1):
+            integral = self.THisto.Integral(0, self.THisto.GetNbinsX()+1)
+        elif isinstance(self.THisto, ROOT.TH2):
+            integral = self.THisto.Integral(0, self.THisto.GetNbinsX()+1, 0, self.THisto.GetNbinsY()+1)
+        elif isinstance(self.THisto, ROOT.TH3):
+            integral = self.THisto.Integral(0, self.THisto.GetNbinsX()+1, 0, self.THisto.GetNbinsY()+1, 0, self.THisto.GetNbinsZ()+1)
         else:
-            raise Exception("Unknown histogram object '%s'" % (self.TH1orTH2))
+            raise Exception("Unknown histogram object '%s'" % (self.THisto))
         return integral
     
