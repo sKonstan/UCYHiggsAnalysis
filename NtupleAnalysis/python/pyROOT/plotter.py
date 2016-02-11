@@ -146,17 +146,12 @@ class Plotter(object):
         self.Verbose()
 
         # Normal assignment operations (a = b) will simply point the new variable towards the existing object.
-        histo = self.THDumbie 
-
-        # Create the THRatio histogram (PadRatio equivalent of PadPlot's THDumbie)
-        self.THRatio = copy.deepcopy(histo)
+        self.THRatio = copy.deepcopy(self.THDumbie)
         self.THRatio.THisto.SetName("THRatio")
-
-        # Create TCanvas name that included the dataset name
-        canvasName = histo.name
+        canvasName   = self.THRatio.GetName()
 
         # Create TCanvas and divide it into two pads: one for plot pad, one for ratio pad
-        self.Verbose("Creating canvas with name '%s'" % ( canvasName))
+        self.Print("Creating canvas with name '%s'" % ( canvasName))
         self.TCanvas = ROOT.TCanvas( canvasName, canvasName, ROOT.gStyle.GetCanvasDefW(), int(ROOT.gStyle.GetCanvasDefH()*self.canvasFactor))
         self.TCanvas.Divide(1,2)
 
