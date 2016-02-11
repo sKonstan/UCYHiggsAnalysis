@@ -42,7 +42,7 @@ class AuxClass(object):
         return
 
     
-    def PrintTimers(self, units = "seconds"):
+    def PrintTimers(self):
         '''
         Print the time elapses since the creation of the plotter object.
         
@@ -51,7 +51,7 @@ class AuxClass(object):
 
         info   = []
         align  = "{:<20} {:<20} {:<20} {:<20}"
-        header = align.format("Timer Name", "Start", "Finish", "Elapsed (%s) " % (units))
+        header = align.format("Timer Name", "Start", "Finish", "Elapsed")
         hLine  = "="*len(header)
         info.append(hLine)
         info.append(header)
@@ -59,38 +59,44 @@ class AuxClass(object):
         
         # For-loop: All timers and calculate start, finish and elapsed time
         for cName, cTime in self.timerDict.iteritems():
-            (sTime, fTime, eTime) = self._CalculateTimer(cName)
-            info.append( align.format(cName, sTime, fTime, "%0.2f" % eTime) )
+            (sTime, fTime, eTime, units) = self._CalculateTimer(cName)
+            info.append( align.format(cName, sTime, fTime, "%0.2f %s" % (eTime, units) ) )
 
         self.PrintList(info)
         return
     
 
-    def _CalculateTimer(self, name, units = "seconds"):
+    def _CalculateTimer(self, name):
         '''
-        Print the time elapses since the creation of the plotter object.
-        
+        Print the time elapses since the creation of the plotter object.        
         '''
         self.Verbose()
 
         start   = self.timerDict[name]
         finish  = time.time()
         elapsed = finish - start
-        if units == "seconds":
-            pass
-        elif units == "minutes":
-            elapsed = elapsed/60.0
-        elif units == "hours":
-            elapsed = elapsed/(60.0*60)
+        
+        sTime        = time.strftime('%H:%M:%S', time.localtime(start))
+        fTime        = time.strftime('%H:%M:%S', time.localtime(finish))
+        eTime, units = self._ConvertElapsedTimeT(elapsed)
+        return sTime, fTime, eTime, units
+
+
+    def _ConvertElapsedTimeT(self, elapsed):
+        '''
+        Print the time elapses since the creation of the plotter object.
+        
+        '''
+        self.Verbose()
+
+        if elapsed < 60:
+            return elapsed, "secs"
+        elif elapsed > 60 and elapsed < 3600:
+            return elapsed/60.0, "mins"
         else:
-            raise Exception("Unsupported units of time. Please choose from 'seconds', 'minutes' and 'hours'.")            
-
-        sTime = time.strftime('%H:%M:%S', time.localtime(start))
-        fTime = time.strftime('%H:%M:%S', time.localtime(finish))
-        return sTime, fTime, elapsed
-
-
-
+            return elapsed/3600.0, "hours"
+        
+        
     def Verbose(self, message=""):
         '''
         Custome made verbose system. Will print all messages in the messageList

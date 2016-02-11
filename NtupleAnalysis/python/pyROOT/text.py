@@ -17,11 +17,12 @@ import ROOT
 #================================================================================================
 class TextClass(object):
     def __init__(self, xPos=0.0, yPos=0.0, text="", size=None, bold=False, align="left", color=ROOT.kBlack, verbose = False):
-        self.verbose = verbose
-        self.xPos    = xPos
-        self.yPos    = yPos
-        self.text    = text
-        self.tlatex  = ROOT.TLatex()
+        self.verbose  = verbose
+        self.xPos     = xPos
+        self.yPos     = yPos
+        self.text     = text
+        self.tlatex   = ROOT.TLatex()
+        self.textList = []
         self.tlatex.SetNDC()
         if not bold:
             self.tlatex.SetTextFont(self.tlatex.GetTextFont()-20) # bold -> normal
@@ -116,7 +117,9 @@ class TextClass(object):
         self.Verbose()
 
         (_x, _y, _text) = self._GetValues("energy")
-        self.AddText(_x, _y, "(" + energy + " TeV)" )
+        if energy!="":
+            text = "(" + energy + " TeV)"
+        self.AddText(_x, _y, text)
         return
     
 
@@ -140,5 +143,18 @@ class TextClass(object):
         self.Verbose()
 
         t = TextClass(xPos, yPos, text, *args, **kwargs)
-        t.Draw()
+        self.textList.append(t)
         return
+
+    def GetTextList(self):
+        self.Verbose()
+        return self.textList
+        return
+
+    
+    def DrawTextList(self):
+        self.Verbose()
+        for t in self.textList:
+            t.Draw()
+        return
+    

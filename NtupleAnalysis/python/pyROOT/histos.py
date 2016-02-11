@@ -1,14 +1,3 @@
-#if hasattr(self, 'xLabel') :
-#
-#        if isinstance(self.THisto, ROOT.TH1):
-#            self.THisto.Rebin(rebinNBinsToOne)
-#        elif isinstance(self.THisto, ROOT.TH2):
-#
-#        elif isinstance(self.THisto, ROOT.TH3):
-#
-#        else:
-#            raise Exception("Unknown histogram object '%s'" % (self.THisto))
-
 #================================================================================================
 # All imported modules
 #================================================================================================
@@ -26,12 +15,12 @@ import styles as m_styles
 # Class definition
 #================================================================================================
 class DrawObject:
-    def __init__(self, path, name, legTitle, **kwargs):
+    def __init__(self, path, name, legLabel, **kwargs):
         self.verbose         = kwargs.get("verbose", False)
         self.path            = path
         self.name            = name
         self.THisto          = None
-        self.legTitle        = legTitle
+        self.legLabel        = self._GetLegendLabel(legLabel)
         self.xUnits          = kwargs.get("xUnits", "")
         self.yUnits          = kwargs.get("yUnits", "")
         self.zUnits          = kwargs.get("zUnits", "")
@@ -55,7 +44,6 @@ class DrawObject:
         self.yCutLines       = kwargs.get("yCutLines", None)
         self.yCutBoxes       = kwargs.get("yCutBoxes", None)
         self.yCutLinesRatioPad = kwargs.get("yCutLinesRatioPad", True)
-        self.normalise       = kwargs.get("normalise", "")
         self.ratio           = kwargs.get("ratio", False)
         self.invRatio        = kwargs.get("invRatio", False) #inverse ratio = 1/ratio
         self.logX            = kwargs.get("logX", False)
@@ -133,7 +121,14 @@ class DrawObject:
         return
 
 
+    def _GetLegendLabel(self, legLabel):    
+        self.Verbose()
+        if not isinstance(legLabel, str):
+            raise Exception("The legend label is not an instance of string, but of type '%s'." % ( type(legLabel) ) )
+        else:
+            return legLabel
 
+        
     def _GetLabelX(self, **args):
         '''
         '''
@@ -517,3 +512,12 @@ class DrawObject:
             raise Exception("Unknown histogram object '%s'" % (self.THisto))
         return integral
     
+
+    def GetLegOptions(self):
+        self.Verbose()
+        return self.legOptions
+
+
+    def GetLegLabel(self):
+        self.Verbose()
+        return self.legLabel    

@@ -32,7 +32,6 @@ class Plotter(object):
     def __init__(self, verbose=False, batchMode=True):
         self.verbose           = verbose
         self.DatasetInLegend   = False
-        self.Datasets          = []
         self.isTH1             = False
         self.isTH2             = False
         self.PadCover          = None
@@ -109,6 +108,20 @@ class Plotter(object):
         return
 
 
+    def PrintWarning(self, msg, keystroke):
+        '''                                                                                                                                                          
+        Print a warning and make sure user sees it by requiring a keystroke
+        '''
+        self.Print()
+        
+        response = raw_input("\t" + msg + ". Press \"%s\" to quit, any other key to proceed: " % (keystroke))
+        if response== "q":
+            sys.exit()
+        else:
+            return
+        return
+
+    
     def SetupRoot(self, optStat=0, maxDigits=4, nContours=999, errIgnoreLevel=2000):
 
         '''
@@ -192,28 +205,6 @@ class Plotter(object):
             ROOT.gStyle.SetStatStyle(0)            
         return
     
-
-    def AddDataset(self, dataset):
-        '''
-        Add a new dataset and associate it to a root file.
-        '''
-        self.Verbose()
-        if self.verbose:
-            dataset.PrintProperties()
-        self.Datasets.append(dataset)
-        return
-
-
-    def AddDatasets(self, datasetObjects):
-        '''
-        Add all datasets in the datasetObjects list to the plotter
-        '''
-        self.Print("Adding '%s' datasets to the plotter object" % (len(datasetObjects) ) )
-        
-        for d in datasetObjects:
-            self.Verbose("Adding dataset %s from file %s." % (d.name, d.rootFile.GetName()))
-            self.AddDataset(d)
-        return
             
 
     def _CreateCanvas(self):
@@ -520,7 +511,7 @@ class Plotter(object):
 
     
 
-    def AddHisto(self, histos):
+    def AddDrawObject(self, histos):
         '''
         '''
         self.Verbose()
@@ -569,7 +560,7 @@ class Plotter(object):
                 
             # Add legend entries for THStack?
             if bAddLegendEntries == True:
-                self.TLegend.AddEntry( h.THisto, self._GetLegEntryLabel(h), h.legOptions)
+                self.TLegend.AddEntry( h.THisto, self.GetLegLabel(h), h.legOptions)
                 self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
             else:
                 pass
@@ -660,7 +651,6 @@ class Plotter(object):
         msg += "\n\t{:<15} {:<20}".format("HistoPath"      , ": " + histo.path)
         msg += "\n\t{:<15} {:<20}".format("HistoName"      , ": " + histo.name)
         msg += "\n\t{:<15} {:<20}".format("Integral()"     , ": " + str(histo.GetIntegral()))
-        msg += "\n\t{:<15} {:<20}".format("normalise"      , ": " + histo.normalise)
 
         if histo.THisto.Integral() == 0 or verbose:
             self.Print(msg)
@@ -916,43 +906,39 @@ class Plotter(object):
         return
 
     
-    def _NormaliseHistograms(self):
-        '''
-        Normalise all histograms
-        '''
-        self.Verbose()
+    def NormaliseHistos(self, normOption):
+        self.Print("Normalising all histograms '%s'" % (normOption) )
         
+        self.normOption = normOption        
         for dataset in self.Datasets:
-            self._NormaliseHisto(dataset)
+            self._NormaliseHisto(dataset, normOption)
         return
 
 
-    def _NormaliseHisto(self, dataset):
+    def _NormaliseHisto(self, dataset, normOpt):
         '''
         Normalise the histoObject passed to this function according to user-specified criteria. 
         '''
         self.Verbose()
 
-        options = ["", "toOne", "byXSection", "toLuminosity"]
-        norm    = dataset.histo.normalise
-    
-        if norm not in options:
-            raise Exception("Unsupported normalisation option '%s'. Please choose one of the following options:\n\t \"%s\"" % (norm, "\", \"".join(opt for opt in options) ) )
+        normOpts = ["", "toOne", "byXSection", "toLuminosity"]
+        
+        if normOpt not in normOpts:
+            raise Exception("Unsupported option '%s'. Please choose one of the following options:\n\t \"%s\"" % (normOpt, "\", \"".join(opt for opt in normOpts) ) )
 
-        if norm == "":
+        if normOpt == "":
             self.PrintHistoInfo(dataset.histo, True)
             return
-        elif norm == "toOne":
+        elif normOpt == "toOne":
             dataset.histo.NormaliseToOne()
             return
-        elif norm == "byXSection":
+        elif normOpt == "byXSection":
             dataset.histo.NormaliseToFactor(dataset.GetNormFactor())
-        elif norm == "toLuminosity":
+        elif normOpt == "toLuminosity":
             dataset.histo.NormaliseToFactor(dataset.GetLuminosity())
         else:
             raise Exception("Unknown histoObject normalisation option '%s'.!" % (dataset.histo.normalise))
 
-        self.PrintHistoInfo(dataset.histo, False)
         return
 
 
@@ -963,12 +949,12 @@ class Plotter(object):
         self.Verbose()
 
         self.includeStack = includeStack
-        self._NormaliseHistograms()
         self._CustomiseHistograms()
         self._CreateCanvasAndLegendAndDumbie()
 
-        if self.THDumbie.normalise == "toOne" and THStackDrawOpt=="stack" and len(self.Datasets)>1:
-            self.Print("WARNING! Drawing '%s' stacked samples with normalisation option '%s'" % (len(self.Datasets), self.THDumbie.normalise) )
+        if self.normOption == "toOne" and THStackDrawOpt=="stack" and len(self.Datasets)>1:
+            msg = "WARNING! Drawing '%s' stacked samples with normalisation option '%s'" % (len(self.Datasets), self.normOption)
+            self.PrintWarning(msg, "q")
 
         if THStackDrawOpt=="nostack":
             for dataset in self.Datasets:
@@ -1007,7 +993,7 @@ class Plotter(object):
             self.IsValidHistoObject(h)
             h.ApplyStyles(self.styleObject)
             h.THisto.Draw(h.drawOptions + ",9same,")
-            self.TLegend.AddEntry( h.THisto, h.legTitle, self._GetLegEntryOptions(h) )
+            self.TLegend.AddEntry( h.THisto, h.legLabel, h.GetLegOptions() )
             self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
 
         self.TLegend.SetHeader(TLegendHeader)
@@ -1035,7 +1021,6 @@ class Plotter(object):
 
         self.includeStack = includestack
         self.EnableColourPalette(True)
-        self._NormaliseHistograms()
         self._CustomiseHistograms()
         self._CreateCanvasAndLegendAndDumbie()
         self._CheckHistogramBinning()
@@ -1083,7 +1068,8 @@ class Plotter(object):
             
             self.THStack.Add(histo.THisto)
             self.THStackHistoList.append(histo.THisto) #xenios
-            self.TLegend.AddEntry( histo.THisto, self._GetLegEntryLabel(histo), self._GetLegEntryOptions(histo) ) #xenios
+            self.TLegend.AddEntry( histo.THisto, self.GetLegLabel(histo), histo.GetLegOptions())
+            #self.TLegend.AddEntry( histo.THisto, histo.dataset.GetLatexName(), histo.GetLegOptions()) # ino
             self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
         return
 
@@ -1406,46 +1392,6 @@ class Plotter(object):
         return
 
 
-    def _GetLegEntryLabel(self, histoObject):
-        '''
-        Determine and return the TLegenend entry label for this instance of histogram object.
-        '''
-        self.Verbose()
-        
-        entryLabel = "empty"
-        if histoObject.legTitle == None:            
-            return  entryLabel
-
-        if self.DatasetInLegend: #xenios
-            entryLabel = histoObject.dataset.GetLatexName()
-        else:
-            entryLabel = histoObject.legTitle
-
-        if isinstance(entryLabel, str) == True:
-            self.Verbose("The TLegend entry name is '%s'." % (entryLabel))
-            return entryLabel
-        else:
-            raise Exception("The TLegend entry label cannot be returned as it is not of type string but instead of type '%s'." % ( type(entryLabel) ) )
-
-
-    def _GetLegEntryOptions(self, histoObject):
-        '''
-        Determine the draw options for all histograms in the THStack by examining the TLegend entry styles:
-        "L": draw line associated with TAttLine if obj inherits from TAttLine
-        "P": draw polymarker associated with TAttMarker if obj inherits from TAttMarker
-        "F": draw a box with fill associated wit TAttFill if obj inherits TAttFill
-        "E": draw vertical error bar
-        '''
-        self.Verbose()
-        
-        options = histoObject.legOptions
-        #if self.padRatio == False and  self.invPadRatio == False:
-        #    options = histoObject.legOptions
-        #else:
-        #    options = histoObject.legOptions + "P"
-        return options
-
-
     def AppendToTLineList(self, line, axis):
         '''
         Append a TLine to the TLineList. 
@@ -1572,11 +1518,11 @@ class Plotter(object):
         '''
         self.Verbose()
 
-        binningIsOk       = False
         binWidthX         = self.THDumbie.binWidthX
         binZeroWidth      = self.THDumbie.THisto.GetXaxis().GetBinWidth(0)
         tmpBinWidthX      = histoObject.binWidthX
         tmpBinZeroWidth   = histoObject.THisto.GetXaxis().GetBinWidth(0)
+
         if (tmpBinWidthX != binWidthX or tmpBinZeroWidth!=binZeroWidth):
             raise Exception("At least one of the histogram in the plotting queue has a different x-axis binning! Please make sure all your histogram bins are identical.")
         return 
@@ -1588,45 +1534,12 @@ class Plotter(object):
         '''
         self.Verbose()
 
-        binningIsOk  = False
         binWidthX    = self.THDumbie.binWidthX
-        binZeroWidth = self.THDumbie.THisto.GetXaxis().GetBinWidth(0)
-        
-        # For-loop: All datasets
+        binZeroWidth = self.THDumbie.THisto.GetXaxis().GetBinWidth(0)    
         for dataset in self.Datasets:
             self._CheckHistoBinning(dataset.histo)
         return 
-
-
-    def AddPreliminaryText(self, energy, lumi):
-        '''
-        Add the default CMS text on the canvas. Several defaults are available. 
-        For available options see the class TextClass(object) under tools/text.py.
-        '''
-        self.Verbose()
-        
-        self.TCanvas.cd()
-        self.textObject.AddEnergyText(energy)
-        self.textObject.AddPreliminary()
-        self.textObject.AddLumiText(lumi)
-        self.TCanvas.Update()
-        return
-        
-    
-    def _IsValidSavePath(self, savePath):
-        '''
-        Make sure that the full path below which files will be saved exists and has the correct format
-        '''
-        if not isinstance(savePath, str):
-            raise Exception("The save path '%s' is not valid! Please make sure the path provided is a string." % (savePath) )
-        
-        if savePath!="":
-            if not savePath.endswith("/"):
-                savePath += "/" 
-            if not os.path.exists(savePath):
-                raise Exception("The path '%s' does not exist! Please make sure the provided path is correct." % (savePath) )
-        return
-                   
+                              
 
     def GetUnityTH1(self):
         '''
@@ -1639,10 +1552,8 @@ class Plotter(object):
         hUnity.THisto.SetName("hUnity")
         hUnity.name = "hUnity"
 
-        nBins = hUnity.THisto.GetNbinsX()
-        for i in range (0, nBins+1):
-            #hUnity.THisto.Fill(i, 1) # error bars are quite large. need to investigate if they are correct.
-            # In the meantime, set the bin-error to zero. I think this is the correct way to do it
+        nBinsX = hUnity.THisto.GetNbinsX()+1
+        for i in range (0, nBinsX):
             hUnity.THisto.SetBinContent(i, 1)
             hUnity.THisto.SetBinError(i, 0)
             
@@ -1650,36 +1561,12 @@ class Plotter(object):
 
         
     def DatasetAsLegend(self, flag):
-        '''
-        '''
         self.Verbose()
-        
         self.DatasetInLegend = flag
         self.EnableColourPalette(not flag)
         return
 
-
-    def PrintElapsedTime(self, units = "seconds"):
-        '''
-        Print the time elapses since the creation of the plotter object.
-        
-        '''
-        self.Verbose()
-        
-        deltaT = time.time() - self.startTime
-        if units == "seconds":
-            pass
-        elif units == "minutes":
-            deltaT = deltaT/60.0
-        elif units == "hours":
-            deltaT = deltaT/(60.0*60)
-        else:
-            raise Exception("Unsupported units of time. Please choose from 'seconds', 'minutes' and 'hours'.")
-            
-        self.Print("Elapsed time: '%s' %s" % (deltaT, units))
-        return
-
-
+    
     def GetTHStackHistoList(self):
         self.Verbose()
         return self.THStackHistoList
@@ -1696,6 +1583,76 @@ class Plotter(object):
 
 
     #================================================================================================
+    def GetLegLabel(self, hObject):
+        '''
+        '''
+        self.Verbose()
+        
+        if self.DatasetInLegend:
+            return hObject.dataset.GetLatexName()
+        else:
+            return hObject.legLabel        
+
+
+    def AddDataset(self, dataset):
+        '''
+        Add a new dataset and associate it to a root file.
+        '''
+        self.Verbose()
+
+        if not hasattr(self, 'Datasets'):
+            self.Datasets = []
+        
+        if self.verbose:
+            dataset.PrintProperties()
+        self.Datasets.append(dataset)
+        return
+
+
+    def AddDatasets(self, datasetObjects):
+        '''
+        Add all datasets in the datasetObjects list to the plotter
+        '''
+        self.Print("Adding '%s' datasets to the plotter object" % (len(datasetObjects) ) )
+            
+        for d in datasetObjects:
+            self.Verbose("Adding dataset %s from file %s." % (d.name, d.rootFile.GetName()))
+            self.AddDataset(d)
+        return
+
+
+    def DrawCmsPreliminary(self, energy, lumi):
+        '''
+        Add the default CMS text on the canvas. Several defaults are available. 
+        For available options see the class TextClass(object) under tools/text.py.
+        '''
+        self.Print("Drawing 'CMS Preliminary', '%s TeV' and '%s' text" % (energy, lumi) )        
+        self.TCanvas.cd()
+        self.textObject.AddEnergyText(energy)
+        self.textObject.AddPreliminary()
+        self.textObject.AddLumiText(lumi)
+        self.textObject.DrawTextList()
+        self.TCanvas.Update()
+        return
+
+
+    def _IsValidSavePath(self, savePath):
+        '''
+        Make sure that the parameter "savePath" is a valid path and ends with at "/"
+        '''
+        if not isinstance(savePath, str):
+            raise Exception("The save path '%s' is not an instance of string! Please make sure the path provided is a string." % (savePath) )
+        
+        if savePath=="":
+            return
+
+        if not savePath.endswith("/"):
+            savePath += "/" 
+        if not os.path.exists(savePath):
+            raise Exception("The path '%s' does not exist! Please make sure the provided path is correct." % (savePath) )
+        return
+
+
     def GetDatasets(self):
         self.Verbose()
         return self.Datasets

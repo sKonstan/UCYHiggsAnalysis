@@ -65,34 +65,34 @@ EtaRange   = [[-etaMax, -1.6, ROOT.kRed+1], [+etaMax, +1.6, ROOT.kRed+1], [-1.6,
 #================================================================================================
 # Histogram Options
 #================================================================================================
+#Pt = {
+#    "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00 , "xMax": ptMax, "binWidthX": None, "xCutLines": [], "xCutBoxes": [], "gridX": True, "logX": False, 
+#    "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E-05, "yMax": 1E+00, "binWidthY": None, "yCutLines": [], "yCutBoxes": [], "gridY": True, "logY": True , 
+#    "ratioLabel": "Ratio", "ratio": ratio, "invRatio": False, "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "drawOptions": "HIST", "legOptions": "FL",
+#    "logYRatio": False, "logXRatio": False, "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
+#}
+
+
+#Pt = {
+#    "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00 , "xMax": ptMax, "binWidthX": None, "xCutLines": [], "xCutBoxes": [], "gridX": True, "logX": False, 
+#    "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E-01, "yMax": None , "binWidthY": None, "yCutLines": [], "yCutBoxes": [], "gridY": True, "logY": True , 
+#    "ratioLabel": "Ratio", "ratio": ratio, "invRatio": False, "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "drawOptions": "HIST", "legOptions": "FL",
+#    "logYRatio": False, "logXRatio": False, "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
+#}
+
+
 Pt = {
     "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00 , "xMax": ptMax, "binWidthX": None, "xCutLines": [], "xCutBoxes": [], "gridX": True, "logX": False, 
-    "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E-05, "yMax": 1E+00, "binWidthY": None, "yCutLines": [], "yCutBoxes": [], "gridY": True, "logY": True , 
-    "ratioLabel": "Ratio", "ratio": False, "invRatio": False, "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "normalise": "toOne"  , "drawOptions": "HIST", "legOptions": "FL",
+    "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E-01, "yMax": None , "binWidthY": None, "yCutLines": [], "yCutBoxes": [], "gridY": True, "logY": True , 
+    "ratioLabel": "Ratio", "ratio": ratio, "invRatio": False, "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "drawOptions": "HIST", "legOptions": "FL",
     "logYRatio": False, "logXRatio": False, "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
 }
 
 
-#Pt = {
-#    "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00 , "xMax": ptMax, "binWidthX": None, "xCutLines": [], "xCutBoxes": [], "gridX": True, "logX": False, 
-#    "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E-01, "yMax": None , "binWidthY": None, "yCutLines": [], "yCutBoxes": [], "gridY": True, "logY": True , 
-#    "ratioLabel": "Ratio", "ratio": False, "invRatio": False, "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "normalise": "byXSection"  , "drawOptions": "HIST", "legOptions": "FL",
-#    "logYRatio": False, "logXRatio": False, "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
-#}
-
-
-#Pt = {
-#    "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00 , "xMax": ptMax, "binWidthX": None, "xCutLines": [], "xCutBoxes": [], "gridX": True, "logX": False, 
-#    "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E-01, "yMax": None , "binWidthY": None, "yCutLines": [], "yCutBoxes": [], "gridY": True, "logY": True , 
-#    "ratioLabel": "Ratio", "ratio": False, "invRatio": False, "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "normalise": "toLuminosity"  , "drawOptions": "HIST", "legOptions": "FL",
-#    "logYRatio": False, "logXRatio": False, "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
-#}
-#
-
 Eta = {
     "xLabel": "#eta"           , "xUnits": ""     , "xMin": -etaMax , "xMax": +etaMax, "binWidthX": None, "xCutLines": [0], "gridX": True, "logX": False, "xCutBoxes": [],  
     "yLabel": "Entries / %0.2f", "yUnits": ""     , "yMin": +1e00   , "yMax": None   , "binWidthY": None, "yCutLines": [] , "gridY": True, "logY": True , "yCutBoxes": [],  
-    "ratioLabel": "Ratio"      , "ratio": False   , "invRatio": False, "yMinRatio": 1e-01, "yMaxRatio": 2.15 , "normalise": "toLuminosity", "drawOptions": "P", "legOptions": "LP", 
+    "ratioLabel": "Ratio"      , "ratio": ratio   , "invRatio": False, "yMinRatio": 1e-01, "yMaxRatio": 2.15 , "drawOptions": "P", "legOptions": "LP", 
     "xCutBoxes": [[-1.0, -1.6, ROOT.kBlue], [+1.0, +1.6, ROOT.kBlue]], "yCutBoxes": [], "logYRatio": False, "logXRatio": False, "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
 }
 
@@ -116,17 +116,25 @@ def DoPlots(histo, datasetObjects, intLumi, bColourPalette=False, savePostfix=""
     p = plotter.Plotter(verbose, batchMode)
     p.SetupRoot()
     # p.SetupStatsBox("ksiourmen", xPos=0.40, yPos=0.5)
+    # p.SetupStatsBox(0.90, 0.88, 0.20, 0.12, 111111111)
+
+    
     p.AddDatasets(datasetObjects)
     p.DatasetAsLegend(True)
-    p.AddHisto(histo)
-    # p.SetupStatsBox(0.90, 0.88, 0.20, 0.12, 111111111)
+    p.AddDrawObject(histo)
+    #p.AddTF1("cos(x)", 0, 100, {"lineColour": ROOT.kRed})
+
+
+    p.NormaliseHistos("toLuminosity")
     # p.Draw(THStackDrawOpt="nostack", includeStack = False, bAddReferenceHisto = True)
-    # p.Draw(THStackDrawOpt="stack", includeStack = False, bAddReferenceHisto = True)
-    p.Draw()
-    p.AddPreliminaryText("13", intLumi)
+    p.Draw(THStackDrawOpt="stack", includeStack = False, bAddReferenceHisto = True)
+    # p.Draw()    
+    p.DrawCmsPreliminary("13", intLumi)
+
+    
     # p.SaveAs(savePath, histo.GetName() + "_test", savePostfix, saveFormats)
     p.Save()
-    # p.PrintElapsedTime(units = "seconds")
+    
     return
 
 
@@ -159,8 +167,8 @@ def main():
     datasetManager = dataset.DatasetManager(opts.mcrab, analysis)
     datasetManager.LoadLuminosities("lumi.json")
     # datasetObjects = datasetManager.GetAllDatasets()
-    # datasetObjects = datasetManager.GetMCDatasets()
-    datasetObjects   = [datasetManager.GetDataset("ttHJetToNonbb_M125")]
+    datasetObjects = datasetManager.GetMCDatasets()
+    # datasetObjects   = [datasetManager.GetDataset("ttHJetToNonbb_M125")]
     datasetManager.SetLuminosityForMC( datasetManager.GetLuminosity() ) #myLumi
     intLumi        = datasetManager.GetLuminosityString("fb") 
     # datasetManager.PrintSummary()
