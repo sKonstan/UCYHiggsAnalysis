@@ -1,4 +1,14 @@
 #if hasattr(self, 'xLabel') :
+#
+#        if isinstance(self.THisto, ROOT.TH1):
+#            self.THisto.Rebin(rebinNBinsToOne)
+#        elif isinstance(self.THisto, ROOT.TH2):
+#
+#        elif isinstance(self.THisto, ROOT.TH3):
+#
+#        else:
+#            raise Exception("Unknown histogram object '%s'" % (self.THisto))
+
 #================================================================================================
 # All imported modules
 #================================================================================================
@@ -15,112 +25,56 @@ import styles as m_styles
 #================================================================================================
 # Class definition
 #================================================================================================
-class TH1orTH2:
+class DrawObject:
     def __init__(self, path, name, legTitle, **kwargs):
         self.verbose         = kwargs.get("verbose", False)
         self.path            = path
         self.name            = name
+        self.THisto          = None
         self.legTitle        = legTitle
-
         self.xUnits          = kwargs.get("xUnits", "")
         self.yUnits          = kwargs.get("yUnits", "")
         self.zUnits          = kwargs.get("zUnits", "")
-
         self.xLabel          = self._GetLabelX(**kwargs)
         self.yLabel          = self._GetLabelY(**kwargs)
         self.zLabel          = self._GetLabelY(**kwargs)
-
         self.xMin            = kwargs.get("xMin", None)
         self.xMax            = kwargs.get("xMax", None)
         self.yMin            = kwargs.get("yMin", None)
         self.yMax            = kwargs.get("yMax", None)
-
         self.yMinRatio       = kwargs.get("yMinRatio", None)
         self.yMaxRatio       = kwargs.get("yMaxRatio", None)
-
         self.zMin            = kwargs.get("zMin", None)
         self.zMax            = kwargs.get("zMax", None)
-
         self.xLegMin         = kwargs.get("xLegMin", 0.62)
         self.xLegMax         = kwargs.get("xLegMax", 0.92)
         self.yLegMin         = kwargs.get("yLegMin", 0.82)
         self.yLegMax         = kwargs.get("yLegMax", 0.92)
-
         self.xCutLines       = kwargs.get("xCutLines", None)
         self.xCutBoxes       = kwargs.get("xCutBoxes", None)
-        
         self.yCutLines       = kwargs.get("yCutLines", None)
         self.yCutBoxes       = kwargs.get("yCutBoxes", None)
         self.yCutLinesRatioPad = kwargs.get("yCutLinesRatioPad", True)
-
         self.normalise       = kwargs.get("normalise", "")
         self.ratio           = kwargs.get("ratio", False)
-        self.ratioErrorType  = kwargs.get("ratioErrorType", "") #"B" = Binomial
         self.invRatio        = kwargs.get("invRatio", False) #inverse ratio = 1/ratio
-
         self.logX            = kwargs.get("logX", False)
         self.logY            = kwargs.get("logY", False)
         self.logZ            = kwargs.get("logZ", False)
-
         self.logXRatio       = kwargs.get("logXRatio", False)
         self.logYRatio       = kwargs.get("logYRatio", False)
-
         self.gridX           = kwargs.get("gridX", False)
         self.gridY           = kwargs.get("gridY", False)
-
         self.binWidthX       = kwargs.get("binWidthX", None)
         self.binWidthY       = kwargs.get("binWidthY", None)
         self.dataset         = kwargs.get("dataset", None)
         self.ratioLabel      = kwargs.get("ratioLabel", None)
         self.drawOptions     = kwargs.get("drawOptions", None)
         self.legOptions      = kwargs.get("legOptions", None)
-        self.THisto        = None
-        self.TFileName       = None
-        self.treeVarExp      = name
-        self.kwargs          = kwargs
         self.styleType       = kwargs.get("styleType", None)
         self.Verbose()
-        return
-        
-
-    def _GetLabelX(self, **args):
-        '''
-        '''
-        self.Verbose()
-
-
-        if hasattr(self, 'xUnits') and self.xUnits != "":
-            postfix = " [" + self.xUnits + "]"
-        else:
-            postfix = ""
-        return args.get("xLabel", "x-label") + postfix
-
-
-    def _GetLabelY(self, **args):
-        '''
-        '''
-        self.Verbose()
-
-
-        if hasattr(self, 'yUnits') and self.yUnits != "":
-            postfix = " [" + self.yUnits + "]"
-        else:
-            postfix = ""
-        return args.get("yLabel", "y-label") + postfix
-
-
-    def _GetLabelZ(self, **args):
-        '''
-        '''
-        self.Verbose()
-
-
-        if hasattr(self, 'zUnits') and self.zUnits != "":
-            postfix = " [" + self.zUnits + "]"
-        else:
-            postfix = ""
-        return args.get("zLabel", "z-label") + postfix
-    
+        #self.PrintAttributes()
+        return            
 
     
     def Verbose(self, message=""):
@@ -172,10 +126,54 @@ class TH1orTH2:
         Call this function to print all histogram attributes.
         '''
         self.Print("Attributes: %s" % (self.__dict__))
+
+        # Alternative way
+        # attrs = vars(self)
+        # print ', '.join("%s: %s" % item for item in attrs.items())
         return
 
 
-    def ApplyStyles(self, styleObject, histoObjectType):
+
+    def _GetLabelX(self, **args):
+        '''
+        '''
+        self.Verbose()
+
+
+        if hasattr(self, 'xUnits') and self.xUnits != "":
+            postfix = " [" + self.xUnits + "]"
+        else:
+            postfix = ""
+        return args.get("xLabel", "x-label") + postfix
+
+
+    def _GetLabelY(self, **args):
+        '''
+        '''
+        self.Verbose()
+
+
+        if hasattr(self, 'yUnits') and self.yUnits != "":
+            postfix = " [" + self.yUnits + "]"
+        else:
+            postfix = ""
+        return args.get("yLabel", "y-label") + postfix
+
+
+    def _GetLabelZ(self, **args):
+        '''
+        '''
+        self.Verbose()
+
+
+        if hasattr(self, 'zUnits') and self.zUnits != "":
+            postfix = " [" + self.zUnits + "]"
+        else:
+            postfix = ""
+        return args.get("zLabel", "z-label") + postfix
+
+
+    def ApplyStyles(self, styleObject):
         '''
         Takes a style object as input to customise the histogram (self). First the rebinning is done
         to the user-defined x-axis bin width. Then the fill/line/marker styles are applied. Then 
@@ -183,21 +181,14 @@ class TH1orTH2:
         '''
         self.Verbose()
 
-        self._RebinXToWidth(histoObjectType)
-        self._RebinYToWidth(histoObjectType)
-        self._SetFillLineMarkerStyles(styleObject, histoObjectType)
-        self._SetAxisStyle(histoObjectType)
+        self._RebinXToWidth()
+        self._RebinYToWidth()
+        self._SetFillLineMarkerStyles(styleObject)
+        self._SetAxisStyle()
         return
-
-
-    def GetName(self):
-        '''
-        '''
-        self.Verbose()
-        return self.name
     
 
-    def _SetAxisStyle(self, histoObjectType):
+    def _SetAxisStyle(self):
         '''
         Sets the x- and y-axis defaults, like offset, label size, label font and yMax.
         '''
@@ -210,31 +201,29 @@ class TH1orTH2:
         if "%" not in self.yLabel:
             self.Print("WARNING! No provision for y-units provided for '%s' in yLabel(='%s'). " % (self.THisto.GetName(), self.yLabel) )
 
-        if "TH1" in str(histoObjectType):
+        if isinstance(self.THisto, ROOT.TH1):
             self.THisto.GetXaxis().SetTitle( self.xLabel )
             self.THisto.GetYaxis().SetTitle( self.yLabel % (self.binWidthX) + " " + self.xUnits )
-        elif "TH2" in str(histoObjectType):
+        elif isinstance(self.THisto, ROOT.TH2):
             self.yLabel = self.yLabel# + " " + self.yUnits
             if "%" not in self.xLabel:
                 self.Print("WARNING! No provision for x-units provided in xLabel(='%s'). " % (self.xLabel) )
             self.binWidthY = self.THisto.GetYaxis().GetBinWidth(0)
             self.THisto.GetXaxis().SetTitle( self.xLabel % (self.binWidthX) )
             self.THisto.GetYaxis().SetTitle( self.yLabel % (self.binWidthY) )
+        elif isinstance(self.THisto, ROOT.TH3):
+            raise Exception("Unsupported histogram object '%s'" % (self.THisto))
         else:
-            raise Exception("The type of histoObject passed is not a ROOT.TH1 or a ROOT.TH2 (type = '%s')." % (type(self.THisto)) )
+            raise Exception("Unknown histogram object '%s'" % (self.THisto))
+
     
         ### Customise x- and y-axis title font, size, offset
-        #for i in range(1, self.THisto.GetNbinsX()) :
-        #    self.THisto.GetXaxis().SetBinLabel(i, "")
         self.THisto.GetXaxis().SetTitleSize(ROOT.gStyle.GetTitleSize("Z"))
         self.THisto.GetXaxis().SetTitleFont(ROOT.gStyle.GetTitleFont("Z"))
         self.THisto.GetXaxis().SetTitleOffset(1.0)
         
-        #for j in range(1, self.THisto.GetNbinsY()) :
-        #    self.THisto.GetYaxis().SetBinLabel(j, "")
         self.THisto.GetYaxis().SetTitleSize(ROOT.gStyle.GetTitleSize("Z"))
         self.THisto.GetYaxis().SetTitleFont(ROOT.gStyle.GetTitleFont("Z"))
-        #self.THisto.GetYaxis().SetTitleOffset(1.35)
         self.THisto.GetYaxis().SetTitleOffset(1.40)
 
         ### Customise x- and y-axis label font, size, offset
@@ -274,7 +263,7 @@ class TH1orTH2:
         if (self.yMin != None):
             yMin = self.yMin 
         else:
-            if "TH1" in str(histoObjectType):
+            if isinstance(self.THisto, ROOT.TH1):
                 self.yMin = self.THisto.GetMinimum()
             else:
                 self.yMin = self.THisto.GetYaxis().GetXmin()
@@ -282,7 +271,7 @@ class TH1orTH2:
         if (self.yMax != None):
             yMax = self.yMax
         else:
-            if "TH1" in str(histoObjectType):
+            if isinstance(self.THisto, ROOT.TH1):
                 self.yMax = self.THisto.GetMaximum()*self.GetYMaxFactor(self.logY)
             else:
                 self.yMax = self.THisto.GetYaxis().GetXmax()
@@ -291,7 +280,7 @@ class TH1orTH2:
         self.THisto.GetXaxis().SetRangeUser(self.xMin, self.xMax) #Only works if xMin (xMax) is greater (smaller) at the histogram creation time
         
         ### Take care of z-axis range (only applicable for ROOT.TH2's)
-        if "TH2" in str(histoObjectType):
+        if isinstance(self.THisto, ROOT.TH2):
             self.THisto.GetZaxis().SetTitle( self.zLabel )
             #self.THisto.GetZaxis().SetTitleSize( self.THisto.GetZaxis().GetTitleSize()*0.8 )
             self.THisto.GetZaxis().SetTitleOffset(1.30)
@@ -330,19 +319,23 @@ class TH1orTH2:
         return 1.0/self.GetYMaxFactor(bLogY)
 
 
-    def _SetFillLineMarkerStyles(self, styleObject, histoObjectType):
+    def _SetFillLineMarkerStyles(self, styleObject):
         '''
         This function customises all the histogram-related styles (fill, marker, line). It uses a style object as input to determine all these according to 
         either the dataset name (if "styleType": None) or the actual user-defined styleType.
         '''
         self.Verbose(["For help see: 'http://root.cern.ch/root/html/TAttMarker.html' and 'http://root.cern.ch/root/html/TAttLine.html'."])
 
-        if "TH1" in str(histoObjectType):
+
+
+        if isinstance(self.THisto, ROOT.TH1):
             (fillColour, lineColour, markerStyle, markerSize, lineWidth, lineStyle, fillStyle, drawOptions, legOptions) = styleObject.GetTH1Styles(self)
-        elif "TH2" in str(histoObjectType):
+        elif isinstance(self.THisto, ROOT.TH2):
             (fillColour, lineColour, markerStyle, markerSize, lineWidth, lineStyle, fillStyle, drawOptions, legOptions) = styleObject.GetTH2Styles(self)
+        elif isinstance(self.THisto, ROOT.TH3):
+            raise Exception("Usupported histogram object '%s'" % (self.THisto))
         else:
-            raise Exception("The type of histoObject passed  is not a ROOT.TH1 or a ROOT.TH2 (type = '%s')." % (type(histoObjectType)) )
+            raise Exception("Unknown histogram object '%s'" % (self.THisto))
 
         ### Apply colours/styles
         self.THisto.SetFillColor(fillColour)
@@ -362,7 +355,7 @@ class TH1orTH2:
         return
 
 
-    def _RebinXToWidth(self, histoObjectType):
+    def _RebinXToWidth(self):
         '''
         Rebin a histogram x-axis according to the user-defined bin width. 
         '''
@@ -370,7 +363,6 @@ class TH1orTH2:
 
         if self.binWidthX==None:
             return
-
 
         hName             = self.THisto.GetName()
         originalBinWidthX = self.THisto.GetXaxis().GetBinWidth(0)
@@ -402,29 +394,30 @@ class TH1orTH2:
             return
             
         rebinNBinsToOne = self.THisto.GetNbinsX()/intBinsX
-        if "TH1" in str(histoObjectType):
+
+        if isinstance(self.THisto, ROOT.TH1):
             self.THisto.Rebin(rebinNBinsToOne)
-        elif "TH2" in str(histoObjectType):
+        elif isinstance(self.THisto, ROOT.TH2):
             self.THisto.RebinX(rebinNBinsToOne)
+        elif isinstance(self.THisto, ROOT.TH3):
+            raise Exception("Usupported histogram object '%s'" % (self.THisto))
         else:
-            raise Exception("Something went wrong. This should not be printed.")
+            raise Exception("Unknown histogram object '%s'" % (self.THisto))
 
         ### Send a warning message if the user-defined binWidthX could not be achieved exactly.
         if self.THisto.GetXaxis().GetBinWidth(0) != self.binWidthX:
             self.Print("WARNING! Could not achieve bin-width of '%f' for x-axis of hist '%s'. Actual bin-width is '%f'" % ( self.binWidthX,  self.name, self.THisto.GetXaxis().GetBinWidth(0)))
 
-
         return
 
 
-    def _RebinYToWidth(self, histoObjectType):
+    def _RebinYToWidth(self):
         '''
         Rebin a histogram y-axis according to the user-defined bin width. 
         '''
         self.Verbose()
-
-
-        if "TH1" in str(histoObjectType) == True:
+        
+        if isinstance(self.THisto, ROOT.TH1):
             return
             
         hName             = self.THisto.GetName()
@@ -505,7 +498,7 @@ class TH1orTH2:
         self.name = name
         return
 
-    
+
     def GetName(self):
         self.Verbose()
         return self.name

@@ -58,7 +58,6 @@ class Plotter(object):
         self.includeStack      = False
         self.invPadRatio       = False
         self.padRatio          = False
-        self.ratioErrorType    = None
         self.startTime         = time.time()
         self.styleObject       = styles.StyleClass(verbose)
         self.textObject        = text.TextClass(verbose)
@@ -615,7 +614,6 @@ class Plotter(object):
 
         # Assign attributes
         h.THisto      = self.GetHistoFromFile(f, h)
-        h.TFileName     = f.GetName()
         h.dataset       = dataset
 
         # Determine the histogram integral
@@ -629,7 +627,6 @@ class Plotter(object):
         # Assign global values
         self.padRatio      = h.ratio
         self.invPadRatio   = h.invRatio
-        self.ratioErrorType = h.ratioErrorType
             
         return
         
@@ -655,7 +652,6 @@ class Plotter(object):
         self.Verbose()
 
         msg  = "{:<15} {:<20}".format("Dataset"            , ": " + histo.dataset.name)
-        msg += "\n\t{:<15} {:<20}".format("File"           , ": " + histo.TFileName)
         msg += "\n\t{:<15} {:<20}".format("HistoPath"      , ": " + histo.path)
         msg += "\n\t{:<15} {:<20}".format("HistoName"      , ": " + histo.name)
         msg += "\n\t{:<15} {:<20}".format("Integral()"     , ": " + str(histo.GetIntegral()))
@@ -802,26 +798,13 @@ class Plotter(object):
             return
 
 
-    def IsTypeTH2(self, histo):
-        '''
-        Check if histoObject is of type ROOT.TH2
-        '''
-
-        hType = type(histo)
-
-        if "TH2" in str(hType):
-            return True
-        else:
-            return False
-
-
     def IsValidHistoObject(self, histoObject):
         ''''
         Ensure that the histoObject is of valid type (histos.TH1 or histos.TH2). Raise an exception otherwise.
         '''
         self.Verbose()
 
-        if isinstance(histoObject, histos.THisto):
+        if isinstance(histoObject, histos.DrawObject):
             return
         else:
             self.Print("ERROR!", "Unknown histo type. Please make sure the histo object '%s' (type = '%s') is either a TH1 or a TH2" % (histoObject, type(histoObject)), "EXIT")
@@ -924,7 +907,7 @@ class Plotter(object):
         
         # For-loop: All datasets
         for d in self.Datasets:
-            d.histo.ApplyStyles( self.styleObject, type(d.histo.THisto))
+            d.histo.ApplyStyles( self.styleObject)
         return
 
     
@@ -1329,7 +1312,7 @@ class Plotter(object):
             hNumerator = copy.deepcopy(h)
             
             # Divide the active histogram with the normalisation histogram
-            hRatio.Divide(hNumerator, hDenominator, 1.0, 1.0, self.ratioErrorType)
+            hRatio.Divide(hNumerator, hDenominator, 1.0, 1.0, "B") #"B" = Binomial
 
             # Inverts ratio histogram if requested (i.e. each bin has content 1/bin)
             if self.invPadRatio == True:

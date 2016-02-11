@@ -95,11 +95,11 @@ Eta = {
 #================================================================================================
 # Create Histos OBjects
 #================================================================================================
-PassedElectronsPt   = histos.TH1orTH2( folder, "PassedElectronsPt", "passed", **Pt )
-AllElectronsPt      = histos.TH1orTH2( folder, "AllElectronsPt"   , "all"   , **Pt )
+PassedElectronsPt   = histos.DrawObject( folder, "PassedElectronsPt", "passed", **Pt )
+AllElectronsPt      = histos.DrawObject( folder, "AllElectronsPt"   , "all"   , **Pt )
 
-PassedElectronsEta  = histos.TH1orTH2( folder, "PassedElectronsEta", "passed", **Eta )
-AllElectronsEta     = histos.TH1orTH2( folder, "AllElectronsEta"   , "all"   , **Eta )
+PassedElectronsEta  = histos.DrawObject( folder, "PassedElectronsEta", "passed", **Eta )
+AllElectronsEta     = histos.DrawObject( folder, "AllElectronsEta"   , "all"   , **Eta )
 
 
 
