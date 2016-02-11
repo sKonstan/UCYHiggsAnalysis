@@ -120,93 +120,8 @@ class Plotter(object):
         else:
             return
         return
-
-    
-    def SetupRoot(self, optStat=0, maxDigits=4, nContours=999, errIgnoreLevel=2000):
-
-        '''
-        Setup ROOT before doing anything else. Reset ROOT settings, disable statistics box,
-        apply Techical Design Report (TDR) style.
-
-        The available options for the Error-Ignore-Level are (const Int_t):
-        kUnset    =  -1
-        kPrint    =   0
-        kInfo     =   1000
-        kWarning  =   2000
-        kError    =   3000
-        kBreak    =   4000
-        kSysError =   5000
-        kFatal    =   6000
-        '''
-        self.Verbose()
-        if hasattr(self, 'rootIsSet'):
-            return
-
-        self.Print("Resetting ROOT, setting TDR style, and setting:")
-
-        info   = []
-        align  = "{:<15} {:<10}"
-        info.append( align.format("OptStat"        , ": " + str( optStat) ) )
-        info.append( align.format("MaxDigits"      , ": " + str( maxDigits) ) ) 
-        info.append( align.format("NumberContours" , ": " + str( nContours) ) )
-        info.append( align.format("gerrIgnoreLevel", ": " + str( errIgnoreLevel) ) )
-
-        self.PrintList(info, False)
-        
-        ROOT.gROOT.Reset()
-        ROOT.gROOT.SetBatch(self.batchMode)
-        ROOT.gStyle.SetOptStat(optStat)
-        ROOT.gStyle.SetNumberContours(nContours)
-        ROOT.TGaxis.SetMaxDigits(maxDigits)
-        ROOT.gErrorIgnoreLevel = errIgnoreLevel
-        tdrstyle.TDRStyle()
-        self.rootIsSet = True
-        
-        return
-
-
-    def SetupStatsBox(self, options, xPos=0.94, yPos=0.84, width=0.20, height=0.12):
-        '''
-        The parameter mode can be = ksiourmen  (default = 000001111)
-        k = 1 (2); kurtosis printed (kurtosis and kurtosis error printed)
-        s = 1 (2); skewness printed (skewness and skewness error printed)
-        i = 1 (2); integral of bins printed (integral of bins with option "width" printed)
-        o = 1;     number of overflows printed
-        u = 1;     number of underflows printed
-        r = 1 (2); rms printed (rms and rms error printed)
-        m = 1 (2); mean value printed (mean and mean error values printed)
-        e = 1;     number of entries printed
-        n = 1;     name of histogram is printed
-    
-        Example: gStyle->SetOptStat(11);
-        print only name of histogram and number of entries.
-        '''
-        self.Verbose()
-        self.PadCover
-
-        # Beautifications/Styling
-        ROOT.gStyle.SetStatBorderSize(0)
-        ROOT.gStyle.SetStatColor(ROOT.kWhite)
-        ROOT.gStyle.SetStatStyle(3001)
-        ROOT.gStyle.SetStatTextColor(ROOT.kBlack)
-        ROOT.gStyle.SetStatFontSize(15)
-        
-        # Dimensions
-        ROOT.gStyle.SetStatY(yPos)
-        ROOT.gStyle.SetStatX(xPos)
-        ROOT.gStyle.SetStatW(width)
-        ROOT.gStyle.SetStatH(height)
-        ROOT.gStyle.SetOptStat(options)
-
-        # Workaround for not being able to not remove it
-        if yPos == -1 and xPos == -1 and width==-1 and height==-1:
-            ROOT.gStyle.SetStatTextColor(ROOT.kWhite)
-            ROOT.gStyle.SetStatFontSize(0)
-            ROOT.gStyle.SetStatStyle(0)            
-        return
     
             
-
     def _CreateCanvas(self):
         '''
         Create a name for a TCanvas and then create it. 
@@ -216,16 +131,10 @@ class Plotter(object):
 
         if hasattr(self, 'TCanvas'):
             return
-            
-        # Normal assignment operations (a = b) will simply point the new variable towards the existing object.
-        histo = self.THDumbie 
 
-        # Create a name for the TCanvas
-        canvasName = histo.GetName()
-
+        canvasName   = self.THDumbie.GetName()
         self.TCanvas = ROOT.TCanvas( canvasName, canvasName, 1)
-
-        self._SetLogAxesCanvas()
+        self._SetLogAxes()
         self.TCanvas.cd()
         return
 
@@ -360,78 +269,6 @@ class Plotter(object):
             self.Print("The histogram '%s' is not a ROOT.TH1 instance. Doing nothing" % histo.name)
             return
         histo.GetXaxis().SetTitleSize(0)
-        return
-
-
-    def _SetLogAxesCanvas(self):
-        '''
-        Apply axes customisations to a TCanvas.
-        '''
-        self.Verbose()
-
-        # Determine whether to set log for y- and x- axis.
-        self._SetLogY(self.THDumbie, self.TCanvas)
-        self._SetLogX(self.THDumbie, self.TCanvas)
-        self._SetLogZ(self.THDumbie, self.TCanvas)
-        return
-
-
-    def _SetLogX(self, histo, PadOrCancas):
-        '''
-        Determine whether to set log for x-axis.
-        '''
-        self.Verbose()
-
-        if histo.logX==False:
-            return
-
-        # Set log-scale for x-axis 
-        if histo.xMin == None:
-            histo.xMin = histo.THisto.GetXaxis().GetXmin()
-
-        if histo.xMin > 0:
-            PadOrCancas.SetLogx(True)
-        else:
-            raise Exception("Request for TCanvas::SetLogx(True) rejected. The '%s' minimum x-value is '%s'." % (histo.name, histo.xMin))
-        return
-
-
-    def _SetLogY(self, histo, PadOrCancas):
-        '''
-        Determine whether to set log for y-axis.
-        '''
-        self.Verbose()
-
-        if histo.logY==False:
-            return
-
-        if histo.yMin == None:
-            histo.yMin = histo.THisto.GetMinimum()
-
-        if histo.yMin > 0:
-            PadOrCancas.SetLogy(True)
-        else:
-            raise Exception("Request for TCanvas::SetLogy(True) rejected. The '%s' minimum y-value is '%s'." % (histo.name, histo.yMin))
-        return
-
-
-    def _SetLogZ(self, histo, PadOrCancas):
-        '''
-        Determine whether to set log for z-axis.
-        '''
-        self.Verbose()
-
-        if histo.logZ==False or isinstance(histo.THisto, ROOT.TH2) == False:
-            return
-
-        # Set log-scale for z-axis 
-        if histo.zMin == None:
-            histo.zMin = histo.THisto.GetZaxis().GetXmin()
-
-        if histo.zMin > 0:
-            PadOrCancas.SetLogz(True)
-        else:
-            raise Exception("Request for TCanvas::SetLogz(True) rejected. The '%s' minimum z-value is '%s'." % (histo.name, histo.zMin))
         return
 
 
@@ -572,13 +409,11 @@ class Plotter(object):
         '''
         self.Verbose()
         
-        # Sanity check. At least one dataset is present 
-        if len(self.Datasets)<1:
-            self.Print("ERROR! No datasets found. EXIT")
-            sys.exit()
+        if not hasattr(self, 'Datasets'):
+            raise Exception("Cannot add histogram to queue as no datasets exist. Check that you have added some datasets")
 
         # Ensure that the pass argument is a valid histo object
-        self.IsValidHistoObject(histoObject)
+        self.IsDrawObject(histoObject)
 
         # For-loop: All datasets
         for i, dataset in enumerate(self.Datasets):
@@ -612,14 +447,6 @@ class Plotter(object):
         h.THisto      = self.GetHistoFromFile(f, h)
         h.dataset       = dataset
 
-        # Determine the histogram integral
-        if self.isTH2:
-            #self.TDRStyleObject.setWide(True)
-            self._CheckNoTH2WithMoreThanOneDatasets(h)
-            h.integral  = h.THisto.Integral(0, h.THisto.GetNbinsX()+1, 0, h.THisto.GetNbinsY()+1)
-        else:
-            h.integral  = h.THisto.Integral(0, h.THisto.GetNbinsX()+1)
-            
         # Assign global values
         self.padRatio      = h.ratio
         self.invPadRatio   = h.invRatio
@@ -627,35 +454,20 @@ class Plotter(object):
         return
         
 
-
-    def GetHistoFromFile(self, f, histo):
-        '''
-        '''
-        self.Verbose()
-        
-        histoPath = ""
-        if histo.path == "" or histo.path==None:
-            histoPath = histo.name
-        else:
-            histoPath = histo.path + "/" + histo.name
-
-        return f.Get(histoPath)
-
-
     def PrintHistoInfo(self, histo, verbose=False):
         '''
         '''
         self.Verbose()
 
-        msg  = "{:<15} {:<20}".format("Dataset"            , ": " + histo.dataset.name)
-        msg += "\n\t{:<15} {:<20}".format("HistoPath"      , ": " + histo.path)
-        msg += "\n\t{:<15} {:<20}".format("HistoName"      , ": " + histo.name)
-        msg += "\n\t{:<15} {:<20}".format("Integral()"     , ": " + str(histo.GetIntegral()))
-
-        if histo.THisto.Integral() == 0 or verbose:
-            self.Print(msg)
-            
-        self.Verbose(msg)
+#        msg  = "{:<15} {:<20}".format("Dataset"            , ": " + histo.dataset.name)
+#        msg += "\n\t{:<15} {:<20}".format("HistoPath"      , ": " + histo.path)
+#        msg += "\n\t{:<15} {:<20}".format("HistoName"      , ": " + histo.name)
+#        msg += "\n\t{:<15} {:<20}".format("Integral()"     , ": " + str(histo.GetIntegral()))
+#
+#        if histo.THisto.Integral() == 0 or verbose:
+#            self.Print(msg)
+#            
+#        self.Verbose(msg)
         return
 
 
@@ -676,8 +488,6 @@ class Plotter(object):
         '''
         self.Verbose()
         
-        self._CustomiseHistograms()
-
         # Change some histoObject attributes
         self.Print("FIXME")
         histo     =  self.GetHistos()[0]
@@ -793,17 +603,14 @@ class Plotter(object):
             return
 
 
-    def IsValidHistoObject(self, histoObject):
-        ''''
-        Ensure that the histoObject is of valid type (histos.TH1 or histos.TH2). Raise an exception otherwise.
-        '''
+    def IsDrawObject(self, drawObject):
         self.Verbose()
-
-        if isinstance(histoObject, histos.DrawObject):
+        if isinstance(drawObject, histos.DrawObject):
             return
         else:
-            self.Print("ERROR!", "Unknown histo type. Please make sure the histo object '%s' (type = '%s') is either a TH1 or a TH2" % (histoObject, type(histoObject)), "EXIT")
-            sys.exit()            
+            raise Exception("The argument passed is not an instance of histos.DrawObject.")
+        return
+
 
 
     def CheckHistoExists(self, rootFile, hObject):
@@ -826,41 +633,31 @@ class Plotter(object):
         return
 
 
-    def CreateDumbie(self, THDumbie=None):
+    def CreateDumbie(self):
         '''
-        Create a dumbie histogram that will be the first to be drawn on each canvas. 
+        Create a dumbie histogram that will be the first to be drawn on canvas. 
         This should have zero entries but have exactly the same attribues  (binning, axes titles etc..) as the ones to be drawn.
         '''
         self.Verbose()
+        
 
-        myMax = -1E10
-        myMin = +1E10
-        # For-loop: All datasets
-        for dataset in self.Datasets:
-            h      = dataset.histo
-            tmpMax =  h.THisto.GetMaximum()
-            if tmpMax > myMax:
-                myMax = h.yMax
-                myMin = h.yMin
-                self.THDumbie = copy.deepcopy(h)
-                self.THDumbie.THisto.SetName("THDumbie")
-            else:
-                continue
+        # Determine global yMin and yMax
+        yMin, yMax = self.GetHistosYMinYMax()
 
-        # Reset only Integral, Contents, Errors and Statistics (not Minimum and Maximum)
-        self.THDumbie.THisto.Reset("ICES")
+        # Copy first histo in datasets list. Reset its Integral, Contents, Errors and Statistics (not Minimum and Maximum)
+        self.THDumbie = copy.deepcopy(self.Datasets[0].histo)
+        self.THDumbie.THisto.SetName("THDumbie")
+        self.THDumbie.THisto.Reset("ICES")    
+        self.THDumbie.THisto.GetYaxis().SetRangeUser(yMin, yMax)
 
-        # Set custom range for x- and y- axis and pad margins            
-        self.THDumbie.THisto.GetYaxis().SetRangeUser(myMin, myMax)
-        self.THDumbie.THisto.GetXaxis().SetRangeUser(h.xMin, h.xMax) #does nothing if xMax > max x-value when histogram was created
-
-        # Set Number of divisions! 
-        if (self.isTH2):
+        # Set Number of divisions
+        if isinstance(self.THDumbie.THisto, ROOT.TH2):        
             self.THDumbie.THisto.GetXaxis().SetNdivisions(510) 
+        elif isinstance(self.THDumbie.THisto, ROOT.TH1):
+            self.THDumbie.THisto.GetXaxis().SetNdivisions(510) #505
         else:
-            #self.THDumbie.THisto.GetXaxis().SetNdivisions(510) #default
-            self.THDumbie.THisto.GetXaxis().SetNdivisions(505)
-
+            raise Exception("Cannot call SetNdivisions for '%s'. Currently ony ROOT.TH1 and ROOT.TH2 supported." % (self.THDumbie) )
+            
         # Set Line Colour and Width
         self.THDumbie.THisto.SetLineColor(ROOT.kBlack)
         self.THDumbie.THisto.SetLineWidth(1)
@@ -882,80 +679,22 @@ class Plotter(object):
         self.drawObjectList.append(objectToBeDrawn)
         self.drawObjectListR.append(copy.deepcopy(objectToBeDrawn))
         return 
-
         
-    def EnableColourPalette(self, bEnable=False):
-        '''
-        Changes colour for each histogram within a given dataset only if 1 dataset is present.
-        '''
-        self.Verbose()
-        
-        self.styleObject.EnableColourPalette(bEnable)
-        return
-
-
-    def _CustomiseHistograms(self):
-        '''
-        Customise all histograms
-        '''
-        self.Verbose()
-        
-        # For-loop: All datasets
-        for d in self.Datasets:
-            d.histo.ApplyStyles(self.styleObject)
-        return
-
-    
-    def NormaliseHistos(self, normOption):
-        self.Print("Normalising all histograms '%s'" % (normOption) )
-        
-        self.normOption = normOption        
-        for dataset in self.Datasets:
-            self._NormaliseHisto(dataset, normOption)
-        return
-
-
-    def _NormaliseHisto(self, dataset, normOpt):
-        '''
-        Normalise the histoObject passed to this function according to user-specified criteria. 
-        '''
-        self.Verbose()
-
-        normOpts = ["", "toOne", "byXSection", "toLuminosity"]
-        
-        if normOpt not in normOpts:
-            raise Exception("Unsupported option '%s'. Please choose one of the following options:\n\t \"%s\"" % (normOpt, "\", \"".join(opt for opt in normOpts) ) )
-
-        if normOpt == "":
-            self.PrintHistoInfo(dataset.histo, True)
-            return
-        elif normOpt == "toOne":
-            dataset.histo.NormaliseToOne()
-            return
-        elif normOpt == "byXSection":
-            dataset.histo.NormaliseToFactor(dataset.GetNormFactor())
-        elif normOpt == "toLuminosity":
-            dataset.histo.NormaliseToFactor(dataset.GetLuminosity())
-        else:
-            raise Exception("Unknown histoObject normalisation option '%s'.!" % (dataset.histo.normalise))
-
-        return
-
 
     def Draw(self, THStackDrawOpt="nostack", includeStack=False, bAddReferenceHisto=True):
         '''
         Draw all necessary histograms for all datasets.
         '''
         self.Verbose()
-
         self.includeStack = includeStack
-        self._CustomiseHistograms()
         self._CreateCanvasAndLegendAndDumbie()
+        
+        if hasattr(self, 'normOption'):
+            if self.normOption == "toOne" and THStackDrawOpt=="stack" and len(self.Datasets)>1:
+                msg = "WARNING! Drawing '%s' stacked samples with normalisation option '%s'" % (len(self.Datasets), self.normOption)
+                self.PrintWarning(msg, "q")
 
-        if self.normOption == "toOne" and THStackDrawOpt=="stack" and len(self.Datasets)>1:
-            msg = "WARNING! Drawing '%s' stacked samples with normalisation option '%s'" % (len(self.Datasets), self.normOption)
-            self.PrintWarning(msg, "q")
-
+        print "here 2"
         if THStackDrawOpt=="nostack":
             for dataset in self.Datasets:
                 dataset.histo.THisto.SetFillStyle(3003)
@@ -966,8 +705,6 @@ class Plotter(object):
         self._DrawRatioHistograms(bAddReferenceHisto)
         self._DrawNonHistoObjects()
         self._CustomiseStack()
-        #self.THStack.Draw("same")             #new: needed when drawing cut-boxes
-        #self.TLegend.Draw("same")             #new: needed when drawing cut-boxes
         self.THDumbie.THisto.Draw("same")
         return
 
@@ -990,7 +727,7 @@ class Plotter(object):
 
         
         for h in HistoObjectList:
-            self.IsValidHistoObject(h)
+            self.IsDrawObject(h)
             h.ApplyStyles(self.styleObject)
             h.THisto.Draw(h.drawOptions + ",9same,")
             self.TLegend.AddEntry( h.THisto, h.legLabel, h.GetLegOptions() )
@@ -1021,7 +758,6 @@ class Plotter(object):
 
         self.includeStack = includestack
         self.EnableColourPalette(True)
-        self._CustomiseHistograms()
         self._CreateCanvasAndLegendAndDumbie()
         self._CheckHistogramBinning()
         self._AddHistogramsToStack2D(ProfileAxis, firstBin, lastBin)
@@ -1091,12 +827,14 @@ class Plotter(object):
         '''
         self.Verbose()
 
+        print "here 0"
         self.CreateDumbie()
-        if self.padRatio == True or self.invPadRatio == True:
+        print "here 1"
+        if self.padRatio or self.invPadRatio:
             self._Create2PadCanvas()
         else:
             self._CreateCanvas()
-
+        print "here 2"
         self._CreateLegend()
         return
 
@@ -1583,6 +1321,159 @@ class Plotter(object):
 
 
     #================================================================================================
+    def EnableColourPalette(self, bEnable=False):
+        '''
+        Changes colour for each histogram within a given dataset only if 1 dataset is present.
+        '''
+        self.Verbose()
+        self.styleObject.EnableColourPalette(bEnable)
+        return
+
+
+    def SetupStatsBox(self, options, xPos=0.94, yPos=0.84, width=0.20, height=0.12):
+        '''
+        The parameter mode can be = ksiourmen  (default = 000001111)
+        k = 1 (2); kurtosis printed (kurtosis and kurtosis error printed)
+        s = 1 (2); skewness printed (skewness and skewness error printed)
+        i = 1 (2); integral of bins printed (integral of bins with option "width" printed)
+        o = 1;     number of overflows printed
+        u = 1;     number of underflows printed
+        r = 1 (2); rms printed (rms and rms error printed)
+        m = 1 (2); mean value printed (mean and mean error values printed)
+        e = 1;     number of entries printed
+        n = 1;     name of histogram is printed
+    
+        Example: 
+        gStyle->SetOptStat(11);
+        prints only name of histogram and number of entries.
+        '''
+        self.Verbose()
+        self.PadCover
+
+        # Beautifications/Styling
+        ROOT.gStyle.SetStatBorderSize(0)
+        ROOT.gStyle.SetStatColor(ROOT.kWhite)
+        ROOT.gStyle.SetStatStyle(0) # 3001
+        ROOT.gStyle.SetStatTextColor(ROOT.kBlack)
+        ROOT.gStyle.SetStatFontSize(15)
+        
+        # Dimensions
+        ROOT.gStyle.SetStatY(yPos)
+        ROOT.gStyle.SetStatX(xPos)
+        ROOT.gStyle.SetStatW(width)
+        ROOT.gStyle.SetStatH(height)
+        ROOT.gStyle.SetOptStat(options)
+        return
+
+    
+    def SetupRoot(self, optStat=0, maxDigits=4, nContours=999, errIgnoreLevel=2000):
+
+        '''
+        Setup ROOT before doing anything else. Reset ROOT settings, disable statistics box,
+        apply Techical Design Report (TDR) style.
+
+        The available options for the Error-Ignore-Level are (const Int_t):
+        kUnset    =  -1
+        kPrint    =   0
+        kInfo     =   1000
+        kWarning  =   2000
+        kError    =   3000
+        kBreak    =   4000
+        kSysError =   5000
+        kFatal    =   6000
+        '''
+        self.Verbose()
+        if hasattr(self, 'rootIsSet'):
+            return
+
+        self.Print("Resetting ROOT, setting TDR style, and setting:")
+
+        info   = []
+        align  = "{:<15} {:<10}"
+        info.append( align.format("OptStat"        , ": " + str( optStat) ) )
+        info.append( align.format("MaxDigits"      , ": " + str( maxDigits) ) ) 
+        info.append( align.format("NumberContours" , ": " + str( nContours) ) )
+        info.append( align.format("gerrIgnoreLevel", ": " + str( errIgnoreLevel) ) )
+        self.PrintList(info, False)
+        
+        ROOT.gROOT.Reset()
+        ROOT.gROOT.SetBatch(self.batchMode)
+        ROOT.gStyle.SetOptStat(optStat)
+        ROOT.gStyle.SetNumberContours(nContours)
+        ROOT.TGaxis.SetMaxDigits(maxDigits)
+        ROOT.gErrorIgnoreLevel = errIgnoreLevel
+        tdrstyle.TDRStyle()
+        self.rootIsSet = True
+        
+        return
+
+
+    def GetHistoFromFile(self, rootFile, histo):
+        '''
+        '''
+        self.Verbose("Getting histogram '%s' from '%s'" % (histo.name, rootFile.GetName()) )
+
+        if histo.path == "":
+            prefix = ""
+        else:
+            prefix = histo.path + "/"
+        histoPath = prefix + histo.name
+        return rootFile.Get(histoPath)
+
+
+    def CustomiseHistos(self):
+        self.Print("Customising all histograms")
+        
+        if not hasattr(self, 'histosNormed'):
+            raise Exception("Cannot customise histograms. Need to call first NormaliseHistos() and then CustomiseHistos()")
+
+        for d in self.Datasets:
+            d.histo.ApplyStyles(self.styleObject)
+        return
+
+    
+    def NormaliseHistos(self, normOption):
+        self.Print("Normalising all histograms '%s'" % (normOption) )
+    
+        if not hasattr(self, 'Datasets'):
+            raise Exception("Cannot normalise histograms as no datasets exist. Check that you have added some datasets")
+            
+        for dataset in self.Datasets:
+            self._NormaliseHisto(dataset, normOption)
+
+        self.histosNormed = True
+        self.normOption   = normOption
+        return
+
+
+    def _NormaliseHisto(self, dataset, normOpt):
+        '''
+        Normalise the histoObject passed to this function according to user-specified criteria. 
+        '''
+        self.Verbose()
+
+        if dataset.histo==None:
+            raise Exception("The dataset '%s' has no histograms assigned to it" % (dataset.GetName()) )
+        
+        normOpts = ["", "toOne", "byXSection", "toLuminosity"]
+        if normOpt not in normOpts:
+            raise Exception("Unsupported option '%s'. Please choose one of the following options:\n\t \"%s\"" % (normOpt, "\", \"".join(opt for opt in normOpts) ) )
+
+        if normOpt == "":
+            self.PrintHistoInfo(dataset.histo, True)
+            return
+        elif normOpt == "toOne":
+            dataset.histo.NormaliseToOne()
+            return
+        elif normOpt == "byXSection":
+            dataset.histo.NormaliseToFactor(dataset.GetNormFactor())
+        elif normOpt == "toLuminosity":
+            dataset.histo.NormaliseToFactor(dataset.GetLuminosity())
+        else:
+            raise Exception("Unknown histoObject normalisation option '%s'.!" % (dataset.histo.normalise))
+        return
+
+
     def GetLegLabel(self, hObject):
         '''
         '''
@@ -1725,3 +1616,78 @@ class Plotter(object):
         saveName = savePath + self.GetCanvasName()
         self._SaveAs(saveName, saveFormats)
         return
+
+
+    def GetHistosYMinYMax(self):
+        '''
+        Loops over all histograms in datasets. Find the minimum y-axis value
+        '''
+        self.Verbose()
+
+        yMin = +1E20
+        yMax = -1E20
+
+        for dataset in self.Datasets:
+            h      = dataset.histo
+            tmpMin =  h.THisto.GetMinimum()
+            tmpMax =  h.THisto.GetMaximum()
+
+            if tmpMin < yMin:
+                yMin = h.yMin
+
+            if tmpMax > yMax:
+                yMax = h.yMax
+
+        return yMin, yMax
+
+    def _SetLogAxes(self):
+        '''
+        Apply axes customisations to a TCanvas.
+        '''
+        self.Verbose()
+        self._SetLogY()
+        self._SetLogX()
+        self._SetLogZ()
+        return
+
+
+    def _SetLogX(self):
+        self.Verbose()
+
+        if self.THDumbie.logX==False:
+            return    
+        if self.THDumbie.THisto.GetXaxis().GetXmin() > 0:
+            PadOrCancas.SetLogx(True)
+        else:
+            raise Exception("Request for TCanvas::SetLogx(True) rejected. The minimum x-value is '%s'." % (self.THDumbie.xMin))
+        return
+
+
+    def _SetLogY(self):
+        self.Verbose()
+
+        if self.THDumbie.logY==False:
+            return
+        if self.THDumbie.THisto.GetMinimum() > 0:
+            self.TCanvas.SetLogy(True)
+        else:
+            raise Exception("Request for TCanvas::SetLogy(True) rejected. The minimum y-value is '%s'." % (self.THDumbie.yMin))
+        return
+
+
+    def _SetLogZ(self):
+        '''
+        Determine whether to set log for z-axis.
+        '''
+        self.Verbose()
+
+        if isinstance(self.THDumbie.THisto, ROOT.TH1):
+            return
+        if self.THDumbie.logZ==False:
+            return
+        if self.THDumbie.THisto.GetZaxis().GetXmin() > 0:
+            self.TCanvas.SetLogz(True)
+        else:
+            raise Exception("Request for TCanvas::SetLogz(True) rejected. The minimum z-value is '%s'." % (self.THDumbie.zMin))
+        return
+    

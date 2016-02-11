@@ -55,7 +55,6 @@ class DrawObject:
         self.gridY           = kwargs.get("gridY", False)
         self.binWidthX       = kwargs.get("binWidthX", None)
         self.binWidthY       = kwargs.get("binWidthY", None)
-        self.dataset         = kwargs.get("dataset", None)
         self.ratioLabel      = kwargs.get("ratioLabel", None)
         self.drawOptions     = kwargs.get("drawOptions", None)
         self.legOptions      = kwargs.get("legOptions", None)

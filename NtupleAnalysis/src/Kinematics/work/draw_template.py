@@ -115,17 +115,19 @@ def DoPlots(histo, datasetObjects, intLumi, bColourPalette=False, savePostfix=""
 
     p = plotter.Plotter(verbose, batchMode)
     p.SetupRoot()
-    # p.SetupStatsBox("ksiourmen", xPos=0.40, yPos=0.5)
-    # p.SetupStatsBox(0.90, 0.88, 0.20, 0.12, 111111111)
+    # p.SetupStatsBox("ksiourmen", xPos=0.90, yPos=0.88, width=0.20, height=0.12)
 
-    
     p.AddDatasets(datasetObjects)
     p.DatasetAsLegend(True)
     p.AddDrawObject(histo)
     #p.AddTF1("cos(x)", 0, 100, {"lineColour": ROOT.kRed})
 
-
+    # p.EnableColourPalette(True) #fixme
     p.NormaliseHistos("toLuminosity")
+    # p.NormaliseHistos("byXSection")
+    # p.NormaliseHistos("toOne")
+    p.CustomiseHistos()
+    
     # p.Draw(THStackDrawOpt="nostack", includeStack = False, bAddReferenceHisto = True)
     p.Draw(THStackDrawOpt="stack", includeStack = False, bAddReferenceHisto = True)
     # p.Draw()    

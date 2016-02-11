@@ -44,7 +44,7 @@ class Dataset(object):
         self.baseDir            = baseDir
         self.latexName          = latexNamesDict[name]
         self.rootFile           = rootFile
-        self.histo              = None
+        self.drawObject         = None
         self.lumi               = None
         self.normFactor         = None
         self.args               = args
@@ -489,9 +489,15 @@ class Dataset(object):
         return self.xsection
 
 
-    def GetHisto(self):    
+    def SetDrawObject(self, drawObject):
         self.Verbose()
-        return self.histo
+        self.drawObject = drawObject
+        return
+
+
+    def GetDrawObject(self):    
+        self.Verbose()
+        return self.drawObject
     
     
     def GetBaseDir(self):
