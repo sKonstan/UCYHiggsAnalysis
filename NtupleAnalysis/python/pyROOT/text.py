@@ -16,7 +16,7 @@ import ROOT
 # Define class here
 #================================================================================================
 class TextClass(object):
-    def __init__(self, xPos=0.0, yPos=0.0, text="", size=None, bold=False, align="left", color=ROOT.kBlack, verbose = False):
+    def __init__(self, xPos=0.0, yPos=0.0, text="", relSize=1.0, bold=False, align="left", color=ROOT.kBlack, verbose = False):
         self.verbose  = verbose
         self.xPos     = xPos
         self.yPos     = yPos
@@ -26,8 +26,10 @@ class TextClass(object):
         self.tlatex.SetNDC()
         if not bold:
             self.tlatex.SetTextFont(self.tlatex.GetTextFont()-20) # bold -> normal
-        if size != None:
-            self.tlatex.SetTextSize(size)
+        if relSize != 1.0:
+            print "self.tlatex.GetTextSize() = ", self.tlatex.GetTextSize()
+            print "newSize = ", self.tlatex.GetTextSize()*relSize
+            self.tlatex.SetTextSize(self.tlatex.GetTextSize()*relSize)
         if align.lower() == "left":
             self.tlatex.SetTextAlign(11)
         elif align.lower() == "center":
@@ -37,9 +39,9 @@ class TextClass(object):
         else:
             raise Exception("Error: Invalid option '%s' for text alignment! Options are: 'left', 'center', 'right'." % align)
         self.tlatex.SetTextColor(color)
-        self._SetDefaults("lumi"       , xPos=0.64, yPos=0.955, text = "")
-        self._SetDefaults("energy"     , xPos=0.80, yPos=0.955, text = "")
-        self._SetDefaults("preliminary", xPos=0.18, yPos=0.955, text = "#font[62]{CMS} #font[52]{Preliminary}")
+        self._SetDefaults("lumi"       , xPos=0.64, yPos=0.961, text = "")
+        self._SetDefaults("energy"     , xPos=0.80, yPos=0.961, text = "")
+        self._SetDefaults("preliminary", xPos=0.16, yPos=0.961, text = "#font[62]{CMS} #font[52]{Preliminary}")
         self.Verbose()
         return
     
@@ -142,7 +144,7 @@ class TextClass(object):
     def AddText(self,xPos, yPos, text, *args, **kwargs):
         self.Verbose()
 
-        t = TextClass(xPos, yPos, text, *args, **kwargs)
+        t = TextClass(xPos, yPos, text, relSize=0.92, *args, **kwargs)
         self.textList.append(t)
         return
 

@@ -35,7 +35,6 @@ class Plotter(object):
         self.isTH1             = False
         self.isTH2             = False
         self.PadCover          = None
-        self.PadPlot           = None
         self.PadRatio          = None
         #
         self.TBoxList          = []
@@ -145,30 +144,26 @@ class Plotter(object):
         '''                    
         self.Verbose()
 
-        # Normal assignment operations (a = b) will simply point the new variable towards the existing object.
-        self.THRatio = copy.deepcopy(self.THDumbie)
-        self.THRatio.THisto.SetName("THRatio")
-        canvasName   = self.THRatio.GetName()
+        if hasattr(self, 'TCanvas'):
+            return
 
+        # Normal assignment operations (a = b) will simply point the new variable towards the existing object.
+        self.THRatio = self.GetDumbieHisto("THRatio")
+        
         # Create TCanvas and divide it into two pads: one for plot pad, one for ratio pad
-        self.Print("Creating canvas with name '%s'" % ( canvasName))
+        canvasName   = self.THDumbie.GetName()
         self.TCanvas = ROOT.TCanvas( canvasName, canvasName, ROOT.gStyle.GetCanvasDefW(), int(ROOT.gStyle.GetCanvasDefH()*self.canvasFactor))
         self.TCanvas.Divide(1,2)
-
+        
         # Remove x-axis title and labels from the THDumbie to avoid overlap with those THRatio
-        self._RemoveXaxisBinLabels(histo.THisto)
-        self._RemoveXaxisTitle(histo.THisto)
+        self.THDumbie.RemoveBinLabelsX()
+        self.THDumbie.RemoveTitleX()
 
         # Create plot, ratio and cover pads
         self._CreatePads()
-        
-        # Take care of log-axis settings
         self._SetLogAxes2PadCanvas()
-
-        # Update canvas and change back to the PadPlot
         self.TCanvas.Update()
         self.PadPlot.cd()
-
         return
 
 
@@ -239,61 +234,29 @@ class Plotter(object):
         return
 
 
-    def _RemoveXaxisBinLabels(self, histo):
-        '''
-        Removes all the x-axis labels from the histogram pass as argument.
-        '''
+    def _SetLogXRatio(self):
         self.Verbose()
 
-        bIsTH1 = isinstance(histo, ROOT.TH1)
-        if bIsTH1 == False:
-            self.Print("The histogram '%s' is not a ROOT.TH1 instance. Doing nothing" % histo.name)
+        if self.THRatio.logXRatio==False:
             return
-        histo.GetXaxis().SetLabelSize(0)
+        if self.THRatio.THisto.GetXaxis().GetXmin() > 0:
+            self.PadRatio.SetLogx(True)
+        else:
+            raise Exception("Request for TCanvas::SetLogx(True) rejected. The minimum x-value is '%s'." % (self.THRatio.xMin))
         return
 
 
-    def _RemoveXaxisTitle(self, histo):
-        '''
-        Removes the x-axis title from the histogram passed as argument.
-        '''
+    def _SetLogYRatio(self):
         self.Verbose()
 
-        bIsTH1 = isinstance(histo, ROOT.TH1)
-        if bIsTH1 == False:
-            self.Print("The histogram '%s' is not a ROOT.TH1 instance. Doing nothing" % histo.name)
+        if self.THRatio.logYRatio==False:
             return
-        histo.GetXaxis().SetTitleSize(0)
+        if self.THRatio.THisto.GetMinimum()>0:
+            self.PadRatio.SetLogy(True)
+        else:
+            raise Exception("Request for TCanvas::SetLogx(True) rejected. The minimum x-value is '%s'." % (self.THRatio.yMin))
         return
-
-
-    def _SetLogXYRatio(self, histo, PadOrCancas):
-        '''
-        Determine whether to set log for x-axis.
-        '''
-        self.Verbose()
-
-        # Set log-scale for y-axis 
-        if histo.logYRatio==True:
-            if histo.yMin == None:
-                histo.yMin = histo.THisto.GetMinimum()
-            
-            if histo.yMin > 0:
-                PadOrCancas.SetLogy(True)
-            else:
-                raise Exception("Request for TCanvas::SetLogy(True) rejected. The '%s' minimum y-value is '%s'." % (histo.name, histo.yMin))
-
-        # Set log-scale for x-axis 
-        if histo.logXRatio==True:
-            if histo.xMin == None:
-                histo.xMin = histo.THisto.GetXaxis().GetXmin()
-
-            if histo.xMin > 0:
-                PadOrCancas.SetLogx(True)
-            else:
-                raise Exception("Request for TCanvas::SetLogx(True) rejected. The '%s' minimum x-value is '%s'." % (histo.name, histo.xMin))
-        return
-
+    
 
     def _SetLogAxes2PadCanvas(self):
         '''
@@ -302,10 +265,11 @@ class Plotter(object):
         self.Verbose()
 
         # Determine whether to set log for y- and x- axis.
-        self._SetLogY(self.THDumbie, self.PadPlot)
-        self._SetLogX(self.THDumbie, self.PadPlot)
-        self._SetLogZ(self.THDumbie, self.PadPlot)
-        self._SetLogXYRatio(self.THRatio, self.PadRatio)
+        self._SetLogY()
+        self._SetLogX()
+        self._SetLogZ()
+        self._SetLogXRatio()
+        self._SetLogYRatio()
         return
 
 
@@ -628,40 +592,39 @@ class Plotter(object):
         return
 
 
-    def CreateDumbie(self):
+    def GetDumbieHisto(self, newName):
         '''
         Create a dumbie histogram that will be the first to be drawn on canvas. 
         This should have zero entries but have exactly the same attribues  (binning, axes titles etc..) as the ones to be drawn.
         '''
         self.Verbose()
-        
 
         # Determine global yMin and yMax
         yMin, yMax = self.GetHistosYMinYMax()
 
         # Copy first histo in datasets list. Reset its Integral, Contents, Errors and Statistics (not Minimum and Maximum)
-        self.THDumbie = copy.deepcopy(self.Datasets[0].histo)
-        self.THDumbie.THisto.SetName("THDumbie")
-        self.THDumbie.THisto.Reset("ICES")    
-        self.THDumbie.THisto.GetYaxis().SetRangeUser(yMin, yMax)
+        emptyHisto = copy.deepcopy(self.Datasets[0].histo)
+        #emptyHisto.SetName(newName)
+        emptyHisto.THisto.SetName(newName)
+        emptyHisto.THisto.Reset("ICES")    
+        emptyHisto.THisto.GetYaxis().SetRangeUser(yMin, yMax)
 
         # Set Number of divisions
-        if isinstance(self.THDumbie.THisto, ROOT.TH2):        
-            self.THDumbie.THisto.GetXaxis().SetNdivisions(510) 
-        elif isinstance(self.THDumbie.THisto, ROOT.TH1):
-            self.THDumbie.THisto.GetXaxis().SetNdivisions(510) #505
+        if isinstance(emptyHisto.THisto, ROOT.TH2):
+            emptyHisto.THisto.GetXaxis().SetNdivisions(510) 
+        elif isinstance(emptyHisto.THisto, ROOT.TH1):
+            emptyHisto.THisto.GetXaxis().SetNdivisions(510) #505
         else:
-            raise Exception("Cannot call SetNdivisions for '%s'. Currently ony ROOT.TH1 and ROOT.TH2 supported." % (self.THDumbie) )
+            raise Exception("Cannot call SetNdivisions for '%s'. Currently ony ROOT.TH1 and ROOT.TH2 supported." % (emptyHisto) )
             
         # Set Line Colour and Width
-        self.THDumbie.THisto.SetLineColor(ROOT.kBlack)
-        self.THDumbie.THisto.SetLineWidth(1)
+        emptyHisto.THisto.SetLineColor(ROOT.kBlack)
+        emptyHisto.THisto.SetLineWidth(1)
 
         # Increase right pad margin to accomodate z-axis scale and title
-        if isinstance(self.THDumbie.THisto, ROOT.TH2) == True:
+        if isinstance(emptyHisto.THisto, ROOT.TH2) == True:
             ROOT.gStyle.SetPadRightMargin(0.15)
-            #ROOT.gStyle.SetPadRightMargin(0.15)
-        return
+        return emptyHisto
                 
 
     def AppendToDrawObjectList(self, objectToBeDrawn):
@@ -689,7 +652,6 @@ class Plotter(object):
                 msg = "WARNING! Drawing '%s' stacked samples with normalisation option '%s'" % (len(self.Datasets), self.normOption)
                 self.PrintWarning(msg, "q")
 
-        print "here 2"
         if THStackDrawOpt=="nostack":
             for dataset in self.Datasets:
                 dataset.histo.THisto.SetFillStyle(3003)
@@ -697,6 +659,7 @@ class Plotter(object):
         self._CheckHistogramBinning()
         self._AddHistogramsToStack()
         self._DrawHistograms(THStackDrawOpt)
+
         self._DrawRatioHistograms(bAddReferenceHisto)
         self._DrawNonHistoObjects()
         self._CustomiseStack()
@@ -822,14 +785,13 @@ class Plotter(object):
         '''
         self.Verbose()
 
-        print "here 0"
-        self.CreateDumbie()
-        print "here 1"
+        self.THDumbie = self.GetDumbieHisto("THDumbie")
+
         if self.padRatio or self.invPadRatio:
             self._Create2PadCanvas()
         else:
             self._CreateCanvas()
-        print "here 2"
+            
         self._CreateLegend()
         return
 
@@ -1011,10 +973,9 @@ class Plotter(object):
         self.PadRatio.cd()        
 
         # Create the histogram that will divide all other histograms in the THStackRatio (Normalisation histogram)
-        UnityTH1 = self.GetUnityTH1()
-        hDenominator = copy.deepcopy( self.THStackHistoList[0] ) 
-        self.Verbose("Using histogram '%s' as denominator for ratio plots! " % (hDenominator.GetName()))
-
+        hDenominator = copy.copy( self.THStackHistoList[0] ) 
+        self.Print("Using histogram '%s' as denominator for ratio plots! " % (hDenominator.GetName()))
+        
         # Add the reference ratio plot (to enable the identification of the histogram used for the normalisation)
         # Note: Do not add the hReference histogram  before calling the function self.CustomiseTHRatio(). 
         if bAddReferenceHisto:
@@ -1040,7 +1001,9 @@ class Plotter(object):
 
             # Inverts ratio histogram if requested (i.e. each bin has content 1/bin)
             if self.invPadRatio == True:
-                hRatio.Divide(UnityTH1, hRatio) 
+                #hRatio.Divide(UnityTH1, hRatio)
+                self.Print("Not supported yet")
+                sys.exit()
 
             # Finally, add this ratio histogram to the THStackRatio
             self.THStackRatio.Add(hRatio)
@@ -1272,26 +1235,7 @@ class Plotter(object):
         for dataset in self.Datasets:
             self._CheckHistoBinning(dataset.histo)
         return 
-                              
-
-    def GetUnityTH1(self):
-        '''
-        Returns a TH1 with identical attributes to those of self.TH1Dubmie. But, all its bins
-        are filled with 1. So you have a flat distribution histogram at y=1, over the entire x-axis range.
-        '''
-        self.Verbose()
-        hUnity = copy.deepcopy(self.THRatio)
-        hUnity.THisto.Reset()
-        hUnity.THisto.SetName("hUnity")
-        hUnity.name = "hUnity"
-
-        nBinsX = hUnity.THisto.GetNbinsX()+1
-        for i in range (0, nBinsX):
-            hUnity.THisto.SetBinContent(i, 1)
-            hUnity.THisto.SetBinError(i, 0)
-            
-        return hUnity.THisto
-
+    
         
     def DatasetAsLegend(self, flag):
         self.Verbose()
@@ -1519,6 +1463,7 @@ class Plotter(object):
         self.textObject.AddLumiText(lumi)
         self.textObject.DrawTextList()
         self.TCanvas.Update()
+        self.Print("Needs fixing for ratio plots!")
         return
 
 
@@ -1635,6 +1580,7 @@ class Plotter(object):
 
         return yMin, yMax
 
+    
     def _SetLogAxes(self):
         '''
         Apply axes customisations to a TCanvas.
@@ -1652,7 +1598,9 @@ class Plotter(object):
         if self.THDumbie.logX==False:
             return    
         if self.THDumbie.THisto.GetXaxis().GetXmin() > 0:
-            PadOrCancas.SetLogx(True)
+            self.TCanvas.SetLogx(True)
+            if hasattr(self, 'PadPlot'):
+                self.PadPlot.SetLogx(True)
         else:
             raise Exception("Request for TCanvas::SetLogx(True) rejected. The minimum x-value is '%s'." % (self.THDumbie.xMin))
         return
@@ -1665,6 +1613,8 @@ class Plotter(object):
             return
         if self.THDumbie.THisto.GetMinimum() > 0:
             self.TCanvas.SetLogy(True)
+            if hasattr(self, 'PadPlot'):
+                self.PadPlot.SetLogy(True)
         else:
             raise Exception("Request for TCanvas::SetLogy(True) rejected. The minimum y-value is '%s'." % (self.THDumbie.yMin))
         return

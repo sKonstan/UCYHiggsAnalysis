@@ -520,3 +520,21 @@ class DrawObject:
     def GetLegLabel(self):
         self.Verbose()
         return self.legLabel    
+
+
+    def RemoveBinLabelsX(self):
+        '''
+        Removes all the x-axis labels from the histogram pass as argument.
+        '''
+        self.Verbose()
+        self.THisto.GetXaxis().SetLabelSize(0)
+        return
+
+
+    def RemoveTitleX(self):
+        '''
+        Removes the x-axis title from the histogram passed as argument.
+        '''
+        self.Verbose()
+        self.THisto.GetXaxis().SetTitleSize(0)
+        return
