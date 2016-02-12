@@ -146,8 +146,8 @@ class Plotter(object):
         '''                    
         self.Verbose()
 
-        if hasattr(self, 'TCanvas'):
-            return
+        if not hasattr(self, 'TCanvas'):
+            raise Exception("The Class Object '%s' already has a 'TCanvas' attribute." % self.GetSelfName())
 
         # Normal assignment operations (a = b) will simply point the new variable towards the existing object.
         self.THRatio = self.GetDumbieHisto("THRatio")
