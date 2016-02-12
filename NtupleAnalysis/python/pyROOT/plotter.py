@@ -34,22 +34,18 @@ class Plotter(object):
         self.textObject        = text.TextClass(verbose)
         self.auxObject         = aux.AuxClass(verbose)
         self.canvasFactor      = 1.25
-        self.TBoxList          = []
-        self.THStack           = ROOT.THStack("THStack", "Stack for PadPlot Histograms")
+        self.THStack           = ROOT.THStack("THStack", "Stack for TPadPlot Histograms")
         self.THStackHistoList  = [] #needed because looping over self.THSTack.GetHists() crashes!
-        self.THStackRatio      = ROOT.THStack("THStackRatio", "Stack for PadRatio Histograms")
+        self.THStackRatio      = ROOT.THStack("THStackRatio", "Stack for TPadRatio Histograms")
         self.TMultigraph       = ROOT.TMultiGraph("TMultigraph", "ROOT.TMultiGraph holding various ROOT.TGraphs")
-        self.drawObjectList    = []
-        self.drawObjectListR   = []
+        self.drawList          = []
+        self.drawListRatio     = []
         self.includeStack      = False
-        self.invPadRatio       = False        
         print
         return
                   
 
     def AddDrawObject(self, histos):
-        '''
-        '''
         self.Verbose()
         
         if type(histos) == list:
@@ -86,53 +82,26 @@ class Plotter(object):
             histoObject.dataset = d
         return
 
-
-    def CreateDumbieHisto(self, newName):
-        '''
-        Create a dumbie histogram that will be the first to be drawn on canvas. 
-        This should have zero entries but have exactly the same attribues  (binning, axes titles etc..) as the ones to be drawn.
-        '''
-        self.Verbose()
-
-        # Determine global yMin and yMax
-        yMin, yMax = self.GetHistosYMinYMax()
-
-        # Copy first histo in datasets list. Reset its Integral, Contents, Errors and Statistics (not Minimum and Maximum)
-        emptyHisto = copy.deepcopy(self.Datasets[0].histo)
-        #emptyHisto.SetName(newName)
-        emptyHisto.THisto.SetName(newName)
-        emptyHisto.THisto.Reset("ICES")    
-        emptyHisto.THisto.GetYaxis().SetRangeUser(yMin, yMax)
-
-        # Set Number of divisions
-        if isinstance(emptyHisto.THisto, ROOT.TH2):
-            emptyHisto.THisto.GetXaxis().SetNdivisions(510) 
-        elif isinstance(emptyHisto.THisto, ROOT.TH1):
-            emptyHisto.THisto.GetXaxis().SetNdivisions(510) #505
-        else:
-            raise Exception("Cannot call SetNdivisions for '%s'. Currently ony ROOT.TH1 and ROOT.TH2 supported." % (emptyHisto) )
-            
-        # Set Line Colour and Width
-        emptyHisto.THisto.SetLineColor(ROOT.kBlack)
-        emptyHisto.THisto.SetLineWidth(1)
-
-        # Increase right pad margin to accomodate z-axis scale and title
-        if isinstance(emptyHisto.THisto, ROOT.TH2) == True:
-            ROOT.gStyle.SetPadRightMargin(0.15)
-        return emptyHisto
                 
-
-    def AppendToDrawObjectList(self, objectToBeDrawn):
+    def ExtendDrawLists(self, drawObjects, addToRatio=True):
         '''
         Append a drawable object of any type (TCanvas, TLegend, TLine, TBox, etc..) to a list.
         This list will be used later on to draw all objects.
         '''
         self.Verbose()
 
-        self.drawObjectList.append(objectToBeDrawn)
-        self.drawObjectListR.append(copy.deepcopy(objectToBeDrawn))
+        if isinstance(drawObjects, list):
+            drawList = drawObjects
+        else:
+            drawList = [drawObjects]
+
+        if addToRatio:
+            self.drawList.extend(drawList)
+            self.drawListRatio.extend(copy.deepcopy(drawList))
+        else:
+            self.drawList.extend(drawList)
         return 
-        
+    
 
     def Draw(self, THStackDrawOpt="nostack", includeStack=False, bAddReferenceHisto=True):
         '''
@@ -212,7 +181,7 @@ class Plotter(object):
         return
 
 
-    def AddTF1(self, myFunction, xMin, xMax, kwargs={}):
+    def AddTF1(self, myFunction, xMin, xMax, addToRatio, kwargs={}):
         '''
         '''
         self.Verbose()
@@ -231,7 +200,7 @@ class Plotter(object):
         if kwargs.get("lineWidth"):
             f1.SetLineWidth( kwargs.get("lineWidth") )
 
-        self.AppendToDrawObjectList(f1)
+        self.ExtendDrawLists(f1, addToRatio=True)
         return
 
 
@@ -285,16 +254,16 @@ class Plotter(object):
 
     def _DrawRatioHistograms(self, bAddReferenceHisto=True):
         '''
-        Draw all plots on the PadRatio (if applicable).
+        Draw all plots on the TPadRatio (if applicable).
         For efficiencies and errors see:
         http://steve.cooleysekula.net/goingupalleys/2011/08/09/python-and-root-tricks-efficiency-graphs/
         '''
         self.Verbose()
 
-        if not hasattr(self, "PadRatio"):
+        if not hasattr(self, "TPadRatio"):
             return
 
-        self.PadRatio.cd()        
+        self.TPadRatio.cd()        
 
         # Create the histogram that will divide all other histograms in the THStackRatio (Normalisation histogram)
         hDenominator = copy.copy( self.THStackHistoList[0] ) 
@@ -323,12 +292,6 @@ class Plotter(object):
             # Divide the active histogram with the normalisation histogram
             hRatio.Divide(hNumerator, hDenominator, 1.0, 1.0, "B") #"B" = Binomial
 
-            # Inverts ratio histogram if requested (i.e. each bin has content 1/bin)
-            if self.invPadRatio == True:
-                #hRatio.Divide(UnityTH1, hRatio)
-                self.Print("Not supported yet")
-                sys.exit()
-
             # Finally, add this ratio histogram to the THStackRatio
             self.THStackRatio.Add(hRatio)
 
@@ -339,8 +302,8 @@ class Plotter(object):
         self.THRatio.THisto.Draw()
         self.THStackRatio.Draw("nostack9sameAP")
         
-        # Switch back to the PadPlot (necessary)
-        self.PadPlot.cd()
+        # Switch back to the TPadPlot (necessary)
+        self.TPadPlot.cd()
         return
 
     
@@ -358,11 +321,6 @@ class Plotter(object):
 
         # Customise the title
         self.THRatio.THisto.GetXaxis().SetTitleOffset(3.2) #was: 2.8
-        if self.THRatio.ratioLabel == None:
-            if self.invPadRatio == False:
-                self.THRatio.ratioLabel = "Ratio"
-            else:
-                self.THRatio.ratioLabel = "1/Ratio"
         self.THRatio.THisto.GetYaxis().SetTitle(self.THRatio.ratioLabel)
 
         # Customise the y-axis
@@ -374,8 +332,8 @@ class Plotter(object):
         self.THDumbie.THisto.GetYaxis().SetTitleOffset(1.8)
         
         # Enable grid to easy readout of histo
-        self.PadRatio.SetGridx(self.THDumbie.gridX)
-        self.PadRatio.SetGridy(self.THDumbie.gridY)
+        self.TPadRatio.SetGridx(self.THDumbie.gridX)
+        self.TPadRatio.SetGridy(self.THDumbie.gridY)
         return
 
 
@@ -573,7 +531,7 @@ class Plotter(object):
             self.THDumbie.RemoveBinLabelsX()
             self.THDumbie.RemoveTitleX()
             self._CreatePads()
-            self.PadPlot.cd()
+            self.TPadPlot.cd()
 
         self._SetLogAxes(twoPads)
         self._CreateLegend()
@@ -587,8 +545,8 @@ class Plotter(object):
         '''
         self.Verbose()
 
-        self._CreatePadPlot()
-        self._CreatePadRatio()
+        self._CreateTPadPlot()
+        self._CreateTPadRatio()
         self._CreatePadCover()
         return
 
@@ -782,8 +740,8 @@ class Plotter(object):
         '''
         self.Print("Drawing 'CMS Preliminary', '%s TeV' and '%s' text" % (energy, lumi) )        
         
-        if hasattr(self, 'PadPlot'):
-            self.PadPlot.cd()
+        if hasattr(self, 'TPadPlot'):
+            self.TPadPlot.cd()
 
         if prelim:
             self.textObject.AddDefaultText("preliminary", "")
@@ -792,8 +750,7 @@ class Plotter(object):
         self.textObject.AddDefaultText("lumi", lumi)
         self.textObject.AddDefaultText("energy", "(" + energy + " TeV)")
 
-        # self.textObject.DrawTextList())
-        self.drawObjectList.extend(self.textObject.GetTextList())
+        self.ExtendDrawLists(self.textObject.GetTextList(), addToRatio=False)        
         return
 
 
@@ -918,8 +875,8 @@ class Plotter(object):
             return    
         if self.THDumbie.THisto.GetXaxis().GetXmin() > 0:
             self.TCanvas.SetLogx(True)
-            if hasattr(self, 'PadPlot'):
-                self.PadPlot.SetLogx(True)
+            if hasattr(self, 'TPadPlot'):
+                self.TPadPlot.SetLogx(True)
         else:
             raise Exception("Request for TCanvas::SetLogx(True) rejected. The minimum x-value is '%s'." % (self.THDumbie.xMin))
         return
@@ -932,8 +889,8 @@ class Plotter(object):
             return
         if self.THDumbie.THisto.GetMinimum() > 0:
             self.TCanvas.SetLogy(True)
-            if hasattr(self, 'PadPlot'):
-                self.PadPlot.SetLogy(True)
+            if hasattr(self, 'TPadPlot'):
+                self.TPadPlot.SetLogy(True)
         else:
             raise Exception("Request for TCanvas::SetLogy(True) rejected. The minimum y-value is '%s'." % (self.THDumbie.yMin))
         return
@@ -959,14 +916,14 @@ class Plotter(object):
     def _SetLogXRatio(self):
         self.Verbose()
 
-        if not hasattr(self, 'PadRatio'):
+        if not hasattr(self, 'TPadRatio'):
             return
 
         if not self.THRatio.logXRatio:
             return
 
         if self.THRatio.THisto.GetXaxis().GetXmin() > 0:
-            self.PadRatio.SetLogx(True)
+            self.TPadRatio.SetLogx(True)
         else:
             raise Exception("Request for TCanvas::SetLogx(True) rejected. The minimum x-value is '%s'." % (self.THRatio.xMin))
         return
@@ -975,35 +932,35 @@ class Plotter(object):
     def _SetLogYRatio(self):
         self.Verbose()
 
-        if not hasattr(self, 'PadRatio'):
+        if not hasattr(self, 'TPadRatio'):
             return
 
         if not self.THRatio.logYRatio:
             return
 
         if self.THRatio.THisto.GetMinimum()>0:
-            self.PadRatio.SetLogy(True)
+            self.TPadRatio.SetLogy(True)
         else:
             raise Exception("Request for TCanvas::SetLogx(True) rejected. The minimum x-value is '%s'." % (self.THRatio.yMin))
         return
 
 
-    def _CreatePadPlot(self):
+    def _CreateTPadPlot(self):
         '''
         Creates a plot pad to draw the histogram stack.
         '''
         self.Verbose()
 
-        self.PadPlot  = self.TCanvas.cd(1)
-        self.PadPlot.SetName("PadPlot")
+        self.TPadPlot  = self.TCanvas.cd(1)
+        self.TPadPlot.SetName("TPadPlot")
         (xlow, ylow, xup, yup) = [ROOT.Double(x) for x in [0.0]*4]
-        self.PadPlot.GetPadPar(xlow, ylow, xup, yup)
-        self.PadPlot.SetPad(xlow, 1-1/self.canvasFactor, xup, yup)
-        self.PadPlot.Draw()
+        self.TPadPlot.GetPadPar(xlow, ylow, xup, yup)
+        self.TPadPlot.SetPad(xlow, 1-1/self.canvasFactor, xup, yup)
+        self.TPadPlot.Draw()
         return
 
 
-    def _CreatePadRatio(self):
+    def _CreateTPadRatio(self):
         '''
         Creates a ratio pad to draw the histogram ratio stack.
         '''
@@ -1011,25 +968,25 @@ class Plotter(object):
         
         canvasHeightCorr = 0.022
 
-        self.PadRatio = self.TCanvas.cd(2)
-        self.PadRatio.SetName("PadRatio")
+        self.TPadRatio = self.TCanvas.cd(2)
+        self.TPadRatio.SetName("TPadRatio")
         (xlow, ylow, xup, yup) = [ROOT.Double(x) for x in [0.0]*4]
-        self.PadRatio.GetPadPar(xlow, ylow, xup, yup)
-        self.PadRatio.SetPad(xlow, ylow, xup, 1-1/self.canvasFactor + ROOT.gStyle.GetPadBottomMargin() - ROOT.gStyle.GetPadTopMargin() + canvasHeightCorr)
-        self.PadRatio.SetFillStyle(4000)
-        self.PadRatio.SetTopMargin(0.0)
-        self.PadRatio.SetBottomMargin(self.PadRatio.GetBottomMargin()+0.20) #was: 0.16
-        self.PadRatio.Draw()
+        self.TPadRatio.GetPadPar(xlow, ylow, xup, yup)
+        self.TPadRatio.SetPad(xlow, ylow, xup, 1-1/self.canvasFactor + ROOT.gStyle.GetPadBottomMargin() - ROOT.gStyle.GetPadTopMargin() + canvasHeightCorr)
+        self.TPadRatio.SetFillStyle(4000)
+        self.TPadRatio.SetTopMargin(0.0)
+        self.TPadRatio.SetBottomMargin(self.TPadRatio.GetBottomMargin()+0.20) #was: 0.16
+        self.TPadRatio.Draw()
         return
 
 
     def _CreatePadCover(self, xMin=0.08, yMin=0.285, xMax=0.16, yMax=0.32):
         '''
-        Creates a cover pad to cover the overlap of the y-axis divisions between the PadPlot and the PadRatio.
+        Creates a cover pad to cover the overlap of the y-axis divisions between the TPadPlot and the TPadRatio.
         '''
         self.Verbose()
 
-        if not hasattr(self, 'PadRatio'):
+        if not hasattr(self, 'TPadRatio'):
             raise Exception("Cannot create a cover-TPad. First you need to create a ratio-TPad!")
         
         self.TCanvas.cd()
@@ -1039,13 +996,13 @@ class Plotter(object):
         self.PadCover.SetFillStyle(1001)
         self.PadCover.SetFillColor(ROOT.kWhite) #ROOT.kRed
         self.PadCover.Draw()
-        self.PadRatio.Draw() # Re-draw PadRatio to put back the covered y-axis numbers
+        self.TPadRatio.Draw() # Re-draw TPadRatio to put back the covered y-axis numbers
         return
 
     
     def _CreateLegend(self):
         '''
-        Create a TLegend, customise it and append it to the drawObjectList
+        Create a TLegend, customise it and append it to the drawList
         '''
         self.Verbose()
         
@@ -1055,7 +1012,8 @@ class Plotter(object):
         histo = self.THDumbie
         self.TLegend = ROOT.TLegend(histo.xLegMin, histo.yLegMin, histo.xLegMax, histo.yLegMax, "", "brNDC")
         self._CustomiseLegend()
-        self.drawObjectList.append( self.TLegend )
+
+        self.ExtendDrawLists(self.TLegend, addToRatio=False)
         return
     
 
@@ -1097,12 +1055,8 @@ class Plotter(object):
         # Create the TLines for each axis
         self._CreateTLinesX()
         self._CreateTLinesY()
-
-        # Extend the DrawObjectList with the TLineX and TLineY lists
-        self.drawObjectList.extend(self.TLineListX )
-        self.drawObjectList.extend(self.TLineListY )
-        self.drawObjectListR.extend(self.TLineListX )
-        self.drawObjectListR.extend(self.TLineListY )  #xenios: copy.deepcopy(self.TLineListY)? 
+        self.ExtendDrawLists(self.TLineListX, addToRatio=True)
+        self.ExtendDrawLists(self.TLineListY, addToRatio=True)
         return
 
 
@@ -1154,48 +1108,44 @@ class Plotter(object):
         self.CreateCutBoxes()
         self.CreateCutLines() 
         
-        # Draw all objects on the PadPlot
-        for o in self.drawObjectList:
+        # Draw all objects on the TPadPlot
+        for o in self.drawList:
             o.Draw("same")
         self.TCanvas.RedrawAxis()
         self.TCanvas.Update()
         self.TCanvas.Modified()
 
-        # Draw all objects on the PadRatio        
-        if not hasattr(self, "PadRatio"):
+        # Draw all objects on the TPadRatio        
+        if not hasattr(self, "TPadRatio"):
             return
 
-        self.PadRatio.cd()
-        for o in self.drawObjectListR:
+        self.TPadRatio.cd()
+        for o in self.drawListRatio:
 
             if isinstance(o, ROOT.TLegend):
                 continue
             o.Draw("same")
 
-        self.PadPlot.Update()
-        self.PadPlot.Modified()
-        self.PadRatio.Update()
-        self.PadRatio.Modified()
+        self.TPadPlot.Update()
+        self.TPadPlot.Modified()
+        self.TPadRatio.Update()
+        self.TPadRatio.Modified()
         
-        self.PadPlot.RedrawAxis()
-        self.PadRatio.RedrawAxis()
-        self.PadPlot.cd()
+        self.TPadPlot.RedrawAxis()
+        self.TPadRatio.RedrawAxis()
+        self.TPadPlot.cd()
         return
         
 
     def CreateCutBoxes(self):
         self.Verbose()
 
-        #self._CreateTLinesX()
-        #self._CreateTLinesY()
-
+        # self._CreateTLinesX()
+        # self._CreateTLinesY()
         self._CreateTBoxesX()
         self._CreateTBoxesY()
-        
-        self.drawObjectList.extend(self.TBoxListX)
-        self.drawObjectList.extend(self.TBoxListY)
-        self.drawObjectListR.extend(self.TBoxListX)
-        self.drawObjectListR.extend(self.TBoxListY)
+        self.ExtendDrawLists(self.TBoxListX, addToRatio=True)
+        self.ExtendDrawLists(self.TBoxListY, addToRatio=True)
         return
 
 
@@ -1254,3 +1204,29 @@ class Plotter(object):
             self.TBoxListY.append(cutBox)
         return
     
+
+    def CreateDumbieHisto(self, newName):
+        '''
+        Create a dumbie histogram that will be the first to be drawn on canvas. 
+        This should have zero entries but have exactly the same attribues  (binning, axes titles etc..) as the ones to be drawn.
+        '''
+        self.Verbose()
+
+        # Determine global yMin and yMax
+        yMin, yMax = self.GetHistosYMinYMax()
+
+        # Copy first histo in datasets list. Reset its Integral, Contents, Errors and Statistics (not Minimum and Maximum)
+        emptyHisto = copy.deepcopy(self.Datasets[0].histo)
+        # emptyHisto.SetName(newName)
+        emptyHisto.THisto.SetName(newName)
+        emptyHisto.THisto.Reset("ICES")    
+        emptyHisto.THisto.GetYaxis().SetRangeUser(yMin, yMax)
+            
+        # Set Line Colour and Width
+        emptyHisto.THisto.SetLineColor(ROOT.kBlack)
+        emptyHisto.THisto.SetLineWidth(0)
+
+        # Increase right pad margin to accomodate z-axis scale and title
+        if isinstance(emptyHisto.THisto, ROOT.TH2):
+            ROOT.gStyle.SetPadRightMargin(0.15)
+        return emptyHisto
