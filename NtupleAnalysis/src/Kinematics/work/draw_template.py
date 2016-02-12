@@ -91,8 +91,8 @@ Pt = {
 
 
 Eta = {
-    "xLabel": "#eta"           , "xUnits": ""     , "xMin": -etaMax , "xMax": +etaMax, "binWidthX": None, "xCutLines": [0], "gridX": True, "logX": False, "xCutBoxes": [],  
-    "yLabel": "Entries / %0.2f", "yUnits": ""     , "yMin": +1e00   , "yMax": None   , "binWidthY": None, "yCutLines": [] , "gridY": True, "logY": True , "yCutBoxes": [],  
+    "xLabel": "#eta"           , "xUnits": ""     , "xMin": -etaMax , "xMax": +etaMax, "binWidthX": None, "xCutLines": [0], "gridX": True, "gridXRatio": False, "logX": False, "xCutBoxes": [],  
+    "yLabel": "Entries / %0.2f", "yUnits": ""     , "yMin": +1e00   , "yMax": None   , "binWidthY": None, "yCutLines": [] , "gridY": True, "gridYRatio": False, "logY": True , "yCutBoxes": [],  
     "ratioLabel": "Ratio"      , "yMinRatio": 1e-01, "yMaxRatio": 2.15 , "drawOptions": "P", "legOptions": "LP", 
     "xCutBoxes": [[-1.0, -1.6, ROOT.kBlue], [+1.0, +1.6, ROOT.kBlue]], "yCutBoxes": [], "logYRatio": False, "logXRatio": False, "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
 }
@@ -103,9 +103,13 @@ Eta = {
 #================================================================================================
 PassedElectronsPt   = histos.DrawObject( folder, "PassedElectronsPt", "passed", **Pt )
 AllElectronsPt      = histos.DrawObject( folder, "AllElectronsPt"   , "all"   , **Pt )
-
 PassedElectronsEta  = histos.DrawObject( folder, "PassedElectronsEta", "passed", **Eta )
 AllElectronsEta     = histos.DrawObject( folder, "AllElectronsEta"   , "all"   , **Eta )
+
+PassedMuonsPt   = histos.DrawObject( folder, "PassedMuonsPt", "passed", **Pt )
+AllMuonsPt      = histos.DrawObject( folder, "AllMuonsPt"   , "all"   , **Pt )
+PassedMuonsEta  = histos.DrawObject( folder, "PassedMuonsEta", "passed", **Eta )
+AllMuonsEta     = histos.DrawObject( folder, "AllMuonsEta"   , "all"   , **Eta )
 
 
 
@@ -122,7 +126,7 @@ def DoPlots(histo, datasetObjects, intLumi, bColourPalette=False, savePostfix=""
     p.AddDatasets(datasetObjects)
     p.DatasetAsLegend(True)
     p.AddDrawObject(histo)
-    
+        
     p.NormaliseHistos("toLuminosity")
     # p.NormaliseHistos("byXSection")
     # p.NormaliseHistos("toOne")
@@ -131,8 +135,11 @@ def DoPlots(histo, datasetObjects, intLumi, bColourPalette=False, savePostfix=""
     p.CreateCanvas(ratio)
     # p.AddTF1("1000*cos(x)", 0, 200.0, False, {"lineColour": ROOT.kBlack})
     p.AddCmsText("13", intLumi, prelim=True)
+
+
     # p.Draw(THStackDrawOpt="nostack", includeStack = False, bAddReferenceHisto = True)
     p.Draw(THStackDrawOpt="stack", includeStack = False, bAddReferenceHisto = True)
+    # p.Draw(THStackDrawOpt="stack", includeStack = True, bAddReferenceHisto = False)
     # p.Draw()
 
     

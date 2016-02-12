@@ -33,14 +33,15 @@ class Plotter(object):
         self.batchMode         = batchMode
         self.textObject        = text.TextClass(verbose)
         self.auxObject         = aux.AuxClass(verbose)
+        self.drawList          = []
+        self.drawListRatio     = []
         self.canvasFactor      = 1.25
+        self.padDivisionPoint  = 1-1/self.canvasFactor
+        self.includeStack      = False
         self.THStack           = ROOT.THStack("THStack", "Stack for TPadPlot Histograms")
         self.THStackHistoList  = [] #needed because looping over self.THSTack.GetHists() crashes!
         self.THStackRatio      = ROOT.THStack("THStackRatio", "Stack for TPadRatio Histograms")
         self.TMultigraph       = ROOT.TMultiGraph("TMultigraph", "ROOT.TMultiGraph holding various ROOT.TGraphs")
-        self.drawList          = []
-        self.drawListRatio     = []
-        self.includeStack      = False
         print
         return
                   
@@ -70,56 +71,26 @@ class Plotter(object):
 
         self.IsDrawObject(histoObject)
 
-        # For-loop: All datasets
         for d in self.Datasets:
 
             if not self.IsHisto(d.rootFile, histoObject):
                 raise Exception( "The object '%s' in '%s' is neither TH1, nor a TH2, nor a TH3." % (histoObject, d.rootFile.GetName()) )
-
             d.histo     = copy.deepcopy(histoObject)
             histoObject = d.histo
             histoObject.THisto  = self.GetHistoFromFile(d.rootFile, d.histo)
             histoObject.dataset = d
         return
 
-                
-    def ExtendDrawLists(self, drawObjects, addToRatio=True):
-        '''
-        Append a drawable object of any type (TCanvas, TLegend, TLine, TBox, etc..) to a list.
-        This list will be used later on to draw all objects.
-        '''
-        self.Verbose()
-
-        if isinstance(drawObjects, list):
-            drawList = drawObjects
-        else:
-            drawList = [drawObjects]
-
-        if addToRatio:
-            self.drawList.extend(drawList)
-            self.drawListRatio.extend(copy.deepcopy(drawList))
-        else:
-            self.drawList.extend(drawList)
-        return 
-    
 
     def Draw(self, THStackDrawOpt="nostack", includeStack=False, bAddReferenceHisto=True):
-        '''
-        Draw all necessary histograms for all datasets.
-        '''
         self.Verbose()
+
         self.includeStack = includeStack
-
-        if hasattr(self, 'normOption'):
-            if self.normOption == "toOne" and THStackDrawOpt=="stack" and len(self.Datasets)>1:
-                msg = "WARNING! Drawing '%s' stacked samples with normalisation option '%s'" % (len(self.Datasets), self.normOption)
-                self.PrintWarning(msg, "q")
-
         if THStackDrawOpt=="nostack":
             for dataset in self.Datasets:
-                dataset.histo.THisto.SetFillStyle(3003)
+                dataset.histo.THisto.SetFillStyle(3002) #xenios
                 
-        self._CheckHistogramBinning()
+        self._CheckHistogramBinning() #xenios
         self._AddHistogramsToStack()
         self._DrawHistograms(THStackDrawOpt)
 
@@ -130,81 +101,7 @@ class Plotter(object):
         return
 
 
-    def DrawSame(self, HistoObjectList, TLegendHeader=""):
-        '''
-        This was designed to be used  in conjuction with GetHistos(). 
-        '''
-        self.Verbose()
-
-        
-        for h in HistoObjectList:
-            if not self.IsDrawObject(h):
-                raise Exception("The argument passed is not an instance of histos.DrawObject.")
-            
-            h.ApplyStyles()
-            h.THisto.Draw(h.drawOptions + ",9same,")
-            self.TLegend.AddEntry( h.THisto, h.legLabel, h.GetAttribute("legOptions") )
-            self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
-
-        self.TLegend.SetHeader(TLegendHeader)
-        self.THDumbie.THisto.Draw("same")
-        return
-
-
-    def Draw2DProfile(self, THStackDrawOpt="nostack", includeStack=False, ProfileAxis=None, firstBin=1, lastBin=-1):
-        '''
-        Draw a ProfileX or ProfileY of a TH2D. Basically, this will plot a weighted 2D histo with a single entry replacing 
-        all entries in X (or Y axis). The entry that replaces all other entries in the Profile direction is the average.
-
-        Profile histograms are used to display the mean value of Y and its error for each bin in X. The displayed error is by default the
-        standard error on the mean (i.e. the standard deviation divided by the sqrt(n) ). Profile histograms are in many cases an elegant 
-        replacement of two-dimensional histograms : the inter-relation of two histogram or scatter-plot; its representation on the line-printer 
-        is not particularly satisfactory, except for sparse data. If Y is an unknown (but single-valued) approximate function of X, this function
-        is displayed by a profile histogram with much better precision than by a scatter-plot.
-        See: http://root.cern.ch/root/html/TProfile.html
-        '''
-        self.Verbose()
-
-        allowedValues = [None, "x", "y"]
-        if ProfileAxis not in allowedValues:
-            raise Exception("Invalid ProfileAxis option selected ('%s'). You need to speficy the axis of the Profile (x or y)" % (ProfileAxis) )
-
-        self.includeStack = includestack
-        self.EnableColourPalette(True)
-        self._CheckHistogramBinning()
-        self._AddHistogramsToStack2D(ProfileAxis, firstBin, lastBin)
-        self._DrawHistograms(THStackDrawOpt)
-        self._DrawRatioHistograms()
-        self._DrawNonHistoObjects()
-        self._CustomiseStack()
-        self.THDumbie.THisto.Draw("same")
-        return
-
-
-    def AddTF1(self, myFunction, xMin, xMax, addToRatio, kwargs={}):
-        '''
-        '''
-        self.Verbose()
-
-        f1 = ROOT.TF1("f1", myFunction, xMin, xMax)        
-
-        # Customise Line Style
-        if kwargs.get("fillColour"):
-            f1.SetFillColor( kwargs.get("fillColour") )
-        if kwargs.get("fillStyle"):
-            f1.SetFillStyle( kwargs.get("fillStyle") )
-        if kwargs.get("lineColour"):
-            f1.SetLineColor( kwargs.get("lineColour") )
-        if kwargs.get("lineStyle"):
-            f1.SetLineStyle( kwargs.get("lineStyle") )
-        if kwargs.get("lineWidth"):
-            f1.SetLineWidth( kwargs.get("lineWidth") )
-
-        self.ExtendDrawLists(f1, addToRatio=True)
-        return
-
-
-    def _AddHistogramsToStack(self):
+    def _AddHistogramsToStack(self):  #xenios
         '''
         Add all histograms (except Dumbie) to a THStack. For each histogram add a TLegend entry
         and automatically extend the size of the TLegend to accomodate the next entry.
@@ -215,7 +112,7 @@ class Plotter(object):
         for histo in self.GetHistos():
             
             self.THStack.Add(histo.THisto)
-            self.THStackHistoList.append(histo.THisto) #xenios
+            self.THStackHistoList.append(histo.THisto)
             self.TLegend.AddEntry( histo.THisto, self.GetLegLabel(histo), histo.GetAttribute("legOptions"))
             self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
         return
@@ -247,8 +144,7 @@ class Plotter(object):
         self.THStack.Draw(THStackDrawOpt + "," + self.THDumbie.drawOptions + "," +  "9same") #"PADS"
         ROOT.gPad.RedrawAxis() #the histo fill area may hide the axis tick marks. Force a redraw of the axis over all the histograms.
         self.TCanvas.Update()
-        self.TCanvas.SetGridx(self.THDumbie.gridX)
-        self.TCanvas.SetGridy(self.THDumbie.gridY)
+
         return
 
 
@@ -331,9 +227,6 @@ class Plotter(object):
         self.THRatio.THisto.GetYaxis().SetTitleOffset(1.8) 
         self.THDumbie.THisto.GetYaxis().SetTitleOffset(1.8)
         
-        # Enable grid to easy readout of histo
-        self.TPadRatio.SetGridx(self.THDumbie.gridX)
-        self.TPadRatio.SetGridy(self.THDumbie.gridY)
         return
 
 
@@ -361,7 +254,7 @@ class Plotter(object):
             h.THisto.GetYaxis().SetRangeUser(h.yMin, h.yMax)        
         else:
             pass
-        inclusive.Draw("HISTsame9")
+        inclusive.Draw( self.THDumbie.GetAttribute("drawOptions") )
         
         # Add histogram entry to the legend
         self.TLegend.AddEntry( inclusive, "inclusive", "L" )
@@ -534,6 +427,7 @@ class Plotter(object):
             self.TPadPlot.cd()
 
         self._SetLogAxes(twoPads)
+        self._SetGridAxes(twoPads)
         self._CreateLegend()
         self.TCanvas.Update()            
         return
@@ -853,18 +747,26 @@ class Plotter(object):
 
     
     def _SetLogAxes(self, twoPads=False):
-        '''
-        Apply axes customisations to a TCanvas.
-        '''
         self.Verbose()
-
-
         self._SetLogY()
         self._SetLogX()
         self._SetLogZ()
         if twoPads:
             self._SetLogXRatio()
             self._SetLogYRatio()
+        return
+
+    
+    def _SetGridAxes(self, twoPads=False):
+        self.Verbose()
+        if twoPads:
+            self.TPadPlot.SetGridx(self.THDumbie.gridX)
+            self.TPadPlot.SetGridy(self.THDumbie.gridY)
+            self.TPadRatio.SetGridx(self.THDumbie.gridXRatio)
+            self.TPadRatio.SetGridy(self.THDumbie.gridYRatio)
+        else:
+            self.TCanvas.SetGridx(self.THDumbie.gridX)
+            self.TCanvas.SetGridy(self.THDumbie.gridY)
         return
 
 
@@ -955,7 +857,7 @@ class Plotter(object):
         self.TPadPlot.SetName("TPadPlot")
         (xlow, ylow, xup, yup) = [ROOT.Double(x) for x in [0.0]*4]
         self.TPadPlot.GetPadPar(xlow, ylow, xup, yup)
-        self.TPadPlot.SetPad(xlow, 1-1/self.canvasFactor, xup, yup)
+        self.TPadPlot.SetPad(xlow, self.padDivisionPoint, xup, yup)
         self.TPadPlot.Draw()
         return
 
@@ -972,7 +874,7 @@ class Plotter(object):
         self.TPadRatio.SetName("TPadRatio")
         (xlow, ylow, xup, yup) = [ROOT.Double(x) for x in [0.0]*4]
         self.TPadRatio.GetPadPar(xlow, ylow, xup, yup)
-        self.TPadRatio.SetPad(xlow, ylow, xup, 1-1/self.canvasFactor + ROOT.gStyle.GetPadBottomMargin() - ROOT.gStyle.GetPadTopMargin() + canvasHeightCorr)
+        self.TPadRatio.SetPad(xlow, ylow, xup, self.padDivisionPoint + ROOT.gStyle.GetPadBottomMargin() - ROOT.gStyle.GetPadTopMargin() + canvasHeightCorr)
         self.TPadRatio.SetFillStyle(4000)
         self.TPadRatio.SetTopMargin(0.0)
         self.TPadRatio.SetBottomMargin(self.TPadRatio.GetBottomMargin()+0.20) #was: 0.16
@@ -1118,21 +1020,24 @@ class Plotter(object):
         # Draw all objects on the TPadRatio        
         if not hasattr(self, "TPadRatio"):
             return
-
-        self.TPadRatio.cd()
+        else:
+            self.TPadRatio.cd()
+        
         for o in self.drawListRatio:
-
             if isinstance(o, ROOT.TLegend):
                 continue
             o.Draw("same")
 
+        # Update Pads
         self.TPadPlot.Update()
-        self.TPadPlot.Modified()
         self.TPadRatio.Update()
+
+        self.TPadPlot.Modified()
         self.TPadRatio.Modified()
-        
+
         self.TPadPlot.RedrawAxis()
         self.TPadRatio.RedrawAxis()
+        
         self.TPadPlot.cd()
         return
         
@@ -1230,3 +1135,45 @@ class Plotter(object):
         if isinstance(emptyHisto.THisto, ROOT.TH2):
             ROOT.gStyle.SetPadRightMargin(0.15)
         return emptyHisto
+
+    
+    def ExtendDrawLists(self, drawObjects, addToRatio=True):
+        '''
+        Append a drawable object of any type (TCanvas, TLegend, TLine, TBox, etc..) to a list.
+        This list will be used later on to draw all objects on a single canvas with 1 or 2 drawing pads.
+        '''
+        self.Verbose()
+
+        if isinstance(drawObjects, list):
+            drawList = drawObjects
+        else:
+            drawList = [drawObjects]
+
+        if addToRatio:
+            self.drawList.extend(drawList)
+            self.drawListRatio.extend(copy.deepcopy(drawList))
+        else:
+            self.drawList.extend(drawList)
+        return 
+
+
+    def AddTF1(self, myFunction, xMin, xMax, addToRatio, kwargs={}):
+        self.Verbose()
+
+        f1 = ROOT.TF1("f1", myFunction, xMin, xMax)        
+
+        # Customise Line Style
+        if kwargs.get("fillColour"):
+            f1.SetFillColor( kwargs.get("fillColour") )
+        if kwargs.get("fillStyle"):
+            f1.SetFillStyle( kwargs.get("fillStyle") )
+        if kwargs.get("lineColour"):
+            f1.SetLineColor( kwargs.get("lineColour") )
+        if kwargs.get("lineStyle"):
+            f1.SetLineStyle( kwargs.get("lineStyle") )
+        if kwargs.get("lineWidth"):
+            f1.SetLineWidth( kwargs.get("lineWidth") )
+
+        self.ExtendDrawLists(f1, addToRatio=True)
+        return
+    

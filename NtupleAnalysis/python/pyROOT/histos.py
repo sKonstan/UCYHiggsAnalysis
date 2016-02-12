@@ -53,6 +53,8 @@ class DrawObject:
         self.logYRatio       = kwargs.get("logYRatio", False)
         self.gridX           = kwargs.get("gridX", False)
         self.gridY           = kwargs.get("gridY", False)
+        self.gridXRatio      = kwargs.get("gridXRatio", False)
+        self.gridYRatio      = kwargs.get("gridYRatio", False)
         self.binWidthX       = kwargs.get("binWidthX", None)
         self.binWidthY       = kwargs.get("binWidthY", None)
         self.ratioLabel      = kwargs.get("ratioLabel", None)
