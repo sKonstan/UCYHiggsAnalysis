@@ -45,7 +45,7 @@ class DrawObject:
         self.xCutBoxes       = kwargs.get("xCutBoxes", None)
         self.yCutLines       = kwargs.get("yCutLines", None)
         self.yCutBoxes       = kwargs.get("yCutBoxes", None)
-        self.yCutLinesRatioPad = kwargs.get("yCutLinesRatioPad", True)
+        self.yCutLinesRatio  = kwargs.get("yCutLinesRatioPad", True)
         self.logX            = kwargs.get("logX", False)
         self.logY            = kwargs.get("logY", False)
         self.logZ            = kwargs.get("logZ", False)
@@ -338,6 +338,7 @@ class DrawObject:
         self.Verbose(["For help see: 'http://root.cern.ch/root/html/TAttMarker.html' and 'http://root.cern.ch/root/html/TAttLine.html'."])
 
         s = styles.StyleClass(self.verbose)
+        
         if isinstance(self.THisto, ROOT.TH1):
             (fillColour, lineColour, markerStyle, markerSize, lineWidth, lineStyle, fillStyle, drawOptions, legOptions) = s.GetTH1Styles(self)
         elif isinstance(self.THisto, ROOT.TH2):

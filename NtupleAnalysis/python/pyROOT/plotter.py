@@ -20,7 +20,6 @@ from ROOT import std
 
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.text as text
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.aux as aux
-import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.styles as styles
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.histos as histos
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.tdrstyle as tdrstyle
 
@@ -32,23 +31,18 @@ class Plotter(object):
     def __init__(self, verbose=False, batchMode=True):
         self.verbose           = verbose
         self.batchMode         = batchMode
-        self.styleObject       = styles.StyleClass(verbose)
         self.textObject        = text.TextClass(verbose)
         self.auxObject         = aux.AuxClass(verbose)
         self.canvasFactor      = 1.25
-        #
         self.TBoxList          = []
         self.THStack           = ROOT.THStack("THStack", "Stack for PadPlot Histograms")
         self.THStackHistoList  = [] #needed because looping over self.THSTack.GetHists() crashes!
         self.THStackRatio      = ROOT.THStack("THStackRatio", "Stack for PadRatio Histograms")
         self.TMultigraph       = ROOT.TMultiGraph("TMultigraph", "ROOT.TMultiGraph holding various ROOT.TGraphs")
-        #
         self.drawObjectList    = []
         self.drawObjectListR   = []
         self.includeStack      = False
-        self.invPadRatio       = False
-        self.xTLineList        = []
-        self.yTLineList        = []
+        self.invPadRatio       = False        
         print
         return
                   
@@ -86,13 +80,9 @@ class Plotter(object):
             if not self.IsHisto(d.rootFile, histoObject):
                 raise Exception( "The object '%s' in '%s' is neither TH1, nor a TH2, nor a TH3." % (histoObject, d.rootFile.GetName()) )
 
-            print "1"
             d.histo     = copy.deepcopy(histoObject)
-            print "2"
             histoObject = d.histo
-            print "3"
             histoObject.THisto  = self.GetHistoFromFile(d.rootFile, d.histo)
-            print "4"
             histoObject.dataset = d
         return
 
@@ -285,12 +275,12 @@ class Plotter(object):
         self._AppendXYCutLinesToTLineList("y")
 
         # Extend the DrawObjectList with the TLineList
-        self.drawObjectList.extend(self.xTLineList)
-        self.drawObjectList.extend(self.yTLineList)
+        #self.drawObjectList.extend(self.TLineListX) #xenios
+        #self.drawObjectList.extend(self.TLineListY)
 
-        self.drawObjectListR.extend( copy.deepcopy(self.xTLineList) )
-        if (self.THDumbie.yCutLinesRatioPad == True):
-            self.drawObjectListR.extend( copy.deepcopy(self.yTLineList) )
+        #self.drawObjectListR.extend( copy.deepcopy(self.TLineListX) )
+        #if (self.THDumbie.yCutLinesRatioPad == True):
+        #    self.drawObjectListR.extend( copy.deepcopy(self.TLineListY) )
         return
 
 
@@ -334,8 +324,9 @@ class Plotter(object):
             line = ROOT.TLine(xMin, yMin, xMax, yMax)
             self._CustomiseTLine(line, lineColour=ROOT.kBlack, lineWidth=3, lineStyle=ROOT.kDashed) #ROOT.kDashDotted
             self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
-            self.AppendToTLineList( line, axis)
-
+            #self.AppendToTLineList( line, axis)
+            self.AppendToDrawObjectList(line)
+        
         return
         
 
@@ -345,19 +336,24 @@ class Plotter(object):
         Append them to the DrawObjectList so that they can be drawn later on.
         '''
         self.Verbose()
+
+        if not hasattr(self, "TLineListX"):
+            self.TLineListX = []
+        if not hasattr(self, "TLineListY"):
+            self.TLineListY = []
         
         # Loop over list of xMin-xMax-colour pairs (also a list)
         self._AppendXYCutBoxesToTBoxList("x")
         self._AppendXYCutBoxesToTBoxList("y")
 
         # Extend the DrawObjectList with the TLineList and TBoxList
-        self.drawObjectList.extend(self.xTLineList)
-        self.drawObjectList.extend(self.yTLineList)
+        self.drawObjectList.extend(self.TLineListX) #xenios
+        self.drawObjectList.extend(self.TLineListY)
         self.drawObjectList.extend(self.TBoxList)
 
-        self.drawObjectListR.extend(copy.deepcopy(self.xTLineList))
-        if (self.THDumbie.yCutLinesRatioPad == True):
-            self.drawObjectListR.extend(copy.deepcopy(self.yTLineList))
+        self.drawObjectListR.extend(copy.deepcopy(self.TLineListX))
+        if (self.THDumbie.yCutLinesRatio == True):
+            self.drawObjectListR.extend(copy.deepcopy(self.TLineListY))
             self.drawObjectListR.extend(copy.deepcopy(self.TBoxList))
         return
 
@@ -566,18 +562,19 @@ class Plotter(object):
 
 
     def AppendToTLineList(self, line, axis):
-        '''
-        Append a TLine to the TLineList. 
-        '''
         self.Verbose()
 
+        if not hasattr(self, "TLineListX"):
+            self.TLineListX = []
+        if not hasattr(self, "TLineListY"):
+            self.TLineListY = []
+            
         if axis == "x":
-            self.xTLineList.append(line)
+            self.TLineListX.append(line)
         elif axis == "y":
-            self.yTLineList.append(line)
+            self.TLineListY.append(line)
         else:
             raise Exception("The option 'axis' can either be \"x\" or \"y\". Passed option was \"%s\"." % (axis) )
-
         return
 
 
@@ -645,6 +642,9 @@ class Plotter(object):
         # First create the draw objects (TLines, TBoxes etc..)
         self.CreateCutBoxes()
         self.CreateCutLines()
+
+        for i in range(0,10):
+            print "HERE"
         
         # Draw all objects on the PadPlot
         self.PadPlot.cd()
@@ -820,7 +820,7 @@ class Plotter(object):
 
 
         self.THDumbie = self.CreateDumbieHisto("THDumbie")
-        canvasName    = self.THDumbie.GetAttribute("name")
+        canvasName    = "Canvas:"+self.THDumbie.GetAttribute("name")
 
         if not twoPads:
             self.Print("Creating a TCanvas with name '%s'" % (self.THDumbie.GetAttribute("name")) )
@@ -1091,17 +1091,6 @@ class Plotter(object):
             hList.append(d.histo)
         return hList
     
-
-    def SetCanvasName(self, name):
-        self.Verbose()
-        self.TCanvas.SetName(name)
-        return
-
-
-    def GetCanvasName(self):
-        self.Verbose()
-        return self.TCanvas.GetName()
-
     
     def _SaveAs(self, saveName, saveFormats):
         '''
@@ -1109,11 +1098,11 @@ class Plotter(object):
         '''
         self.Verbose()
 
-        self.SetCanvasName(saveName)
+        self.TCanvas.SetName(saveName)
         self.TCanvas.Update()
 
         for ext in saveFormats:
-            name = self.GetCanvasName() + "." + ext
+            name = self.TCanvas.GetName().split(":")[-1] + "." + ext
             self.TCanvas.SaveAs(name)
             print "\t%s" % name
         return
@@ -1137,7 +1126,7 @@ class Plotter(object):
         self.Print()
 
         self._IsValidSavePath(savePath)
-        saveName = savePath + self.GetCanvasName()
+        saveName = savePath + self.TCanvas.GetName()
         self._SaveAs(saveName, saveFormats)
         return
 
@@ -1331,7 +1320,7 @@ class Plotter(object):
 
     def _CustomiseLegend(self):
         self.Verbose()
-        self.TLegend.SetName("TLegend:" + self.GetCanvasName())
+        self.TLegend.SetName("TLegend:" + self.TCanvas.GetName())
         self.TLegend.SetFillStyle(0)
         self.TLegend.SetLineColor(ROOT.kBlack)
         self.TLegend.SetLineWidth(1)
