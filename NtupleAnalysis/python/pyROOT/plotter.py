@@ -37,11 +37,7 @@ class Plotter(object):
         self.auxObject         = aux.AuxClass(verbose)
         self.canvasFactor      = 1.25
         #
-        self.DatasetInLegend   = False
-        self.isTH2             = False
         self.TBoxList          = []
-        self.THDumbie          = None
-        self.THRatio           = None
         self.THStack           = ROOT.THStack("THStack", "Stack for PadPlot Histograms")
         self.THStackHistoList  = [] #needed because looping over self.THSTack.GetHists() crashes!
         self.THStackRatio      = ROOT.THStack("THStackRatio", "Stack for PadRatio Histograms")
@@ -55,97 +51,7 @@ class Plotter(object):
         self.yTLineList        = []
         print
         return
-       
-    
-    def _CreatePadCover(self, xMin=0.08, yMin=0.285, xMax=0.16, yMax=0.32):
-        '''
-        Creates a cover pad to cover the overlap of the y-axis divisions between the PadPlot and the PadRatio.
-        '''
-        self.Verbose()
-        
-        self.TCanvas.cd()
-        self.PadCover = ROOT.TPad("PadCover", "PadCover", xMin, yMin, xMax, yMax)
-        self.PadCover.SetName("PadCover")
-        self.PadCover.SetBorderMode(0)
-        self.PadCover.SetFillStyle(1001)
-        self.PadCover.SetFillColor(ROOT.kWhite) #ROOT.kRed
-        self.PadCover.Draw()
-        self.PadRatio.Draw() # Re-draw PadRatio to put back the covered y-axis numbers
-        self.TCanvas.Update()
-        return
-
-
-    def _CreatePadPlot(self):
-        '''
-        Creates a plot pad to draw the histogram stack.
-        '''
-        self.Verbose()
-
-        self.PadPlot  = self.TCanvas.cd(1)
-        self.PadPlot.SetName("PadPlot")
-        (xlow, ylow, xup, yup) = [ROOT.Double(x) for x in [0.0]*4]
-        self.PadPlot.GetPadPar(xlow, ylow, xup, yup)
-        self.PadPlot.SetPad(xlow, 1-1/self.canvasFactor, xup, yup)
-        self.PadPlot.Draw()
-        self.TCanvas.Update()
-        return
-
-
-    def _CreatePadRatio(self):
-        '''
-        Creates a ratio pad to draw the histogram ratio stack.
-        '''
-        self.Verbose()
-        
-        canvasHeightCorr = 0.022
-
-        self.PadRatio = self.TCanvas.cd(2)
-        self.PadRatio.SetName("PadRatio")
-        (xlow, ylow, xup, yup) = [ROOT.Double(x) for x in [0.0]*4]
-        self.PadRatio.GetPadPar(xlow, ylow, xup, yup)
-        self.PadRatio.SetPad(xlow, ylow, xup, 1-1/self.canvasFactor + ROOT.gStyle.GetPadBottomMargin() - ROOT.gStyle.GetPadTopMargin() + canvasHeightCorr)
-        self.PadRatio.SetFillStyle(4000)
-        self.PadRatio.SetTopMargin(0.0)
-        self.PadRatio.SetBottomMargin(self.PadRatio.GetBottomMargin()+0.20) #was: 0.16
-        self.PadRatio.Draw()
-        self.TCanvas.Update()
-        return
-
-
-
-    def CreateLegend(self):
-        '''
-        Create a TLegend, customise it and return it.
-        '''
-        self.Verbose()
-        
-        if hasattr(self, 'TLegend'):
-            return
-
-        histo = self.THDumbie
-        self.TLegend = ROOT.TLegend(histo.xLegMin, histo.yLegMin, histo.xLegMax, histo.yLegMax, "", "brNDC")
-        self._CustomiseLegend()
-        self.drawObjectList.append( self.TLegend )
-        return
-        
-
-    def _CustomiseLegend(self):
-        '''
-        Customise a TLegend.
-        '''
-        self.Verbose()
-        
-        self.TLegend.SetName(self.GetCanvasName())
-        self.TLegend.SetFillStyle(0)
-        self.TLegend.SetLineColor(ROOT.kBlack)
-        self.TLegend.SetLineWidth(1)
-        self.TLegend.SetBorderSize(0)
-        self.TLegend.SetShadowColor(ROOT.kWhite)
-        self.TLegend.SetTextSize(0.03)
-        self.TLegend.SetTextFont(62)
-        return
-
-    
+                  
 
     def AddDrawObject(self, histos):
         '''
@@ -154,54 +60,15 @@ class Plotter(object):
         
         if type(histos) == list:
             self.Print("Adding '%s' histograms to the histogram queue: %s" % (len(histos), "\"" + "\", \"".join(h.GetName() for h in histos) + "\"") )
+            sys.exit()
             for h in histos:
                 self._AddHistoToQueue(h)
-            #self.Print("FIXME! EXIT")
-            #sys.exit()
         else:
             self.Print("Adding '1' histogram to the histogram queue: %s" % ("\"" + histos.GetAttribute("name") + "\"") )
             self._AddHistoToQueue(histos)
 
         return
     
-
-    def _AddHistogramsToStack2D(self, ProfileAxis, firstBin, LastBin):
-        '''
-        Add all histograms (except Dumbie) to a THStack. For each histogram add a TLegend entry
-        and automatically extend the size of the TLegend to accomodate the next entry.
-        '''
-        self.Verbose()
-
-        entryLabel = ""
-        if  ProfileAxis =="x" or  ProfileAxis =="y":
-            bAddLegendEntries = True
-        else:
-            bAddLegendEntries = False
-        self.TCanvas.SetName( self.TCanvas.GetName() + "_Profile%s" % (ProfileAxis.upper()) )
-
-        # For-loop: All Datasets
-        for dataset in self.Datasets:
-            h = dataset.histo
-            
-            self.Verbose( ["Creating Profile%s for histogram '%s'  and adding to THStack." % ( ProfileAxis.upper(), h.name)] )
-            if ProfileAxis == "x":
-                hProfileX_Name = h.name +"_ProfileX"
-                hProfileX      = h.THisto.ProfileX(hProfileX_Name, firstBin, LastBin)
-                self.THStack.Add( hProfileX )
-            else:
-                self.Print("WARNING! Although this works, some validation would have to be carried out with a simple a well undestood 2D histo")
-                hProfileY_Name = h.name +"_ProfileY"
-                hProfileY      = h.THisto.ProfileY(hProfileY_Name, firstBin, LastBin)
-                self.THStack.Add( hProfileY )
-                
-            # Add legend entries for THStack?
-            if bAddLegendEntries == True:
-                self.TLegend.AddEntry( h.THisto, self.GetLegLabel(h), h.legOptions)
-                self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
-            else:
-                pass
-        return
-
 
     def _AddHistoToQueue(self, histoObject):
         '''
@@ -211,200 +78,26 @@ class Plotter(object):
         if not hasattr(self, 'Datasets'):
             raise Exception("Cannot add histogram to queue as no datasets exist. Check that you have added some datasets")
 
-        # Ensure that the pass argument is a valid histo object
         self.IsDrawObject(histoObject)
 
         # For-loop: All datasets
-        for i, dataset in enumerate(self.Datasets):
+        for d in self.Datasets:
 
-            # Ensure that histogram exists in the file
-            self.IsHisto(dataset.rootFile, histoObject)
+            if not self.IsHisto(d.rootFile, histoObject):
+                raise Exception( "The object '%s' in '%s' is neither TH1, nor a TH2, nor a TH3." % (histoObject, d.rootFile.GetName()) )
 
-            ### Map histo to dataset  
-            self.Datasets[i].histo = copy.deepcopy(histoObject)
-            
-            # Assign user-defined attributes to histo object
-            histoObject = self.Datasets[i].histo
-            self._AssignHistoObjectAttributes(dataset.rootFile, dataset, histoObject)
-
-        return
-
-    
-    def _AssignHistoObjectAttributes(self, rootFile, dataset, histoObject):
-        '''
-        '''
-        self.Verbose()
-        
-        # Declare shorter name references
-        h = histoObject
-        f = rootFile
-
-        # Assign attributes
-        h.THisto      = self.GetHistoFromFile(f, h)
-        h.dataset       = dataset
+            print "1"
+            d.histo     = copy.deepcopy(histoObject)
+            print "2"
+            histoObject = d.histo
+            print "3"
+            histoObject.THisto  = self.GetHistoFromFile(d.rootFile, d.histo)
+            print "4"
+            histoObject.dataset = d
         return
 
 
-    def ConvertToOneMinusCumulativeHistos(self):
-        '''
-        This method converts all histograms into a (1-cumulative integral) histograms.
-        '''
-        self.Verbose()
-        
-        # For-loop: All datasets
-        for dataset in self.Datasets:
-            self._ConvertToOneMinusCumulativeHisto(dataset.histo)
-        return
-
-    
-    def DrawEfficiency(self, cutDirection=">", errType="binomial"):
-        '''
-        '''
-        self.Verbose()
-        
-        # Change some histoObject attributes
-        self.Print("FIXME")
-        histo     =  self.GetHistos()[0]
-        saveName  = histo.saveName
-        kwargs    = histo.kwargs
-        binWidthX = histo.binWidthX
-        if histo.binWidthX == None:
-            binWidthX = histo.THisto.GetBinWidth(0)
-        
-        kwargs["yUnits"]      = ""
-        kwargs["logX"]        = False
-        kwargs["logY"]        = False
-        kwargs["yMin"]        = 0.0
-        kwargs["yMax"]        = 1.15
-        kwargs["normalise"]   = ""
-        yTitleOld             = kwargs["yLabel"].rsplit("/", 1)[0]
-        kwargs["yLabel"]      = kwargs["yLabel"].replace(yTitleOld, "Efficiency (" + cutDirection +  ") ")
-        kwargs["yLabel"]      = kwargs["yLabel"]  % (binWidthX)  + " " + histo.xUnits
-        kwargs["drawOptions"] = "AP" #"ACE3"
-        kwargs["legOptions"]  = "LP" #"FL"
-
-        # Change histo saveName according to cut-direction
-        if cutDirection == ">":
-            saveName = saveName + "_GreaterThan"
-        elif cutDirection == "<":
-            saveName= saveName + "_LessThan"
-        else:
-            raise Exception("Invalid cut-direction '%s' selected for efficiency plot. Please select either '<' or '>'." % (cutDirection) )
-
-        self._ConvertToEfficiencyHistos(cutDirection, errType, **kwargs)
-        self.DrawMultigraph(saveName, **kwargs)
-        return
-
-
-    def _ConvertToEfficiencyHistos(self, cutDirection, errType="binomial", **kwargs):
-        '''
-        '''
-        self.Verbose()
-        
-        # For-loop: All Datasets
-        for dataset in self.Datasets:
-            h = dataset.histo
-            self._ConvertToEfficiencyHisto(h, cutDirection, errType, **kwargs)
-        return
-
-
-    def _ConvertToEfficiencyHisto(self, histo, cutDirection, errType="binomial", **kwargs):
-        '''
-        Replaces bin content with the efficiency of the given bin. Cut direction can be chosen.
-        '''
-        self.Verbose()
-        
-        # Declare lists
-        xVals   = []
-        xLow    = []
-        xUp     = []
-        effVals = []
-        effLow  = []
-        effUp   = []
-
-        # For-loop: Histo Bins
-        nBinsX  = histo.THisto.GetNbinsX()+1
-        for b in range(0, nBinsX+1):
-
-            binWidth   = histo.THisto.GetBinWidth(b)
-            binCenter  = histo.THisto.GetBinCenter(b)
-            binLowEdge = histo.THisto.GetBinLowEdge(b)
-            binUpEdge  = binCenter + binWidth/2
-
-            nPass      = histo.THisto.Integral(b+1, nBinsX) #events that pass the up-edge of the bin
-            nTotal     = histo.THisto.Integral( 0, nBinsX )
-            eff        = -1.0
-
-            # Calculate the efficiency and its error
-            eff, err = self.auxObject.Efficiency(nPass, nTotal, errType)
-            if (cutDirection == ">"):
-                pass
-            elif (cutDirection == "<"):
-                eff = 1-eff
-            else:
-                self.Print("ERROR! Illegal logic operator ('%s') for cut-direction. EXIT" % (cutDirection))
-                sys.exit()
-
-            self.Verbose("bin = %s, x %s %s,  eff = %s +/- %s" % (b, cutDirection, binUpEdge, eff, err))
-            
-            # Save into lists
-            xVals.append(binUpEdge)
-            xUp.append(0.0)
-            xLow.append(0.0)
-
-            effVals.append(eff)
-            effUp.append(err)
-            effLow.append(err)
-
-
-        # Use values to create a TGraphErrors
-        histo.THisto.SetMaximum(1.0)
-        self.AddTGraphErrors(histo, xVals, xUp, xLow, effVals, effUp, effLow, None, None, None, False, **kwargs)
-        return
-
-
-    def _CheckNoTH2WithMoreThanOneDatasets(self, histoObject):
-        ''''
-        Ensure that no TH2 is drawn where more than 1 dataset is created. Very difficult to distinguish so we need to take care.
-        '''
-        self.Verbose()
-        
-        hType = type(histoObject.THisto)
-        
-        if len(self.Datasets)>1 and "TH2" in str(hType):
-            raise Exception("Cannot draw a TH2 while more than 1 datasets are present.")
-        else:
-            return
-
-
-    def IsDrawObject(self, drawObject):
-        self.Verbose()
-        if isinstance(drawObject, histos.DrawObject):
-            return
-        else:
-            raise Exception("The argument passed is not an instance of histos.DrawObject.")
-        return
-
-
-
-    def IsHisto(self, rootFile, hObject):
-        self.Verbose()
-
-        prefix = hObject.GetAttribute("path") + "/"
-        if prefix != "/":
-            hPath  = prefix + hObject.GetAttribute("name")
-        else:
-            hPath = hObject.GetAttribute("name")
-
-        h = rootFile.Get(hPath)
-        if isinstance(h, ROOT.TH1) or isinstance(h, ROOT.TH2) or isinstance(h, ROOT.TH3):
-            return
-        else:
-            raise Exception( "The object '%s' in '%s' is neither TH1, nor a TH2, nor a TH3." % (hPath, rootFile.GetName()) )
-        return
-
-
-    def GetDumbieHisto(self, newName):
+    def CreateDumbieHisto(self, newName):
         '''
         Create a dumbie histogram that will be the first to be drawn on canvas. 
         This should have zero entries but have exactly the same attribues  (binning, axes titles etc..) as the ones to be drawn.
@@ -457,8 +150,7 @@ class Plotter(object):
         '''
         self.Verbose()
         self.includeStack = includeStack
-        #self._CreateCanvasAndLegendAndDumbie()
-        
+
         if hasattr(self, 'normOption'):
             if self.normOption == "toOne" and THStackDrawOpt=="stack" and len(self.Datasets)>1:
                 msg = "WARNING! Drawing '%s' stacked samples with normalisation option '%s'" % (len(self.Datasets), self.normOption)
@@ -479,16 +171,6 @@ class Plotter(object):
         return
 
 
-    def ConvertHistosToEfficiency(self, cutDirection=">",  errType = "binomial",  **kwargs):
-        '''
-        Draw all necessary histograms for all datasets.
-        '''
-        self.Verbose()
-
-        self._ConvertToEfficiencyHistos(cutDirection, errType, **kwargs)
-        return
-
-
     def DrawSame(self, HistoObjectList, TLegendHeader=""):
         '''
         This was designed to be used  in conjuction with GetHistos(). 
@@ -497,8 +179,10 @@ class Plotter(object):
 
         
         for h in HistoObjectList:
-            self.IsDrawObject(h)
-            h.ApplyStyles(self.styleObject)
+            if not self.IsDrawObject(h):
+                raise Exception("The argument passed is not an instance of histos.DrawObject.")
+            
+            h.ApplyStyles()
             h.THisto.Draw(h.drawOptions + ",9same,")
             self.TLegend.AddEntry( h.THisto, h.legLabel, h.GetAttribute("legOptions") )
             self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
@@ -528,7 +212,6 @@ class Plotter(object):
 
         self.includeStack = includestack
         self.EnableColourPalette(True)
-        #self._CreateCanvasAndLegendAndDumbie()
         self._CheckHistogramBinning()
         self._AddHistogramsToStack2D(ProfileAxis, firstBin, lastBin)
         self._DrawHistograms(THStackDrawOpt)
@@ -587,18 +270,6 @@ class Plotter(object):
         self.Verbose()
         self.THStack.GetYaxis().SetRangeUser(self.THDumbie.yMin, self.THDumbie.yMax)
         self.THStack.GetXaxis().SetRangeUser(self.THDumbie.xMin, self.THDumbie.xMax)
-        return
-
-
-    def _CreateCanvasAndLegendAndDumbie(self):
-        '''
-        Create a TCanvas, a TLegend, and a dubmie TH1.
-        '''
-        self.Verbose()
-
-        self.THDumbie = self.GetDumbieHisto("THDumbie")
-        self._CreateCanvas(self.THDumbie.ratio)
-        self._CreateLegend()
         return
 
         
@@ -773,7 +444,7 @@ class Plotter(object):
         '''
         self.Verbose()
 
-        if not self.PadRatio:
+        if not hasattr(self, "PadRatio"):
             return
 
         self.PadRatio.cd()        
@@ -939,7 +610,7 @@ class Plotter(object):
         '''
         self.Verbose()                
 
-        if self.PadRatio:
+        if not hasattr(self, "PadRatio"):
             self._DrawNonHistoObjectsWithPadRatio()
         else:
             self._DrawNonHistoObjectsNoPadRatio()        
@@ -968,6 +639,9 @@ class Plotter(object):
         '''
         self.Verbose()                
 
+        if not hasattr(self, "PadRatio"):
+            return
+            
         # First create the draw objects (TLines, TBoxes etc..)
         self.CreateCutBoxes()
         self.CreateCutLines()
@@ -1046,7 +720,6 @@ class Plotter(object):
     def DatasetAsLegend(self, flag):
         self.Verbose()
         self.DatasetInLegend = flag
-        self.EnableColourPalette(not flag)
         return
 
     
@@ -1066,14 +739,6 @@ class Plotter(object):
 
 
     #================================================================================================
-    def GetSelfName(self):
-        return self.__class__.__name__
-
-
-    def GetFunctionName(self):
-        return sys._getframe(1).f_code.co_name + "()"
-
-
     def SetAttribute(self, attr, value):
         self.Verbose()
         return setattr(self, attr, value)
@@ -1086,13 +751,14 @@ class Plotter(object):
         else:
             raise Exception("Class object '%s' does not have attribute '%s'" % (self.GetSelfName(), attr))
 
+        
     def Verbose(self, message=""):
         '''
         Custome made verbose system. Will print all messages in the messageList
         only if the verbosity boolean is set to true.
         '''
         if self.verbose:
-            print "=== %s:" % ( self.GetSelfName() + "." + self.GetFunctionName() )
+            print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
             if message!="":
                 print "\t", message
         return
@@ -1102,7 +768,7 @@ class Plotter(object):
         '''
         Custome made print system. Will print the message even if the verbosity boolean is set to false.
         '''
-        print "=== %s:" % ( self.GetSelfName() + "." + self.GetFunctionName() )
+        print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
         if message!="":
             print "\t", message
         return
@@ -1153,7 +819,7 @@ class Plotter(object):
             raise Exception("The class object '%s' already has a 'TCanvas' attribute." % self.GetSelfName())
 
 
-        self.THDumbie = self.GetDumbieHisto("THDumbie")
+        self.THDumbie = self.CreateDumbieHisto("THDumbie")
         canvasName    = self.THDumbie.GetAttribute("name")
 
         if not twoPads:
@@ -1162,7 +828,7 @@ class Plotter(object):
             self.TCanvas.cd()
         else:
             self.Print("Creating a 2-pad TCanvas with name '%s'" % (self.THDumbie.GetAttribute("name")) )
-            self.THRatio = self.GetDumbieHisto("THRatio")
+            self.THRatio = self.CreateDumbieHisto("THRatio")
             self.TCanvas = ROOT.TCanvas( canvasName, canvasName, ROOT.gStyle.GetCanvasDefW(), int(ROOT.gStyle.GetCanvasDefH()*self.canvasFactor))
             self.TCanvas.Divide(1,2)
             self.THDumbie.RemoveBinLabelsX()
@@ -1170,9 +836,9 @@ class Plotter(object):
             self._CreatePads()
             self.PadPlot.cd()
 
-
-        self.TCanvas.Update()            
         self._SetLogAxes(twoPads)
+        self._CreateLegend()
+        self.TCanvas.Update()            
         return
 
 
@@ -1185,15 +851,6 @@ class Plotter(object):
         self._CreatePadPlot()
         self._CreatePadRatio()
         self._CreatePadCover()
-        return
-
-
-    def EnableColourPalette(self, bEnable=False):
-        '''
-        Changes colour for each histogram within a given dataset only if 1 dataset is present.
-        '''
-        self.Verbose()
-        self.styleObject.EnableColourPalette(bEnable)
         return
 
 
@@ -1295,7 +952,7 @@ class Plotter(object):
             raise Exception("Cannot customise histograms. Need to call first NormaliseHistos() and then CustomiseHistos()")
 
         for d in self.Datasets:
-            d.histo.ApplyStyles(self.styleObject)
+            d.histo.ApplyStyles()
         return
 
     
@@ -1345,10 +1002,11 @@ class Plotter(object):
         '''
         self.Verbose()
         
-        if self.DatasetInLegend:
-            return hObject.GetAttribute("dataset").GetLatexName()
-        else:
+        if not hasattr(self, 'DatasetInLegend'):
             return hObject.GetAttribute("legLabel")
+        else:
+            if self.DatasetInLegend:
+                return hObject.GetAttribute("dataset").GetLatexName()
 
 
     def AddDataset(self, dataset):
@@ -1598,3 +1256,106 @@ class Plotter(object):
         else:
             raise Exception("Request for TCanvas::SetLogx(True) rejected. The minimum x-value is '%s'." % (self.THRatio.yMin))
         return
+
+
+    def _CreatePadPlot(self):
+        '''
+        Creates a plot pad to draw the histogram stack.
+        '''
+        self.Verbose()
+
+        self.PadPlot  = self.TCanvas.cd(1)
+        self.PadPlot.SetName("PadPlot")
+        (xlow, ylow, xup, yup) = [ROOT.Double(x) for x in [0.0]*4]
+        self.PadPlot.GetPadPar(xlow, ylow, xup, yup)
+        self.PadPlot.SetPad(xlow, 1-1/self.canvasFactor, xup, yup)
+        self.PadPlot.Draw()
+        return
+
+
+    def _CreatePadRatio(self):
+        '''
+        Creates a ratio pad to draw the histogram ratio stack.
+        '''
+        self.Verbose()
+        
+        canvasHeightCorr = 0.022
+
+        self.PadRatio = self.TCanvas.cd(2)
+        self.PadRatio.SetName("PadRatio")
+        (xlow, ylow, xup, yup) = [ROOT.Double(x) for x in [0.0]*4]
+        self.PadRatio.GetPadPar(xlow, ylow, xup, yup)
+        self.PadRatio.SetPad(xlow, ylow, xup, 1-1/self.canvasFactor + ROOT.gStyle.GetPadBottomMargin() - ROOT.gStyle.GetPadTopMargin() + canvasHeightCorr)
+        self.PadRatio.SetFillStyle(4000)
+        self.PadRatio.SetTopMargin(0.0)
+        self.PadRatio.SetBottomMargin(self.PadRatio.GetBottomMargin()+0.20) #was: 0.16
+        self.PadRatio.Draw()
+        return
+
+
+    def _CreatePadCover(self, xMin=0.08, yMin=0.285, xMax=0.16, yMax=0.32):
+        '''
+        Creates a cover pad to cover the overlap of the y-axis divisions between the PadPlot and the PadRatio.
+        '''
+        self.Verbose()
+
+        if not hasattr(self, 'PadRatio'):
+            raise Exception("Cannot create a cover-TPad. First you need to create a ratio-TPad!")
+        
+        self.TCanvas.cd()
+        self.PadCover = ROOT.TPad("PadCover", "PadCover", xMin, yMin, xMax, yMax)
+        self.PadCover.SetName("PadCover")
+        self.PadCover.SetBorderMode(0)
+        self.PadCover.SetFillStyle(1001)
+        self.PadCover.SetFillColor(ROOT.kWhite) #ROOT.kRed
+        self.PadCover.Draw()
+        self.PadRatio.Draw() # Re-draw PadRatio to put back the covered y-axis numbers
+        return
+
+    
+    def _CreateLegend(self):
+        '''
+        Create a TLegend, customise it and append it to the drawObjectList
+        '''
+        self.Verbose()
+        
+        if hasattr(self, 'TLegend'):
+            return
+
+        histo = self.THDumbie
+        self.TLegend = ROOT.TLegend(histo.xLegMin, histo.yLegMin, histo.xLegMax, histo.yLegMax, "", "brNDC")
+        self._CustomiseLegend()
+        self.drawObjectList.append( self.TLegend )
+        return
+    
+
+    def _CustomiseLegend(self):
+        self.Verbose()
+        self.TLegend.SetName("TLegend:" + self.GetCanvasName())
+        self.TLegend.SetFillStyle(0)
+        self.TLegend.SetLineColor(ROOT.kBlack)
+        self.TLegend.SetLineWidth(1)
+        self.TLegend.SetBorderSize(0)
+        self.TLegend.SetShadowColor(ROOT.kWhite)
+        self.TLegend.SetTextSize(0.03)
+        self.TLegend.SetTextFont(62)
+        return
+
+    
+    def IsDrawObject(self, drawObject):
+        self.Verbose()
+        if isinstance(drawObject, histos.DrawObject):
+            return True
+        else:
+            return False
+
+
+    def IsHisto(self, rootFile, hObject):
+        self.Verbose()
+
+        hPath = hObject.GetAttribute("fullPath")
+        h     = rootFile.Get(hPath)
+        if isinstance(h, ROOT.TH1) or isinstance(h, ROOT.TH2) or isinstance(h, ROOT.TH3):
+            return True
+        else:
+            return False

@@ -51,13 +51,14 @@ class TextClass(object):
         else:
             raise Exception("Class object '%s' does not have attribute '%s'" % (self.GetSelfName(), attr))
 
+        
     def Verbose(self, message=""):
         '''
         Custome made verbose system. Will print all messages in the messageList
         only if the verbosity boolean is set to true.
         '''
         if self.verbose:
-            print "=== %s:" % ( self.GetSelfName() + "." + self.GetFunctionName() )
+            print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
             if message!="":
                 print "\t", message
         return
@@ -67,7 +68,7 @@ class TextClass(object):
         '''
         Custome made print system. Will print the message even if the verbosity boolean is set to false.
         '''
-        print "=== %s:" % ( self.GetSelfName() + "." + self.GetFunctionName() )
+        print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
         if message!="":
             print "\t", message
         return

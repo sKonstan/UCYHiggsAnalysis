@@ -19,7 +19,6 @@ import ROOT
 class StyleClass(object):
     def __init__(self, verbose = False):
         self.verbose                = verbose
-        self.bEnableColourPalette   = False
         self.TextObject             = text.TextClass(verbose=self.verbose)
         self.styleTypeList          = []
         self.styleTypeSpecialList   = []
@@ -49,14 +48,6 @@ class StyleClass(object):
         return
 
     
-    def GetSelfName(self):
-        return self.__class__.__name__
-
-
-    def GetFunctionName(self):
-        return sys._getframe(1).f_code.co_name + "()"
-
-
     def SetAttribute(self, attr, value):
         self.Verbose()
         return setattr(self, attr, value)
@@ -75,7 +66,7 @@ class StyleClass(object):
         only if the verbosity boolean is set to true.
         '''
         if self.verbose:
-            print "=== %s:" % ( self.GetSelfName() + "." + self.GetFunctionName() )
+            print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
             if message!="":
                 print "\t", message
         return
@@ -85,7 +76,7 @@ class StyleClass(object):
         '''
         Custome made print system. Will print the message even if the verbosity boolean is set to false.
         '''
-        print "=== %s:" % ( self.GetSelfName() + "." + self.GetFunctionName() )
+        print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
         if message!="":
             print "\t", message
         return
@@ -171,27 +162,13 @@ class StyleClass(object):
         return
 
 
-    def EnableColourPalette(self, bEnable):
-        '''
-        This boolean controls whether the fillColour is the same for each dataset (just a shade change)
-        or if it is different (full colour change).
-        '''
-        self.Verbose()
-        self.bEnableColourPalette=bEnable
-        return
-
-
     def _GetTH1Values(self, styleType):
         '''
         '''
         self.Verbose()
         
-        if self.bEnableColourPalette==True:
-            fillColour  = self.colourPalette[styleType].next()
-            markerStyle = self.markerStyleCounter[styleType].next()
-        else:
-            fillColour  = getattr(self, styleType + "_colour" ) # + self.colourShade[styleType].next()
-            markerStyle = getattr(self, styleType + "_mStyle"  )
+        fillColour  = getattr(self, styleType + "_colour" ) # + self.colourShade[styleType].next()
+        markerStyle = getattr(self, styleType + "_mStyle"  )
 
         self.Verbose(["StyleType '%s', FillColour = '%s'" % (styleType, fillColour)])        
         markerSize  = 1.0
@@ -207,12 +184,8 @@ class StyleClass(object):
     def _GetTGraphValues(self, styleType):
         self.Verbose()
         
-        if self.bEnableColourPalette==True:
-            fillColour  = self.colourPalette[styleType].next()
-            markerStyle = self.markerStyleCounter[styleType].next()
-        else:
-            fillColour  = getattr(self, styleType + "_colour" ) # + self.colourShade[styleType].next()
-            markerStyle = getattr(self, styleType + "_mStyle"  )
+        fillColour  = getattr(self, styleType + "_colour" ) # + self.colourShade[styleType].next()
+        markerStyle = getattr(self, styleType + "_mStyle"  )
 
         self.Verbose(["StyleType '%s', FillColour = '%s'" % (styleType, fillColour)])
         markerSize  = 1.0
@@ -230,11 +203,7 @@ class StyleClass(object):
         '''
         self.Verbose()
         
-        if self.bEnableColourPalette==True:
-            fillColour  = self.colourPalette[styleType].next()
-        else:
-            fillColour  = getattr(self, styleType + "_colour" ) + self.colourShade[styleType].next()
-
+        fillColour  = getattr(self, styleType + "_colour" ) + self.colourShade[styleType].next()
         markerStyle = self.markerStyleCounter[styleType].next()
         markerSize  = 1.0
         lineColour  = fillColour
@@ -251,11 +220,7 @@ class StyleClass(object):
         '''
         self.Verbose()
         
-        if self.bEnableColourPalette==True:
-            fillColour  = self.colourPalette[styleType].next()
-        else:
-            fillColour  = getattr(self, styleType + "_colour" ) + self.colourShade[styleType].next()
-
+        fillColour  = getattr(self, styleType + "_colour" ) + self.colourShade[styleType].next()
         markerStyle = self.markerStyleCounter[styleType].next()
         markerSize  = 1.0
 
@@ -339,5 +304,4 @@ class StyleClass(object):
         elif styleType in self.styleTypeSpecialList:
             return self._GetTH1SpecialValues(styleType)
         else:
-            return self._GetTH2Values("random")
-        
+            return self._GetTH2Values("random")    

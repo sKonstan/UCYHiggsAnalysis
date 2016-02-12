@@ -35,7 +35,7 @@ from UCYHiggsAnalysis.NtupleAnalysis.pyROOT.crossSection import xSections
 #================================================================================================
 # General Settings
 #================================================================================================
-verbose       = False
+verbose       = True
 batchMode     = False
 ratio         = True
 myLumi        = 2.26 # in fb
@@ -123,7 +123,6 @@ def DoPlots(histo, datasetObjects, intLumi, bColourPalette=False, savePostfix=""
     p.AddDrawObject(histo)
     #p.AddTF1("cos(x)", 0, 100, {"lineColour": ROOT.kRed})
 
-    # p.EnableColourPalette(True) #fixme
     p.NormaliseHistos("toLuminosity")
     # p.NormaliseHistos("byXSection")
     # p.NormaliseHistos("toOne")
@@ -133,8 +132,7 @@ def DoPlots(histo, datasetObjects, intLumi, bColourPalette=False, savePostfix=""
     # p.SetAttribute("verbose", True)
 
     
-    p.CreateCanvas(ratio)
-    #p.CreateLegend()
+    p.CreateCanvas(ratio) #ratio
     # p.Draw(THStackDrawOpt="nostack", includeStack = False, bAddReferenceHisto = True)
     p.Draw(THStackDrawOpt="stack", includeStack = False, bAddReferenceHisto = True)
     # p.Draw()    

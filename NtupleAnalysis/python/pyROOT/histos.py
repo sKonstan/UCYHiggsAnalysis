@@ -9,7 +9,8 @@ import inspect
 from optparse import OptionParser
 
 import ROOT
-import styles as m_styles
+
+import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.styles as styles
 
 #================================================================================================
 # Class definition
@@ -19,6 +20,7 @@ class DrawObject:
         self.verbose         = kwargs.get("verbose", False)
         self.path            = path
         self.name            = name
+        self.fullPath        = self._GetFullPath()
         self.THisto          = None
         self.legLabel        = self._GetLegendLabel(legLabel)
         self.xUnits          = kwargs.get("xUnits", "")
@@ -57,19 +59,12 @@ class DrawObject:
         self.drawOptions     = kwargs.get("drawOptions", None)
         self.legOptions      = kwargs.get("legOptions", None)
         self.styleType       = kwargs.get("styleType", None)
+        self.kwargs          = kwargs
         self.Verbose()
         #self.PrintAttributes()
         return            
 
     
-    def GetSelfName(self):
-        return self.__class__.__name__
-
-
-    def GetFunctionName(self):
-        return sys._getframe(1).f_code.co_name + "()"
-
-
     def SetAttribute(self, attr, value):
         self.Verbose()
         return setattr(self, attr, value)
@@ -88,7 +83,7 @@ class DrawObject:
         only if the verbosity boolean is set to true.
         '''
         if self.verbose:
-            print "=== %s:" % ( self.GetSelfName() + "." + self.GetFunctionName() )
+            print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
             if message!="":
                 print "\t", message
         return
@@ -98,7 +93,7 @@ class DrawObject:
         '''
         Custome made print system. Will print the message even if the verbosity boolean is set to false.
         '''
-        print "=== %s:" % ( self.GetSelfName() + "." + self.GetFunctionName() )
+        print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
         if message!="":
             print "\t", message
         return
@@ -189,7 +184,7 @@ class DrawObject:
         return args.get("zLabel", "z-label") + postfix
 
 
-    def ApplyStyles(self, styleObject):
+    def ApplyStyles(self):
         '''
         Takes a style object as input to customise the histogram (self). First the rebinning is done
         to the user-defined x-axis bin width. Then the fill/line/marker styles are applied. Then 
@@ -199,7 +194,7 @@ class DrawObject:
 
         self._RebinXToWidth()
         self._RebinYToWidth()
-        self._SetFillLineMarkerStyles(styleObject)
+        self._SetFillLineMarkerStyles()
         self._SetAxisStyle()
         return
     
@@ -335,19 +330,18 @@ class DrawObject:
         return 1.0/self.GetYMaxFactor(bLogY)
 
 
-    def _SetFillLineMarkerStyles(self, styleObject):
+    def _SetFillLineMarkerStyles(self):
         '''
         This function customises all the histogram-related styles (fill, marker, line). It uses a style object as input to determine all these according to 
         either the dataset name (if "styleType": None) or the actual user-defined styleType.
         '''
         self.Verbose(["For help see: 'http://root.cern.ch/root/html/TAttMarker.html' and 'http://root.cern.ch/root/html/TAttLine.html'."])
 
-
-
+        s = styles.StyleClass(self.verbose)
         if isinstance(self.THisto, ROOT.TH1):
-            (fillColour, lineColour, markerStyle, markerSize, lineWidth, lineStyle, fillStyle, drawOptions, legOptions) = styleObject.GetTH1Styles(self)
+            (fillColour, lineColour, markerStyle, markerSize, lineWidth, lineStyle, fillStyle, drawOptions, legOptions) = s.GetTH1Styles(self)
         elif isinstance(self.THisto, ROOT.TH2):
-            (fillColour, lineColour, markerStyle, markerSize, lineWidth, lineStyle, fillStyle, drawOptions, legOptions) = styleObject.GetTH2Styles(self)
+            (fillColour, lineColour, markerStyle, markerSize, lineWidth, lineStyle, fillStyle, drawOptions, legOptions) = s.GetTH2Styles(self)
         elif isinstance(self.THisto, ROOT.TH3):
             raise Exception("Usupported histogram object '%s'" % (self.THisto))
         else:
@@ -553,3 +547,13 @@ class DrawObject:
         self.Verbose()
         self.THisto.GetXaxis().SetTitleSize(0)
         return
+
+
+    def _GetFullPath(self):
+        self.Verbose()
+
+        prefix = self.GetAttribute("path") + "/"
+        if prefix == "/":
+            return self.GetAttribute("name")
+        else:
+            return prefix + self.GetAttribute("name")    

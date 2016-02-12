@@ -55,14 +55,7 @@ class CrossSection:
             setattr(self, key, value)
         return
 
-    def GetSelfName(self):
-        return self.__class__.__name__
-
-
-    def GetFunctionName(self):
-        return sys._getframe(1).f_code.co_name + "()"
-
-
+    
     def SetAttribute(self, attr, value):
         self.Verbose()
         return setattr(self, attr, value)
@@ -81,7 +74,7 @@ class CrossSection:
         only if the verbosity boolean is set to true.
         '''
         if self.verbose:
-            print "=== %s:" % ( self.GetSelfName() + "." + self.GetFunctionName() )
+            print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
             if message!="":
                 print "\t", message
         return
@@ -91,7 +84,7 @@ class CrossSection:
         '''
         Custome made print system. Will print the message even if the verbosity boolean is set to false.
         '''
-        print "=== %s:" % ( self.GetSelfName() + "." + self.GetFunctionName() )
+        print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
         if message!="":
             print "\t", message
         return

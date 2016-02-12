@@ -70,14 +70,6 @@ class Dataset(object):
         return
 
 
-    def GetSelfName(self):
-        return self.__class__.__name__
-
-
-    def GetFunctionName(self):
-        return sys._getframe(1).f_code.co_name + "()"
-
-
     def SetAttribute(self, attr, value):
         self.Verbose()
         return setattr(self, attr, value)
@@ -96,7 +88,7 @@ class Dataset(object):
         only if the verbosity boolean is set to true.
         '''
         if self.verbose:
-            print "=== %s:" % ( self.GetSelfName() + "." + self.GetFunctionName() )
+            print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
             if message!="":
                 print "\t", message
         return
@@ -106,7 +98,7 @@ class Dataset(object):
         '''
         Custome made print system. Will print the message even if the verbosity boolean is set to false.
         '''
-        print "=== %s:" % ( self.GetSelfName() + "." + self.GetFunctionName() )
+        print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
         if message!="":
             print "\t", message
         return
@@ -769,8 +761,8 @@ class Dataset(object):
         msg += "\n\t{:<20} {:<20}".format("Is PU Reweighted"    , ": " + str(self.GetIsPileupReweighted())  + " (" + str(self.GetPileupWeight()) + ")" )
         msg += "\n\t{:<20} {:<20}".format("Is TopPt Reweighted" , ": " + str(self.GetIsTopPtReweighted())   + " (" + str(self.GetTopPtWeight()) + ")" )
     
-        if self.GetHisto() != None:
-            msg += "\n\t {:<20} {:<20}".format("Histo Name"     , ": " + self.GetHisto().GetName() )
+        if hasattr(self, 'THisto'):
+            msg += "\n\t {:<20} {:<20}".format("Histo Name"     , ": " + self.THisto.GetName() )
         self.Print(msg)
         return
 
