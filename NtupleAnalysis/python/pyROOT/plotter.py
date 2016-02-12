@@ -45,141 +45,17 @@ class Plotter(object):
         self.THStack           = ROOT.THStack("THStack", "Stack for PadPlot Histograms")
         self.THStackHistoList  = [] #needed because looping over self.THSTack.GetHists() crashes!
         self.THStackRatio      = ROOT.THStack("THStackRatio", "Stack for PadRatio Histograms")
-        self.TLegend           = None
         self.TMultigraph       = ROOT.TMultiGraph("TMultigraph", "ROOT.TMultiGraph holding various ROOT.TGraphs")
         #
         self.drawObjectList    = []
         self.drawObjectListR   = []
         self.includeStack      = False
         self.invPadRatio       = False
-        self.padRatio          = False
         self.xTLineList        = []
         self.yTLineList        = []
         print
         return
-
-    
-    def GetSelfName(self):
-        return self.__class__.__name__
-
-
-    def GetFunctionName(self):
-        return sys._getframe(1).f_code.co_name + "()"
-    
-    
-    def Verbose(self, message=""):
-        '''
-        Custome made verbose system. Will print all messages in the messageList
-        only if the verbosity boolean is set to true.
-        '''
-        if self.verbose:
-            print "=== %s:" % ( self.GetSelfName() + "." + self.GetFunctionName() )
-            if message!="":
-                print "\t", message
-        return
-
-
-    def Print(self, message=""):
-        '''
-        Custome made print system. Will print the message even if the verbosity boolean is set to false.
-        '''
-        print "=== %s:" % ( self.GetSelfName() + "." + self.GetFunctionName() )
-        if message!="":
-            print "\t", message
-        return
-
-    
-    def PrintList(self, messageList=[""], printSelf=True):
-        '''
-        Custome made print system. Will print all messages in the messageList even if the verbosity boolean is set to false.
-        '''
-        for counter, message in enumerate(messageList):
-            if counter == 0 and printSelf:
-                self.Print(message)
-            else:
-                print "\t", message
-        return
-
-
-    def SetVerbose(self, verbose):
-        '''
-        Manually enable/disable verbosity.
-        '''
-        self.verbose = verbose
-        return
-
-
-    def PrintWarning(self, msg, keystroke):
-        '''                                                                                                                                                          
-        Print a warning and make sure user sees it by requiring a keystroke
-        '''
-        self.Print()
-        
-        response = raw_input("\t" + msg + ". Press \"%s\" to quit, any other key to proceed: " % (keystroke))
-        if response== "q":
-            sys.exit()
-        else:
-            return
-        return
-    
-            
-    def _CreateCanvas(self):
-        '''
-        Create a name for a TCanvas and then create it. 
-        This name will later on be used to save the canvas under a user specific format ("png", "pdf", "eps", etc..)
-        '''                    
-        self.Verbose()
-
-        if hasattr(self, 'TCanvas'):
-            return
-
-        canvasName   = self.THDumbie.GetName()
-        self.TCanvas = ROOT.TCanvas( canvasName, canvasName, 1)
-        self._SetLogAxes()
-        self.TCanvas.cd()
-        return
-
-
-    def _Create2PadCanvas(self):
-        '''
-        Create a 2-pad TCanvas to accomodate a ratio plot and customise it.
-        '''                    
-        self.Verbose()
-
-        if not hasattr(self, 'TCanvas'):
-            raise Exception("The Class Object '%s' already has a 'TCanvas' attribute." % self.GetSelfName())
-
-        # Normal assignment operations (a = b) will simply point the new variable towards the existing object.
-        self.THRatio = self.GetDumbieHisto("THRatio")
-        
-        # Create TCanvas and divide it into two pads: one for plot pad, one for ratio pad
-        canvasName   = self.THDumbie.GetAttribute("name")
-        self.TCanvas = ROOT.TCanvas( canvasName, canvasName, ROOT.gStyle.GetCanvasDefW(), int(ROOT.gStyle.GetCanvasDefH()*self.canvasFactor))
-        self.TCanvas.Divide(1,2)
-        
-        # Remove x-axis title and labels from the THDumbie to avoid overlap with those THRatio
-        self.THDumbie.RemoveBinLabelsX()
-        self.THDumbie.RemoveTitleX()
-
-        # Create plot, ratio and cover pads
-        self._CreatePads()
-        self._SetLogAxes2PadCanvas()
-        self.TCanvas.Update()
-        self.PadPlot.cd()
-        return
-
-
-    def _CreatePads(self):
-        '''
-        Create the plot, ratio and cover pads.
-        '''
-        self.Verbose()
-
-        self._CreatePadPlot()
-        self._CreatePadRatio()
-        self._CreatePadCover()
-        return
-
+       
     
     def _CreatePadCover(self, xMin=0.08, yMin=0.285, xMax=0.16, yMax=0.32):
         '''
@@ -236,58 +112,20 @@ class Plotter(object):
         return
 
 
-    def _SetLogXRatio(self):
-        self.Verbose()
 
-        if self.THRatio.logXRatio==False:
-            return
-        if self.THRatio.THisto.GetXaxis().GetXmin() > 0:
-            self.PadRatio.SetLogx(True)
-        else:
-            raise Exception("Request for TCanvas::SetLogx(True) rejected. The minimum x-value is '%s'." % (self.THRatio.xMin))
-        return
-
-
-    def _SetLogYRatio(self):
-        self.Verbose()
-
-        if self.THRatio.logYRatio==False:
-            return
-        if self.THRatio.THisto.GetMinimum()>0:
-            self.PadRatio.SetLogy(True)
-        else:
-            raise Exception("Request for TCanvas::SetLogx(True) rejected. The minimum x-value is '%s'." % (self.THRatio.yMin))
-        return
-    
-
-    def _SetLogAxes2PadCanvas(self):
-        '''
-        Apply customisations to a 2-pad TCanvas.
-        '''
-        self.Verbose()
-
-        # Determine whether to set log for y- and x- axis.
-        self._SetLogY()
-        self._SetLogX()
-        self._SetLogZ()
-        self._SetLogXRatio()
-        self._SetLogYRatio()
-        return
-
-
-    def _CreateLegend(self):
+    def CreateLegend(self):
         '''
         Create a TLegend, customise it and return it.
         '''
         self.Verbose()
         
-        if isinstance(self.TLegend, ROOT.TLegend) == True:
+        if hasattr(self, 'TLegend'):
             return
-        else:
-            histo = self.THDumbie
-            self.TLegend = ROOT.TLegend(histo.xLegMin, histo.yLegMin, histo.xLegMax, histo.yLegMax, "", "brNDC")
-            self._CustomiseLegend()
-            self.drawObjectList.append( self.TLegend )
+
+        histo = self.THDumbie
+        self.TLegend = ROOT.TLegend(histo.xLegMin, histo.yLegMin, histo.xLegMax, histo.yLegMax, "", "brNDC")
+        self._CustomiseLegend()
+        self.drawObjectList.append( self.TLegend )
         return
         
 
@@ -404,10 +242,6 @@ class Plotter(object):
         # Assign attributes
         h.THisto      = self.GetHistoFromFile(f, h)
         h.dataset       = dataset
-
-        # Assign global values
-        self.padRatio      = h.ratio
-        self.invPadRatio   = h.invRatio
         return
 
 
@@ -623,7 +457,7 @@ class Plotter(object):
         '''
         self.Verbose()
         self.includeStack = includeStack
-        self._CreateCanvasAndLegendAndDumbie()
+        #self._CreateCanvasAndLegendAndDumbie()
         
         if hasattr(self, 'normOption'):
             if self.normOption == "toOne" and THStackDrawOpt=="stack" and len(self.Datasets)>1:
@@ -694,7 +528,7 @@ class Plotter(object):
 
         self.includeStack = includestack
         self.EnableColourPalette(True)
-        self._CreateCanvasAndLegendAndDumbie()
+        #self._CreateCanvasAndLegendAndDumbie()
         self._CheckHistogramBinning()
         self._AddHistogramsToStack2D(ProfileAxis, firstBin, lastBin)
         self._DrawHistograms(THStackDrawOpt)
@@ -763,12 +597,7 @@ class Plotter(object):
         self.Verbose()
 
         self.THDumbie = self.GetDumbieHisto("THDumbie")
-
-        if self.padRatio or self.invPadRatio:
-            self._Create2PadCanvas()
-        else:
-            self._CreateCanvas()
-            
+        self._CreateCanvas(self.THDumbie.ratio)
         self._CreateLegend()
         return
 
@@ -944,7 +773,7 @@ class Plotter(object):
         '''
         self.Verbose()
 
-        if self.padRatio == False and self.invPadRatio == False:
+        if not self.PadRatio:
             return
 
         self.PadRatio.cd()        
@@ -1110,7 +939,7 @@ class Plotter(object):
         '''
         self.Verbose()                
 
-        if (self.padRatio == True or self.invPadRatio == True):
+        if self.PadRatio:
             self._DrawNonHistoObjectsWithPadRatio()
         else:
             self._DrawNonHistoObjectsNoPadRatio()        
@@ -1237,6 +1066,128 @@ class Plotter(object):
 
 
     #================================================================================================
+    def GetSelfName(self):
+        return self.__class__.__name__
+
+
+    def GetFunctionName(self):
+        return sys._getframe(1).f_code.co_name + "()"
+
+
+    def SetAttribute(self, attr, value):
+        self.Verbose()
+        return setattr(self, attr, value)
+
+    
+    def GetAttribute(self, attr):
+        self.Verbose()
+        if hasattr(self, attr):
+            return getattr(self, attr)
+        else:
+            raise Exception("Class object '%s' does not have attribute '%s'" % (self.GetSelfName(), attr))
+
+    def Verbose(self, message=""):
+        '''
+        Custome made verbose system. Will print all messages in the messageList
+        only if the verbosity boolean is set to true.
+        '''
+        if self.verbose:
+            print "=== %s:" % ( self.GetSelfName() + "." + self.GetFunctionName() )
+            if message!="":
+                print "\t", message
+        return
+
+
+    def Print(self, message=""):
+        '''
+        Custome made print system. Will print the message even if the verbosity boolean is set to false.
+        '''
+        print "=== %s:" % ( self.GetSelfName() + "." + self.GetFunctionName() )
+        if message!="":
+            print "\t", message
+        return
+
+    
+    def PrintList(self, messageList=[""], printSelf=True):
+        '''
+        Custome made print system. Will print all messages in the messageList even if the verbosity boolean is set to false.
+        '''
+        for counter, message in enumerate(messageList):
+            if counter == 0 and printSelf:
+                self.Print(message)
+            else:
+                print "\t", message
+        return
+
+
+    def PrintWarning(self, msg, keystroke):
+        '''                                                                                                                                                          
+        Print a warning and make sure user sees it by requiring a keystroke
+        '''
+        self.Print()
+        
+        response = raw_input("\t" + msg + ". Press \"%s\" to quit, any other key to proceed: " % (keystroke))
+        if response== "q":
+            sys.exit()
+        else:
+            return
+        return
+    
+        
+    def PrintAttributes(self):
+        '''
+        Call this function to print all class attributes.
+        '''
+        self.Print("Attributes: %s" % (self.__dict__))
+        return
+
+    
+    def CreateCanvas(self, twoPads=False):
+        '''
+        Create a name for a TCanvas and then create it. 
+        This name will later on be used to save the canvas under a user specific format ("png", "pdf", "eps", etc..)
+        '''                    
+        self.Verbose()
+
+        if hasattr(self, 'TCanvas'):
+            raise Exception("The class object '%s' already has a 'TCanvas' attribute." % self.GetSelfName())
+
+
+        self.THDumbie = self.GetDumbieHisto("THDumbie")
+        canvasName    = self.THDumbie.GetAttribute("name")
+
+        if not twoPads:
+            self.Print("Creating a TCanvas with name '%s'" % (self.THDumbie.GetAttribute("name")) )
+            self.TCanvas = ROOT.TCanvas( canvasName, canvasName, 1)
+            self.TCanvas.cd()
+        else:
+            self.Print("Creating a 2-pad TCanvas with name '%s'" % (self.THDumbie.GetAttribute("name")) )
+            self.THRatio = self.GetDumbieHisto("THRatio")
+            self.TCanvas = ROOT.TCanvas( canvasName, canvasName, ROOT.gStyle.GetCanvasDefW(), int(ROOT.gStyle.GetCanvasDefH()*self.canvasFactor))
+            self.TCanvas.Divide(1,2)
+            self.THDumbie.RemoveBinLabelsX()
+            self.THDumbie.RemoveTitleX()
+            self._CreatePads()
+            self.PadPlot.cd()
+
+
+        self.TCanvas.Update()            
+        self._SetLogAxes(twoPads)
+        return
+
+
+    def _CreatePads(self):
+        '''
+        Create the plot, ratio and cover pads.
+        '''
+        self.Verbose()
+
+        self._CreatePadPlot()
+        self._CreatePadRatio()
+        self._CreatePadCover()
+        return
+
+
     def EnableColourPalette(self, bEnable=False):
         '''
         Changes colour for each histogram within a given dataset only if 1 dataset is present.
@@ -1468,17 +1419,7 @@ class Plotter(object):
         self.Verbose()
         return self.Datasets
 
-
-
-    def GetAttribute(self, attr):
-        self.Verbose()
-        if hasattr(self, attr):
-            return getattr(self, attr)
-        else:
-            raise Exception("Class object '%s' does not have attribute '%s'" % (self.GetSelfName(), attr))
-        return
-
-    
+        
     def SetLegendHeader(self, text):
         self.Verbose()
         self.TLegend.SetHeader(text)
@@ -1566,14 +1507,19 @@ class Plotter(object):
         return yMin, yMax
 
     
-    def _SetLogAxes(self):
+    def _SetLogAxes(self, twoPads=False):
         '''
         Apply axes customisations to a TCanvas.
         '''
         self.Verbose()
+
+
         self._SetLogY()
         self._SetLogX()
         self._SetLogZ()
+        if twoPads:
+            self._SetLogXRatio()
+            self._SetLogYRatio()
         return
 
 
@@ -1621,3 +1567,34 @@ class Plotter(object):
             raise Exception("Request for TCanvas::SetLogz(True) rejected. The minimum z-value is '%s'." % (self.THDumbie.zMin))
         return
     
+
+    def _SetLogXRatio(self):
+        self.Verbose()
+
+        if not hasattr(self, 'PadRatio'):
+            return
+
+        if not self.THRatio.logXRatio:
+            return
+
+        if self.THRatio.THisto.GetXaxis().GetXmin() > 0:
+            self.PadRatio.SetLogx(True)
+        else:
+            raise Exception("Request for TCanvas::SetLogx(True) rejected. The minimum x-value is '%s'." % (self.THRatio.xMin))
+        return
+
+
+    def _SetLogYRatio(self):
+        self.Verbose()
+
+        if not hasattr(self, 'PadRatio'):
+            return
+
+        if not self.THRatio.logYRatio:
+            return
+
+        if self.THRatio.THisto.GetMinimum()>0:
+            self.PadRatio.SetLogy(True)
+        else:
+            raise Exception("Request for TCanvas::SetLogx(True) rejected. The minimum x-value is '%s'." % (self.THRatio.yMin))
+        return

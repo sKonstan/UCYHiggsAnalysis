@@ -69,7 +69,7 @@ EtaRange   = [[-etaMax, -1.6, ROOT.kRed+1], [+etaMax, +1.6, ROOT.kRed+1], [-1.6,
 #Pt = {
 #    "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00 , "xMax": ptMax, "binWidthX": None, "xCutLines": [], "xCutBoxes": [], "gridX": True, "logX": False, 
 #    "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E-05, "yMax": 1E+00, "binWidthY": None, "yCutLines": [], "yCutBoxes": [], "gridY": True, "logY": True , 
-#    "ratioLabel": "Ratio", "ratio": ratio, "invRatio": False, "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "drawOptions": "HIST", "legOptions": "FL",
+#    "ratioLabel": "Ratio", "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "drawOptions": "HIST", "legOptions": "FL",
 #    "logYRatio": False, "logXRatio": False, "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
 #}
 
@@ -77,7 +77,7 @@ EtaRange   = [[-etaMax, -1.6, ROOT.kRed+1], [+etaMax, +1.6, ROOT.kRed+1], [-1.6,
 #Pt = {
 #    "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00 , "xMax": ptMax, "binWidthX": None, "xCutLines": [], "xCutBoxes": [], "gridX": True, "logX": False, 
 #    "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E-01, "yMax": None , "binWidthY": None, "yCutLines": [], "yCutBoxes": [], "gridY": True, "logY": True , 
-#    "ratioLabel": "Ratio", "ratio": ratio, "invRatio": False, "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "drawOptions": "HIST", "legOptions": "FL",
+#    "ratioLabel": "Ratio", "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "drawOptions": "HIST", "legOptions": "FL",
 #    "logYRatio": False, "logXRatio": False, "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
 #}
 
@@ -85,7 +85,7 @@ EtaRange   = [[-etaMax, -1.6, ROOT.kRed+1], [+etaMax, +1.6, ROOT.kRed+1], [-1.6,
 Pt = {
     "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00 , "xMax": ptMax, "binWidthX": None, "xCutLines": [], "xCutBoxes": [], "gridX": True, "logX": False, 
     "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E-01, "yMax": None , "binWidthY": None, "yCutLines": [], "yCutBoxes": [], "gridY": True, "logY": True , 
-    "ratioLabel": "Ratio", "ratio": ratio , "invRatio": False, "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "drawOptions": "HIST", "legOptions": "FL",
+    "ratioLabel": "Ratio", "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "drawOptions": "HIST", "legOptions": "FL",
     "logYRatio": False, "logXRatio": False, "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
 }
 
@@ -93,7 +93,7 @@ Pt = {
 Eta = {
     "xLabel": "#eta"           , "xUnits": ""     , "xMin": -etaMax , "xMax": +etaMax, "binWidthX": None, "xCutLines": [0], "gridX": True, "logX": False, "xCutBoxes": [],  
     "yLabel": "Entries / %0.2f", "yUnits": ""     , "yMin": +1e00   , "yMax": None   , "binWidthY": None, "yCutLines": [] , "gridY": True, "logY": True , "yCutBoxes": [],  
-    "ratioLabel": "Ratio"      , "ratio": ratio   , "invRatio": False, "yMinRatio": 1e-01, "yMaxRatio": 2.15 , "drawOptions": "P", "legOptions": "LP", 
+    "ratioLabel": "Ratio"      , "yMinRatio": 1e-01, "yMaxRatio": 2.15 , "drawOptions": "P", "legOptions": "LP", 
     "xCutBoxes": [[-1.0, -1.6, ROOT.kBlue], [+1.0, +1.6, ROOT.kBlue]], "yCutBoxes": [], "logYRatio": False, "logXRatio": False, "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
 }
 
@@ -128,7 +128,13 @@ def DoPlots(histo, datasetObjects, intLumi, bColourPalette=False, savePostfix=""
     # p.NormaliseHistos("byXSection")
     # p.NormaliseHistos("toOne")
     p.CustomiseHistos()
+
+
+    # p.SetAttribute("verbose", True)
+
     
+    p.CreateCanvas(ratio)
+    p.CreateLegend()
     # p.Draw(THStackDrawOpt="nostack", includeStack = False, bAddReferenceHisto = True)
     p.Draw(THStackDrawOpt="stack", includeStack = False, bAddReferenceHisto = True)
     # p.Draw()    

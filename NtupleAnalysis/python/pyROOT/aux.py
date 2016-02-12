@@ -27,6 +27,82 @@ class AuxClass(object):
         self.timerDict = {}
         return
         
+    def GetSelfName(self):
+        return self.__class__.__name__
+
+
+    def GetFunctionName(self):
+        return sys._getframe(1).f_code.co_name + "()"
+
+
+    def SetAttribute(self, attr, value):
+        self.Verbose()
+        return setattr(self, attr, value)
+
+    
+    def GetAttribute(self, attr):
+        self.Verbose()
+        if hasattr(self, attr):
+            return getattr(self, attr)
+        else:
+            raise Exception("Class object '%s' does not have attribute '%s'" % (self.GetSelfName(), attr))
+
+    def Verbose(self, message=""):
+        '''
+        Custome made verbose system. Will print all messages in the messageList
+        only if the verbosity boolean is set to true.
+        '''
+        if self.verbose:
+            print "=== %s:" % ( self.GetSelfName() + "." + self.GetFunctionName() )
+            if message!="":
+                print "\t", message
+        return
+
+
+    def Print(self, message=""):
+        '''
+        Custome made print system. Will print the message even if the verbosity boolean is set to false.
+        '''
+        print "=== %s:" % ( self.GetSelfName() + "." + self.GetFunctionName() )
+        if message!="":
+            print "\t", message
+        return
+
+    
+    def PrintList(self, messageList=[""], printSelf=True):
+        '''
+        Custome made print system. Will print all messages in the messageList even if the verbosity boolean is set to false.
+        '''
+        for counter, message in enumerate(messageList):
+            if counter == 0 and printSelf:
+                self.Print(message)
+            else:
+                print "\t", message
+        return
+
+
+    def PrintWarning(self, msg, keystroke):
+        '''                                                                                                                                                          
+        Print a warning and make sure user sees it by requiring a keystroke
+        '''
+        self.Print()
+        
+        response = raw_input("\t" + msg + ". Press \"%s\" to quit, any other key to proceed: " % (keystroke))
+        if response== "q":
+            sys.exit()
+        else:
+            return
+        return
+    
+        
+    def PrintAttributes(self):
+        '''
+        Call this function to print all class attributes.
+        '''
+        self.Print("Attributes: %s" % (self.__dict__))
+        return
+
+
     def StartTimer(self, name):
         '''
         '''
@@ -96,50 +172,6 @@ class AuxClass(object):
         else:
             return elapsed/3600.0, "hours"
         
-        
-    def Verbose(self, message=""):
-        '''
-        Custome made verbose system. Will print all messages in the messageList
-        only if the verbosity boolean is set to true.
-        '''
-        if not self.verbose:
-            return
-        
-        print "%s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
-        if message!="":
-            print "\t", message
-        return
-
-
-    def Print(self, message=""):
-        '''
-        Custome made print system. Will print the message even if the verbosity boolean is set to false.
-        '''
-        print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
-        if message!="":
-            print "\t", message
-        return
-
-    
-    def PrintList(self, messageList=[""]):
-        '''
-        Custome made print system. Will print all messages in the messageList even if the verbosity boolean is set to false.
-        '''
-        for counter, message in enumerate(messageList):
-            if counter == 0:
-                self.Print(message)
-            else:
-                print "\t", message
-        return
-
-
-    def SetVerbose(self, verbose):
-        '''
-        Manually enable/disable verbosity.
-        '''
-        self.verbose = verbose
-        return
-
     
     def GetKeyFromDictValue(self, value, dictionary):
         '''
