@@ -31,12 +31,14 @@ import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.tdrstyle as tdrstyle
 class Plotter(object): 
     def __init__(self, verbose=False, batchMode=True):
         self.verbose           = verbose
-        self.DatasetInLegend   = False
-        self.isTH1             = False
-        self.isTH2             = False
-        self.PadCover          = None
-        self.PadRatio          = None
+        self.batchMode         = batchMode
+        self.styleObject       = styles.StyleClass(verbose)
+        self.textObject        = text.TextClass(verbose)
+        self.auxObject         = aux.AuxClass(verbose)
+        self.canvasFactor      = 1.25
         #
+        self.DatasetInLegend   = False
+        self.isTH2             = False
         self.TBoxList          = []
         self.THDumbie          = None
         self.THRatio           = None
@@ -46,42 +48,42 @@ class Plotter(object):
         self.TLegend           = None
         self.TMultigraph       = ROOT.TMultiGraph("TMultigraph", "ROOT.TMultiGraph holding various ROOT.TGraphs")
         #
-        self.auxObject         = aux.AuxClass(verbose)
-        self.batchMode         = batchMode
-        self.canvasFactor      = 1.25
-        self.divisionPoint     = 1-1/self.canvasFactor
         self.drawObjectList    = []
         self.drawObjectListR   = []
         self.includeStack      = False
         self.invPadRatio       = False
         self.padRatio          = False
-        self.styleObject       = styles.StyleClass(verbose)
-        self.textObject        = text.TextClass(verbose)
         self.xTLineList        = []
         self.yTLineList        = []
         print
         return
 
     
+    def GetSelfName(self):
+        return self.__class__.__name__
+
+
+    def GetFunctionName(self):
+        return sys._getframe(1).f_code.co_name + "()"
+    
+    
     def Verbose(self, message=""):
         '''
         Custome made verbose system. Will print all messages in the messageList
         only if the verbosity boolean is set to true.
         '''
-        if not self.verbose:
-            return
-        
-        print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
-        if message!="":
-            print "\t", message
+        if self.verbose:
+            print "=== %s:" % ( self.GetSelfName() + "." + self.GetFunctionName() )
+            if message!="":
+                print "\t", message
         return
 
-    
+
     def Print(self, message=""):
         '''
         Custome made print system. Will print the message even if the verbosity boolean is set to false.
         '''
-        print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+        print "=== %s:" % ( self.GetSelfName() + "." + self.GetFunctionName() )
         if message!="":
             print "\t", message
         return
@@ -151,7 +153,7 @@ class Plotter(object):
         self.THRatio = self.GetDumbieHisto("THRatio")
         
         # Create TCanvas and divide it into two pads: one for plot pad, one for ratio pad
-        canvasName   = self.THDumbie.GetName()
+        canvasName   = self.THDumbie.GetAttribute("name")
         self.TCanvas = ROOT.TCanvas( canvasName, canvasName, ROOT.gStyle.GetCanvasDefW(), int(ROOT.gStyle.GetCanvasDefH()*self.canvasFactor))
         self.TCanvas.Divide(1,2)
         
@@ -179,7 +181,7 @@ class Plotter(object):
         return
 
     
-    def _CreatePadCover(self, xMin=0.09, yMin=0.285, xMax=0.16, yMax=0.32):
+    def _CreatePadCover(self, xMin=0.08, yMin=0.285, xMax=0.16, yMax=0.32):
         '''
         Creates a cover pad to cover the overlap of the y-axis divisions between the PadPlot and the PadRatio.
         '''
@@ -207,7 +209,7 @@ class Plotter(object):
         self.PadPlot.SetName("PadPlot")
         (xlow, ylow, xup, yup) = [ROOT.Double(x) for x in [0.0]*4]
         self.PadPlot.GetPadPar(xlow, ylow, xup, yup)
-        self.PadPlot.SetPad(xlow, self.divisionPoint, xup, yup)
+        self.PadPlot.SetPad(xlow, 1-1/self.canvasFactor, xup, yup)
         self.PadPlot.Draw()
         self.TCanvas.Update()
         return
@@ -219,16 +221,16 @@ class Plotter(object):
         '''
         self.Verbose()
         
-        CanvasHeightCorr = 0.022
+        canvasHeightCorr = 0.022
 
         self.PadRatio = self.TCanvas.cd(2)
         self.PadRatio.SetName("PadRatio")
         (xlow, ylow, xup, yup) = [ROOT.Double(x) for x in [0.0]*4]
         self.PadRatio.GetPadPar(xlow, ylow, xup, yup)
-        self.PadRatio.SetPad(xlow, ylow, xup, self.divisionPoint + ROOT.gStyle.GetPadBottomMargin() - ROOT.gStyle.GetPadTopMargin() + CanvasHeightCorr)
+        self.PadRatio.SetPad(xlow, ylow, xup, 1-1/self.canvasFactor + ROOT.gStyle.GetPadBottomMargin() - ROOT.gStyle.GetPadTopMargin() + canvasHeightCorr)
         self.PadRatio.SetFillStyle(4000)
         self.PadRatio.SetTopMargin(0.0)
-        self.PadRatio.SetBottomMargin(self.PadRatio.GetBottomMargin()+0.16)
+        self.PadRatio.SetBottomMargin(self.PadRatio.GetBottomMargin()+0.20) #was: 0.16
         self.PadRatio.Draw()
         self.TCanvas.Update()
         return
@@ -319,7 +321,7 @@ class Plotter(object):
             #self.Print("FIXME! EXIT")
             #sys.exit()
         else:
-            self.Print("Adding '1' histogram to the histogram queue: %s" % ("\"" + histos.GetName() + "\"") )
+            self.Print("Adding '1' histogram to the histogram queue: %s" % ("\"" + histos.GetAttribute("name") + "\"") )
             self._AddHistoToQueue(histos)
 
         return
@@ -378,7 +380,7 @@ class Plotter(object):
         for i, dataset in enumerate(self.Datasets):
 
             # Ensure that histogram exists in the file
-            self.CheckHistoExists(dataset.rootFile, histoObject)
+            self.IsHisto(dataset.rootFile, histoObject)
 
             ### Map histo to dataset  
             self.Datasets[i].histo = copy.deepcopy(histoObject)
@@ -386,9 +388,6 @@ class Plotter(object):
             # Assign user-defined attributes to histo object
             histoObject = self.Datasets[i].histo
             self._AssignHistoObjectAttributes(dataset.rootFile, dataset, histoObject)
-
-            # Print extensive histogram information
-            self.PrintHistoInfo(histoObject, False)
 
         return
 
@@ -409,24 +408,6 @@ class Plotter(object):
         # Assign global values
         self.padRatio      = h.ratio
         self.invPadRatio   = h.invRatio
-            
-        return
-        
-
-    def PrintHistoInfo(self, histo, verbose=False):
-        '''
-        '''
-        self.Verbose()
-
-#        msg  = "{:<15} {:<20}".format("Dataset"            , ": " + histo.dataset.name)
-#        msg += "\n\t{:<15} {:<20}".format("HistoPath"      , ": " + histo.path)
-#        msg += "\n\t{:<15} {:<20}".format("HistoName"      , ": " + histo.name)
-#        msg += "\n\t{:<15} {:<20}".format("Integral()"     , ": " + str(histo.GetIntegral()))
-#
-#        if histo.THisto.Integral() == 0 or verbose:
-#            self.Print(msg)
-#            
-#        self.Verbose(msg)
         return
 
 
@@ -572,23 +553,20 @@ class Plotter(object):
 
 
 
-    def CheckHistoExists(self, rootFile, hObject):
-        '''
-        Ensure that the histogram you are trying to get from a TFile really exists.
-        '''
+    def IsHisto(self, rootFile, hObject):
         self.Verbose()
-        
-        hPath = ""
-        if (hObject.path == "") or (hObject.path == None):
-            hPath = hObject.name
+
+        prefix = hObject.GetAttribute("path") + "/"
+        if prefix != "/":
+            hPath  = prefix + hObject.GetAttribute("name")
         else:
-            hPath = hObject.path + "/" + hObject.name
+            hPath = hObject.GetAttribute("name")
 
-        self.isTH1 = isinstance( rootFile.Get(hPath), ROOT.TH1F) or isinstance( rootFile.Get(hPath), ROOT.TH1D)
-        self.isTH2 = isinstance( rootFile.Get(hPath), ROOT.TH2F) or isinstance( rootFile.Get(hPath), ROOT.TH2D)
-        if  not self.isTH1 and not self.isTH2:
-            raise Exception( "Could not find histo object '%s' in TFile '%s' under folder '%s'." % (hObject.name, rootFile.GetName(), hObject.path) )
-
+        h = rootFile.Get(hPath)
+        if isinstance(h, ROOT.TH1) or isinstance(h, ROOT.TH2) or isinstance(h, ROOT.TH3):
+            return
+        else:
+            raise Exception( "The object '%s' in '%s' is neither TH1, nor a TH2, nor a TH3." % (hPath, rootFile.GetName()) )
         return
 
 
@@ -688,7 +666,7 @@ class Plotter(object):
             self.IsDrawObject(h)
             h.ApplyStyles(self.styleObject)
             h.THisto.Draw(h.drawOptions + ",9same,")
-            self.TLegend.AddEntry( h.THisto, h.legLabel, h.GetLegOptions() )
+            self.TLegend.AddEntry( h.THisto, h.legLabel, h.GetAttribute("legOptions") )
             self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
 
         self.TLegend.SetHeader(TLegendHeader)
@@ -762,8 +740,7 @@ class Plotter(object):
             
             self.THStack.Add(histo.THisto)
             self.THStackHistoList.append(histo.THisto) #xenios
-            self.TLegend.AddEntry( histo.THisto, self.GetLegLabel(histo), histo.GetLegOptions())
-            #self.TLegend.AddEntry( histo.THisto, histo.dataset.GetLatexName(), histo.GetLegOptions()) # ino
+            self.TLegend.AddEntry( histo.THisto, self.GetLegLabel(histo), histo.GetAttribute("legOptions"))
             self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
         return
 
@@ -1033,7 +1010,7 @@ class Plotter(object):
             self.THRatio.yMaxRatio = self.THStackRatio.GetMaximum("nostack")*self.THRatio.GetYMaxFactor(self.THRatio.logYRatio)
 
         # Customise the title
-        self.THRatio.THisto.GetXaxis().SetTitleOffset(2.8)
+        self.THRatio.THisto.GetXaxis().SetTitleOffset(3.2) #was: 2.8
         if self.THRatio.ratioLabel == None:
             if self.invPadRatio == False:
                 self.THRatio.ratioLabel = "Ratio"
@@ -1399,7 +1376,6 @@ class Plotter(object):
             raise Exception("Unsupported option '%s'. Please choose one of the following options:\n\t \"%s\"" % (normOpt, "\", \"".join(opt for opt in normOpts) ) )
 
         if normOpt == "":
-            self.PrintHistoInfo(dataset.histo, True)
             return
         elif normOpt == "toOne":
             dataset.histo.NormaliseToOne()
@@ -1419,9 +1395,9 @@ class Plotter(object):
         self.Verbose()
         
         if self.DatasetInLegend:
-            return hObject.dataset.GetLatexName()
+            return hObject.GetAttribute("dataset").GetLatexName()
         else:
-            return hObject.legLabel        
+            return hObject.GetAttribute("legLabel")
 
 
     def AddDataset(self, dataset):
@@ -1451,19 +1427,23 @@ class Plotter(object):
         return
 
 
-    def DrawCmsPreliminary(self, energy, lumi):
+    def DrawCmsText(self, energy, lumi, prelim=True):
         '''
         Add the default CMS text on the canvas. Several defaults are available. 
         For available options see the class TextClass(object) under tools/text.py.
         '''
         self.Print("Drawing 'CMS Preliminary', '%s TeV' and '%s' text" % (energy, lumi) )        
-        self.TCanvas.cd()
-        self.textObject.AddEnergyText(energy)
-        self.textObject.AddPreliminary()
-        self.textObject.AddLumiText(lumi)
+        
+        if hasattr(self, 'PadPlot'):
+            self.PadPlot.cd()
+
+        if prelim:
+            self.textObject.AddDefaultText("preliminary", "")
+        else:
+            self.textObject.AddDefaultText("publication", "")
+        self.textObject.AddDefaultText("lumi", lumi)
+        self.textObject.AddDefaultText("energy", "(" + energy + " TeV)")
         self.textObject.DrawTextList()
-        self.TCanvas.Update()
-        self.Print("Needs fixing for ratio plots!")
         return
 
 
@@ -1489,11 +1469,16 @@ class Plotter(object):
         return self.Datasets
 
 
-    def GetLegend(self):
+
+    def GetAttribute(self, attr):
         self.Verbose()
-        return self.TLegend
+        if hasattr(self, attr):
+            return getattr(self, attr)
+        else:
+            raise Exception("Class object '%s' does not have attribute '%s'" % (self.GetSelfName(), attr))
+        return
 
-
+    
     def SetLegendHeader(self, text):
         self.Verbose()
         self.TLegend.SetHeader(text)

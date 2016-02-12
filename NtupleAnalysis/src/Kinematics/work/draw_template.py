@@ -44,6 +44,7 @@ analysis      = folder
 saveFormats   = ["png"] #, "pdf"]
 savePath      = ""
 
+
 #================================================================================================
 # Object Definitions
 #================================================================================================
@@ -84,7 +85,7 @@ EtaRange   = [[-etaMax, -1.6, ROOT.kRed+1], [+etaMax, +1.6, ROOT.kRed+1], [-1.6,
 Pt = {
     "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00 , "xMax": ptMax, "binWidthX": None, "xCutLines": [], "xCutBoxes": [], "gridX": True, "logX": False, 
     "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E-01, "yMax": None , "binWidthY": None, "yCutLines": [], "yCutBoxes": [], "gridY": True, "logY": True , 
-    "ratioLabel": "Ratio", "ratio": False, "invRatio": False, "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "drawOptions": "HIST", "legOptions": "FL",
+    "ratioLabel": "Ratio", "ratio": ratio , "invRatio": False, "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "drawOptions": "HIST", "legOptions": "FL",
     "logYRatio": False, "logXRatio": False, "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
 }
 
@@ -131,7 +132,7 @@ def DoPlots(histo, datasetObjects, intLumi, bColourPalette=False, savePostfix=""
     # p.Draw(THStackDrawOpt="nostack", includeStack = False, bAddReferenceHisto = True)
     p.Draw(THStackDrawOpt="stack", includeStack = False, bAddReferenceHisto = True)
     # p.Draw()    
-    p.DrawCmsPreliminary("13", intLumi)
+    p.DrawCmsText("13", intLumi, prelim=True)
 
     
     # p.SaveAs(savePath, histo.GetName() + "_test", savePostfix, saveFormats)

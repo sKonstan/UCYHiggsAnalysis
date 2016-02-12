@@ -23,29 +23,15 @@ class TextClass(object):
         self.text     = text
         self.tlatex   = ROOT.TLatex()
         self.textList = []
-        self.tlatex.SetNDC()
-        if not bold:
-            self.tlatex.SetTextFont(self.tlatex.GetTextFont()-20) # bold -> normal
-        if relSize != 1.0:
-            print "self.tlatex.GetTextSize() = ", self.tlatex.GetTextSize()
-            print "newSize = ", self.tlatex.GetTextSize()*relSize
-            self.tlatex.SetTextSize(self.tlatex.GetTextSize()*relSize)
-        if align.lower() == "left":
-            self.tlatex.SetTextAlign(11)
-        elif align.lower() == "center":
-            self.tlatex.SetTextAlign(21)
-        elif align.lower() == "right":
-            self.tlatex.SetTextAlign(31)
-        else:
-            raise Exception("Error: Invalid option '%s' for text alignment! Options are: 'left', 'center', 'right'." % align)
-        self.tlatex.SetTextColor(color)
+        self.SetLatex(bold, relSize, color, align)
         self._SetDefaults("lumi"       , xPos=0.64, yPos=0.961, text = "")
         self._SetDefaults("energy"     , xPos=0.80, yPos=0.961, text = "")
         self._SetDefaults("preliminary", xPos=0.16, yPos=0.961, text = "#font[62]{CMS} #font[52]{Preliminary}")
+        self._SetDefaults("publication", xPos=0.16, yPos=0.961, text = "#font[62]{CMS}")
         self.Verbose()
         return
-    
-
+        
+        
     def Verbose(self, message=""):
         '''
         Custome made verbose system. Will print all messages in the messageList
@@ -90,6 +76,33 @@ class TextClass(object):
         return
 
 
+
+    def SetLatex(self, bold, relSize, color, align):
+        '''
+        Setup everything that needs to be setup for TLatex.
+        '''
+        self.Verbose()
+        
+        self.tlatex.SetNDC()
+    
+        if not bold:
+            self.tlatex.SetTextFont(self.tlatex.GetTextFont()-20) # bold -> normal
+            
+        if relSize != 1.0:
+            self.tlatex.SetTextSize(self.tlatex.GetTextSize()*relSize)
+
+        if align.lower() == "left":
+            self.tlatex.SetTextAlign(11)
+        elif align.lower() == "center":
+            self.tlatex.SetTextAlign(21)
+        elif align.lower() == "right":
+            self.tlatex.SetTextAlign(31)
+        else:
+            raise Exception("Error: Invalid option '%s' for text alignment! Options are: 'left', 'center', 'right'." % align)
+        self.tlatex.SetTextColor(color)
+        return
+
+
     def _SetDefaults(self, name, **kwargs):
         self.Verbose()
 
@@ -115,39 +128,23 @@ class TextClass(object):
         return
 
 
-    def AddEnergyText(self, energy=""):
+    def AddDefaultText(self, defaultText, text=""):
         self.Verbose()
 
-        (_x, _y, _text) = self._GetValues("energy")
-        if energy!="":
-            text = "(" + energy + " TeV)"
-        self.AddText(_x, _y, text)
-        return
-    
+        (_x, _y, _text) = self._GetValues(defaultText)
 
-    def AddLumiText(self, lumi):
-        self.Verbose()
-
-        (_x, _y, _text) = self._GetValues("lumi")
-        self.AddText(_x, _y, lumi)
-        return
-
-
-    def AddPreliminary(self, text=""):
-        self.Verbose()
-
-        (_x, _y, _text) = self._GetValues("preliminary")
-        self.AddText(_x, _y, _text)
+        self.AddText(_x, _y, _text+text)
         return
     
 
     def AddText(self,xPos, yPos, text, *args, **kwargs):
         self.Verbose()
 
-        t = TextClass(xPos, yPos, text, relSize=0.92, *args, **kwargs)
+        t = TextClass(xPos, yPos, text, relSize=0.90, *args, **kwargs)
         self.textList.append(t)
         return
 
+    
     def GetTextList(self):
         self.Verbose()
         return self.textList

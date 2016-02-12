@@ -64,13 +64,21 @@ class DrawObject:
         return            
 
     
+    def GetSelfName(self):
+        return self.__class__.__name__
+
+
+    def GetFunctionName(self):
+        return sys._getframe(1).f_code.co_name + "()"
+    
+    
     def Verbose(self, message=""):
         '''
         Custome made verbose system. Will print all messages in the messageList
         only if the verbosity boolean is set to true.
         '''
         if self.verbose:
-            print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+            print "=== %s:" % ( self.GetSelfName() + "." + self.GetFunctionName() )
             if message!="":
                 print "\t", message
         return
@@ -80,7 +88,7 @@ class DrawObject:
         '''
         Custome made print system. Will print the message even if the verbosity boolean is set to false.
         '''
-        print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+        print "=== %s:" % ( self.GetSelfName() + "." + self.GetFunctionName() )
         if message!="":
             print "\t", message
         return
@@ -486,17 +494,20 @@ class DrawObject:
         return
 
     #================================================================================================
-
     def SetName(self, name):
         self.Verbose()
         self.name = name
         return
 
 
-    def GetName(self):
+    def GetAttribute(self, attr):
         self.Verbose()
-        return self.name
-
+        if hasattr(self, attr):
+            return getattr(self, attr)
+        else:
+            raise Exception("Class object '%s' does not have attribute '%s'" % (self.GetSelfName(), attr))
+        return
+        
 
     def GetIntegral(self):
         self.Verbose()
@@ -511,16 +522,6 @@ class DrawObject:
             raise Exception("Unknown histogram object '%s'" % (self.THisto))
         return integral
     
-
-    def GetLegOptions(self):
-        self.Verbose()
-        return self.legOptions
-
-
-    def GetLegLabel(self):
-        self.Verbose()
-        return self.legLabel    
-
 
     def RemoveBinLabelsX(self):
         '''
