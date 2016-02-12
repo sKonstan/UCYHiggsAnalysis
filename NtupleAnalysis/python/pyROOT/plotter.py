@@ -271,11 +271,13 @@ class Plotter(object):
         self.Verbose("Creating cut-lines.")
 
         # Create the TLines for each axis
-        self._AppendXYCutLinesToTLineList("x")
-        self._AppendXYCutLinesToTLineList("y")
+        self._CreateTLinesX()
+        self._CreateTLinesY()
 
         # Extend the DrawObjectList with the TLineList
-        #self.drawObjectList.extend(self.TLineListX) #xenios
+        self.drawObjectList.extend(self.TLineListX)
+        self.drawObjectListR.extend(self.TLineListX)
+
         #self.drawObjectList.extend(self.TLineListY)
 
         #self.drawObjectListR.extend( copy.deepcopy(self.TLineListX) )
@@ -284,51 +286,47 @@ class Plotter(object):
         return
 
 
-    def _AppendXYCutLinesToTLineList(self, axis):
-        '''
-        Create, customise and append x- or y-axis cut lines to the TLineList. Also add entry to TLegend and provide extra space for another TLegened entry.
-        '''
+    def _CreateTLinesX(self):
         self.Verbose()
 
-        bXaxisCut = False
-        bYaxisCut = False
-
-        if axis == "x":
-            bXaxisCut = True
-            cLines = self.THDumbie.xCutLines
-        elif axis == "y":
-            bYaxisCut = True
-            cLines = self.THDumbie.yCutLines
-        else:
-            raise Exception("The option 'axis' can either be \"x\" or \"y\". Passed option was \"%s\"." % (axis) )
-
-        if cLines == None:
+        if not hasattr(self.THDumbie, "xCutLines"):
             return
-                
-        # Loop over all x-axis cut values
-        for value in cLines:
-            if bXaxisCut == True:
-                xMin = value
-                xMax = value
-            else:
-                xMin = self.THDumbie.xMin
-                xMax = self.THDumbie.xMax
 
-            if bYaxisCut == True:
-                yMin = value
-                yMax = value
-            else:
-                yMin = self.THDumbie.yMin
-                yMax = self.THDumbie.yMax
-
+        if not hasattr(self, "TLineListX"):
+            self.TLineListX = []
+            
+        for value in self.THDumbie.xCutLines:
+            xMin = value
+            xMax = value
+            yMin = self.THDumbie.yMin
+            yMax = self.THDumbie.yMax                
             line = ROOT.TLine(xMin, yMin, xMax, yMax)
-            self._CustomiseTLine(line, lineColour=ROOT.kBlack, lineWidth=3, lineStyle=ROOT.kDashed) #ROOT.kDashDotted
+            self._CustomiseTLine(line, ROOT.kBlack, 3, ROOT.kDashed)
             self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
-            #self.AppendToTLineList( line, axis)
-            self.AppendToDrawObjectList(line)
-        
+            self.TLineListX.append(line)
         return
         
+
+    def _CreateTLinesY(self):
+        self.Verbose()
+
+        if not hasattr(self.THDumbie, "yCutLines"):
+            return
+
+        if not hasattr(self, "TLineListY"):
+            self.TLineListX = []
+            
+        for value in self.THDumbie.yCutLines:
+            xMin = self.THDumbie.xMin
+            xMax = self.THDumbie.xMax
+            yMin = value
+            yMax = value
+            line = ROOT.TLine(xMin, yMin, xMax, yMax)
+            self._CustomiseTLine(line, ROOT.kBlack, 3, ROOT.kDashed)
+            self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
+            self.TLineListX.append(line)
+        return
+
 
     def CreateCutBoxes(self):
         '''
