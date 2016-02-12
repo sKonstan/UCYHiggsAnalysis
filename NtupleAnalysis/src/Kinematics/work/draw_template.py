@@ -61,7 +61,7 @@ nPt_Range  = int(ptMax/5.0)
 nEta_Range =  12
 EtaLines   = [-1.6, -0.8, +0.8, +1.6]
 EtaRange   = [[-etaMax, -1.6, ROOT.kRed+1], [+etaMax, +1.6, ROOT.kRed+1], [-1.6, -0.8, ROOT.kYellow-4], [+0.8, +1.6, ROOT.kYellow-4], [-0.8, +0.8, ROOT.kGreen+1] ]
-
+PtRange   = [ [0.0, 20.0, ROOT.kRed+1], [40.0, 80.0, ROOT.kTeal+1] ]
 
 #================================================================================================
 # Histogram Options
@@ -83,7 +83,7 @@ EtaRange   = [[-etaMax, -1.6, ROOT.kRed+1], [+etaMax, +1.6, ROOT.kRed+1], [-1.6,
 
 
 Pt = {
-    "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00 , "xMax": ptMax, "binWidthX": None, "xCutLines": [10], "xCutBoxes": [], "gridX": True, "logX": False, 
+    "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00 , "xMax": ptMax, "binWidthX": None, "xCutLines": [10], "xCutBoxes": PtRange, "gridX": True, "logX": False, 
     "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E-01, "yMax": None , "binWidthY": None, "yCutLines": [1], "yCutBoxes": [], "yCutLinesRatio": True, "gridY": True, "logY": True , 
     "ratioLabel": "Ratio", "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "drawOptions": "HIST", "legOptions": "FL",
     "logYRatio": False, "logXRatio": False, "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
@@ -115,32 +115,30 @@ AllElectronsEta     = histos.DrawObject( folder, "AllElectronsEta"   , "all"   ,
 def DoPlots(histo, datasetObjects, intLumi, bColourPalette=False, savePostfix=""):
 
     p = plotter.Plotter(verbose, batchMode)
-    p.SetupRoot()
+    p.SetupRoot(0, 4, 999, 2000)
     # p.SetupStatsBox("ksiourmen", xPos=0.90, yPos=0.88, width=0.20, height=0.12)
-
+    # p.SetAttribute("verbose", True)
+    
     p.AddDatasets(datasetObjects)
     p.DatasetAsLegend(True)
     p.AddDrawObject(histo)
-    #p.AddTF1("cos(x)", 0, 100, {"lineColour": ROOT.kRed})
-
+    
     p.NormaliseHistos("toLuminosity")
     # p.NormaliseHistos("byXSection")
     # p.NormaliseHistos("toOne")
-    p.CustomiseHistos()
-
-
-    # p.SetAttribute("verbose", True)
 
     
-    p.CreateCanvas(ratio) #ratio
+    p.CreateCanvas(ratio)
+    p.AddTF1("1000*cos(x)", 0, 200.0, {"lineColour": ROOT.kBlack})
+    p.AddCmsText("13", intLumi, prelim=True)
     # p.Draw(THStackDrawOpt="nostack", includeStack = False, bAddReferenceHisto = True)
     p.Draw(THStackDrawOpt="stack", includeStack = False, bAddReferenceHisto = True)
-    # p.Draw()    
-    p.DrawCmsText("13", intLumi, prelim=True)
+    # p.Draw()
 
     
+    p.Save()    
     # p.SaveAs(savePath, histo.GetName() + "_test", savePostfix, saveFormats)
-    p.Save()
+
     
     return
 
@@ -185,7 +183,6 @@ def main():
     # One Histogram on a given canvas (many datasets)
     for h in histoList:
         DoPlots( h, datasetObjects, intLumi, False )
-
     # Many Histograms on a given canvas (many datasets)
     #DoPlots( histoList, datasetObjects, False )
 

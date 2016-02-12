@@ -115,7 +115,7 @@ class TDRStyle:
         # Margins:
         #self.rightMargin = 0.1 
         self.rightMargin = 0.05 #default!
-        self.tdrStyle.SetPadTopMargin(0.049) # default: 0.05
+        self.tdrStyle.SetPadTopMargin(0.050) # default: 0.05
         #self.tdrStyle.SetPadTopMargin(0.13)
         self.tdrStyle.SetPadBottomMargin(0.13)
         #self.tdrStyle.SetPadLeftMargin(0.13)
