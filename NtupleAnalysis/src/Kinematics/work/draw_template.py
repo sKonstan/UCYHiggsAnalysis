@@ -134,7 +134,7 @@ def DoPlots(histo, datasetObjects, intLumi, bColourPalette=False, savePostfix=""
 
     
     p.CreateCanvas(ratio)
-    p.CreateLegend()
+    #p.CreateLegend()
     # p.Draw(THStackDrawOpt="nostack", includeStack = False, bAddReferenceHisto = True)
     p.Draw(THStackDrawOpt="stack", includeStack = False, bAddReferenceHisto = True)
     # p.Draw()    
