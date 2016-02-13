@@ -868,14 +868,15 @@ class DatasetManager:
         '''
         self.Verbose()
         
-        datasetNames = self.mcrab.GetDatasetsFromMulticrabDir(baseDir)
-        #self.Print("Appending %s datasets found under directory %s" % (len(datasetNames), baseDir))
-        self.Print("Appending %s datasets to the dataset manager:\n\t%s" % (len(datasetNames), datasetNames))
-                
+        datasetNames = self.mcrab.GetDatasetsFromMulticrabDir(baseDir)    
+        datasetNames.sort(key=lambda x: x.lower())
+        self.Print("Appending %s (alphabeetically sorted) datasets to the dataset manager:\n\t%s" % (len(datasetNames), datasetNames))
+        
         for dName in datasetNames:
             rootFile      = self.mcrab.GetDatasetRootFile(baseDir, dName)
             datasetObject = Dataset(baseDir, dName, self.analysisName, rootFile, self.verbose)            
             self.Append(datasetObject)
+            
         return
 
         

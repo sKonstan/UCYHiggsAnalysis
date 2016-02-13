@@ -86,32 +86,34 @@ class Plotter(object):
         self.Verbose()
 
         self.includeStack = includeStack
-        if THStackDrawOpt=="nostack":
-            for dataset in self.Datasets:
-                dataset.histo.THisto.SetFillStyle(3002) #xenios
-                
-        self._CheckHistogramBinning() #xenios
-        self._AddHistogramsToStack()
+        self._CheckHistosBinning()
+        self._AddHistosToStack()
         self._DrawHistograms(THStackDrawOpt)
         self._DrawNonHistoObjects()    
-        self._CustomiseStack()
-        self.TLegend.Draw("same")
-        self.THDumbie.THisto.Draw("same")
+        self._RedrawVitalObjects()
         return
 
 
+    def _RedrawVitalObjects(self):
+        self.Verbose()
+
+        self.TLegend.Draw("same")
+        # self._CreateLegendDumbie() #xenios
+        # self.TLegendDumbie.Draw("same")
+        self.THDumbie.THisto.Draw("same")
+        return
+    
+    
     def DrawRatio(self, refDataset):
         self.Verbose()
 
         if not hasattr(self, "TPadRatio"):
             raise Exception("Cannot call DrawRatio() without calling CreateCanvas(True) first!")
 
-        self.TPadRatio.cd()
-    
-        # Create the histogram that will divide all other histograms in the THStackRatio (Normalisation histogram)
         if refDataset not in self.GetDatasetNames():
             raise Exception("Cannot call DrawRatio(). The reference dataset '%s' cannot be found!" % (refDataset) )
 
+        self.TPadRatio.cd()        
         for h in self.GetHistos():
             if h.dataset.name == refDataset:
                 hDenominator = copy.deepcopy(h.THisto)
@@ -126,7 +128,7 @@ class Plotter(object):
                 self.THStackRatio.Add(hRatio)
 
         # Add a line at y=1
-        line = self._GetTLine(self.THDumbie.xMin, self.THDumbie.xMax, 1.0, 1.0, lineColour)
+        line = self._GetTLine(self.THDumbie.xMin, self.THDumbie.xMax, 1.0, 1.0, lineColour, 2, ROOT.kSolid)
         self.ExtendDrawLists(line, True, False)
         self.CustomiseTHRatio() #xenios
         self.THRatio.THisto.Draw()
@@ -134,33 +136,7 @@ class Plotter(object):
         self.TPadPlot.cd()
         return
 
-
-
-    def _AddHistogramsToStack(self):  #xenios
-        '''
-        Add all histograms (except Dumbie) to a THStack. For each histogram add a TLegend entry
-        and automatically extend the size of the TLegend to accomodate the next entry.
-        '''
-        self.Verbose()
-
-        for histo in self.GetHistos():
-            self.THStack.Add(histo.THisto)
-            self.THStackHistoList.append(histo.THisto)
-            self.ExtendLegend(histo)
-        return
-
     
-    def _CustomiseStack(self):
-        '''
-        Customise the THStack. Apply x- and y-axis range. Can also implement the inclusive error bar (if histos stacks) in the future,
-        by cloning the stack and drawing only the errors with "E1" option?
-        '''
-        self.Verbose()
-        self.THStack.GetYaxis().SetRangeUser(self.THDumbie.yMin, self.THDumbie.yMax)
-        self.THStack.GetXaxis().SetRangeUser(self.THDumbie.xMin, self.THDumbie.xMax)
-        return
-        
-
     def _DrawHistograms(self, THStackDrawOpt):
         '''
         Draw the THDumbie. Draw the THStack . Create the CutBoxes and CutLines. 
@@ -175,32 +151,6 @@ class Plotter(object):
         self.DrawStackInclusive()
         self.THStack.Draw(THStackDrawOpt + "," + self.THDumbie.drawOptions + "," +  "9same") #"PADS"    
         self.UpdateCanvas()
-        return
-
-
-    def CustomiseTHRatio(self):
-        '''
-        Apply all necessary customisations to self.THRatio histogram.
-        '''
-
-        # Customise axes and titles
-        if self.THRatio.yMinRatio == None:
-            self.THRatio.yMinRatio = self.THStackRatio.GetMinimum("nostack")*self.THRatio.GetYMinFactor(self.THRatio.logYRatio)
-        if self.THRatio.yMaxRatio == None:
-            self.THRatio.yMaxRatio = self.THStackRatio.GetMaximum("nostack")*self.THRatio.GetYMaxFactor(self.THRatio.logYRatio)
-
-        # Customise the title
-        self.THRatio.THisto.GetXaxis().SetTitleOffset(3.2) #was: 2.8
-        self.THRatio.THisto.GetYaxis().SetTitle(self.THRatio.ratioLabel)
-
-        # Customise the y-axis
-        self.THRatio.yMax = self.THRatio.yMinRatio
-        self.THRatio.yMin = self.THRatio.yMaxRatio
-        self.THRatio.THisto.GetYaxis().SetNdivisions(505)
-        self.THRatio.THisto.GetYaxis().SetRangeUser(self.THRatio.yMinRatio, self.THRatio.yMaxRatio)
-        self.THRatio.THisto.GetYaxis().SetTitleOffset(1.8) 
-        self.THDumbie.THisto.GetYaxis().SetTitleOffset(1.8)
-        
         return
 
 
@@ -245,35 +195,6 @@ class Plotter(object):
         line.SetLineStyle(style)
         # line.Draw() #xenios
         return
-
-
-    def _CheckHistoBinning(self, histoObject):
-        '''
-        Ensure that the histoObject has exactly the same binning as the TH1Dubmie.
-        '''
-        self.Verbose()
-
-        binWidthX         = self.THDumbie.binWidthX
-        binZeroWidth      = self.THDumbie.THisto.GetXaxis().GetBinWidth(0)
-        tmpBinWidthX      = histoObject.binWidthX
-        tmpBinZeroWidth   = histoObject.THisto.GetXaxis().GetBinWidth(0)
-
-        if (tmpBinWidthX != binWidthX or tmpBinZeroWidth!=binZeroWidth):
-            raise Exception("At least one of the histogram in the plotting queue has a different x-axis binning! Please make sure all your histogram bins are identical.")
-        return 
-
-
-    def _CheckHistogramBinning(self):
-        '''
-        Ensure that all histoObjects have exactly the same binning as the TH1Dubmie.
-        '''
-        self.Verbose()
-
-        binWidthX    = self.THDumbie.binWidthX
-        binZeroWidth = self.THDumbie.THisto.GetXaxis().GetBinWidth(0)    
-        for dataset in self.Datasets:
-            self._CheckHistoBinning(dataset.histo)
-        return 
     
         
     def DatasetAsLegend(self, flag):
@@ -351,7 +272,7 @@ class Plotter(object):
         '''
         self.Print()
         
-        response = raw_input("\t" + msg + ". Press \"%s\" to quit, any other key to proceed: " % (keystroke))
+        response = raw_input("\tWARNING! " + msg + ". Press \"%s\" to quit, any other key to proceed: " % (keystroke))
         if response== "q":
             sys.exit()
         else:
@@ -395,7 +316,7 @@ class Plotter(object):
             self.TCanvas.Divide(1,2)
             self.THDumbie.RemoveBinLabelsX()
             self.THDumbie.RemoveTitleX()
-            self._CreatePads()
+            self._CreateTPads()
             self.TPadPlot.cd()
 
         self._SetLogAxes(twoPads)
@@ -405,7 +326,7 @@ class Plotter(object):
         return
 
 
-    def _CreatePads(self):
+    def _CreateTPads(self):
         '''
         Create the plot, ratio and cover pads.
         '''
@@ -413,7 +334,7 @@ class Plotter(object):
 
         self._CreateTPadPlot()
         self._CreateTPadRatio()
-        self._CreatePadCover()
+        self._CreateTPadCover()
         return
 
 
@@ -862,7 +783,7 @@ class Plotter(object):
         return
 
 
-    def _CreatePadCover(self, xMin=0.08, yMin=0.285, xMax=0.16, yMax=0.32):
+    def _CreateTPadCover(self, xMin=0.08, yMin=0.285, xMax=0.16, yMax=0.32):
         '''
         Creates a cover pad to cover the overlap of the y-axis divisions between the TPadPlot and the TPadRatio.
         '''
@@ -894,9 +815,24 @@ class Plotter(object):
         histo = self.THDumbie
         self.TLegend = ROOT.TLegend(histo.xLegMin, histo.yLegMin, histo.xLegMax, histo.yLegMax, "", "brNDC")
         self._CustomiseLegend()
-        self.ExtendDrawLists(self.TLegend, addToRatio=False) #xenios
+        self.ExtendDrawLists(self.TLegend, addToRatio=False)
         return
-    
+
+
+#    def _CreateLegendDumbie(self):
+#        self.Verbose()
+#        
+#        if hasattr(self, 'TLegendDumbie'):
+#            return
+#
+#        self.TLegendDumbie = ROOT.TLegend(self.THDumbie.xLegMin, self.THDumbie.yLegMin, self.THDumbie.xLegMax, self.THDumbie.yLegMax, "", "brNDC")
+#        self._CustomiseLegend()
+#        for histo in self.GetHistos():
+#            histo.THisto.SetLineColor(ROOT.kBlack)
+#            self.TLegendDumbie.AddEntry(histo.THisto, "", "F")
+#        #self.ExtendDrawLists(self.TLegendDumbie, addToRatio=False)
+#        return
+#    
 
     def _CustomiseLegend(self):
         self.Verbose()
@@ -975,7 +911,7 @@ class Plotter(object):
             
         for value in self.THDumbie.yCutLines:
             line = self._GetTLine(self.THDumbie.xMin, self.THDumbie.xMax, value, value)
-            self._CustomiseTLine(line, ROOT.kBlack, 2, ROOT.kDashed)
+            self._CustomiseTLine(line, ROOT.kBlack, 2, ROOT.kDashDotted)
             self.TLineListY.append(line)
             self.ExtendLegend(line, "y = %s" % (value), "L" )
         return
@@ -1121,8 +1057,7 @@ class Plotter(object):
         emptyHisto.THisto.SetName(newName)
         emptyHisto.THisto.Reset("ICES")    
         emptyHisto.THisto.GetYaxis().SetRangeUser(yMin, yMax)
-            
-        # Set Line Colour and Width
+        emptyHisto.THisto.GetYaxis().SetTitleOffset(1.8)
         emptyHisto.THisto.SetLineColor(ROOT.kBlack)
         emptyHisto.THisto.SetLineWidth(0)
 
@@ -1195,5 +1130,70 @@ class Plotter(object):
             f1.SetLineWidth( kwargs.get("lineWidth") )
 
         self.ExtendDrawLists(f1, addToRatio=True)
+        return
+
+    
+    def CustomiseTHRatio(self):
+        self.Verbose()
+
+        # Customise the x-axis
+        self.THRatio.THisto.GetXaxis().SetTitleOffset(3.2) #was: 2.8
+
+        # Customise the y-axis
+        self.THRatio.THisto.GetYaxis().SetTitle(self.THRatio.ratioLabel)    
+        self.THRatio.yMax = self.THRatio.yMinRatio
+        self.THRatio.yMin = self.THRatio.yMaxRatio        
+        self.THRatio.THisto.GetYaxis().SetNdivisions(505)
+        self.THRatio.THisto.GetYaxis().SetRangeUser(self.THRatio.yMinRatio, self.THRatio.yMaxRatio)
+        self.THRatio.THisto.GetYaxis().SetTitleOffset(1.8)         
+        return
+
+    
+    def _CheckHistoBinning(self, histoObject):
+        '''
+        Ensure that the histoObject has exactly the same binning as the TH1Dubmie.
+        '''
+        self.Verbose()
+
+        binWidthX         = self.THDumbie.binWidthX
+        binZeroWidth      = self.THDumbie.THisto.GetXaxis().GetBinWidth(0)
+        tmpBinWidthX      = histoObject.binWidthX
+        tmpBinZeroWidth   = histoObject.THisto.GetXaxis().GetBinWidth(0)
+
+        if (tmpBinWidthX != binWidthX or tmpBinZeroWidth!=binZeroWidth):
+            raise Exception("At least one of the histogram in the plotting queue has a different x-axis binning! Please make sure all your histogram bins are identical.")
+        return 
+
+    def _CheckHistosBinning(self):
+        '''
+        Ensure that all histoObjects have exactly the same binning as the TH1Dubmie.
+        '''
+        self.Verbose()
+
+        binWidthX    = self.THDumbie.binWidthX
+        binZeroWidth = self.THDumbie.THisto.GetXaxis().GetBinWidth(0)    
+        for dataset in self.Datasets:
+            self._CheckHistoBinning(dataset.histo)
+        return 
+    
+
+    def _AddHistosToStack(self):
+        '''
+        Add all histograms (except Dumbie) to a THStack. For each histogram add a TLegend entry
+        and automatically extend the size of the TLegend to accomodate the next entry.
+        '''
+        self.Verbose()
+
+        for histo in self.GetHistos():
+            self.THStack.Add(histo.THisto)
+            self.THStackHistoList.append(histo.THisto)
+            self.ExtendLegend(histo)
+        return
+
+
+    def SetHistosFillStyle(self, style):
+        self.Verbose()
+        for dataset in self.Datasets:
+            dataset.histo.THisto.SetFillStyle(style)
         return
     

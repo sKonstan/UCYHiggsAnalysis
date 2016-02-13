@@ -17,6 +17,13 @@ import ROOT
 # Class Definition 
 #================================================================================================
 class StyleClass(object):
+    '''
+    Colours: https://root.cern.ch/doc/master/classTColor.html
+    root [0] TColorWheel *w = new TColorWheel();
+    root [1] w->Draw();
+
+    Markers: https://root.cern.ch/doc/v606/classTAttMarker.html
+    '''
     def __init__(self, verbose = False):
         self.verbose                = verbose
         self.TextObject             = text.TextClass(verbose=self.verbose)
@@ -35,15 +42,15 @@ class StyleClass(object):
         self.lineStyleCounter       = {}
         self.colourShade            = {}
         self.MsgCounter             = 0
-        self._SetDefaults("ttHJetToNonbb_M125" , colour=ROOT.kRed+1    , mStyle=ROOT.kOpenCircle      , lWidth=2, lStyle=ROOT.kDashed, fStyle=1001, drawOpts="HIST", legOpts="F")
-        self._SetDefaults("TTJets"             , colour=ROOT.kMagenta+2, mStyle=ROOT.kFullCircle      , lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, drawOpts="HIST", legOpts="F")
-        self._SetDefaults("DYJetsToLL_M_10to50", colour=ROOT.kYellow-7 , mStyle=ROOT.kFullTriangleUp  , lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, drawOpts="HIST", legOpts="F")
-        self._SetDefaults("WJetsToLNu"         , colour=ROOT.kBlue+1   , mStyle=ROOT.kFullTriangleDown, lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, drawOpts="HIST", legOpts="F")
-        self._SetDefaults("WW"                 , colour=ROOT.kGreen    , mStyle=ROOT.kOpenTriangleUp  , lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, drawOpts="HIST", legOpts="F")
-        self._SetDefaults("WZ"                 , colour=ROOT.kGreen+2  , mStyle=ROOT.kOpenTriangleUp  , lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, drawOpts="HIST", legOpts="F")
-        self._SetDefaults("ZZ"                 , colour=ROOT.kGreen-2  , mStyle=ROOT.kOpenTriangleUp  , lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, drawOpts="HIST", legOpts="F")
-        self._SetDefaults("Data"               , colour=ROOT.kBlack    , mStyle=ROOT.kFullCircle      , lWidth=2, lStyle=ROOT.kDashed, fStyle=1001, drawOpts="HIST", legOpts="F")
-        self._SetDefaults("Inclusive"          , colour=ROOT.kGray     , mStyle=ROOT.kOpenCircle      , lWidth=3, lStyle=ROOT.kSolid , fStyle=0   , drawOpts="HIST", legOpts="F")
+        self._SetDefaults("ttHJetToNonbb_M125" , colour=ROOT.kOrange+10, mStyle=ROOT.kOpenCircle      , lWidth=2, lStyle=ROOT.kDashed, fStyle=1001, mSize = 1.0, drawOpts="HIST", legOpts="F")
+        self._SetDefaults("TTJets"             , colour=ROOT.kGray     , mStyle=ROOT.kCircle          , lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, mSize = 1.0, drawOpts="HIST", legOpts="F")
+        self._SetDefaults("DYJetsToLL_M_10to50", colour=ROOT.kGreen-9  , mStyle=ROOT.kOpenTriangleUp  , lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, mSize = 1.0, drawOpts="HIST", legOpts="F")
+        self._SetDefaults("WJetsToLNu"         , colour=ROOT.kMagenta-7, mStyle=ROOT.kOpenTriangleDown, lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, mSize = 1.0, drawOpts="HIST", legOpts="F")
+        self._SetDefaults("WW"                 , colour=ROOT.kBlue-4   , mStyle=ROOT.kMultiply        , lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, mSize = 1.0, drawOpts="HIST", legOpts="F")
+        self._SetDefaults("WZ"                 , colour=ROOT.kMagenta-6, mStyle=ROOT.kOpenSquare      , lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, mSize = 1.0, drawOpts="HIST", legOpts="F")
+        self._SetDefaults("ZZ"                 , colour=ROOT.kCyan-7   , mStyle=ROOT.kOpenTriangleUp  , lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, mSize = 1.0, drawOpts="HIST", legOpts="F")
+        self._SetDefaults("Data"               , colour=ROOT.kBlack    , mStyle=ROOT.kFullCircle      , lWidth=2, lStyle=ROOT.kDashed, fStyle=1001, mSize = 1.0, drawOpts="HIST", legOpts="F")
+        self._SetDefaults("Inclusive"          , colour=ROOT.kGreen-5  , mStyle=ROOT.kFullCross      , lWidth=3, lStyle=ROOT.kSolid , fStyle=0   , mSize = 1.0, drawOpts="HIST", legOpts="F")
         self._SetSpecials("random", colour = cycle(self.colourPaletteList).next(), mStyle=ROOT.kFullCircle, lWidth=3, lStyle=0, fStyle=3001, drawOpts="HIST", legOpts="F")
         self.Verbose()
         return
@@ -172,8 +179,8 @@ class StyleClass(object):
         markerStyle = getattr(self, styleType + "_mStyle"  )
 
         self.Verbose(["StyleType '%s', FillColour = '%s'" % (styleType, fillColour)])        
-        markerSize  = 1.0
         lineColour  = fillColour
+        markerSize  = getattr(self, styleType + "_mSize"    )
         lineWidth   = getattr(self, styleType + "_lWidth"   )
         lineStyle   = getattr(self, styleType + "_lStyle"   )
         fillStyle   = getattr(self, styleType + "_fStyle"   )
@@ -189,8 +196,8 @@ class StyleClass(object):
         markerStyle = getattr(self, styleType + "_mStyle"  )
 
         self.Verbose(["StyleType '%s', FillColour = '%s'" % (styleType, fillColour)])
-        markerSize  = 1.0
         lineColour  = fillColour
+        markerSize  = getattr(self, styleType + "_mSize"    )
         lineWidth   = getattr(self, styleType + "_lineWidth" )
         lineStyle   = getattr(self, styleType + "_lineStyle" )
         fillStyle   = 3002 #self.fillStyleCounter[styleType].next()
@@ -206,8 +213,8 @@ class StyleClass(object):
         
         fillColour  = getattr(self, styleType + "_colour" ) + self.colourShade[styleType].next()
         markerStyle = self.markerStyleCounter[styleType].next()
-        markerSize  = 1.0
         lineColour  = fillColour
+        markerSize  = getattr(self, styleType + "_mSize"     )
         lineWidth   = getattr(self, styleType + "_lineWidth" )
         lineStyle   = getattr(self, styleType + "_lineStyle" )
         fillStyle   = getattr(self, styleType + "_fillStyle" )
@@ -223,9 +230,8 @@ class StyleClass(object):
         
         fillColour  = getattr(self, styleType + "_colour" ) + self.colourShade[styleType].next()
         markerStyle = self.markerStyleCounter[styleType].next()
-        markerSize  = 1.0
-
         lineColour  = fillColour
+        markerSize  = getattr(self, styleType + "_mSize"    )
         lineWidth   = getattr(self, styleType + "_lineWidth" )
         lineStyle   = getattr(self, styleType + "_lineStyle" ) # + self.lineStyleCounter[styleType].next()
 

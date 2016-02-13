@@ -61,8 +61,8 @@ nPt_Range  = int(ptMax/5.0)
 nEta_Range =  12
 EtaLines   = [-1.6, -0.8, +0.8, +1.6]
 EtaRange   = [[-etaMax, -1.6, ROOT.kRed+1], [+etaMax, +1.6, ROOT.kRed+1], [-1.6, -0.8, ROOT.kYellow-4], [+0.8, +1.6, ROOT.kYellow-4], [-0.8, +0.8, ROOT.kGreen+1] ]
-PtRange    = [ [40.0, 80.0, ROOT.kTeal+1] ]
-EvtRange   = [ [1E2, 1E5, ROOT.kBlack] ]
+PtRange    = [ [40.0, 80.0, ROOT.kBlack] ]
+EvtRange   = [ [1E2, 1E4, ROOT.kBlack] ]
 
 #================================================================================================
 # Histogram Options
@@ -70,8 +70,8 @@ EvtRange   = [ [1E2, 1E5, ROOT.kBlack] ]
 Pt = {
     "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00 , "xMax": ptMax, "binWidthX": None, "xCutLines": [20], "xCutBoxes": PtRange  , "gridX": True, "logX": False, 
     "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E-01, "yMax": None , "binWidthY": None, "yCutLines": [10], "yCutBoxes": EvtRange, "gridY": True, "logY": True,
-    "ratioLabel": "Ratio", "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "drawOptions": "HIST", "legOptions": "FL", "yCutLinesRatio": True,
-    "logYRatio": False, "logXRatio": False, "xLegMin": 0.70, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92, "gridXRatio": True, "gridYRatio": True,
+    "ratioLabel": "Ratio", "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "drawOptions": "HIST", "legOptions": "F", 
+    "logYRatio": False, "logXRatio": False, "xLegMin": 0.70, "xLegMax": 0.95, "yLegMin": 0.78, "yLegMax": 0.93, "gridXRatio": True, "gridYRatio": True,
 }
 
 
@@ -123,6 +123,7 @@ def DoPlots(histo, datasetObjects, intLumi, bColourPalette=False, savePostfix=""
     p.AddCmsText("13", intLumi, prelim=True)
 
 
+    #p.SetHistosFillStyle(3001)
     p.DrawRatio("ttHJetToNonbb_M125") # MUST be called BEFORE p.Draw()
     # p.DrawRatio("DYJetsToLL_M_10to50")   # MUST be called BEFORE p.Draw()
 
