@@ -93,7 +93,6 @@ class Plotter(object):
         self._CheckHistogramBinning() #xenios
         self._AddHistogramsToStack()
         self._DrawHistograms(THStackDrawOpt)
-        #self._DrawRatioHistograms(bAddReferenceHisto) #xenios
         self._DrawNonHistoObjects()    
         self._CustomiseStack()
         self.TLegend.Draw("same")
@@ -144,15 +143,13 @@ class Plotter(object):
         '''
         self.Verbose()
 
-        # For-loop: All histos
         for histo in self.GetHistos():
             self.THStack.Add(histo.THisto)
             self.THStackHistoList.append(histo.THisto)
-            self.TLegend.AddEntry( histo.THisto, self.GetLegLabel(histo), histo.GetAttribute("legOptions"))
-            self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
+            self.ExtendLegend(histo)
         return
 
-
+    
     def _CustomiseStack(self):
         '''
         Customise the THStack. Apply x- and y-axis range. Can also implement the inclusive error bar (if histos stacks) in the future,
@@ -180,62 +177,6 @@ class Plotter(object):
         self.UpdateCanvas()
         return
 
-
-    def _DrawRatioHistograms(self, bAddReferenceHisto=True):
-        '''
-        Draw all plots on the TPadRatio (if applicable).
-        For efficiencies and errors see:
-        http://steve.cooleysekula.net/goingupalleys/2011/08/09/python-and-root-tricks-efficiency-graphs/
-        '''
-        self.Verbose()
-
-        if not hasattr(self, "TPadRatio"):
-            return
-
-        self.TPadRatio.cd()        
-
-        # Create the histogram that will divide all other histograms in the THStackRatio (Normalisation histogram)
-        hDenominator = copy.copy( self.THStackHistoList[0] ) 
-        self.Print("Using histogram '%s' as denominator for ratio plots! " % (hDenominator.GetName()))
-        
-        # Add the reference ratio plot (to enable the identification of the histogram used for the normalisation)
-        # Note: Do not add the hReference histogram  before calling the function self.CustomiseTHRatio(). 
-        if bAddReferenceHisto:
-            hReference = copy.deepcopy(hDenominator)
-            hReference.Divide(hReference)
-            hReference.SetMarkerSize(0)
-            hReference.SetLineStyle(ROOT.kSolid)            
-            for iBin in range (1, hReference.GetNbinsX()+1):
-                hReference.SetBinError(iBin, 0.00000000001)
-            self.THStackRatio.Add(hReference)
-
-        # Loop over all histograms in the THStack and create the THStackRatio.
-        for h in self.THStackHistoList:
-            if h == self.THStackHistoList[0]:                
-                continue
-
-            # Copy Active histogram
-            hRatio     = copy.deepcopy(h)
-            hNumerator = copy.deepcopy(h)
-            
-            # Divide the active histogram with the normalisation histogram
-            hRatio.Divide(hNumerator, hDenominator, 1.0, 1.0, "B") #"B" = Binomial
-
-            # Finally, add this ratio histogram to the THStackRatio
-            self.THStackRatio.Add(hRatio)
-
-        # Customise axes and titles
-        self.CustomiseTHRatio()
-
-        # Draw the Ratio Stack with "nostack" option
-        self.THRatio.THisto.Draw()
-        self.THStackRatio.Draw("nostack9sameAP")
-        
-        # Switch back to the TPadPlot (necessary)
-        self.TPadPlot.cd()
-        return
-
-    
 
     def CustomiseTHRatio(self):
         '''
@@ -274,11 +215,13 @@ class Plotter(object):
             return
 
         inclusive = self.THStack.GetStack().Last()
-        inclusive.SetFillStyle(0)
-        inclusive.SetFillColor(ROOT.kGray)
-        inclusive.SetLineColor(ROOT.kGray)
-        inclusive.SetLineStyle(ROOT.kSolid)
-        inclusive.SetLineWidth(3)
+
+        d.histo.ApplyStyles()
+        #inclusive.SetFillStyle(0)
+        #inclusive.SetFillColor(ROOT.kGray)
+        #inclusive.SetLineColor(ROOT.kGray)
+        #inclusive.SetLineStyle(ROOT.kSolid)
+        #inclusive.SetLineWidth(3)
 
         if self.THDumbie.yMax < inclusive.GetMaximum():
             yMaxNew = inclusive.GetMaximum()
@@ -288,11 +231,7 @@ class Plotter(object):
         else:
             pass
         inclusive.Draw( self.THDumbie.GetAttribute("drawOptions") )
-        
-        # Add histogram entry to the legend
-        self.TLegend.AddEntry( inclusive, "inclusive", "L" )
-        self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
-
+        self.ExtendLegend(histo)
         return
 
 
@@ -1019,8 +958,9 @@ class Plotter(object):
             
         for value in self.THDumbie.xCutLines:
             line = self._GetTLine(value, value, self.THDumbie.yMin, self.THDumbie.yMax)
-            self.TLegend.SetY1( self.TLegend.GetY1() - 0.02) #xenios
-            self.TLineListX.append(line) #xenios
+            self._CustomiseTLine(line, ROOT.kBlack, 2, ROOT.kDashed)
+            self.TLineListX.append(line)
+            self.ExtendLegend(line, "x = %s" % (value), "L" )
         return
                 
     
@@ -1035,9 +975,9 @@ class Plotter(object):
             
         for value in self.THDumbie.yCutLines:
             line = self._GetTLine(self.THDumbie.xMin, self.THDumbie.xMax, value, value)
-            self._CustomiseTLine(line, ROOT.kBlack, 3, ROOT.kDashed)
-            self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
+            self._CustomiseTLine(line, ROOT.kBlack, 2, ROOT.kDashed)
             self.TLineListY.append(line)
+            self.ExtendLegend(line, "y = %s" % (value), "L" )
         return
 
 
@@ -1086,6 +1026,7 @@ class Plotter(object):
             self.TBoxListX.append(cutBox)
             self.TLineListX.append(cline1)
             self.TLineListY.append(cline2)
+            self.ExtendLegend(cline1, "x = [%s, %s]" % (xMin, xMax), "L" )
         return
 
 
@@ -1113,7 +1054,8 @@ class Plotter(object):
             self.TBoxListX.append(cutBox)
             self.TBoxListX.append(cutBox)
             self.TLineListX.append(cline1)
-            self.TLineListY.append(cline2)            
+            self.TLineListY.append(cline2)
+            self.ExtendLegend(cline1, "y = [%s, %s]" % (xMin, xMax), "L" )
         return
 
 
@@ -1209,7 +1151,32 @@ class Plotter(object):
             self.drawList.extend(drawList)
         return 
 
+    
+    def ExtendLegend(self, drawObject, label="label", opts="L"):
+        '''
+        Append a drawable object of any type (TCanvas, TLegend, TLine, TBox, etc..) to the TCanvas.
+        At the same time increase the TLegend y-size to accomodate this new entry
+        '''
+        self.Verbose()
 
+        if not hasattr(self, 'TLegend'):
+            raise Exception("Cannot add drawObject '%s' to the TLegend, as the latter has not been created yet." % (drawObject) )
+        deltaY = self.TLegend.GetY1() - 0.025
+            
+        if isinstance(drawObject, histos.DrawObject):
+            histo  = drawObject.THisto
+            label  = self.GetLegLabel(drawObject)
+            opts   = drawObject.GetAttribute("legOptions")            
+            self.TLegend.AddEntry(histo, label, opts)
+        elif isinstance(drawObject, (ROOT.TH1, ROOT.TH2, ROOT.TH3, ROOT.TLine, ROOT.TBox) ):
+            self.TLegend.AddEntry(drawObject, label, opts)            
+        else:
+            raise Exception("Cannot add drawObject '%s' (type='%s') to the TLegend. Unsupported type" % (drawObject, type(drawObject) ) )
+
+        self.TLegend.SetY1(deltaY)
+        return
+
+        
     def AddTF1(self, myFunction, xMin, xMax, addToRatio, kwargs={}):
         self.Verbose()
 

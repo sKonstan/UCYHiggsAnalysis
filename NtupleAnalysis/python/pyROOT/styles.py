@@ -42,7 +42,8 @@ class StyleClass(object):
         self._SetDefaults("WW"                 , colour=ROOT.kGreen    , mStyle=ROOT.kOpenTriangleUp  , lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, drawOpts="HIST", legOpts="F")
         self._SetDefaults("WZ"                 , colour=ROOT.kGreen+2  , mStyle=ROOT.kOpenTriangleUp  , lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, drawOpts="HIST", legOpts="F")
         self._SetDefaults("ZZ"                 , colour=ROOT.kGreen-2  , mStyle=ROOT.kOpenTriangleUp  , lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, drawOpts="HIST", legOpts="F")
-        self._SetDefaults("Data"               , colour=ROOT.kBlack    , mStyle=ROOT.kOpenCircle, lWidth=2, lStyle=ROOT.kDashed, fStyle=1001, drawOpts="HIST", legOpts="F")
+        self._SetDefaults("Data"               , colour=ROOT.kBlack    , mStyle=ROOT.kFullCircle      , lWidth=2, lStyle=ROOT.kDashed, fStyle=1001, drawOpts="HIST", legOpts="F")
+        self._SetDefaults("Inclusive"          , colour=ROOT.kGray     , mStyle=ROOT.kOpenCircle      , lWidth=3, lStyle=ROOT.kSolid , fStyle=0   , drawOpts="HIST", legOpts="F")
         self._SetSpecials("random", colour = cycle(self.colourPaletteList).next(), mStyle=ROOT.kFullCircle, lWidth=3, lStyle=0, fStyle=3001, drawOpts="HIST", legOpts="F")
         self.Verbose()
         return
