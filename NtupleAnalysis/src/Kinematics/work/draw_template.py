@@ -61,7 +61,8 @@ nPt_Range  = int(ptMax/5.0)
 nEta_Range =  12
 EtaLines   = [-1.6, -0.8, +0.8, +1.6]
 EtaRange   = [[-etaMax, -1.6, ROOT.kRed+1], [+etaMax, +1.6, ROOT.kRed+1], [-1.6, -0.8, ROOT.kYellow-4], [+0.8, +1.6, ROOT.kYellow-4], [-0.8, +0.8, ROOT.kGreen+1] ]
-PtRange   = [ [0.0, 20.0, ROOT.kRed+1], [40.0, 80.0, ROOT.kTeal+1] ]
+PtRange    = [ [0.0, 20.0, ROOT.kRed+1], [40.0, 80.0, ROOT.kTeal+1] ]
+EvtRange   = [ [1E5, 1E8, ROOT.kBlack] ]
 
 #================================================================================================
 # Histogram Options
@@ -83,18 +84,19 @@ PtRange   = [ [0.0, 20.0, ROOT.kRed+1], [40.0, 80.0, ROOT.kTeal+1] ]
 
 
 Pt = {
-    "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00 , "xMax": ptMax, "binWidthX": None, "xCutLines": [10], "xCutBoxes": PtRange, "gridX": True, "logX": False, 
-    "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E-01, "yMax": None , "binWidthY": None, "yCutLines": [1], "yCutBoxes": [], "yCutLinesRatio": True, "gridY": True, "logY": True , 
-    "ratioLabel": "Ratio", "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "drawOptions": "HIST", "legOptions": "FL",
-    "logYRatio": False, "logXRatio": False, "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
+    "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00 , "xMax": ptMax, "binWidthX": None, "xCutLines": [10], "xCutBoxes": PtRange  , "gridX": True, "logX": False, 
+    "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E-01, "yMax": None , "binWidthY": None, "yCutLines": [100], "yCutBoxes": EvtRange, "gridY": True, "logY": True,
+    "ratioLabel": "Ratio", "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "drawOptions": "HIST", "legOptions": "FL", "yCutLinesRatio": True,
+    "logYRatio": False, "logXRatio": False, "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92, "gridXRatio": True, "gridYRatio": True,
 }
 
 
 Eta = {
-    "xLabel": "#eta"           , "xUnits": ""     , "xMin": -etaMax , "xMax": +etaMax, "binWidthX": None, "xCutLines": [0], "gridX": True, "gridXRatio": False, "logX": False, "xCutBoxes": [],  
-    "yLabel": "Entries / %0.2f", "yUnits": ""     , "yMin": +1e00   , "yMax": None   , "binWidthY": None, "yCutLines": [] , "gridY": True, "gridYRatio": False, "logY": True , "yCutBoxes": [],  
-    "ratioLabel": "Ratio"      , "yMinRatio": 1e-01, "yMaxRatio": 2.15 , "drawOptions": "P", "legOptions": "LP", 
-    "xCutBoxes": [[-1.0, -1.6, ROOT.kBlue], [+1.0, +1.6, ROOT.kBlue]], "yCutBoxes": [], "logYRatio": False, "logXRatio": False, "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
+    "xLabel": "#eta"           , "xUnits": "", "xMin": -etaMax, "xMax": +etaMax, "binWidthX": None, "xCutLines": [0], "gridX": True, "gridXRatio": False, "logX": False,
+    "yLabel": "Entries / %0.2f", "yUnits": "", "yMin": +1e00  , "yMax": None   , "binWidthY": None, "yCutLines": [] , "gridY": True, "gridYRatio": False, "logY": True ,
+    "xCutBoxes": [], "yCutBoxes": [],  "ratioLabel": "Ratio"      , "yMinRatio": 1e-01, "yMaxRatio": 2.15 , "drawOptions": "P", "legOptions": "LP", 
+    "xCutBoxes": [[-1.0, -1.6, ROOT.kBlue], [+1.0, +1.6, ROOT.kBlue]], "yCutBoxes": [], "logYRatio": False, "logXRatio": False,
+    "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
 }
 
 
@@ -137,11 +139,14 @@ def DoPlots(histo, datasetObjects, intLumi, bColourPalette=False, savePostfix=""
     p.AddCmsText("13", intLumi, prelim=True)
 
 
+    p.DrawRatio("ttHJetToNonbb_M125") # MUST be called BEFORE p.Draw()
+    # p.DrawRatio("DYJetsToLL_M_10to50")   # MUST be called BEFORE p.Draw()
+
     # p.Draw(THStackDrawOpt="nostack", includeStack = False, bAddReferenceHisto = True)
-    p.Draw(THStackDrawOpt="stack", includeStack = False, bAddReferenceHisto = True)
+    p.Draw(THStackDrawOpt="stack", includeStack = False, bAddReferenceHisto = False)    
     # p.Draw(THStackDrawOpt="stack", includeStack = True, bAddReferenceHisto = False)
     # p.Draw()
-
+    #p.DrawRatio("ttHJetToNonbb_M125")
     
     p.Save()    
     # p.SaveAs(savePath, histo.GetName() + "_test", savePostfix, saveFormats)

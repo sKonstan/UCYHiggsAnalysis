@@ -93,12 +93,48 @@ class Plotter(object):
         self._CheckHistogramBinning() #xenios
         self._AddHistogramsToStack()
         self._DrawHistograms(THStackDrawOpt)
-
-        self._DrawRatioHistograms(bAddReferenceHisto)
-        self._DrawNonHistoObjects()
+        #self._DrawRatioHistograms(bAddReferenceHisto) #xenios
+        self._DrawNonHistoObjects()    
         self._CustomiseStack()
+        self.TLegend.Draw("same")
         self.THDumbie.THisto.Draw("same")
         return
+
+
+    def DrawRatio(self, refDataset):
+        self.Verbose()
+
+        if not hasattr(self, "TPadRatio"):
+            raise Exception("Cannot call DrawRatio() without calling CreateCanvas(True) first!")
+
+        self.TPadRatio.cd()
+    
+        # Create the histogram that will divide all other histograms in the THStackRatio (Normalisation histogram)
+        if refDataset not in self.GetDatasetNames():
+            raise Exception("Cannot call DrawRatio(). The reference dataset '%s' cannot be found!" % (refDataset) )
+
+        for h in self.GetHistos():
+            if h.dataset.name == refDataset:
+                hDenominator = copy.deepcopy(h.THisto)
+                lineColour = h.THisto.GetLineColor()
+                break
+
+        for h in self.GetHistos():
+            hNumerator = copy.deepcopy(h.THisto)
+            hRatio     = copy.deepcopy(hNumerator)
+            hRatio.Divide(hNumerator, hDenominator, 1.0, 1.0, "B")
+            if h.dataset.name != refDataset:
+                self.THStackRatio.Add(hRatio)
+
+        # Add a line at y=1
+        line = self._GetTLine(self.THDumbie.xMin, self.THDumbie.xMax, 1.0, 1.0, lineColour)
+        self.ExtendDrawLists(line, True, False)
+        self.CustomiseTHRatio() #xenios
+        self.THRatio.THisto.Draw()
+        self.THStackRatio.Draw("nostack9sameAP")
+        self.TPadPlot.cd()
+        return
+
 
 
     def _AddHistogramsToStack(self):  #xenios
@@ -110,7 +146,6 @@ class Plotter(object):
 
         # For-loop: All histos
         for histo in self.GetHistos():
-            
             self.THStack.Add(histo.THisto)
             self.THStackHistoList.append(histo.THisto)
             self.TLegend.AddEntry( histo.THisto, self.GetLegLabel(histo), histo.GetAttribute("legOptions"))
@@ -141,10 +176,8 @@ class Plotter(object):
 
         self.THDumbie.THisto.Draw(self.THDumbie.drawOptions)
         self.DrawStackInclusive()
-        self.THStack.Draw(THStackDrawOpt + "," + self.THDumbie.drawOptions + "," +  "9same") #"PADS"
-        ROOT.gPad.RedrawAxis() #the histo fill area may hide the axis tick marks. Force a redraw of the axis over all the histograms.
-        self.TCanvas.Update()
-
+        self.THStack.Draw(THStackDrawOpt + "," + self.THDumbie.drawOptions + "," +  "9same") #"PADS"    
+        self.UpdateCanvas()
         return
 
 
@@ -263,15 +296,15 @@ class Plotter(object):
         return
 
 
-    def _CustomiseTLine(self, line, lineColour=ROOT.kBlack, lineWidth=3, lineStyle=ROOT.kSolid):
+    def _CustomiseTLine(self, line, colour=ROOT.kBlack, width=3, style=ROOT.kSolid):
         '''
         '''
         self.Verbose()
 
-        line.SetLineWidth(lineWidth)
-        line.SetLineStyle(lineStyle)
-        line.SetLineColor(lineColour)
-        line.Draw()
+        line.SetLineColor(colour)
+        line.SetLineWidth(width)
+        line.SetLineStyle(style)
+        # line.Draw() #xenios
         return
 
 
@@ -429,7 +462,7 @@ class Plotter(object):
         self._SetLogAxes(twoPads)
         self._SetGridAxes(twoPads)
         self._CreateLegend()
-        self.TCanvas.Update()            
+        self.UpdateCanvas()
         return
 
 
@@ -669,6 +702,14 @@ class Plotter(object):
         self.Verbose()
         return self.Datasets
 
+    
+    def GetDatasetNames(self):
+        self.Verbose()
+        dNames = []
+        for d in self.Datasets:
+            dNames.append( d.GetAttribute("name") )
+        return dNames
+    
         
     def SetLegendHeader(self, text):
         self.Verbose()
@@ -691,7 +732,7 @@ class Plotter(object):
         self.Verbose()
 
         self.TCanvas.SetName(saveName)
-        self.TCanvas.Update()
+        self.UpdateCanvas()
 
         for ext in saveFormats:
             name = self.TCanvas.GetName().split(":")[-1] + "." + ext
@@ -914,8 +955,7 @@ class Plotter(object):
         histo = self.THDumbie
         self.TLegend = ROOT.TLegend(histo.xLegMin, histo.yLegMin, histo.xLegMax, histo.yLegMax, "", "brNDC")
         self._CustomiseLegend()
-
-        self.ExtendDrawLists(self.TLegend, addToRatio=False)
+        self.ExtendDrawLists(self.TLegend, addToRatio=False) #xenios
         return
     
 
@@ -951,10 +991,16 @@ class Plotter(object):
             return False
 
         
-    def CreateCutLines(self):
-        self.Verbose("Creating cut-lines.")
+    def _GetTLine(self, xMin, xMax, yMin, yMax, colour=ROOT.kBlack, width=3, style=ROOT.kDashed):
+        self.Verbose()
+        line = ROOT.TLine(xMin, yMin, xMax, yMax)
+        self._CustomiseTLine(line, colour, width, style)
+        return line
 
-        # Create the TLines for each axis
+
+    def CreateCutLines(self):
+        self.Print("Creating all TLine objects")
+
         self._CreateTLinesX()
         self._CreateTLinesY()
         self.ExtendDrawLists(self.TLineListX, addToRatio=True)
@@ -972,17 +1018,12 @@ class Plotter(object):
             self.TLineListX = []
             
         for value in self.THDumbie.xCutLines:
-            xMin = value
-            xMax = value
-            yMin = self.THDumbie.yMin
-            yMax = self.THDumbie.yMax
-            line = ROOT.TLine(xMin, yMin, xMax, yMax)
-            self._CustomiseTLine(line, ROOT.kBlack, 3, ROOT.kDashed)
-            self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
-            self.TLineListX.append(line)
+            line = self._GetTLine(value, value, self.THDumbie.yMin, self.THDumbie.yMax)
+            self.TLegend.SetY1( self.TLegend.GetY1() - 0.02) #xenios
+            self.TLineListX.append(line) #xenios
         return
-        
-
+                
+    
     def _CreateTLinesY(self):
         self.Verbose()
 
@@ -993,14 +1034,86 @@ class Plotter(object):
             self.TLineListY = []
             
         for value in self.THDumbie.yCutLines:
-            xMin = self.THDumbie.xMin
-            xMax = self.THDumbie.xMax
-            yMin = value
-            yMax = value
-            line = ROOT.TLine(xMin, yMin, xMax, yMax)
+            line = self._GetTLine(self.THDumbie.xMin, self.THDumbie.xMax, value, value)
             self._CustomiseTLine(line, ROOT.kBlack, 3, ROOT.kDashed)
             self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
             self.TLineListY.append(line)
+        return
+
+
+    def _GetTBox(self, xMin, xMax, yMin, yMax, fillColour=ROOT.kBlack, fillStyle=3002):
+        self.Verbose()
+
+        cutBox = ROOT.TBox( xMin, yMin, xMax, yMax)
+        cutBox.SetFillStyle(fillStyle)
+        cutBox.SetFillColor(fillColour)
+        return cutBox
+
+
+    def CreateCutBoxes(self):
+        self.Print("Creating all TBox objects")
+
+        self._CreateTBoxesX()
+        self._CreateTBoxesY()
+        self.ExtendDrawLists(self.TBoxListX, addToRatio=True)
+        self.ExtendDrawLists(self.TBoxListY, addToRatio=True)
+        self.ExtendDrawLists(self.TLineListX, addToRatio=True)
+        self.ExtendDrawLists(self.TLineListY, addToRatio=True)
+        return
+
+
+    def _CreateTBoxesX(self, fillStyle=3002):
+        self.Verbose()
+
+        if not hasattr(self.THDumbie, "xCutBoxes"):
+            return
+        if not hasattr(self, "TBoxListX"):
+            self.TBoxListX = []
+        if not hasattr(self, "TLineListX"):
+            self.TLineListX = []
+        if not hasattr(self, "TLineListY"):
+            self.TLineListY = []
+            
+        for v in self.THDumbie.xCutBoxes:
+            xMin    = v[0]
+            xMax    = v[1]
+            yMin    = self.THDumbie.yMin
+            yMax    = self.THDumbie.yMax
+            colour  = v[2]
+            cutBox  = self._GetTBox(xMin , xMax, yMin, yMax, colour, fillStyle)
+            cline1  = self._GetTLine(xMin, xMin, yMin, yMax, colour, 1, ROOT.kSolid)
+            cline2  = self._GetTLine(xMax, xMax, yMin, yMax, colour, 1, ROOT.kSolid)
+            self.TBoxListX.append(cutBox)
+            self.TLineListX.append(cline1)
+            self.TLineListY.append(cline2)
+        return
+
+
+    def _CreateTBoxesY(self, fillStyle=3002):
+        self.Verbose()
+
+        if not hasattr(self.THDumbie, "yCutBoxes"):
+            return
+        if not hasattr(self, "TLineListX"):
+            self.TLineListX = []
+        if not hasattr(self, "TBoxListY"):
+            self.TBoxListY = []
+        if not hasattr(self, "TLineListY"):
+            self.TLineListY = []
+
+        for v in self.THDumbie.yCutBoxes:
+            xMin    = self.THDumbie.xMin
+            xMax    = self.THDumbie.xMax
+            yMin    = v[0]
+            yMax    = v[1]
+            colour  = v[2]
+            cutBox  = self._GetTBox(xMin , xMax, yMin, yMax, colour, fillStyle)
+            cline1  = self._GetTLine(xMin, xMax, yMin, yMin, colour, 1, ROOT.kSolid)
+            cline2  = self._GetTLine(xMin, xMax, yMax, yMax, colour, 1, ROOT.kSolid)
+            self.TBoxListX.append(cutBox)
+            self.TBoxListX.append(cutBox)
+            self.TLineListX.append(cline1)
+            self.TLineListY.append(cline2)            
         return
 
 
@@ -1011,104 +1124,44 @@ class Plotter(object):
         self.CreateCutLines() 
         
         # Draw all objects on the TPadPlot
+        self.TPadPlot.cd()
         for o in self.drawList:
             o.Draw("same")
-        self.TCanvas.RedrawAxis()
-        self.TCanvas.Update()
-        self.TCanvas.Modified()
+        self.UpdateCanvas()
 
         # Draw all objects on the TPadRatio        
         if not hasattr(self, "TPadRatio"):
             return
-        else:
-            self.TPadRatio.cd()
-        
+
+        self.TPadRatio.cd()
         for o in self.drawListRatio:
             if isinstance(o, ROOT.TLegend):
                 continue
             o.Draw("same")
 
-        # Update Pads
-        self.TPadPlot.Update()
-        self.TPadRatio.Update()
-
-        self.TPadPlot.Modified()
-        self.TPadRatio.Modified()
-
-        self.TPadPlot.RedrawAxis()
-        self.TPadRatio.RedrawAxis()
-        
+        self.UpdateCanvas()
         self.TPadPlot.cd()
         return
         
 
-    def CreateCutBoxes(self):
+    def UpdateCanvas(self):
         self.Verbose()
 
-        # self._CreateTLinesX()
-        # self._CreateTLinesY()
-        self._CreateTBoxesX()
-        self._CreateTBoxesY()
-        self.ExtendDrawLists(self.TBoxListX, addToRatio=True)
-        self.ExtendDrawLists(self.TBoxListY, addToRatio=True)
+        if hasattr(self, "TPadRatio"):
+            self.TPadPlot.Update()
+            self.TPadPlot.Modified()
+            self.TPadPlot.RedrawAxis()
+            #
+            self.TPadRatio.Update()
+            self.TPadRatio.Modified()
+            self.TPadRatio.RedrawAxis()
+        else:
+            self.TCanvas.Modified()
+            self.TCanvas.Udpdate()
+            self.TCanvas.RedrawAxis()
+        #ROOT.gPad.RedrawAxis() #the histo fill area may hide the axis tick marks. Force a redraw of the axis over all the histograms.
         return
-
-
-    def _CreateTBoxesX(self, fillStyle=3002):
-        self.Verbose()
-
-        if not hasattr(self.THDumbie, "xCutBoxes"):
-            return
-
-        if not hasattr(self, "TBoxListX"):
-            self.TBoxListX = []
-
-        for v in self.THDumbie.xCutBoxes:
-            xMin    = v[0]
-            xMax    = v[1]
-            yMin    = self.THDumbie.yMin
-            yMax    = self.THDumbie.yMax
-            cutBox  = ROOT.TBox( xMin, yMin, xMax, yMax)
-            cLine1  = ROOT.TLine(xMin, yMin, xMin, yMax)
-            cLine2  = ROOT.TLine(xMax, yMin, xMax, yMax)
-            cLine1.SetLineColor(v[2])
-            cLine2.SetLineColor(v[2])
-            cLine1.SetLineWidth(1)
-            cLine2.SetLineWidth(1)
-            self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
-            cutBox.SetFillStyle(fillStyle)
-            cutBox.SetFillColor(v[2])
-            self.TBoxListX.append(cutBox)
-        return
-
-
-    def _CreateTBoxesY(self, fillStyle=3002):
-        self.Verbose()
-
-        if not hasattr(self.THDumbie, "yCutBoxes"):
-            return
-
-        if not hasattr(self, "TBoxListY"):
-            self.TBoxListY = []
-
-        for v in self.THDumbie.yCutBoxes:
-            xMin    = self.THDumbie.xMin
-            xMax    = self.THDumbie.xMax
-            yMin    = v[0]
-            yMax    = v[1]
-            cutBox  = ROOT.TBox( xMin, yMin, xMax, yMax)
-            cLine1  = ROOT.TLine(xMin, yMin, xMax, yMin)
-            cLine2  = ROOT.TLine(xMin, yMax, xMax, yMax)
-            cLine1.SetLineColor(v[2])
-            cLine2.SetLineColor(v[2])
-            cLine1.SetLineWidth(1)
-            cLine2.SetLineWidth(1)
-            self.TLegend.SetY1( self.TLegend.GetY1() - 0.02)
-            cutBox.SetFillStyle(fillStyle)
-            cutBox.SetFillColor(v[2])
-            self.TBoxListY.append(cutBox)
-        return
-    
+       
 
     def CreateDumbieHisto(self, newName):
         '''
@@ -1137,7 +1190,7 @@ class Plotter(object):
         return emptyHisto
 
     
-    def ExtendDrawLists(self, drawObjects, addToRatio=True):
+    def ExtendDrawLists(self, drawObjects, addToRatio=True, addToPlot=True):
         '''
         Append a drawable object of any type (TCanvas, TLegend, TLine, TBox, etc..) to a list.
         This list will be used later on to draw all objects on a single canvas with 1 or 2 drawing pads.
@@ -1150,9 +1203,9 @@ class Plotter(object):
             drawList = [drawObjects]
 
         if addToRatio:
-            self.drawList.extend(drawList)
             self.drawListRatio.extend(copy.deepcopy(drawList))
-        else:
+
+        if addToPlot:
             self.drawList.extend(drawList)
         return 
 
