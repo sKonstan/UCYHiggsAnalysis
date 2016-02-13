@@ -98,8 +98,8 @@ class Plotter(object):
         self.Verbose()
 
         self.TLegend.Draw("same")
-        # self._CreateLegendDumbie() #xenios
-        # self.TLegendDumbie.Draw("same")
+        #self._CreateLegendDumbie() #xenios
+        #self.TLegendDumbie.Draw("same")
         self.THDumbie.THisto.Draw("same")
         return
     
@@ -167,12 +167,6 @@ class Plotter(object):
         inclusive = self.THStack.GetStack().Last()
 
         d.histo.ApplyStyles()
-        #inclusive.SetFillStyle(0)
-        #inclusive.SetFillColor(ROOT.kGray)
-        #inclusive.SetLineColor(ROOT.kGray)
-        #inclusive.SetLineStyle(ROOT.kSolid)
-        #inclusive.SetLineWidth(3)
-
         if self.THDumbie.yMax < inclusive.GetMaximum():
             yMaxNew = inclusive.GetMaximum()
             h       = self.THDumbie
@@ -181,7 +175,7 @@ class Plotter(object):
         else:
             pass
         inclusive.Draw( self.THDumbie.GetAttribute("drawOptions") )
-        self.ExtendLegend(histo)
+        self.ExtendLegend(histo) #xenios
         return
 
 
@@ -814,36 +808,39 @@ class Plotter(object):
 
         histo = self.THDumbie
         self.TLegend = ROOT.TLegend(histo.xLegMin, histo.yLegMin, histo.xLegMax, histo.yLegMax, "", "brNDC")
-        self._CustomiseLegend()
+        self._CustomiseLegend(self.TLegend)
         self.ExtendDrawLists(self.TLegend, addToRatio=False)
         return
 
 
-#    def _CreateLegendDumbie(self):
-#        self.Verbose()
-#        
-#        if hasattr(self, 'TLegendDumbie'):
-#            return
-#
-#        self.TLegendDumbie = ROOT.TLegend(self.THDumbie.xLegMin, self.THDumbie.yLegMin, self.THDumbie.xLegMax, self.THDumbie.yLegMax, "", "brNDC")
-#        self._CustomiseLegend()
-#        for histo in self.GetHistos():
-#            histo.THisto.SetLineColor(ROOT.kBlack)
-#            self.TLegendDumbie.AddEntry(histo.THisto, "", "F")
-#        #self.ExtendDrawLists(self.TLegendDumbie, addToRatio=False)
-#        return
-#    
-
-    def _CustomiseLegend(self):
+    def _CreateLegendDumbie(self):
         self.Verbose()
-        self.TLegend.SetName("TLegend:" + self.TCanvas.GetName())
-        self.TLegend.SetFillStyle(0)
-        self.TLegend.SetLineColor(ROOT.kBlack)
-        self.TLegend.SetLineWidth(1)
-        self.TLegend.SetBorderSize(0)
-        self.TLegend.SetShadowColor(ROOT.kWhite)
-        self.TLegend.SetTextSize(0.03)
-        self.TLegend.SetTextFont(62)
+        
+        if hasattr(self, 'TLegendDumbie'):
+            return
+
+        self.TLegendDumbie = ROOT.TLegend(self.THDumbie.xLegMin, self.THDumbie.yLegMin, self.THDumbie.xLegMax, self.THDumbie.yLegMax, "", "brNDC")
+        self._CustomiseLegend(self.TLegendDumbie)
+
+        for histo in self.GetHistos():
+            histo.THisto.SetLineColor(ROOT.kBlack)
+            #print histo.dataset.GetName()
+            self.TLegendDumbie.AddEntry(histo.THisto, "", "F")
+
+        self.TLegendDumbie.SetY1(self.TLegend.GetY1())
+        return
+    
+
+    def _CustomiseLegend(self, legend):
+        self.Verbose()
+        legend.SetName("TLegend:" + self.TCanvas.GetName())
+        legend.SetFillStyle(0)
+        legend.SetLineColor(ROOT.kBlack)
+        legend.SetLineWidth(1)
+        legend.SetBorderSize(0)
+        legend.SetShadowColor(ROOT.kWhite)
+        legend.SetTextSize(0.03)
+        legend.SetTextFont(62)
         return
 
     
