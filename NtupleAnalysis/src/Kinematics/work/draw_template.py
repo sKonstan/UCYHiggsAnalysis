@@ -112,7 +112,7 @@ def DoPlots(histo, datasetObjects, intLumi, bColourPalette=False, savePostfix=""
     p.AddDrawObject(histo)
         
 
-    # p.NormaliseHistos("toLuminosity")
+    p.NormaliseHistos("toLuminosity")
     # p.NormaliseHistos("byXSection")
     # p.NormaliseHistos("toOne")
 
@@ -123,7 +123,7 @@ def DoPlots(histo, datasetObjects, intLumi, bColourPalette=False, savePostfix=""
     p.DrawRatio("stack", "ttHJetToNonbb_M125")
     # p.Draw("stack") # "nostack"
     # p.SetHistosFillStyle(3001)
-
+    # p.DrawStackInclusive()
 
     # p.SaveAs(savePath, histo.GetName() + "_test", savePostfix, saveFormats)
     p.Save()    

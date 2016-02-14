@@ -87,7 +87,7 @@ class Plotter(object):
         self.CreateCanvas(ratioPad)
         self._CheckHistosBinning()
         self._AddHistosToStack()
-        self._DrawHistograms(THStackDrawOpt)
+        self._DrawHistos(THStackDrawOpt)
         self._DrawNonHistoObjects()    
         self._RedrawVitalObjects()
         return
@@ -135,18 +135,15 @@ class Plotter(object):
         return
 
     
-    def _DrawHistograms(self, THStackDrawOpt):
+    def _DrawHistos(self, THStackDrawOpt):
         '''
-        Draw the THDumbie. Draw the THStack . Create the CutBoxes and CutLines. 
-        Re-draw the TH1Dubmie to unhide the hidden tickmards (true when drawing histograms 
-        will fill style 1001. Draw all objects in the DrawObjectList.
-        For drawing options (TH1, TH2, THStack etc..) see:
-        http://root.cern.ch/root/html/THistPainter.html
+        Draw the THDumbie, draw the THStack and update the canvas.
+
+        Drawing options: http://root.cern.ch/root/html/THistPainter.html
         '''
         self.Verbose()
 
         self.THDumbie.THisto.Draw(self.THDumbie.drawOptions)
-        #self.DrawStackInclusive()
         self.THStack.Draw(THStackDrawOpt + "," + self.THDumbie.drawOptions + "," +  "9same") #"PADS"    
         self.UpdateCanvas()
         return
@@ -161,16 +158,28 @@ class Plotter(object):
         self.Verbose()
         inclusive = self.THStack.GetStack().Last()
 
-        # d.histo.ApplyStyles()
+        #d.histo.ApplyStyles()
         if self.THDumbie.yMax < inclusive.GetMaximum():
             yMaxNew = inclusive.GetMaximum()
             h       = self.THDumbie
             h.yMax  = yMaxNew*h.GetYMaxFactor(self.THDumbie.logY)
             h.THisto.GetYaxis().SetRangeUser(h.yMin, h.yMax)        
-        else:
-            pass
-        inclusive.Draw( self.THDumbie.GetAttribute("drawOptions") )
-        self.ExtendLegend(histo) #xenios
+        
+        # Apply colours/styles
+        inclusive.SetFillColor(ROOT.kBlack)
+        inclusive.SetFillStyle(0)
+        inclusive.SetLineColor(ROOT.kBlack)
+        inclusive.SetLineStyle(ROOT.kSolid)
+        inclusive.SetLineWidth(3)
+        inclusive.SetMarkerColor(ROOT.kBlack)
+        inclusive.SetMarkerSize(0)
+        # inclusive.Draw("HIST9same")
+        for i in range(0, inclusive.GetXaxis().GetNbins()+1):
+            inclusive.SetBinError(i, 0)
+        inclusive.Draw("LPsame")
+        inclusive.Draw("LPsame")
+        self.ExtendDrawLists(inclusive, addToRatio=False)
+        self.ExtendLegend(inclusive, "Inclusive", "L")
         return
 
 
