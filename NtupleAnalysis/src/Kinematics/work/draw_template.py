@@ -37,7 +37,6 @@ from UCYHiggsAnalysis.NtupleAnalysis.pyROOT.crossSection import xSections
 #================================================================================================
 verbose       = False
 batchMode     = False
-ratio         = True
 myLumi        = 2.26 # in fb
 folder        = "Kinematics"
 analysis      = folder
@@ -110,33 +109,25 @@ def DoPlots(histo, datasetObjects, intLumi, bColourPalette=False, savePostfix=""
     # p.SetAttribute("verbose", True)
     
     p.AddDatasets(datasetObjects)
-    p.DatasetAsLegend(True)
     p.AddDrawObject(histo)
         
+
     p.NormaliseHistos("toLuminosity")
     # p.NormaliseHistos("byXSection")
     # p.NormaliseHistos("toOne")
 
-    
-    p.CreateCanvas(ratio)
     # p.AddTF1("1000*cos(x)", 0, 200.0, False, {"lineColour": ROOT.kBlack})
     p.AddCmsText("13", intLumi, prelim=True)
 
+    p.DatasetAsLegend(True)    
+    p.DrawRatio("stack", "ttHJetToNonbb_M125")
+    # p.Draw("stack") # "nostack"
+    # p.SetHistosFillStyle(3001)
 
-    #p.SetHistosFillStyle(3001)
-    p.DrawRatio("ttHJetToNonbb_M125") # MUST be called BEFORE p.Draw()
-    # p.DrawRatio("DYJetsToLL_M_10to50")   # MUST be called BEFORE p.Draw()
 
-    # p.Draw(THStackDrawOpt="nostack", includeStack = False, bAddReferenceHisto = True)
-    p.Draw(THStackDrawOpt="stack", includeStack = False, bAddReferenceHisto = False)    
-    # p.Draw(THStackDrawOpt="stack", includeStack = True, bAddReferenceHisto = False)
-    # p.Draw()
-    #p.DrawRatio("ttHJetToNonbb_M125")
-    
-    p.Save()    
     # p.SaveAs(savePath, histo.GetName() + "_test", savePostfix, saveFormats)
+    p.Save()    
 
-    
     return
 
 

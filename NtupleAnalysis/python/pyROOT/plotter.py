@@ -37,7 +37,6 @@ class Plotter(object):
         self.drawListRatio     = []
         self.canvasFactor      = 1.25
         self.padDivisionPoint  = 1-1/self.canvasFactor
-        self.includeStack      = False
         self.THStack           = ROOT.THStack("THStack", "Stack for TPadPlot Histograms")
         self.THStackHistoList  = [] #needed because looping over self.THSTack.GetHists() crashes!
         self.THStackRatio      = ROOT.THStack("THStackRatio", "Stack for TPadRatio Histograms")
@@ -82,10 +81,10 @@ class Plotter(object):
         return
 
 
-    def Draw(self, THStackDrawOpt="nostack", includeStack=False, bAddReferenceHisto=True):
+    def Draw(self, THStackDrawOpt="nostack", ratioPad=False):
         self.Verbose()
 
-        self.includeStack = includeStack
+        self.CreateCanvas(ratioPad)
         self._CheckHistosBinning()
         self._AddHistosToStack()
         self._DrawHistograms(THStackDrawOpt)
@@ -104,15 +103,14 @@ class Plotter(object):
         return
     
     
-    def DrawRatio(self, refDataset):
+    def DrawRatio(self, THStackDrawOpt, refDataset):
         self.Verbose()
-
-        if not hasattr(self, "TPadRatio"):
-            raise Exception("Cannot call DrawRatio() without calling CreateCanvas(True) first!")
-
+ 
         if refDataset not in self.GetDatasetNames():
             raise Exception("Cannot call DrawRatio(). The reference dataset '%s' cannot be found!" % (refDataset) )
 
+        self.Draw(THStackDrawOpt, ratioPad=True)
+            
         self.TPadRatio.cd()        
         for h in self.GetHistos():
             if h.dataset.name == refDataset:
@@ -148,7 +146,7 @@ class Plotter(object):
         self.Verbose()
 
         self.THDumbie.THisto.Draw(self.THDumbie.drawOptions)
-        self.DrawStackInclusive()
+        #self.DrawStackInclusive()
         self.THStack.Draw(THStackDrawOpt + "," + self.THDumbie.drawOptions + "," +  "9same") #"PADS"    
         self.UpdateCanvas()
         return
@@ -161,12 +159,9 @@ class Plotter(object):
         For help see: http://root.cern.ch/phpBB3/viewtopic.php?f=3&t=12138
         '''
         self.Verbose()
-        if self.includeStack==False:
-            return
-
         inclusive = self.THStack.GetStack().Last()
 
-        d.histo.ApplyStyles()
+        # d.histo.ApplyStyles()
         if self.THDumbie.yMax < inclusive.GetMaximum():
             yMaxNew = inclusive.GetMaximum()
             h       = self.THDumbie
@@ -223,7 +218,7 @@ class Plotter(object):
         if hasattr(self, attr):
             return getattr(self, attr)
         else:
-            raise Exception("Class object '%s' does not have attribute '%s'" % (self.GetSelfName(), attr))
+            raise Exception("Class object does not have attribute '%s'" % (attr))
 
         
     def Verbose(self, message=""):
@@ -290,7 +285,7 @@ class Plotter(object):
         self.Verbose()
 
         if hasattr(self, 'TCanvas'):
-            raise Exception("The class object '%s' already has a 'TCanvas' attribute." % self.GetSelfName())
+            raise Exception("The class object already has a 'TCanvas' attribute.")
 
 
         # First customise all histograms (otherwise cannot create THDumbie)
@@ -999,7 +994,11 @@ class Plotter(object):
         self.CreateCutLines() 
         
         # Draw all objects on the TPadPlot
-        self.TPadPlot.cd()
+        if  hasattr(self, "TPadPlot"):
+            self.TPadPlot.cd()
+        else:
+            self.TCanvas.cd()
+            
         for o in self.drawList:
             o.Draw("same")
         self.UpdateCanvas()
@@ -1022,6 +1021,9 @@ class Plotter(object):
     def UpdateCanvas(self):
         self.Verbose()
 
+        if not hasattr(self, "TCanvas"):
+            raise Exception("Cannot update TCanva because it has not been created yet.")
+            
         if hasattr(self, "TPadRatio"):
             self.TPadPlot.Update()
             self.TPadPlot.Modified()
@@ -1032,7 +1034,7 @@ class Plotter(object):
             self.TPadRatio.RedrawAxis()
         else:
             self.TCanvas.Modified()
-            self.TCanvas.Udpdate()
+            self.TCanvas.Update()
             self.TCanvas.RedrawAxis()
         #ROOT.gPad.RedrawAxis() #the histo fill area may hide the axis tick marks. Force a redraw of the axis over all the histograms.
         return
@@ -1054,7 +1056,7 @@ class Plotter(object):
         emptyHisto.THisto.SetName(newName)
         emptyHisto.THisto.Reset("ICES")    
         emptyHisto.THisto.GetYaxis().SetRangeUser(yMin, yMax)
-        emptyHisto.THisto.GetYaxis().SetTitleOffset(1.8)
+        emptyHisto.THisto.GetYaxis().SetTitleOffset(1.4)
         emptyHisto.THisto.SetLineColor(ROOT.kBlack)
         emptyHisto.THisto.SetLineWidth(0)
 
@@ -1142,7 +1144,8 @@ class Plotter(object):
         self.THRatio.yMin = self.THRatio.yMaxRatio        
         self.THRatio.THisto.GetYaxis().SetNdivisions(505)
         self.THRatio.THisto.GetYaxis().SetRangeUser(self.THRatio.yMinRatio, self.THRatio.yMaxRatio)
-        self.THRatio.THisto.GetYaxis().SetTitleOffset(1.8)         
+        self.THRatio.THisto.GetYaxis().SetTitleOffset(1.8)
+        self.THDumbie.THisto.GetYaxis().SetTitleOffset(1.8)
         return
 
     
