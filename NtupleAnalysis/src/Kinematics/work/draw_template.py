@@ -112,7 +112,7 @@ def DoPlots(histo, datasetObjects, intLumi, bColourPalette=False, savePostfix=""
     p.AddDrawObject(histo)
         
 
-    p.NormaliseHistos("toLuminosity")
+    # p.NormaliseHistos("toLuminosity")
     # p.NormaliseHistos("byXSection")
     # p.NormaliseHistos("toOne")
 
