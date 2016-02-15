@@ -45,45 +45,65 @@ class Plotter(object):
         return
     
     
-    def DrawRatio(self, THStackDrawOpt, refDataset):
+    def DrawRatio(self, stackOpts, ratioStackOpts, refDataset):
+        self.Verbose()
+    
+#        self._CreateCanvas(True)
+#        self._CheckHistosBinning()
+#        self._AddHistosToRatioStack(refDataset)
+#        self._DrawHistosRatio(ratioStackOpts)
+#        # self._RedrawVitalObjectsRatio()
+#        self._AddDataHistoToDrawList()
+#        self._AddHistosToStack()
+#        self._DrawHistos(stackOpts)
+#        self._DrawItemsInDrawList()
+#        self._RedrawVitalObjects()
+
+
+        self._CreateCanvas(True)
+        self._CheckHistosBinning()
+        self._AddHistosToStack()
+        self._AddHistosToRatioStack(refDataset)
+        self._AddDataHistoToDrawList()        
+        self._DrawHistos(stackOpts)
+        self._DrawHistosRatio(ratioStackOpts)
+        self._DrawItemsInDrawList()
+        #self._RedrawVitalObjects()
+        # self._RedrawVitalObjectsRatio()
+
+
+        self.TPadRatio.cd()
+        for c in self.TBoxListX:
+            c.Draw("same")
+        for c in self.TBoxListY:
+            c.Draw("same")
+        return
+
+    
+    def _GetRatioReferenceHisto(self, refDataset):
         self.Verbose()
  
         if refDataset not in self.GetDatasetNames():
             raise Exception("Cannot call DrawRatio(). The reference dataset '%s' cannot be found!" % (refDataset) )
 
-        self._CreateCanvas(True)
-        self.TPadRatio.cd()        
         for h in self.GetHistos():
             if h.dataset.name == refDataset:
-                hDenominator = copy.deepcopy(h.THisto)
-                lineColour = h.THisto.GetLineColor()
-                break
-        
-        for h in self.GetHistos():
-            hNumerator = copy.deepcopy(h.THisto)
-            hRatio     = copy.deepcopy(hNumerator)
-            hRatio.Divide(hNumerator, hDenominator, 1.0, 1.0, "B")
-            if h.dataset.name != refDataset:
-                self.THStackRatio.Add(hRatio)
+                histo  = copy.deepcopy(h.THisto)
+                colour = h.THisto.GetLineColor()
+                return (histo, colour)
+        raise Exception("This should never be printed! What happened?")
 
-        # Add a line at y=1
-        line = self._GetTLine(self.THDumbie.xMin, self.THDumbie.xMax, 1.0, 1.0, lineColour, 2, ROOT.kSolid)
-        self.ExtendDrawLists(line, True, False)
-        self.CustomiseTHRatio()
-        self.THRatio.THisto.Draw()
-        self.THStackRatio.Draw("nostack9sameAP")
-        self.TPadPlot.cd()
-        self.Draw(THStackDrawOpt)
-        return
 
-    
     def _DrawHistos(self, stackOpts):
         '''
         Draw the THDumbie, draw the THStack and update the canvas.
 
         Drawing options: http://root.cern.ch/root/html/THistPainter.html
         '''
-        self.Verbose()
+        self.Print("Drawing Histogram Stack")
+
+        if hasattr(self, 'TPadPlot'):
+            self.TPadPlot.cd()
 
         self.THDumbie.THisto.Draw(self.THDumbie.drawOptions)
         self.THStack.Draw(stackOpts + "," + self.THDumbie.drawOptions + "," +  "9same") #"PADS"    
@@ -91,38 +111,23 @@ class Plotter(object):
         return
 
 
-    def DrawStackInclusive(self):
+    def _DrawHistosRatio(self, stackOpts):
         '''
-        The GetStack function returns a TObjArray* of TH1* where the TH1 at index i is the sum of histograms 0->i.
-        TObjArray::Last() returns the last TH1 in the list, hence the sum of all TH1.
-        For help see: http://root.cern.ch/phpBB3/viewtopic.php?f=3&t=12138
-        '''
-        self.Verbose()
-        inclusive = self.THStack.GetStack().Last()
+        Draw the THRatio, draw the THStackRatio and update the canvas.
 
-        #d.histo.ApplyStyles()
-        if self.THDumbie.yMax < inclusive.GetMaximum():
-            yMaxNew = inclusive.GetMaximum()
-            h       = self.THDumbie
-            h.yMax  = yMaxNew*h.GetYMaxFactor(self.THDumbie.logY)
-            h.THisto.GetYaxis().SetRangeUser(h.yMin, h.yMax)        
-        
-        # Apply colours/styles
-        inclusive.SetFillColor(ROOT.kBlack)
-        inclusive.SetFillStyle(0)
-        inclusive.SetLineColor(ROOT.kBlack)
-        inclusive.SetLineStyle(ROOT.kSolid)
-        inclusive.SetLineWidth(3)
-        inclusive.SetMarkerColor(ROOT.kBlack)
-        inclusive.SetMarkerSize(0)
-        # inclusive.Draw("HIST9same")
-        for i in range(0, inclusive.GetXaxis().GetNbins()+1):
-            inclusive.SetBinError(i, 0)
-        inclusive.Draw("LPsame")
-        inclusive.Draw("LPsame")
-        self.ExtendDrawLists(inclusive, addToRatio=False)
-        self.ExtendLegend(inclusive, "Inclusive", "L")
+        Drawing options: http://root.cern.ch/root/html/THistPainter.html
+        '''
+        self.Print("Drawing Histogram Stack")
+
+        if not hasattr(self, 'TPadRatio'):
+            raise Exception("Cannot draw ratio histograms. A dedicaded TPad was not created.")
+
+        self.TPadRatio.cd()
+        self.THRatio.THisto.Draw()
+        self.THStackRatio.Draw(stackOpts + ",9same")
+        self.UpdateCanvas()
         return
+    
 
 
     def _CustomiseTLine(self, line, colour=ROOT.kBlack, width=3, style=ROOT.kSolid):
@@ -274,6 +279,7 @@ class Plotter(object):
         else:
             self.Print("Creating a 2-pad TCanvas with name '%s'" % (self.THDumbie.GetAttribute("name")) )
             self.THRatio = self.CreateDumbieHisto("THRatio")
+            self._CustomiseTHRatio()
             self.TCanvas = ROOT.TCanvas( canvasName, canvasName, ROOT.gStyle.GetCanvasDefW(), int(ROOT.gStyle.GetCanvasDefH()*self.canvasFactor))
             self.TCanvas.Divide(1,2)
             self.THDumbie.RemoveBinLabelsX()
@@ -351,9 +357,13 @@ class Plotter(object):
         kBreak    =   4000
         kSysError =   5000
         kFatal    =   6000
+
+        NOTE: 
+        When you are NOT in batch mode (self.batchMode = False), a canvas creation generates a window.
         '''
         self.Verbose()
         if hasattr(self, 'rootIsSet'):
+            self.Print("ROOT already set. Doing nothing")
             return
 
         self.Print("Resetting ROOT, setting TDR style, and setting:")
@@ -567,7 +577,10 @@ class Plotter(object):
         Save canvas to a specified path and with the desirable format.
         '''
         self.Print()
-            
+        
+        if not hasattr(self, 'TCanvas'):
+            raise Exception("Cannot save TCanvas. You first have to create one")
+                
         self._IsValidSavePath(savePath)
         self._SaveAs(saveName, saveFormats)
         return
@@ -578,12 +591,22 @@ class Plotter(object):
         Save canvas with the default canvas (histogram) name to the current working directory
         '''
         self.Print()
+        
+        if not hasattr(self, 'TCanvas'):
+            raise Exception("Cannot save TCanvas. You first have to create one")
 
         self._IsValidSavePath(savePath)
         saveName = savePath + self.TCanvas.GetName()
         self._SaveAs(saveName, saveFormats)
         return
 
+
+
+    def Exit(self, keepAlive=False):
+        self.Verbose()
+        self.IsBatchMode()
+        return
+    
 
     def GetHistosYMinYMax(self):
         '''
@@ -857,10 +880,14 @@ class Plotter(object):
     def CreateCutLines(self):
         self.Print("Creating all TLine objects")
 
+        if hasattr(self, "CutLinesCreated"):
+            return
+        
         self._CreateTLinesX()
         self._CreateTLinesY()
         self.ExtendDrawLists(self.TLineListX, addToRatio=True)
         self.ExtendDrawLists(self.TLineListY, addToRatio=True)
+        self.CutLinesCreated = True
         return
 
 
@@ -874,7 +901,10 @@ class Plotter(object):
             self.TLineListX = []
             
         for value in self.THDumbie.xCutLines:
-            line = self._GetTLine(value, value, self.THDumbie.yMin, self.THDumbie.yMax)
+            if not hasattr(self, "TPadRatio"):
+                line = self._GetTLine(value, value, self.THDumbie.THisto.GetMinimum(), self.THDumbie.THisto.GetMaximum())
+            else:
+                line = self._GetTLine(value, value, self.THRatio.THisto.GetMinimum(), self.THDumbie.THisto.GetMaximum())
             self._CustomiseTLine(line, ROOT.kBlack, 2, ROOT.kDashed)
             self.TLineListX.append(line)
             self.ExtendLegend(line, "x = %s" % (value), "L" )
@@ -898,28 +928,30 @@ class Plotter(object):
         return
 
 
-    def _GetTBox(self, xMin, xMax, yMin, yMax, fillColour=ROOT.kBlack, fillStyle=3002):
+    def _GetTBox(self, xMin, xMax, yMin, yMax, fillColour, fillStyle):
         self.Verbose()
 
         cutBox = ROOT.TBox( xMin, yMin, xMax, yMax)
         cutBox.SetFillStyle(fillStyle)
         cutBox.SetFillColor(fillColour)
+        cutBox.SetLineColor(fillColour)
         return cutBox
 
 
     def CreateCutBoxes(self):
         self.Print("Creating all TBox objects")
 
+        if hasattr(self, "CutBoxesCreated"):
+            return
         self._CreateTBoxesX()
         self._CreateTBoxesY()
         self.ExtendDrawLists(self.TBoxListX, addToRatio=True)
         self.ExtendDrawLists(self.TBoxListY, addToRatio=True)
-        self.ExtendDrawLists(self.TLineListX, addToRatio=True)
-        self.ExtendDrawLists(self.TLineListY, addToRatio=True)
+        self.CutBoxesCreated = True
         return
 
 
-    def _CreateTBoxesX(self, fillStyle=3002):
+    def _CreateTBoxesX(self, fillStyle=3004):
         self.Verbose()
 
         if not hasattr(self.THDumbie, "xCutBoxes"):
@@ -935,10 +967,10 @@ class Plotter(object):
             xMin    = v[0]
             xMax    = v[1]
             if not hasattr(self, "TPadRatio"):
-                yMin    = self.THDumbie.THisto.GetMinimum() # self.THDumbie.yMin
+                yMin = self.THDumbie.THisto.GetMinimum()
             else:
-                yMin    = self.THRatio.THisto.GetMinimum()  # self.THDumbie.yMin
-            yMax    = self.THDumbie.THisto.GetMaximum()     # self.THDumbie.yMax
+                yMin = self.THRatio.THisto.GetMinimum()
+            yMax    = self.THDumbie.THisto.GetMaximum()
             colour  = v[2]
             cutBox  = self._GetTBox(xMin , xMax, yMin, yMax, colour, fillStyle)
             cline1  = self._GetTLine(xMin, xMin, yMin, yMax, colour, 1, ROOT.kSolid)
@@ -946,11 +978,11 @@ class Plotter(object):
             self.TBoxListX.append(cutBox)
             self.TLineListX.append(cline1)
             self.TLineListY.append(cline2)
-            self.ExtendLegend(cline1, "x = [%s, %s]" % (xMin, xMax), "L" )
+            self.ExtendLegend(cutBox, "x = [%s, %s]" % (xMin, xMax), "F" )
         return
 
 
-    def _CreateTBoxesY(self, fillStyle=3002):
+    def _CreateTBoxesY(self, fillStyle=3005):
         self.Verbose()
 
         if not hasattr(self.THDumbie, "yCutBoxes"):
@@ -975,32 +1007,35 @@ class Plotter(object):
             self.TBoxListX.append(cutBox)
             self.TLineListX.append(cline1)
             self.TLineListY.append(cline2)
-            self.ExtendLegend(cline1, "y = [%s, %s]" % (xMin, xMax), "L" )
+            self.ExtendLegend(cutBox, "y = [%s, %s]" % (xMin, xMax), "F" )
         return
 
 
-    def _DrawItemsInDrawLists(self):
-        self.Verbose()                
+    def _DrawItemsInDrawList(self):
+        self.Print("Drawing items in draw list")
 
         self.CreateCutBoxes()
-        self.CreateCutLines() 
-        
-        # Draw all objects on the TPadPlot
-        if  hasattr(self, "TPadPlot"):
+        self.CreateCutLines()
+
+        if hasattr(self, "TPadPlot"):
             self.TPadPlot.cd()
-        else:
-            self.TCanvas.cd()
             
         for o in self.drawList:
             if isinstance(o, histos.DrawObject):
                 o.Draw("9same" + drawOptions)
             else:
                 o.Draw("9same")
-        self.UpdateCanvas()
 
-        # Draw all objects on the TPadRatio        
+        self._DrawItemsInDrawListRatio()
+        self.UpdateCanvas()
+        return
+
+
+    def _DrawItemsInDrawListRatio(self):
+        self.Print("Drawing items in draw list (ratio)")
+
         if not hasattr(self, "TPadRatio"):
-            return
+            raise Exception("Cannot draw items in draw list (ratio). The TPadRatio has not been created")
 
         self.TPadRatio.cd()
         for o in self.drawListRatio:
@@ -1010,17 +1045,14 @@ class Plotter(object):
                 o.Draw("9same" + drawOptions)
             else:
                 o.Draw("same")
-
-        self.UpdateCanvas()
-        self.TPadPlot.cd()
         return
-        
+
 
     def UpdateCanvas(self):
         self.Verbose()
 
         if not hasattr(self, "TCanvas"):
-            raise Exception("Cannot update TCanva because it has not been created yet.")
+            raise Exception("Cannot update TCanvas because it has not been created yet.")
             
         if hasattr(self, "TPadRatio"):
             self.TPadPlot.Update()
@@ -1130,7 +1162,7 @@ class Plotter(object):
         return
 
     
-    def CustomiseTHRatio(self):
+    def _CustomiseTHRatio(self):
         self.Verbose()
 
         # Customise the x-axis
@@ -1176,6 +1208,17 @@ class Plotter(object):
         return 
     
 
+    def _AddDataHistoToDrawList(self):    
+        self.Verbose()
+        for histo in self.GetHistos():
+            if histo.dataset._IsMC():
+                continue
+            else:
+                self.ExtendDrawLists(histo.THisto, False, True)
+                self.ExtendLegend(histo.THisto, "Data", "LP" )
+        return
+
+
     def _AddHistosToStack(self):
         '''
         Add all histograms (except Dumbie) to a THStack. For each histogram add a TLegend entry
@@ -1185,15 +1228,30 @@ class Plotter(object):
 
         for histo in self.GetHistos():
             if histo.dataset._IsData():
-                self.ExtendDrawLists(histo.THisto, False, True)
-                self.ExtendLegend(histo.THisto, "Data", "LP" )
                 continue
             else:
                 self.THStack.Add(histo.THisto)
-                self.THStackHistoList.append(histo.THisto)
+                self.THStackHistoList.append(histo.THisto) #xenios
                 self.ExtendLegend(histo)
         return
 
+    
+    def _AddHistosToRatioStack(self, refDataset):
+        self.Verbose()
+
+        (hDenominator, colour) = self._GetRatioReferenceHisto(refDataset)
+        for h in self.GetHistos():
+            hNumerator = copy.deepcopy(h.THisto)
+            hRatio     = copy.deepcopy(hNumerator)
+            hRatio.Divide(hNumerator, hDenominator, 1.0, 1.0, "B")
+            if h.dataset.name != refDataset:
+                self.THStackRatio.Add(hRatio)
+
+        # Add a line at y=1
+        line = self._GetTLine(self.THDumbie.xMin, self.THDumbie.xMax, 1.0, 1.0, colour, 2, ROOT.kSolid)
+        self.ExtendDrawLists(line, addToRatio=True, addToPlot=False)
+        return
+    
 
     def SetHistosFillStyle(self, style):
         self.Verbose()
@@ -1240,19 +1298,55 @@ class Plotter(object):
     def Draw(self, stackOpts="nostack"):
         self.Verbose()
 
-        self._CreateCanvas(False)
+        self._CreateCanvas()
         self._CheckHistosBinning()
+        self._AddDataHistoToDrawList()
         self._AddHistosToStack()
         self._DrawHistos(stackOpts)
-        self._DrawItemsInDrawLists()
+        self._DrawItemsInDrawList()
         self._RedrawVitalObjects()
         return
 
 
     def _RedrawVitalObjects(self):
-        self.Verbose()
+        self.Print("Re-drawing Legend and Histo dumbies")
 
+        if hasattr(self, "TPadPlot"):
+            self.TPadPlot.cd()
+            
         self.TLegend.Draw("same")
         self._DrawLegendDumbie()
         self.THDumbie.THisto.Draw("same")
+        return
+
+
+    def _RedrawVitalObjectsRatio(self):
+        self.Print("Re-drawing Legend and Histo dumbies")
+        
+        if not hasattr(self, "TPadRatio"):
+            raise Exception("Cannot redraw objects on ratio pad.A dedicaded TPad was not created.")
+
+        self.TPadRatio.cd()            
+        self.THRatio.THisto.Draw("same")
+        self._DrawItemsInDrawListRatio()
+        return
+    
+
+    def IsBatchMode(self):
+        '''
+        Forces user to press 'q' before exiting ROOT from batch mode.
+
+        NOTE: 
+        When you are NOT in batch mode (self.batchMode = False), a canvas creation generates a window.        
+        '''
+        self.Verbose()
+    
+        if not self.batchMode:
+            key = ""
+            while key == "":
+                key = raw_input("\r=== draw_template.py:\n\t Press 'q' to quit, any other key to continue: ")
+                if key == "q":
+                    sys.exit()
+                else:
+                    return
         return

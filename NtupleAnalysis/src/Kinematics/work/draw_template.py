@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 '''
 Usage:
-./draw_template.py
+./draw_template.py -m analysis_15Feb2016_10h01m18s/
  
 
 Description:
-This script is used to ... 
+This script plots histograms from an analysis directory.
 
 
 TWiki:
@@ -23,20 +23,16 @@ import math
 from optparse import OptionParser
 
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.dataset as dataset
-#import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.crossSection as crossSection
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.plotter as plotter
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.histos as histos
-import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.styles as styles
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.aux as aux
 
-from UCYHiggsAnalysis.NtupleAnalysis.pyROOT.crossSection import xSections
-
 
 #================================================================================================
-# General Settings
+# Settings
 #================================================================================================
 verbose       = False
-batchMode     = False
+batchMode     = True
 myLumi        = 2.26 # in fb
 folder        = "Kinematics"
 analysis      = folder
@@ -47,7 +43,7 @@ savePath      = ""
 #================================================================================================
 # Object Definitions
 #================================================================================================
-auxObject = aux.AuxClass(verbose)
+auxObject  = aux.AuxClass(verbose)
 
 
 #================================================================================================
@@ -60,15 +56,15 @@ nPt_Range  = int(ptMax/5.0)
 nEta_Range =  12
 EtaLines   = [-1.6, -0.8, +0.8, +1.6]
 EtaRange   = [[-etaMax, -1.6, ROOT.kRed+1], [+etaMax, +1.6, ROOT.kRed+1], [-1.6, -0.8, ROOT.kYellow-4], [+0.8, +1.6, ROOT.kYellow-4], [-0.8, +0.8, ROOT.kGreen+1] ]
-PtRange    = [ [40.0, 80.0, ROOT.kBlack] ]
+PtRange    = [ [40.0, 80.0, ROOT.kRed] ]
 EvtRange   = [ [1E2, 1E4, ROOT.kBlack] ]
 
 #================================================================================================
 # Histogram Options
 #================================================================================================
 Pt = {
-    "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00 , "xMax": ptMax, "binWidthX": None, "xCutLines": [], "xCutBoxes": [], "gridX": True, "logX": False, 
-    "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E-01, "yMax": None , "binWidthY": None, "yCutLines": [], "yCutBoxes": [], "gridY": True, "logY": True,
+    "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00 , "xMax": ptMax, "binWidthX": None, "xCutLines": [10], "xCutBoxes": PtRange, "gridX": True, "logX": False, 
+    "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E-01, "yMax": None , "binWidthY": None, "yCutLines": [10], "yCutBoxes": EvtRange, "gridY": True, "logY": True,
     "ratioLabel": "Ratio", "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "drawOptions": "HIST9", "legOptions": "F", 
     "logYRatio": False, "logXRatio": False, "xLegMin": 0.70, "xLegMax": 0.95, "yLegMin": 0.78, "yLegMax": 0.93, "gridXRatio": True, "gridYRatio": True,
 }
@@ -84,7 +80,7 @@ PtTest = {
 Eta = {
     "xLabel": "#eta"           , "xUnits": "", "xMin": -etaMax, "xMax": +etaMax, "binWidthX": None, "xCutLines": [0], "gridX": True, "gridXRatio": False, "logX": False,
     "yLabel": "Entries / %0.2f", "yUnits": "", "yMin": +1e00  , "yMax": None   , "binWidthY": None, "yCutLines": [] , "gridY": True, "gridYRatio": False, "logY": True ,
-    "xCutBoxes": [], "yCutBoxes": [],  "ratioLabel": "Ratio"      , "yMinRatio": 1e-01, "yMaxRatio": 2.15 , "drawOptions": "P", "legOptions": "LP", 
+    "xCutBoxes": [], "yCutBoxes": [],  "ratioLabel": "Ratio"      , "yMinRatio": 0.0, "yMaxRatio": 2.15 , "drawOptions": "P", "legOptions": "LP", 
     "xCutBoxes": [[-1.0, -1.6, ROOT.kBlue], [+1.0, +1.6, ROOT.kBlue]], "yCutBoxes": [], "logYRatio": False, "logXRatio": False,
     "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
 }
@@ -93,58 +89,38 @@ Eta = {
 #================================================================================================
 # Create Histos OBjects
 #================================================================================================
-PassedElectronsPt   = histos.DrawObject( folder, "PassedElectronsPt", "passed", **Pt )
-AllElectronsPt      = histos.DrawObject( folder, "AllElectronsPt"   , "all"   , **Pt )
+PassedElectronsPt   = histos.DrawObject( folder, "PassedElectronsPt" , "passed", **Pt )
 PassedElectronsEta  = histos.DrawObject( folder, "PassedElectronsEta", "passed", **Eta )
+AllElectronsPt      = histos.DrawObject( folder, "AllElectronsPt"    , "all"   , **Pt )
 AllElectronsEta     = histos.DrawObject( folder, "AllElectronsEta"   , "all"   , **Eta )
-
-PassedMuonsPt   = histos.DrawObject( folder, "PassedMuonsPt", "passed", **Pt )
-AllMuonsPt      = histos.DrawObject( folder, "AllMuonsPt"   , "all"   , **Pt )
-PassedMuonsEta  = histos.DrawObject( folder, "PassedMuonsEta", "passed", **Eta )
-AllMuonsEta     = histos.DrawObject( folder, "AllMuonsEta"   , "all"   , **Eta )
-
 
 
 #================================================================================================
 # Function Definition
 #================================================================================================
-def DoPlots(histo, datasetObjects, intLumi, bColourPalette=False, savePostfix=""):
+def DoPlots(histo, datasetObjects, intLumi, savePostfix=""):
 
     p = plotter.Plotter(verbose, batchMode)
     p.SetupRoot(0, 4, 999, 2000)
     # p.SetupStatsBox("ksiourmen", xPos=0.90, yPos=0.88, width=0.20, height=0.12)
-    # p.SetAttribute("verbose", True)
     p.AddDatasets(datasetObjects)
     p.AddDrawObject(histo)
-    p.NormaliseHistos("toLuminosity")
-    # p.NormaliseHistos("byXSection")
-    # p.NormaliseHistos("toOne")
-    # p.AddTF1("1000*cos(x)", 0, 200.0, False, {"lineColour": ROOT.kBlack})
+    p.NormaliseHistos("toLuminosity") # "byXSection", "toOne"
     p.AddCmsText("13", intLumi, prelim=True)
     p.DatasetAsLegend(True)    
-    #p.DrawRatio("stack", "ttHJetToNonbb_M125")
-    p.DrawRatio("stack", "Data")
+
+    # p.AddTF1("1000*cos(x)", 0, 200.0, False, {"lineColour": ROOT.kBlack})
+    # p.DrawRatio("stack", "nostackAP", "Data")
+    p.DrawRatio("stack", "nostackAP", "ttHJetToNonbb_M125")    
     # p.Draw("stack") # "nostack"
     # p.SetHistosFillStyle(3001)
     # p.DrawStackInclusive()
+
     # p.SaveAs(savePath, histo.GetName() + "_test", savePostfix, saveFormats)
     p.Save()    
-
+    p.Exit()
+    
     return
-
-
-#================================================================================================
-def IsBatchMode():
-    '''
-    Forces user to press 'q' before exiting ROOT from batch mode.
-    '''
-    if batchMode:
-        key = ""
-        while key != "q":
-            key = raw_input("\r=== draw_template.py:\n\t Press 'q' to quit ROOT: ")
-        sys.exit()
-    return
-
 
 #================================================================================================
 def main():
@@ -152,10 +128,8 @@ def main():
     '''
 
     # Variables
-    args           = {}
-    #histoList      = [AllElectronsPt, PassedElectronsPt, AllElectronsEta, PassedElectronsEta]
-    histoList      = [AllElectronsPt, PassedElectronsPt]
-
+    #histoList = [AllElectronsEta, PassedElectronsEta]
+    histoList = [AllElectronsPt, PassedElectronsPt]
     
     # Datasets
     auxObject.StartTimer("Dataset Manager")
@@ -173,7 +147,7 @@ def main():
     
     # One Histogram on a given canvas (many datasets)
     for h in histoList:
-        DoPlots( h, datasetObjects, intLumi, False )
+        DoPlots( h, datasetObjects, intLumi)
     # Many Histograms on a given canvas (many datasets)
     #DoPlots( histoList, datasetObjects, False )
 
@@ -193,6 +167,5 @@ if __name__ == "__main__":
 
     auxObject.StartTimer("Total")
     main()
-    IsBatchMode()
     auxObject.PrintTimers()
 #================================================================================================
