@@ -45,49 +45,48 @@ class Plotter(object):
         return
                   
 
-    def AddDrawObject(self, histos):
+    def AddDrawObject(self, drawObjects):
         self.Verbose()
         
-        if type(histos) == list:
-            self.Print("Adding '%s' histograms to the histogram queue: %s" % (len(histos), "\"" + "\", \"".join(h.GetName() for h in histos) + "\"") )
+        if type(drawObjects) == list:
+            self.Print("Copying '%s' drawObjects to all datasets: %s" % (len(drawObjects), "\"" + "\", \"".join(h.GetName() for h in drawObjects) + "\"") )
             sys.exit()
-            for h in histos:
-                self._AddHistoToQueue(h)
+            for d in drawObjects:
+                self._CopyToDatasets(d)
         else:
-            self.Print("Adding '1' histogram to the histogram queue: %s" % ("\"" + histos.GetAttribute("name") + "\"") )
-            self._AddHistoToQueue(histos)
-
+            self.Print("Copying '1' drawObjects to all datasets: %s" % ("\"" + drawObjects.GetAttribute("name") + "\"") )
+            self._CopyToDatasets(drawObjects)
         return
     
 
-    def _AddHistoToQueue(self, histoObject):
+    def _CopyToDatasets(self, drawObject):
         '''
+        Takes as input parameter a drawObject and copies its attribues to all datasets.
         '''
         self.Verbose()
         
         if not hasattr(self, 'Datasets'):
-            raise Exception("Cannot add histogram to queue as no datasets exist. Check that you have added some datasets")
+            raise Exception("Cannot add copy drawObject as no datasets exist. Check that you have added some datasets")
 
-        self.IsDrawObject(histoObject)
+        self.IsDrawObject(drawObject)
 
         for d in self.Datasets:
-
-            if not self.IsHisto(d.rootFile, histoObject):
-                raise Exception( "The object '%s' in '%s' is neither TH1, nor a TH2, nor a TH3." % (histoObject, d.rootFile.GetName()) )
-            d.histo     = copy.deepcopy(histoObject)
-            histoObject = d.histo
-            histoObject.THisto  = self.GetHistoFromFile(d.rootFile, d.histo)
-            histoObject.dataset = d
+            if not self.IsHisto(d.rootFile, drawObject):
+                raise Exception( "The object '%s' in '%s' is neither TH1, nor a TH2, nor a TH3." % (drawObject, d.rootFile.GetName()) )
+            d.histo     = copy.deepcopy(drawObject)
+            drawObject = d.histo
+            drawObject.THisto  = self.GetHistoFromFile(d.rootFile, d.histo)
+            drawObject.dataset = d
         return
 
 
-    def Draw(self, THStackDrawOpt="nostack", ratioPad=False):
+    def Draw(self, stackOpts="nostack", ratioPad=False):
         self.Verbose()
 
         self.CreateCanvas(ratioPad)
         self._CheckHistosBinning()
         self._AddHistosToStack()
-        self._DrawHistos(THStackDrawOpt)
+        self._DrawHistos(stackOpts)
         self._DrawNonHistoObjects()    
         self._RedrawVitalObjects()
         return
@@ -135,7 +134,7 @@ class Plotter(object):
         return
 
     
-    def _DrawHistos(self, THStackDrawOpt):
+    def _DrawHistos(self, stackOpts):
         '''
         Draw the THDumbie, draw the THStack and update the canvas.
 
@@ -144,7 +143,7 @@ class Plotter(object):
         self.Verbose()
 
         self.THDumbie.THisto.Draw(self.THDumbie.drawOptions)
-        self.THStack.Draw(THStackDrawOpt + "," + self.THDumbie.drawOptions + "," +  "9same") #"PADS"    
+        self.THStack.Draw(stackOpts + "," + self.THDumbie.drawOptions + "," +  "9same") #"PADS"    
         self.UpdateCanvas()
         return
 

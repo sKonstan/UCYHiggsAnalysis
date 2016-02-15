@@ -107,24 +107,18 @@ def DoPlots(histo, datasetObjects, intLumi, bColourPalette=False, savePostfix=""
     p.SetupRoot(0, 4, 999, 2000)
     # p.SetupStatsBox("ksiourmen", xPos=0.90, yPos=0.88, width=0.20, height=0.12)
     # p.SetAttribute("verbose", True)
-    
     p.AddDatasets(datasetObjects)
     p.AddDrawObject(histo)
-        
-
     p.NormaliseHistos("toLuminosity")
     # p.NormaliseHistos("byXSection")
     # p.NormaliseHistos("toOne")
-
     # p.AddTF1("1000*cos(x)", 0, 200.0, False, {"lineColour": ROOT.kBlack})
     p.AddCmsText("13", intLumi, prelim=True)
-
     p.DatasetAsLegend(True)    
-    p.DrawRatio("stack", "ttHJetToNonbb_M125")
-    # p.Draw("stack") # "nostack"
+    # p.DrawRatio("stack", "ttHJetToNonbb_M125")
+    p.Draw("stack") # "nostack"
     # p.SetHistosFillStyle(3001)
     # p.DrawStackInclusive()
-
     # p.SaveAs(savePath, histo.GetName() + "_test", savePostfix, saveFormats)
     p.Save()    
 
