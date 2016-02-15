@@ -54,16 +54,25 @@ private:
   // Non-common histograms
   WrappedTH1* hAllElectronsPt;
   WrappedTH1* hAllElectronsEta;
-  WrappedTH1* hAllMuonsPt;
-  WrappedTH1* hAllMuonsEta;
-  WrappedTH1* hAllBjetsPt;
-  WrappedTH1* hAllBjetsEta;
   WrappedTH1* hPassedElectronsPt;
   WrappedTH1* hPassedElectronsEta;
+  WrappedTH1* hAllMuonsPt;
+  WrappedTH1* hAllMuonsEta;
   WrappedTH1* hPassedMuonsPt;
   WrappedTH1* hPassedMuonsEta;
-  WrappedTH1* hPassedBjetsPt;
-  WrappedTH1* hPassedBjetsEta;
+
+  WrappedTH1* hAllGenElectronsPt;
+  WrappedTH1* hAllGenElectronsEta;
+  WrappedTH1* hAllGenMuonsPt;
+  WrappedTH1* hAllGenMuonsEta;
+  WrappedTH1* hAllGenBjetsPt;
+  WrappedTH1* hAllGenBjetsEta;
+  WrappedTH1* hPassedGenElectronsPt;
+  WrappedTH1* hPassedGenElectronsEta;
+  WrappedTH1* hPassedGenMuonsPt;
+  WrappedTH1* hPassedGenMuonsEta;
+  WrappedTH1* hPassedGenBjetsPt;
+  WrappedTH1* hPassedGenBjetsEta;
 
 };
 
@@ -98,18 +107,28 @@ void Kinematics::book(TDirectory *dir) {
   // fMETSelection.bookHistograms(dir);
 
   // Book non-common histograms
-  hAllElectronsPt     = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllElectronsPt" , "AllElectronsPt:Jet p_{T}, GeVc^{-1}:N_{jets}", PT_BINS, 0, PT_MAX);
-  hAllMuonsPt         = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllMuonsPt"     , "AllMuonsPt:Jet p_{T}, GeVc^{-1}:N_{jets}"    , PT_BINS, 0, PT_MAX);
-  hAllBjetsPt         = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllBjetsPt"     , "AllBjetsPt:Jet p_{T}, GeVc^{-1}:N_{jets}"    , PT_BINS, 0, PT_MAX);
-  hAllElectronsEta    = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllElectronsEta", "AllElectronsEta:Jet #eta:N_{jets}", ETA_BINS, -ETA_MAX, ETA_MAX);
-  hAllMuonsEta        = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllMuonsEta"    , "AllMuonsEta:Jet #eta:N_{jets}"    , ETA_BINS, -ETA_MAX, ETA_MAX);
-  hAllBjetsEta        = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllBjetsEta"    , "AllBjetsEta:Jet #eta:N_{jets}"    , ETA_BINS, -ETA_MAX, ETA_MAX);
-  hPassedElectronsPt  = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "PassedElectronsPt" , "PassedElectronsPt:Jet p_{T}, GeVc^{-1}:N_{jets}", PT_BINS, 0, PT_MAX);
-  hPassedMuonsPt      = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "PassedMuonsPt"     , "PassedMuonsPt:Jet p_{T}, GeVc^{-1}:N_{jets}"    , PT_BINS, 0, PT_MAX);
-  hPassedBjetsPt      = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "PassedBjetsPt"     , "PassedBjetsPt:Jet p_{T}, GeVc^{-1}:N_{jets}"    , PT_BINS, 0, PT_MAX);
-  hPassedElectronsEta = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "PassedElectronsEta", "PassedElectronsEta:Jet #eta:N_{jets}", ETA_BINS, -ETA_MAX, ETA_MAX);
-  hPassedMuonsEta     = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "PassedMuonsEta"    , "PassedMuonsEta:Jet #eta:N_{jets}"    , ETA_BINS, -ETA_MAX, ETA_MAX);
-  hPassedBjetsEta     = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "PassedBjetsEta"    , "PassedBjetsEta:Jet #eta:N_{jets}"    , ETA_BINS, -ETA_MAX, ETA_MAX);
+  hPassedElectronsPt  = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "PassedElectronsPt" , "PassedElectronsPt:Electron p_{T}, GeVc^{-1}:Event", PT_BINS, 0, PT_MAX);
+  hPassedElectronsEta = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "PassedElectronsEta" , "PassedElectronsEta:Electron #eta:Events", ETA_BINS, -ETA_MAX, ETA_MAX);
+  hAllElectronsPt     = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllElectronsPt" , "AllElectronsPt:Electron p_{T}, GeVc^{-1}:Event", PT_BINS, 0, PT_MAX);
+  hAllElectronsEta    = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllElectronsEta" , "AllElectronsEta:Electron #eta:Events", ETA_BINS, -ETA_MAX, ETA_MAX);
+
+  hPassedMuonsPt  = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "PassedMuonsPt" , "PassedMuonsPt:Muon p_{T}, GeVc^{-1}:Event", PT_BINS, 0, PT_MAX);
+  hPassedMuonsEta = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "PassedMuonsEta" , "PassedMuonsEta:Muon #eta:Events", ETA_BINS, -ETA_MAX, ETA_MAX);
+  hAllMuonsPt     = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllMuonsPt" , "AllMuonsPt:Muon p_{T}, GeVc^{-1}:Event", PT_BINS, 0, PT_MAX);
+  hAllMuonsEta    = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllMuonsEta" , "AllMuonsEta:Muon #eta:Events", ETA_BINS, -ETA_MAX, ETA_MAX);
+
+  hAllGenElectronsPt     = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllGenElectronsPt"    , "AllGenElectronsPt:Jet p_{T}, GeVc^{-1}:N_{jets}", PT_BINS, 0, PT_MAX);
+  hAllGenMuonsPt         = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllGenMuonsPt"        , "AllGenMuonsPt:Jet p_{T}, GeVc^{-1}:N_{jets}"    , PT_BINS, 0, PT_MAX);
+  hAllGenBjetsPt         = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllGenBjetsPt"        , "AllGenBjetsPt:Jet p_{T}, GeVc^{-1}:N_{jets}"    , PT_BINS, 0, PT_MAX);
+  hAllGenElectronsEta    = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllGenElectronsEta"   , "AllGenElectronsEta:Jet #eta:N_{jets}", ETA_BINS, -ETA_MAX, ETA_MAX);
+  hAllGenMuonsEta        = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllGenMuonsEta"       , "AllGenMuonsEta:Jet #eta:N_{jets}"    , ETA_BINS, -ETA_MAX, ETA_MAX);
+  hAllGenBjetsEta        = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllGenBjetsEta"       , "AllGenBjetsEta:Jet #eta:N_{jets}"    , ETA_BINS, -ETA_MAX, ETA_MAX);
+  hPassedGenElectronsPt  = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "PassedGenElectronsPt" , "PassedGenElectronsPt:Jet p_{T}, GeVc^{-1}:N_{jets}", PT_BINS, 0, PT_MAX);
+  hPassedGenMuonsPt      = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "PassedGenMuonsPt"     , "PassedGenMuonsPt:Jet p_{T}, GeVc^{-1}:N_{jets}"    , PT_BINS, 0, PT_MAX);
+  hPassedGenBjetsPt      = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "PassedGenBjetsPt"     , "PassedGenBjetsPt:Jet p_{T}, GeVc^{-1}:N_{jets}"    , PT_BINS, 0, PT_MAX);
+  hPassedGenElectronsEta = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "PassedGenElectronsEta", "PassedGenElectronsEta:Jet #eta:N_{jets}", ETA_BINS, -ETA_MAX, ETA_MAX);
+  hPassedGenMuonsEta     = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "PassedGenMuonsEta"    , "PassedGenMuonsEta:Jet #eta:N_{jets}"    , ETA_BINS, -ETA_MAX, ETA_MAX);
+  hPassedGenBjetsEta     = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "PassedGenBjetsEta"    , "PassedGenBjetsEta:Jet #eta:N_{jets}"    , ETA_BINS, -ETA_MAX, ETA_MAX);
 
   return;
 }
@@ -128,6 +147,24 @@ void Kinematics::process(Long64_t entry) {
 
   //====== Initialize
   cAllEvents.increment();
+
+  for(Electron elec: fEvent.electrons()) {
+    hPassedElectronsPt->Fill(elec.pt());
+    hPassedElectronsEta->Fill(elec.eta());
+    if(elec.pt() < 15 && std::abs(elec.eta()) > 2.4) continue;
+    hAllElectronsPt->Fill(elec.pt());
+    hAllElectronsEta->Fill(elec.eta());
+  }
+
+
+  for(Muon mu: fEvent.muons()) {
+    hPassedMuonsPt->Fill(mu.pt());
+    hPassedMuonsEta->Fill(mu.eta());
+    if(mu.pt() < 15 && std::abs(mu.eta()) > 2.4) continue;
+    hAllMuonsPt->Fill(mu.pt());
+    hAllMuonsEta->Fill(mu.eta());
+  }
+
 
   if( !fEvent.isMC() ) return;
 
@@ -158,15 +195,15 @@ void Kinematics::process(Long64_t entry) {
     // Electrons
     if(std::abs(genP_PdgId) == 11 && genP_Status < 10){
 
-      hAllElectronsPt ->Fill(genP_Pt);
-      hAllElectronsEta->Fill(genP_Eta);
+      hAllGenElectronsPt ->Fill(genP_Pt);
+      hAllGenElectronsEta->Fill(genP_Eta);
 
       if(genP_Pt >= cfg_ElePtCutMin && std::abs(genP_Eta) < cfg_EleEtaCutMax) {
 	// std::cout << "electron: Pt = " << genP_Pt << ", Eta = " << genP_Eta << ", Status = " << genP_Status << std::endl;
 	nGenElectrons++;
 	v_leptonPt.push_back(genP_Pt);
-	hPassedElectronsPt ->Fill(genP_Pt);
-	hPassedElectronsEta->Fill(genP_Eta);	
+	hPassedGenElectronsPt ->Fill(genP_Pt);
+	hPassedGenElectronsEta->Fill(genP_Eta);	
       }
     }
     if(nGenElectrons == 0) continue;
@@ -175,15 +212,15 @@ void Kinematics::process(Long64_t entry) {
     // Muons
     if(std::abs(genP_PdgId) == 13 && genP_Status < 10){
 
-      hAllMuonsPt ->Fill(genP_Pt);
-      hAllMuonsEta->Fill(genP_Eta);
+      hAllGenMuonsPt ->Fill(genP_Pt);
+      hAllGenMuonsEta->Fill(genP_Eta);
 
       if(genP_Pt >= cfg_MuPtCutMin && std::abs(genP_Eta) < cfg_MuEtaCutMax){
 	// std::cout << "muon: Pt = " << genP_Pt << ", Eta = " << genP_Eta << ", Status = " << genP_Status << std::endl;
 	nGenMuons++;
 	v_leptonPt.push_back(genP_Pt);
-	hPassedMuonsPt ->Fill(genP_Pt);
-	hPassedMuonsEta->Fill(genP_Eta);
+	hPassedGenMuonsPt ->Fill(genP_Pt);
+	hPassedGenMuonsEta->Fill(genP_Eta);
       }
     }
     if(nGenMuons == 0) continue;
@@ -192,13 +229,13 @@ void Kinematics::process(Long64_t entry) {
     // Bjets
     if(std::abs(genP_PdgId) == 5){
       
-      hAllBjetsPt ->Fill(genP_Pt);
-      hAllBjetsEta->Fill(genP_Eta);
+      hAllGenBjetsPt ->Fill(genP_Pt);
+      hAllGenBjetsEta->Fill(genP_Eta);
       
       if(genP_Pt >= cfg_BjetPtCutMin && std::abs(genP_Eta) < cfg_BjetEtaCutMax){
 	
-	hPassedBjetsPt ->Fill(genP_Pt);
-	hPassedBjetsEta->Fill(genP_Eta);
+	hPassedGenBjetsPt ->Fill(genP_Pt);
+	hPassedGenBjetsEta->Fill(genP_Eta);
 	
 	// std::cout << "bquark: Pt = " << genP_Pt << ", Eta = " << genP_Eta << ", Status = " << genP_Status << std::endl;
 	nGenBjets++;
@@ -232,14 +269,6 @@ void Kinematics::process(Long64_t entry) {
     
   }// for( auto& gen : fEvent.genparticles().getAllGenpCollection() ){
   // std::cout << "GenParticle Collection Size = " << nGenParticles << std::endl;
-
-  // size_t nelectrons = 0;
-  // for(Electron electron: fEvent.electrons()) {
-  //   std::cout << "electron.pdgId() = " << electron.pdgId() << std::endl;
-  //   if(electron.pt() > 15 && std::abs(electron.eta()) < 2.4)
-  //     ++nelectrons;
-  // }
-  // if(nelectrons > 0) return;
 
 
   /*
@@ -314,9 +343,9 @@ void Kinematics::process(Long64_t entry) {
 
     // Look for parton flavour
     int id = std::abs(p.pdgId()); // FIXME switch to partonFlavour
-    if (id == 5)       hAllBjets->Fill(p.pt());
-    else if (id == 4)  hAllCjets->Fill(p.pt());
-    else if (id == 21) hAllGjets->Fill(p.pt());
+    if (id == 5)       hAllGenBjets->Fill(p.pt());
+    else if (id == 4)  hAllGenCjets->Fill(p.pt());
+    else if (id == 21) hAllGenGjets->Fill(p.pt());
     else if (id == 1 || id == 2 || id == 3) hAllLightjets->Fill(p.pt());
 
   }//for (auto& p: jetData.getSelectedJets()) {
@@ -332,10 +361,10 @@ void Kinematics::process(Long64_t entry) {
 
     // Look for parton flavour
     int id = std::abs(p.pdgId()); // FIXME switch to partonFlavour
-    if (id == 5)       hPassedBjets->Fill(p.pt());
-    else if (id == 4)  hPassedCjets->Fill(p.pt());
-    else if (id == 21) hPassedGjets->Fill(p.pt());
-    else if (id == 1 || id == 2 || id == 3) hPassedLightjets->Fill(p.pt());
+    if (id == 5)       hPassedGenBjets->Fill(p.pt());
+    else if (id == 4)  hPassedGenCjets->Fill(p.pt());
+    else if (id == 21) hPassedGenGjets->Fill(p.pt());
+    else if (id == 1 || id == 2 || id == 3) hPassedGenLightjets->Fill(p.pt());
 
   }// for (auto& p: bjetData.getSelectedBJets()) {
 

@@ -97,11 +97,7 @@ def GetDatasetList(skimType, verbose=False):
     myDatasets  = Datasets(False)
 
     if skimType == "Default":        
-        # Available datasetTypes: "All", "Signal", "Background", "CollisionData", "SelectedMC"
         datasetList  = myDatasets.GetDatasetObjects(miniAODversion="RunIISpring15MiniAODv2", datasetType = opts.datasetType)
-        # datasetList  = myDatasets.GetDatasetObjects(miniAODversion="RunIISpring15MiniAODv2", datasetType = "CollisionData") 
-        # datasetList  = myDatasets.GetDatasetObjects(miniAODversion="RunIISpring15MiniAODv2", datasetType = "SelectedMC") 
-        # datasetList.append(myDatasets.GetDatasetObject("/MuonEG/Run2015D-PromptReco-v4/MINIAOD"))
     else:
         print "=== multicrabCreate.py:\n\t Unknown skim type '%s'." % (skimType), ". EXIT"
         sys.exit()
@@ -466,7 +462,7 @@ if __name__ == "__main__":
 
     parser.add_option("-d", "--dir"    , dest="taskDirName", type="string", default="", help="Custom name for multiCRAB directory name")
 
-    parser.add_option("--datasetType"  , dest="datasetType", type="string", default="", help="The type/group of datasets to run on. Currently the available types/groups are: \"All\", \"Signal\", \"Background\", \"CollisionData\", \"SelectedMC\", \"DoubleMuon\", \"DoubleEG\", \"MuonEG\", \"SingleMuon\", \"SingleElectron\".")
+    parser.add_option("--datasetType"  , dest="datasetType", type="string", default="", help="The type/group of datasets to run on. Currently the available types/groups are: \"All\", \"Signal\", \"Background\", \"CollisionData\", \"MC\", \"SelectedMC\", \"DoubleMuon\", \"DoubleEG\", \"MuonEG\", \"SingleMuon\", \"SingleElectron\".")
 
     (opts, args) = parser.parse_args()
 
