@@ -43,63 +43,6 @@ class Plotter(object):
         self.TMultigraph       = ROOT.TMultiGraph("TMultigraph", "ROOT.TMultiGraph holding various ROOT.TGraphs")
         print
         return
-                  
-
-    def AddDrawObject(self, drawObjects):
-        self.Verbose()
-        
-        if type(drawObjects) == list:
-            self.Print("Copying '%s' drawObjects to all datasets: %s" % (len(drawObjects), "\"" + "\", \"".join(h.GetName() for h in drawObjects) + "\"") )
-            sys.exit()
-            for d in drawObjects:
-                self._CopyToDatasets(d)
-        else:
-            self.Print("Copying '1' drawObjects to all datasets: %s" % ("\"" + drawObjects.GetAttribute("name") + "\"") )
-            self._CopyToDatasets(drawObjects)
-        return
-    
-
-    def _CopyToDatasets(self, drawObject):
-        '''
-        Takes as input parameter a drawObject and copies its attribues to all datasets.
-        '''
-        self.Verbose()
-        
-        if not hasattr(self, 'Datasets'):
-            raise Exception("Cannot add copy drawObject as no datasets exist. Check that you have added some datasets")
-
-        self.IsDrawObject(drawObject)
-
-        for d in self.Datasets:
-            if not self.IsHisto(d.rootFile, drawObject):
-                raise Exception( "The object '%s' in '%s' is neither TH1, nor a TH2, nor a TH3." % (drawObject, d.rootFile.GetName()) )
-            d.histo     = copy.deepcopy(drawObject)
-            drawObject = d.histo
-            drawObject.THisto  = self.GetHistoFromFile(d.rootFile, d.histo)
-            drawObject.dataset = d
-        return
-
-
-    def Draw(self, stackOpts="nostack", ratioPad=False):
-        self.Verbose()
-
-        self.CreateCanvas(ratioPad)
-        self._CheckHistosBinning()
-        self._AddHistosToStack()
-        self._DrawHistos(stackOpts)
-        self._DrawNonHistoObjects()    
-        self._RedrawVitalObjects()
-        return
-
-
-    def _RedrawVitalObjects(self):
-        self.Verbose()
-
-        self.TLegend.Draw("same")
-        #self._CreateLegendDumbie() #xenios
-        #self.TLegendDumbie.Draw("same")
-        self.THDumbie.THisto.Draw("same")
-        return
     
     
     def DrawRatio(self, THStackDrawOpt, refDataset):
@@ -108,15 +51,14 @@ class Plotter(object):
         if refDataset not in self.GetDatasetNames():
             raise Exception("Cannot call DrawRatio(). The reference dataset '%s' cannot be found!" % (refDataset) )
 
-        self.Draw(THStackDrawOpt, ratioPad=True)
-            
+        self._CreateCanvas(True)
         self.TPadRatio.cd()        
         for h in self.GetHistos():
             if h.dataset.name == refDataset:
                 hDenominator = copy.deepcopy(h.THisto)
                 lineColour = h.THisto.GetLineColor()
                 break
-
+        
         for h in self.GetHistos():
             hNumerator = copy.deepcopy(h.THisto)
             hRatio     = copy.deepcopy(hNumerator)
@@ -127,10 +69,11 @@ class Plotter(object):
         # Add a line at y=1
         line = self._GetTLine(self.THDumbie.xMin, self.THDumbie.xMax, 1.0, 1.0, lineColour, 2, ROOT.kSolid)
         self.ExtendDrawLists(line, True, False)
-        self.CustomiseTHRatio() #xenios
+        self.CustomiseTHRatio()
         self.THRatio.THisto.Draw()
         self.THStackRatio.Draw("nostack9sameAP")
         self.TPadPlot.cd()
+        self.Draw(THStackDrawOpt)
         return
 
     
@@ -285,7 +228,7 @@ class Plotter(object):
         return
 
     
-    def CreateCanvas(self, twoPads=False):
+    def _CreateCanvas(self, twoPads=False):
         '''
         Create a name for a TCanvas and then create it. 
         This name will later on be used to save the canvas under a user specific format ("png", "pdf", "eps", etc..)
@@ -293,7 +236,8 @@ class Plotter(object):
         self.Verbose()
 
         if hasattr(self, 'TCanvas'):
-            raise Exception("The class object already has a 'TCanvas' attribute.")
+            return
+            #raise Exception("The class object already has a 'TCanvas' attribute.")
 
 
         # First customise all histograms (otherwise cannot create THDumbie)
@@ -816,21 +760,38 @@ class Plotter(object):
         return
 
 
-    def _CreateLegendDumbie(self):
+    def _DrawLegendDumbie(self):
+        '''
+        Why create a TLegend dumbie? It is a beautification trick. On top of the first legend 
+        we superimpose a second TLegend with exactly the same histograms (legend entries).
+        Only this time we change the line colour of all histograms and set it to black. The effect
+        is that each histogram legend entry box now has a black border line.
+
+        NOTE: I could not use copy.deepcopy in the Histos loop because it crashes (don't know why)
+        As a result, inside the loop I get REFERENCES to the hitograms. So changing the line colour 
+        affects all drawn histograms. For this reason this method must be called AFTER drawing all 
+        Pad and Ratio plots, otherwise they will show up with black lines
+        '''
         self.Verbose()
-        
+
         if hasattr(self, 'TLegendDumbie'):
             return
 
+        if "F" not in self.THDumbie.legOptions:
+            return
+        
         self.TLegendDumbie = ROOT.TLegend(self.THDumbie.xLegMin, self.THDumbie.yLegMin, self.THDumbie.xLegMax, self.THDumbie.yLegMax, "", "brNDC")
         self._CustomiseLegend(self.TLegendDumbie)
 
-        for histo in self.GetHistos():
-            histo.THisto.SetLineColor(ROOT.kBlack)
-            #print histo.dataset.GetName()
-            self.TLegendDumbie.AddEntry(histo.THisto, "", "F")
+        for h in self.GetHistos():
+            h.THisto.SetLineColor(ROOT.kBlack)
+            self.TLegendDumbie.AddEntry(h.THisto, "", "F")
 
         self.TLegendDumbie.SetY1(self.TLegend.GetY1())
+        self.TLegendDumbie.SetY2(self.TLegend.GetY2())
+        self.TLegendDumbie.SetX1(self.TLegend.GetX1())
+        self.TLegendDumbie.SetX2(self.TLegend.GetX2())
+        self.TLegendDumbie.Draw("same")
         return
     
 
@@ -953,8 +914,11 @@ class Plotter(object):
         for v in self.THDumbie.xCutBoxes:
             xMin    = v[0]
             xMax    = v[1]
-            yMin    = self.THDumbie.yMin
-            yMax    = self.THDumbie.yMax
+            if not hasattr(self, "TPadRatio"):
+                yMin    = self.THDumbie.THisto.GetMinimum() # self.THDumbie.yMin
+            else:
+                yMin    = self.THRatio.THisto.GetMinimum()  # self.THDumbie.yMin
+            yMax    = self.THDumbie.THisto.GetMaximum()     # self.THDumbie.yMax
             colour  = v[2]
             cutBox  = self._GetTBox(xMin , xMax, yMin, yMax, colour, fillStyle)
             cline1  = self._GetTLine(xMin, xMin, yMin, yMax, colour, 1, ROOT.kSolid)
@@ -1205,3 +1169,58 @@ class Plotter(object):
             dataset.histo.THisto.SetFillStyle(style)
         return
     
+
+    def AddDrawObject(self, drawObjects):
+        self.Verbose()
+        
+        if type(drawObjects) == list:
+            self.Print("Copying '%s' drawObjects to all datasets: %s" % (len(drawObjects), "\"" + "\", \"".join(h.GetName() for h in drawObjects) + "\"") )
+            sys.exit()
+            for d in drawObjects:
+                self._CopyToDatasets(d)
+        else:
+            self.Print("Copying '1' drawObjects to all datasets: %s" % ("\"" + drawObjects.GetAttribute("name") + "\"") )
+            self._CopyToDatasets(drawObjects)
+        return
+    
+
+    def _CopyToDatasets(self, drawObject):
+        '''
+        Takes as input parameter a drawObject and copies its attribues to all datasets.
+        '''
+        self.Verbose()
+        
+        if not hasattr(self, 'Datasets'):
+            raise Exception("Cannot add copy drawObject as no datasets exist. Check that you have added some datasets")
+
+        self.IsDrawObject(drawObject)
+
+        for d in self.Datasets:
+            if not self.IsHisto(d.rootFile, drawObject):
+                raise Exception( "The object '%s' in '%s' is neither TH1, nor a TH2, nor a TH3." % (drawObject, d.rootFile.GetName()) )
+            d.histo     = copy.deepcopy(drawObject)
+            drawObject = d.histo
+            drawObject.THisto  = self.GetHistoFromFile(d.rootFile, d.histo)
+            drawObject.dataset = d
+        return
+    
+
+    def Draw(self, stackOpts="nostack"):
+        self.Verbose()
+
+        self._CreateCanvas(False)
+        self._CheckHistosBinning()
+        self._AddHistosToStack()
+        self._DrawHistos(stackOpts)
+        self._DrawNonHistoObjects()    
+        self._RedrawVitalObjects()
+        return
+
+
+    def _RedrawVitalObjects(self):
+        self.Verbose()
+
+        self.TLegend.Draw("same")
+        self._DrawLegendDumbie()
+        self.THDumbie.THisto.Draw("same")
+        return

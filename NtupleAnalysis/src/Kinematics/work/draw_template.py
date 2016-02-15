@@ -69,7 +69,7 @@ EvtRange   = [ [1E2, 1E4, ROOT.kBlack] ]
 Pt = {
     "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00 , "xMax": ptMax, "binWidthX": None, "xCutLines": [20], "xCutBoxes": PtRange  , "gridX": True, "logX": False, 
     "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E-01, "yMax": None , "binWidthY": None, "yCutLines": [10], "yCutBoxes": EvtRange, "gridY": True, "logY": True,
-    "ratioLabel": "Ratio", "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "drawOptions": "HIST", "legOptions": "F", 
+    "ratioLabel": "Ratio", "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "drawOptions": "HIST9", "legOptions": "F", 
     "logYRatio": False, "logXRatio": False, "xLegMin": 0.70, "xLegMax": 0.95, "yLegMin": 0.78, "yLegMax": 0.93, "gridXRatio": True, "gridYRatio": True,
 }
 
@@ -115,8 +115,8 @@ def DoPlots(histo, datasetObjects, intLumi, bColourPalette=False, savePostfix=""
     # p.AddTF1("1000*cos(x)", 0, 200.0, False, {"lineColour": ROOT.kBlack})
     p.AddCmsText("13", intLumi, prelim=True)
     p.DatasetAsLegend(True)    
-    # p.DrawRatio("stack", "ttHJetToNonbb_M125")
-    p.Draw("stack") # "nostack"
+    p.DrawRatio("stack", "ttHJetToNonbb_M125")
+    # p.Draw("stack") # "nostack"
     # p.SetHistosFillStyle(3001)
     # p.DrawStackInclusive()
     # p.SaveAs(savePath, histo.GetName() + "_test", savePostfix, saveFormats)
