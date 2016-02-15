@@ -45,41 +45,6 @@ class Plotter(object):
         return
     
     
-    def DrawRatio(self, stackOpts, ratioStackOpts, refDataset):
-        self.Verbose()
-    
-#        self._CreateCanvas(True)
-#        self._CheckHistosBinning()
-#        self._AddHistosToRatioStack(refDataset)
-#        self._DrawHistosRatio(ratioStackOpts)
-#        # self._RedrawVitalObjectsRatio()
-#        self._AddDataHistoToDrawList()
-#        self._AddHistosToStack()
-#        self._DrawHistos(stackOpts)
-#        self._DrawItemsInDrawList()
-#        self._RedrawVitalObjects()
-
-
-        self._CreateCanvas(True)
-        self._CheckHistosBinning()
-        self._AddHistosToStack()
-        self._AddHistosToRatioStack(refDataset)
-        self._AddDataHistoToDrawList()        
-        self._DrawHistos(stackOpts)
-        self._DrawHistosRatio(ratioStackOpts)
-        self._DrawItemsInDrawList()
-        #self._RedrawVitalObjects()
-        # self._RedrawVitalObjectsRatio()
-
-
-        self.TPadRatio.cd()
-        for c in self.TBoxListX:
-            c.Draw("same")
-        for c in self.TBoxListY:
-            c.Draw("same")
-        return
-
-    
     def _GetRatioReferenceHisto(self, refDataset):
         self.Verbose()
  
@@ -1026,7 +991,8 @@ class Plotter(object):
             else:
                 o.Draw("9same")
 
-        self._DrawItemsInDrawListRatio()
+        if hasattr(self, "TPadRatio"):
+            self._DrawItemsInDrawListRatio()
         self.UpdateCanvas()
         return
 
@@ -1307,6 +1273,23 @@ class Plotter(object):
         self._RedrawVitalObjects()
         return
 
+    
+    def DrawRatio(self, stackOpts, ratioStackOpts, refDataset):
+        self.Verbose()
+    
+        self._CreateCanvas(True)
+        self._CheckHistosBinning()
+        self._AddHistosToStack()
+        self._AddHistosToRatioStack(refDataset)
+        self._AddDataHistoToDrawList()        
+        self._DrawHistos(stackOpts)
+        self._DrawHistosRatio(ratioStackOpts)
+        self._DrawItemsInDrawList()
+        self._RedrawVitalObjects()
+        # self._RedrawVitalObjectsRatio()
+        return
+
+    
 
     def _RedrawVitalObjects(self):
         self.Print("Re-drawing Legend and Histo dumbies")
