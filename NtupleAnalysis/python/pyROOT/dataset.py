@@ -500,6 +500,11 @@ class Dataset(object):
         return self.name
 
 
+    def SetName(self, name):
+        self.Verbose()
+        self.name = name
+    
+
     def GetXSection(self):    
         self.Verbose()
         return self.xsection
@@ -1095,7 +1100,7 @@ class DatasetManager:
                 print >> sys.stderr, "=== dataset.py:\n\tWARNING! Dataset selectAndReorder: dataset %s doesn't exist" % name
 
         self.datasets = selected
-        self._populateMap()
+        self._PopulateMap()
         return
 
     
@@ -1118,7 +1123,7 @@ class DatasetManager:
             elif close:
                 d.close()
         self.datasets = selected
-        self._populateMap()
+        self._PopulateMap()
         return
 
     
@@ -1137,8 +1142,8 @@ class DatasetManager:
 
         if newName in self.datasetMap:
             raise Exception("Trying to rename datasets '%s' to '%s', but a dataset with the new name already exists!" % (oldName, newName))
-        self.datasetMap[oldName].setName(newName)
-        self._populateMap()
+        self.datasetMap[oldName].SetName(newName)
+        self._PopulateMap()
         return
 
     
@@ -1163,11 +1168,11 @@ class DatasetManager:
                 raise Exception("=== dataset.py:\n\tTrying to rename datasets '%s' to '%s', but a dataset with the new name already exists!" % (oldName, newName))
 
             try:
-                self.datasetMap[oldName].setName(newName)
+                self.datasetMap[oldName].SetName(newName)
             except KeyError, e:
                 if not silent:
                     raise Exception("=== dataset.py:\n\tTrying to rename dataset '%s' to '%s', but '%s' doesn't exist!" % (oldName, newName, oldName))
-        self._populateMap()
+        self._PopulateMap()
         return
 
     
@@ -1180,7 +1185,7 @@ class DatasetManager:
         \param kwargs  Keyword arguments (forwarded to merge())
         '''
         self.Verbose()
-        self.merge("Data", self.GetDataDatasetNames(), *args, **kwargs)
+        self.Merge("Data", self.GetDataDatasetNames(), *args, **kwargs)
         return
 
     
@@ -1193,7 +1198,7 @@ class DatasetManager:
         \param kwargs  Keyword arguments (forwarded to merge())
         '''
         self.Verbose()
-        self.merge("MC", self.GetMCDatasetNames(), *args, **kwargs)
+        self.Merge("MC", self.GetMCDatasetNames(), *args, **kwargs)
         return
 
     
@@ -1248,7 +1253,7 @@ class DatasetManager:
         '''
         self.Verbose()
         
-        (selected, notSelected, firstIndex) = _mergeStackHelper(self.datasets, nameList, "merge", allowMissingDatasets)
+        (selected, notSelected, firstIndex) = _MergeStackHelper(self.datasets, nameList, "merge", allowMissingDatasets)
         if len(selected) == 0:
             message = "=== dataset.py:\n\tDataset merge: no datasets '" +", ".join(nameList) + "' found, not doing anything"
             if allowMissingDatasets:
@@ -1260,7 +1265,7 @@ class DatasetManager:
         elif len(selected) == 1 and not keepSources:
             if not silent:
                 print >> sys.stderr, "=== dataset.py:\n\tDataset merge: one dataset '" + selected[0].GetName() + "' found from list '" + ", ".join(nameList)+"', renaming it to '%s'" % newName
-            self.rename(selected[0].GetName(), newName)
+            self.Rename(selected[0].GetName(), newName)
             return
 
         if not keepSources:
@@ -1271,7 +1276,7 @@ class DatasetManager:
             newDataset = DatasetMerged(newName, selected)
 
         self.datasets.insert(firstIndex, newDataset)
-        self._populateMap()
+        self._PopulateMap()
         return
     
         
@@ -1453,4 +1458,74 @@ class DatasetManager:
         
         namePSets = self.datasets[0].ForEach(lambda d: (d.GetName(), d.GetParameterSet()))
         return namePSets[0][1]
+    
+
+
+#================================================================================================
+# Helper Functions
+#================================================================================================
+def _MergeStackHelper(datasetList, nameList, task, allowMissingDatasets=False):
+    '''
+    Helper function for merging/stacking a set of datasets.
+    
+    \param datasetList  List of all Dataset objects to consider
+    \param nameList     List of the names of Dataset objects to merge/stack
+    \param task         String to identify merge/stack task (can be 'stack' or 'merge')
+    \param allowMissingDatasets  If True, ignore error from missing dataset (warning is nevertheless printed)
+    
+    \return a triple of:
+    - list of selected Dataset objects
+    - list of non-selected Dataset objects
+    - index of the first selected Dataset object in the original list
+    of all Datasets
+    
+    The Datasets to merge/stack are selected from the list of all
+    Datasets, and it is checked that all of them are either data or MC
+    (i.e. merging/stacking of data and MC datasets is forbidden).
+    '''
+    if not task in ["stack", "merge"]:
+        raise Exception("Task can be either 'stack' or 'merge', was '%s'" % task)
+
+    selected = []
+    notSelected = []
+    firstIndex = None
+    dataCount = 0
+    mcCount = 0
+    pseudoCount = 0
+
+    for i, d in enumerate(datasetList):
+        if d.GetName() in nameList:
+            selected.append(d)
+            if firstIndex == None:
+                firstIndex = i
+            if d._IsData():
+                dataCount += 1
+            elif d._IsMC():
+                mcCount += 1
+            elif hasattr(d, "isPseudo") and d.isPseudo():
+                pseudoCount += 1
+            else:
+                raise Exception("Internal error!")
+        else:
+            notSelected.append(d)
+
+    if dataCount > 0 and mcCount > 0:
+        raise Exception("Can not %s data and MC datasets!" % task)
+    if dataCount > 0 and pseudoCount > 0:
+        raise Exception("Can not %s data and pseudo datasets!" % task)
+    if pseudoCount > 0 and mcCount > 0:
+        raise Exception("Can not %s pseudo and MC datasets!" % task)
+
+    if len(selected) != len(nameList):
+        dlist = nameList[:]
+        for d in selected:
+            ind = dlist.index(d.getName())
+            del dlist[ind]
+        message = "Tried to %s '"%task + ", ".join(dlist) +"' which don't exist"
+        if allowMissingDatasets:
+            print >> sys.stderr, "WARNING: "+message
+        else:
+            raise Exception(message)
+
+    return (selected, notSelected, firstIndex)
     

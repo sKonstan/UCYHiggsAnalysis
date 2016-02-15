@@ -67,6 +67,13 @@ EvtRange   = [ [1E2, 1E4, ROOT.kBlack] ]
 # Histogram Options
 #================================================================================================
 Pt = {
+    "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00 , "xMax": ptMax, "binWidthX": None, "xCutLines": [], "xCutBoxes": [], "gridX": True, "logX": False, 
+    "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E-01, "yMax": None , "binWidthY": None, "yCutLines": [], "yCutBoxes": [], "gridY": True, "logY": True,
+    "ratioLabel": "Ratio", "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "drawOptions": "HIST9", "legOptions": "F", 
+    "logYRatio": False, "logXRatio": False, "xLegMin": 0.70, "xLegMax": 0.95, "yLegMin": 0.78, "yLegMax": 0.93, "gridXRatio": True, "gridYRatio": True,
+}
+
+PtTest = {
     "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00 , "xMax": ptMax, "binWidthX": None, "xCutLines": [20], "xCutBoxes": PtRange  , "gridX": True, "logX": False, 
     "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E-01, "yMax": None , "binWidthY": None, "yCutLines": [10], "yCutBoxes": EvtRange, "gridY": True, "logY": True,
     "ratioLabel": "Ratio", "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "drawOptions": "HIST9", "legOptions": "F", 
@@ -115,7 +122,8 @@ def DoPlots(histo, datasetObjects, intLumi, bColourPalette=False, savePostfix=""
     # p.AddTF1("1000*cos(x)", 0, 200.0, False, {"lineColour": ROOT.kBlack})
     p.AddCmsText("13", intLumi, prelim=True)
     p.DatasetAsLegend(True)    
-    p.DrawRatio("stack", "ttHJetToNonbb_M125")
+    #p.DrawRatio("stack", "ttHJetToNonbb_M125")
+    p.DrawRatio("stack", "Data")
     # p.Draw("stack") # "nostack"
     # p.SetHistosFillStyle(3001)
     # p.DrawStackInclusive()
@@ -153,12 +161,13 @@ def main():
     auxObject.StartTimer("Dataset Manager")
     datasetManager = dataset.DatasetManager(opts.mcrab, analysis)
     datasetManager.LoadLuminosities("lumi.json")
-    # datasetObjects = datasetManager.GetAllDatasets()
-    datasetObjects = datasetManager.GetMCDatasets()
+    datasetManager.MergeData()
+    datasetObjects = datasetManager.GetAllDatasets()
+    # datasetObjects = datasetManager.GetMCDatasets()
     # datasetObjects   = [datasetManager.GetDataset("ttHJetToNonbb_M125")]
     datasetManager.SetLuminosityForMC( datasetManager.GetLuminosity() ) #myLumi
     intLumi        = datasetManager.GetLuminosityString("fb") 
-    # datasetManager.PrintSummary()
+    datasetManager.PrintSummary()
     # datasetManager.PrintDatasets()
     # datasetManager.PrintSelections("DYJetsToLL_M_10to50")
     

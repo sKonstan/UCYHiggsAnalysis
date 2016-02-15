@@ -132,8 +132,7 @@ class Plotter(object):
 
         line.SetLineColor(colour)
         line.SetLineWidth(width)
-        line.SetLineStyle(style)
-        # line.Draw() #xenios
+        line.SetLineStyle(style)    
         return
     
         
@@ -160,11 +159,33 @@ class Plotter(object):
 
     #================================================================================================
     def SetAttribute(self, attr, value):
+        '''
+        I should avoid using this function and instead write functions dedicated to Setting or Getting 
+        a specific class variable value. The reason? Well, in principle there are no private variables in python, 
+        so you can access all variables directly without getters and set them via setattr or directly if they are already initialized.
+
+        But there are 2 good reasons for writing specific functions:
+        1) Documentation in terms of user interface. Writing explicit getters and setters keeps your code clean 
+        and contained and discourages wild editing of values
+        
+        2) speed of code (setattr looks through a list of strings to find the variable)
+        ''' 
         self.Verbose()
         return setattr(self, attr, value)
 
     
     def GetAttribute(self, attr):
+        '''
+        I should avoid using this function and instead write functions dedicated to Setting or Getting 
+        a specific class variable value. The reason? Well, in principle there are no private variables in python, 
+        so you can access all variables directly without getters and set them via setattr or directly if they are already initialized.
+
+        But there are 2 good reasons for writing specific functions:
+        1) Documentation in terms of user interface. Writing explicit getters and setters keeps your code clean 
+        and contained and discourages wild editing of values
+        
+        2) speed of code (setattr looks through a list of strings to find the variable)
+        ''' 
         self.Verbose()
         if hasattr(self, attr):
             return getattr(self, attr)
@@ -477,7 +498,6 @@ class Plotter(object):
             self.textObject.AddDefaultText("publication", "")
         self.textObject.AddDefaultText("lumi", lumi)
         self.textObject.AddDefaultText("energy", "(" + energy + " TeV)")
-
         self.ExtendDrawLists(self.textObject.GetTextList(), addToRatio=False)        
         return
 
@@ -959,7 +979,7 @@ class Plotter(object):
         return
 
 
-    def _DrawNonHistoObjects(self):
+    def _DrawItemsInDrawLists(self):
         self.Verbose()                
 
         self.CreateCutBoxes()
@@ -972,7 +992,10 @@ class Plotter(object):
             self.TCanvas.cd()
             
         for o in self.drawList:
-            o.Draw("same")
+            if isinstance(o, histos.DrawObject):
+                o.Draw("9same" + drawOptions)
+            else:
+                o.Draw("9same")
         self.UpdateCanvas()
 
         # Draw all objects on the TPadRatio        
@@ -983,7 +1006,10 @@ class Plotter(object):
         for o in self.drawListRatio:
             if isinstance(o, ROOT.TLegend):
                 continue
-            o.Draw("same")
+            elif isinstance(o, histos.DrawObject):
+                o.Draw("9same" + drawOptions)
+            else:
+                o.Draw("same")
 
         self.UpdateCanvas()
         self.TPadPlot.cd()
@@ -1067,12 +1093,12 @@ class Plotter(object):
 
         if not hasattr(self, 'TLegend'):
             raise Exception("Cannot add drawObject '%s' to the TLegend, as the latter has not been created yet." % (drawObject) )
+
         deltaY = self.TLegend.GetY1() - 0.025
-            
         if isinstance(drawObject, histos.DrawObject):
             histo  = drawObject.THisto
             label  = self.GetLegLabel(drawObject)
-            opts   = drawObject.GetAttribute("legOptions")            
+            opts   = drawObject.GetAttribute("legOptions")
             self.TLegend.AddEntry(histo, label, opts)
         elif isinstance(drawObject, (ROOT.TH1, ROOT.TH2, ROOT.TH3, ROOT.TLine, ROOT.TBox) ):
             self.TLegend.AddEntry(drawObject, label, opts)            
@@ -1136,6 +1162,7 @@ class Plotter(object):
             raise Exception("At least one of the histogram in the plotting queue has a different x-axis binning! Please make sure all your histogram bins are identical.")
         return 
 
+    
     def _CheckHistosBinning(self):
         '''
         Ensure that all histoObjects have exactly the same binning as the TH1Dubmie.
@@ -1157,9 +1184,14 @@ class Plotter(object):
         self.Verbose()
 
         for histo in self.GetHistos():
-            self.THStack.Add(histo.THisto)
-            self.THStackHistoList.append(histo.THisto)
-            self.ExtendLegend(histo)
+            if histo.dataset._IsData():
+                self.ExtendDrawLists(histo.THisto, False, True)
+                self.ExtendLegend(histo.THisto, "Data", "LP" )
+                continue
+            else:
+                self.THStack.Add(histo.THisto)
+                self.THStackHistoList.append(histo.THisto)
+                self.ExtendLegend(histo)
         return
 
 
@@ -1212,7 +1244,7 @@ class Plotter(object):
         self._CheckHistosBinning()
         self._AddHistosToStack()
         self._DrawHistos(stackOpts)
-        self._DrawNonHistoObjects()    
+        self._DrawItemsInDrawLists()
         self._RedrawVitalObjects()
         return
 

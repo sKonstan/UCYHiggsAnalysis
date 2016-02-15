@@ -27,6 +27,7 @@ class StyleClass(object):
     def __init__(self, verbose = False):
         self.verbose                = verbose
         self.TextObject             = text.TextClass(verbose=self.verbose)
+        self.datasetList            = ["DoubleMuon", "DoubleEG", "MuonEG", "SingleMuon", "SingleElectron"]
         self.styleTypeList          = []
         self.styleTypeSpecialList   = []
         self.colourPaletteList      = [ROOT.kBlack, ROOT.kRed-4, ROOT.kAzure+6, ROOT.kSpring+2, ROOT.kMagenta-2, ROOT.kGray, ROOT.kOrange+5, ROOT.kYellow-4, ROOT.kBlue-4,
@@ -49,8 +50,7 @@ class StyleClass(object):
         self._SetDefaults("WW"                 , colour=ROOT.kBlue-4   , mStyle=ROOT.kMultiply        , lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, mSize = 1.0, drawOpts="HIST", legOpts="F")
         self._SetDefaults("WZ"                 , colour=ROOT.kMagenta-6, mStyle=ROOT.kOpenSquare      , lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, mSize = 1.0, drawOpts="HIST", legOpts="F")
         self._SetDefaults("ZZ"                 , colour=ROOT.kCyan-7   , mStyle=ROOT.kOpenTriangleUp  , lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, mSize = 1.0, drawOpts="HIST", legOpts="F")
-        self._SetDefaults("Data"               , colour=ROOT.kBlack    , mStyle=ROOT.kFullCircle      , lWidth=2, lStyle=ROOT.kDashed, fStyle=1001, mSize = 1.0, drawOpts="HIST", legOpts="F")
-        self._SetDefaults("Inclusive"          , colour=ROOT.kGreen-5  , mStyle=ROOT.kFullCross      , lWidth=3, lStyle=ROOT.kSolid , fStyle=0   , mSize = 1.0, drawOpts="HIST", legOpts="F")
+        self._SetDefaults("Data"               , colour=ROOT.kBlack    , mStyle=ROOT.kFullCircle      , lWidth=2, lStyle=ROOT.kSolid, fStyle=1001, mSize = 1.0, drawOpts="P", legOpts="LP")
         self._SetSpecials("random", colour = cycle(self.colourPaletteList).next(), mStyle=ROOT.kFullCircle, lWidth=3, lStyle=0, fStyle=3001, drawOpts="HIST", legOpts="F")
         self.Verbose()
         return
@@ -142,8 +142,7 @@ class StyleClass(object):
         ### Set all arguments and their values
         for argument, value in kwargs.iteritems():
             setattr(self, name + "_" + argument, value)
-            #self.drawOptions  = kwargs.get("drawOptions", None)
-            #print "'%s': '%s' =  '%s'" % (name, argument , value)
+            # print "'%s': '%s' =  '%s'" % (name, argument , value)
         self.styleTypeList.append( name.lower() )
         return
 
@@ -254,23 +253,24 @@ class StyleClass(object):
         '''
         Get the style attributes for a ROOT.TH1 histogram, such as colour, markerStyle, markerSize, lineWidth, lineStyle, fillStyle and options.
         '''
-        self.Verbose()
+        self.Verbose()    
         
-        styleType = None
-
         if histoObject.styleType != None:
             styleType = histoObject.styleType.lower()
         else:
             styleType = histoObject.dataset.name.lower()
-                    
-        self.Verbose(["styleType: %s" % (styleType)])
+
+        dName = histoObject.dataset.name
         if styleType in self.styleTypeList:
             return self._GetTH1Values(styleType)
         elif styleType in self.styleTypeSpecialList:
             return self._GetTH1SpecialValues(styleType)
+        elif dName.split("_")[0] in self.datasetList: #in case data datasets are not merged
+            return self._GetTH1Values("Data".lower())
         else:
-            return self._GetTH1Values("random")
-
+            raise Exception("Could not determine style for dataset with name '%s'" % (dName))
+        return
+    
 
     def GetTH2Styles(self, histoObject):
         '''
