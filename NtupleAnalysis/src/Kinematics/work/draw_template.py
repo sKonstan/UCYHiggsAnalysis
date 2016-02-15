@@ -58,13 +58,15 @@ EtaLines   = [-1.6, -0.8, +0.8, +1.6]
 EtaRange   = [[-etaMax, -1.6, ROOT.kRed+1], [+etaMax, +1.6, ROOT.kRed+1], [-1.6, -0.8, ROOT.kYellow-4], [+0.8, +1.6, ROOT.kYellow-4], [-0.8, +0.8, ROOT.kGreen+1] ]
 PtRange    = [ [40.0, 80.0, ROOT.kRed] ]
 EvtRange   = [ [1E2, 1E4, ROOT.kBlack] ]
+#EvtRange   = [ [0.5, 1.5, ROOT.kBlack] ]
+
 
 #================================================================================================
 # Histogram Options
 #================================================================================================
 Pt = {
-    "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00 , "xMax": ptMax, "binWidthX": None, "xCutLines": [10], "xCutBoxes": PtRange, "gridX": True, "logX": False, 
-    "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E-01, "yMax": None , "binWidthY": None, "yCutLines": [10], "yCutBoxes": EvtRange, "gridY": True, "logY": True,
+    "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00 , "xMax": ptMax, "binWidthX": None, "xCutLines": [], "xCutBoxes": [], "gridX": True, "logX": False, 
+    "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E-01, "yMax": None , "binWidthY": None, "yCutLines": [], "yCutBoxes": [], "gridY": True, "logY": True,
     "ratioLabel": "Ratio", "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "drawOptions": "HIST9", "legOptions": "F", 
     "logYRatio": False, "logXRatio": False, "xLegMin": 0.70, "xLegMax": 0.95, "yLegMin": 0.78, "yLegMax": 0.93, "gridXRatio": True, "gridYRatio": True,
 }
@@ -117,7 +119,8 @@ def DoPlots(histo, datasetObjects, intLumi, savePostfix=""):
     # p.DrawStackInclusive()
 
     # p.SaveAs(savePath, histo.GetName() + "_test", savePostfix, saveFormats)
-    p.Save()    
+    # p.Save()
+    p.Save("", ["png"])    
     p.Exit()
     
     return

@@ -92,19 +92,7 @@ class Plotter(object):
         self.THStackRatio.Draw(stackOpts + ",9same")
         self.UpdateCanvas()
         return
-    
-
-
-    def _CustomiseTLine(self, line, colour=ROOT.kBlack, width=3, style=ROOT.kSolid):
-        '''
-        '''
-        self.Verbose()
-
-        line.SetLineColor(colour)
-        line.SetLineWidth(width)
-        line.SetLineStyle(style)    
-        return
-    
+        
         
     def DatasetAsLegend(self, flag):
         self.Verbose()
@@ -115,17 +103,6 @@ class Plotter(object):
     def GetTHStackHistoList(self):
         self.Verbose()
         return self.THStackHistoList
-
-
-    def GetTHStack(self):
-        self.Verbose()
-        return self.THStack
-
-
-    def GetTHDumbie(self):
-        self.Verbose()
-        return self.THDumbie
-
 
     #================================================================================================
     def SetAttribute(self, attr, value):
@@ -793,6 +770,7 @@ class Plotter(object):
 
         for h in self.GetHistos():
             h.THisto.SetLineColor(ROOT.kBlack)
+            h.THisto.SetLineStyle(ROOT.kSolid)
             self.TLegendDumbie.AddEntry(h.THisto, "", "F")
 
         self.TLegendDumbie.SetY1(self.TLegend.GetY1())
@@ -929,17 +907,14 @@ class Plotter(object):
             self.TLineListY = []
             
         for v in self.THDumbie.xCutBoxes:
-            xMin    = v[0]
-            xMax    = v[1]
-            if not hasattr(self, "TPadRatio"):
-                yMin = self.THDumbie.THisto.GetMinimum()
-            else:
-                yMin = self.THRatio.THisto.GetMinimum()
-            yMax    = self.THDumbie.THisto.GetMaximum()
-            colour  = v[2]
-            cutBox  = self._GetTBox(xMin , xMax, yMin, yMax, colour, fillStyle)
-            cline1  = self._GetTLine(xMin, xMin, yMin, yMax, colour, 1, ROOT.kSolid)
-            cline2  = self._GetTLine(xMax, xMax, yMin, yMax, colour, 1, ROOT.kSolid)
+            xMin   = v[0]
+            xMax   = v[1] #xenios
+            yMin   = self.THDumbie.THisto.GetMinimum()
+            yMax   = self.THDumbie.THisto.GetMaximum()
+            colour = v[2]
+            cutBox = self._GetTBox(xMin , xMax, yMin, yMax, colour, fillStyle)
+            cline1 = self._GetTLine(xMin, xMin, yMin, yMax, colour, 1, ROOT.kSolid)
+            cline2 = self._GetTLine(xMax, xMax, yMin, yMax, colour, 1, ROOT.kSolid)
             self.TBoxListX.append(cutBox)
             self.TLineListX.append(cline1)
             self.TLineListY.append(cline2)
@@ -1009,8 +984,18 @@ class Plotter(object):
                 continue
             elif isinstance(o, histos.DrawObject):
                 o.Draw("9same" + drawOptions)
-            else:
-                o.Draw("same")
+
+            if isinstance(o, ROOT.TLine):
+                if o.GetX1() == o.GetX2():
+                    o.SetY1( self.THRatio.THisto.GetMinimum() )
+                    o.SetY2( self.THRatio.THisto.GetMaximum() )
+            if isinstance(o, ROOT.TBox):
+                if o.GetY1() == self.THDumbie.THisto.GetMaximum():
+                    o.SetY1( self.THRatio.THisto.GetMinimum() )
+                if o.GetY2() == self.THDumbie.THisto.GetMaximum():
+                    o.SetY2( self.THRatio.THisto.GetMaximum() )
+            o.Draw("9same")
+                
         return
 
 
@@ -1206,6 +1191,7 @@ class Plotter(object):
         self.Verbose()
 
         (hDenominator, colour) = self._GetRatioReferenceHisto(refDataset)
+
         for h in self.GetHistos():
             hNumerator = copy.deepcopy(h.THisto)
             hRatio     = copy.deepcopy(hNumerator)
@@ -1270,7 +1256,7 @@ class Plotter(object):
         self._AddHistosToStack()
         self._DrawHistos(stackOpts)
         self._DrawItemsInDrawList()
-        self._RedrawVitalObjects()
+        self._RedrawSelectedObjects()
         return
 
     
@@ -1285,13 +1271,13 @@ class Plotter(object):
         self._DrawHistos(stackOpts)
         self._DrawHistosRatio(ratioStackOpts)
         self._DrawItemsInDrawList()
-        self._RedrawVitalObjects()
-        # self._RedrawVitalObjectsRatio()
+        self._RedrawSelectedObjects()
+        self._RedrawSelectedObjectsRatio(ratioStackOpts)
         return
 
     
 
-    def _RedrawVitalObjects(self):
+    def _RedrawSelectedObjects(self):
         self.Print("Re-drawing Legend and Histo dumbies")
 
         if hasattr(self, "TPadPlot"):
@@ -1300,10 +1286,11 @@ class Plotter(object):
         self.TLegend.Draw("same")
         self._DrawLegendDumbie()
         self.THDumbie.THisto.Draw("same")
+        self.UpdateCanvas()
         return
 
 
-    def _RedrawVitalObjectsRatio(self):
+    def _RedrawSelectedObjectsRatio(self, stackOpts):
         self.Print("Re-drawing Legend and Histo dumbies")
         
         if not hasattr(self, "TPadRatio"):
@@ -1311,7 +1298,13 @@ class Plotter(object):
 
         self.TPadRatio.cd()            
         self.THRatio.THisto.Draw("same")
-        self._DrawItemsInDrawListRatio()
+        self.THStackRatio.Draw(stackOpts + ",9same")
+        # self._DrawItemsInDrawListRatio()
+        for c in self.TBoxListX:
+            c.Draw("same")
+        for c in self.TBoxListY:
+            c.Draw("same")
+        self.UpdateCanvas()
         return
     
 
@@ -1333,3 +1326,22 @@ class Plotter(object):
                 else:
                     return
         return
+
+
+    def GetTHStack(self):
+        self.Verbose()
+        return self.THStack
+
+
+    def GetTHDumbie(self):
+        self.Verbose()
+        return self.THDumbie
+
+    
+    def _CustomiseTLine(self, line, colour=ROOT.kBlack, width=3, style=ROOT.kSolid):
+        self.Verbose()
+        line.SetLineColor(colour)
+        line.SetLineWidth(width)
+        line.SetLineStyle(style)    
+        return
+    

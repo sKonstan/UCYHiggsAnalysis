@@ -43,7 +43,7 @@ class StyleClass(object):
         self.lineStyleCounter       = {}
         self.colourShade            = {}
         self.MsgCounter             = 0
-        self._SetDefaults("ttHJetToNonbb_M125" , colour=ROOT.kOrange+10, mStyle=ROOT.kOpenCircle      , lWidth=2, lStyle=ROOT.kDashed, fStyle=1001, mSize = 1.0, drawOpts="HIST", legOpts="F")
+        self._SetDefaults("ttHJetToNonbb_M125" , colour=ROOT.kOrange+10, mStyle=ROOT.kOpenCircle      , lWidth=2, lStyle=ROOT.kSolid, fStyle=1001, mSize = 1.0, drawOpts="HIST", legOpts="F")
         self._SetDefaults("TTJets"             , colour=ROOT.kGray     , mStyle=ROOT.kCircle          , lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, mSize = 1.0, drawOpts="HIST", legOpts="F")
         self._SetDefaults("DYJetsToLL_M_10to50", colour=ROOT.kGreen-9  , mStyle=ROOT.kOpenTriangleUp  , lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, mSize = 1.0, drawOpts="HIST", legOpts="F")
         self._SetDefaults("WJetsToLNu"         , colour=ROOT.kMagenta-7, mStyle=ROOT.kOpenTriangleDown, lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, mSize = 1.0, drawOpts="HIST", legOpts="F")
