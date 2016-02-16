@@ -4324,7 +4324,7 @@ class DatasetPrecursor:
 
         # For-loop: All ROOT file names
         for name in self._filenames:
-            self.Print(["Opening ROOT file '%s'" % (name)])
+            self.Verbose(["Opening ROOT file '%s'" % (name)])
             rootFile = ROOT.TFile.Open(name)
 
             # Below is important to use '==' instead of 'is' to check for null file
@@ -4387,7 +4387,7 @@ class DatasetPrecursor:
         only if the verbosity boolean is set to true.
         '''
         if self.bVerbose == True:
-            print "*** %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+            print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
             if messageList==None:
                 return
             else:
@@ -4401,7 +4401,7 @@ class DatasetPrecursor:
         Custome made print system. Will print all messages in the messageList
         even if the verbosity boolean is set to false.
         '''
-        print "*** %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+        print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
         for message in messageList:
             print "\t", message
         return
@@ -4515,7 +4515,7 @@ class DatasetManagerCreator:
         only if the verbosity boolean is set to true.
         '''
         if self.bVerbose == True:
-            print "*** %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+            print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
             if messageList==None:
                 return
             else:
@@ -4529,7 +4529,7 @@ class DatasetManagerCreator:
         Custome made print system. Will print all messages in the messageList
         even if the verbosity boolean is set to false.
         '''
-        print "*** %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+        print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
         for message in messageList:
             print "\t", message
         return

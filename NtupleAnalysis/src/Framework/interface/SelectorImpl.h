@@ -2,8 +2,12 @@
 #ifndef Framework_SelectorImpl_h
 #define Framework_SelectorImpl_h
 
+#include "Framework/interface/Exception.h"
+#include <boost_1_57_0/boost/concept_check.hpp>
+
 #include "TSelector.h"
 #include "TStopwatch.h"
+#include "TProofServ.h"
 
 #include <string>
 #include <vector>
@@ -16,7 +20,7 @@ class BaseSelector;
 class BranchManager;
 class EventSaver;
 
-class TH1F;
+class TH1;
 
 class SelectorImplParams: public TObject {
 public:
@@ -87,8 +91,11 @@ private:
   int fPrintAdaptCount;
   bool fPrintStatus;
 
-  TH1F *hPUdata;
-  TH1F *hPUmc;
+  TString fOptionString;
+  TH1 *hSkimCounters;
+  bool bIsMC;
+  TH1 *hPUdata;
+  TH1 *hPUmc;
   bool bIsttbar;
   
 };
