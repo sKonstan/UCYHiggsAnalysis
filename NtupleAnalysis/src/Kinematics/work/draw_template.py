@@ -88,6 +88,14 @@ Eta = {
 }
 
 
+
+wCounter = {
+    "yLabel": "Weighted Events / %0.2f", "yMin": 1.0, "yUnits": "", "yCutLines": [], "gridY": True, "logY": True, "yCutBoxes": [], "xCutBoxes": [],
+    "ratioLabel": "Ratio", "yMinRatio": 0.0, "yMaxRatio": 2.15 , "drawOptions": "HIST9", "legOptions": "F", "logYRatio": False, "logXRatio": False,
+    "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
+}
+
+
 #================================================================================================
 # Create Histos OBjects
 #================================================================================================
@@ -95,6 +103,8 @@ PassedElectronsPt   = histos.DrawObject( folder, "PassedElectronsPt" , "passed",
 PassedElectronsEta  = histos.DrawObject( folder, "PassedElectronsEta", "passed", **Eta )
 AllElectronsPt      = histos.DrawObject( folder, "AllElectronsPt"    , "all"   , **Pt )
 AllElectronsEta     = histos.DrawObject( folder, "AllElectronsEta"   , "all"   , **Eta )
+
+counter = histos.DrawObject( folder + "/counters/weighted", "counter", ""   , **wCounter )
 
 
 #================================================================================================
@@ -112,11 +122,12 @@ def DoPlots(histo, datasetObjects, intLumi, savePostfix=""):
     p.DatasetAsLegend(True)    
 
     # p.AddTF1("1000*cos(x)", 0, 200.0, False, {"lineColour": ROOT.kBlack})
-    # p.DrawRatio("stack", "nostackAP", "Data")
-    p.DrawRatio("stack", "nostackAP", "ttHJetToNonbb_M125")    
+    p.DrawRatio("stack", "nostackAP", "Data")
+    # p.DrawRatio("stack", "nostackAP", "ttHJetToNonbb_M125")    
     # p.Draw("stack") # "nostack"
     # p.SetHistosFillStyle(3001)
-    # p.DrawStackInclusive()
+    p.SetHistoLabelsOption("v")
+    p.SetHistoLabelsSizeX(0.4)
 
     # p.SaveAs(savePath, histo.GetName() + "_test", savePostfix, saveFormats)
     # p.Save()
@@ -132,7 +143,8 @@ def main():
 
     # Variables
     #histoList = [AllElectronsEta, PassedElectronsEta]
-    histoList = [AllElectronsPt, PassedElectronsPt]
+    # histoList = [AllElectronsPt, PassedElectronsPt]
+    histoList = [counter]
     
     # Datasets
     auxObject.StartTimer("Dataset Manager")

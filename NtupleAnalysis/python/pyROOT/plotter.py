@@ -1210,6 +1210,51 @@ class Plotter(object):
         for dataset in self.Datasets:
             dataset.histo.THisto.SetFillStyle(style)
         return
+
+
+    def SetHistoLabelsOption(self, option):
+        '''
+        Set option(s) to draw axis with labels option:
+        "a" sort by alphabetic order 
+        ">" sort by decreasing values 
+        "<" sort by increasing values 
+        "h" draw labels horizonthal 
+        "v" draw labels vertical 
+        "u" draw labels up (end of label right adjusted) 
+        "d" draw labels down (start of label left adjusted)
+
+        Link: https://root.cern.ch/doc/master/classTAxis.html#a05dd3c5b4c3a1e32213544e35a33597c
+        '''        
+        self.Verbose()
+
+        opts = ["a", ">", "<", "h", "v", "u", "d"]
+
+        if option not in opts:
+            raise Exception("Invalid label option '%s' selected. Please select one of the following: '%s'" % (option, opts) )
+
+        if not hasattr(self, "TPadPlot")  and hasattr(self, "TCanvas"):
+            self.THDumbie.THisto.GetXaxis().LabelsOption(option)
+        elif hasattr(self, "TPadRatio"):
+            self.THRatio.THisto.GetXaxis().LabelsOption(option)
+        else:
+            raise Exception("Cannot set histo label option '%s'. No THisto or THRatio histograms available!" % (option))
+        return
+
+
+    def SetHistoLabelsSizeX(self, relSize):
+        '''
+        https://root.cern.ch/doc/master/classTAxis.html#a05dd3c5b4c3a1e32213544e35a33597c
+        '''        
+        self.Verbose()
+
+
+        if not hasattr(self, "TPadPlot")  and hasattr(self, "TCanvas"):
+            self.THDumbie.THisto.GetXaxis().SetLabelSize(self.THRatio.THisto.GetLabelSize()*relSize)
+        elif hasattr(self, "TPadRatio"):
+            self.THRatio.THisto.GetXaxis().SetLabelSize(self.THRatio.THisto.GetLabelSize()*relSize)
+        else:
+            raise Exception("Cannot set histo label option '%s'. No THisto or THRatio histograms available!" % (option))
+        return
     
 
     def AddDrawObject(self, drawObjects):
@@ -1239,7 +1284,7 @@ class Plotter(object):
 
         for d in self.Datasets:
             if not self.IsHisto(d.rootFile, drawObject):
-                raise Exception( "The object '%s' in '%s' is neither TH1, nor a TH2, nor a TH3." % (drawObject, d.rootFile.GetName()) )
+                raise Exception( "The object '%s'(type='%s') in '%s' is neither TH1, nor a TH2, nor a TH3. " % (drawObject, type(drawObject), d.rootFile.GetName()) )
             d.histo     = copy.deepcopy(drawObject)
             drawObject = d.histo
             drawObject.THisto  = self.GetHistoFromFile(d.rootFile, d.histo)

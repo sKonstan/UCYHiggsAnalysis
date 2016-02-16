@@ -28,7 +28,7 @@ class DrawObject:
         self.zUnits          = kwargs.get("zUnits", "")
         self.xLabel          = self._GetLabelX(**kwargs)
         self.yLabel          = self._GetLabelY(**kwargs)
-        self.zLabel          = self._GetLabelY(**kwargs)
+        self.zLabel          = self._GetLabelZ(**kwargs)
         self.xMin            = kwargs.get("xMin", None)
         self.xMax            = kwargs.get("xMax", None)
         self.yMin            = kwargs.get("yMin", None)
@@ -41,10 +41,10 @@ class DrawObject:
         self.xLegMax         = kwargs.get("xLegMax", 0.95)
         self.yLegMin         = kwargs.get("yLegMin", 0.78)
         self.yLegMax         = kwargs.get("yLegMax", 0.93)
-        self.xCutLines       = kwargs.get("xCutLines", None)
-        self.xCutBoxes       = kwargs.get("xCutBoxes", None)
-        self.yCutLines       = kwargs.get("yCutLines", None)
-        self.yCutBoxes       = kwargs.get("yCutBoxes", None)
+        self.xCutLines       = kwargs.get("xCutLines", [])
+        self.xCutBoxes       = kwargs.get("xCutBoxes", [])
+        self.yCutLines       = kwargs.get("yCutLines", [])
+        self.yCutBoxes       = kwargs.get("yCutBoxes", [])
         self.logX            = kwargs.get("logX", False)
         self.logY            = kwargs.get("logY", False)
         self.logZ            = kwargs.get("logZ", False)
@@ -156,7 +156,7 @@ class DrawObject:
             postfix = " [" + self.xUnits + "]"
         else:
             postfix = ""
-        return args.get("xLabel", "x-label") + postfix
+        return args.get("xLabel", "") + postfix
 
 
     def _GetLabelY(self, **args):
@@ -169,7 +169,7 @@ class DrawObject:
             postfix = " [" + self.yUnits + "]"
         else:
             postfix = ""
-        return args.get("yLabel", "y-label") + postfix
+        return args.get("yLabel", "") + postfix
 
 
     def _GetLabelZ(self, **args):
@@ -182,7 +182,7 @@ class DrawObject:
             postfix = " [" + self.zUnits + "]"
         else:
             postfix = ""
-        return args.get("zLabel", "z-label") + postfix
+        return args.get("zLabel", "") + postfix
 
 
     def ApplyStyles(self):
@@ -538,7 +538,11 @@ class DrawObject:
         Removes all the x-axis labels from the histogram pass as argument.
         '''
         self.Verbose()
-        self.THisto.GetXaxis().SetLabelSize(0)
+
+        #self.THisto.GetXaxis().SetLabelSize(0)
+        nBinsX = self.THisto.GetNbinsX()
+        for i in range(0, nBinsX+1):
+            self.THisto.GetXaxis().SetBinLabel(i, "")
         return
 
 
