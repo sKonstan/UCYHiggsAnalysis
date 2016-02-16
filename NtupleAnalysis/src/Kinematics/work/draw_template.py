@@ -88,9 +88,8 @@ Eta = {
 }
 
 
-
 wCounter = {
-    "yLabel": "Weighted Events / %0.2f", "yMin": 1.0, "yUnits": "", "yCutLines": [], "gridY": True, "logY": True, "yCutBoxes": [], "xCutBoxes": [],
+    "yLabel": "Events / %0.1f", "yMin": 1.0, "yMax": None, "yUnits": "", "yCutLines": [], "gridY": True, "logY": True, "yCutBoxes": [], "xCutBoxes": [],
     "ratioLabel": "Ratio", "yMinRatio": 0.0, "yMaxRatio": 2.15 , "drawOptions": "HIST9", "legOptions": "F", "logYRatio": False, "logXRatio": False,
     "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
 }
@@ -117,16 +116,16 @@ def DoPlots(histo, datasetObjects, intLumi, savePostfix=""):
     # p.SetupStatsBox("ksiourmen", xPos=0.90, yPos=0.88, width=0.20, height=0.12)
     p.AddDatasets(datasetObjects)
     p.AddDrawObject(histo)
-    p.NormaliseHistos("toLuminosity") # "byXSection", "toOne"
+    p.NormaliseHistos("toLuminosity") # "toLuminosity", "byXSection", "toOne", ""
     p.AddCmsText("13", intLumi, prelim=True)
     p.DatasetAsLegend(True)    
 
     # p.AddTF1("1000*cos(x)", 0, 200.0, False, {"lineColour": ROOT.kBlack})
-    p.DrawRatio("stack", "nostackAP", "Data")
-    # p.DrawRatio("stack", "nostackAP", "ttHJetToNonbb_M125")    
-    # p.Draw("stack") # "nostack"
+    # p.DrawRatio("", "AP", "Data")
+    # p.DrawRatio("", "AP", "ttHJetToNonbb_M125")
+    p.Draw("") # "nostack", "stack"
     # p.SetHistosFillStyle(3001)
-    p.SetHistoLabelsOption("v")
+    #p.SetHistoLabelsOption("v")
     p.SetHistoLabelsSizeX(0.4)
 
     # p.SaveAs(savePath, histo.GetName() + "_test", savePostfix, saveFormats)
@@ -153,12 +152,12 @@ def main():
     datasetManager.MergeData()
     datasetObjects = datasetManager.GetAllDatasets()
     # datasetObjects = datasetManager.GetMCDatasets()
-    # datasetObjects   = [datasetManager.GetDataset("ttHJetToNonbb_M125")]
+    # datasetObjects   = [datasetManager.GetDataset("TTJets")] #ttHJetToNonbb_M125
     datasetManager.SetLuminosityForMC( datasetManager.GetLuminosity() ) #myLumi
     intLumi        = datasetManager.GetLuminosityString("fb") 
     datasetManager.PrintSummary()
     # datasetManager.PrintDatasets()
-    # datasetManager.PrintSelections("DYJetsToLL_M_10to50")
+    datasetManager.PrintSelections("DYJetsToLL_M_10to50")
     
     # One Histogram on a given canvas (many datasets)
     for h in histoList:

@@ -38,7 +38,6 @@ class Plotter(object):
         self.canvasFactor      = 1.25
         self.padDivisionPoint  = 1-1/self.canvasFactor
         self.THStack           = ROOT.THStack("THStack", "Stack for TPadPlot Histograms")
-        self.THStackHistoList  = [] #needed because looping over self.THSTack.GetHists() crashes!
         self.THStackRatio      = ROOT.THStack("THStackRatio", "Stack for TPadRatio Histograms")
         self.TMultigraph       = ROOT.TMultiGraph("TMultigraph", "ROOT.TMultiGraph holding various ROOT.TGraphs")
         print
@@ -71,7 +70,7 @@ class Plotter(object):
             self.TPadPlot.cd()
 
         self.THDumbie.THisto.Draw(self.THDumbie.drawOptions)
-        self.THStack.Draw(stackOpts + "," + self.THDumbie.drawOptions + "," +  "9same") #"PADS"    
+        self.THStack.Draw(stackOpts + "," + self.THDumbie.drawOptions + "," +  "9same") #"PADS"
         self.UpdateCanvas()
         return
 
@@ -100,10 +99,6 @@ class Plotter(object):
         return
 
     
-    def GetTHStackHistoList(self):
-        self.Verbose()
-        return self.THStackHistoList
-
     #================================================================================================
     def SetAttribute(self, attr, value):
         '''
@@ -1182,7 +1177,6 @@ class Plotter(object):
                 continue
             else:
                 self.THStack.Add(histo.THisto)
-                self.THStackHistoList.append(histo.THisto) #xenios
                 self.ExtendLegend(histo)
         return
 
@@ -1248,8 +1242,8 @@ class Plotter(object):
         self.Verbose()
 
 
-        if not hasattr(self, "TPadPlot")  and hasattr(self, "TCanvas"):
-            self.THDumbie.THisto.GetXaxis().SetLabelSize(self.THRatio.THisto.GetLabelSize()*relSize)
+        if not hasattr(self, "TPadPlot") and hasattr(self, "TCanvas"):
+            self.THDumbie.THisto.GetXaxis().SetLabelSize(self.THDumbie.THisto.GetLabelSize()*relSize)
         elif hasattr(self, "TPadRatio"):
             self.THRatio.THisto.GetXaxis().SetLabelSize(self.THRatio.THisto.GetLabelSize()*relSize)
         else:
@@ -1292,9 +1286,13 @@ class Plotter(object):
         return
     
 
-    def Draw(self, stackOpts="nostack"):
+    def Draw(self, stackOpts=""):
         self.Verbose()
 
+        opts = ["", "stack", "nostack", "nostackb", "pads"]
+        if stackOpts not in opts:
+            raise Exception( "Invalid THStack drawing option '%s'. Please select one of the following: %s" % (stackOpts, opts))
+        
         self._CreateCanvas()
         self._CheckHistosBinning()
         self._AddDataHistoToDrawList()
@@ -1389,4 +1387,3 @@ class Plotter(object):
         line.SetLineWidth(width)
         line.SetLineStyle(style)    
         return
-    
