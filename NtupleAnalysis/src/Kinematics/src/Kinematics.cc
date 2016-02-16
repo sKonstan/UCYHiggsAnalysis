@@ -47,6 +47,9 @@ private:
 
   // Event selection classes and event counters (in same order like they are applied)
   Count cAllEvents;
+  Count cElectrons;
+  Count cMuons;
+  Count cBjets;
   Count cTrigger;
   // ElectronSelection fElectronSelection;
   // Count cSelected;
@@ -88,8 +91,11 @@ Kinematics::Kinematics(const ParameterSet& config)
     cfg_BjetPtCutMin(config.getParameter<double>("BjetPtCutMin")),
     cfg_BjetEtaCutMax(config.getParameter<double>("BjetPtCutMax")),
     cfg_LeptonTriggerPtCutMin(config.getParameter<std::vector<double> >("LeptonTriggerPtCutMin")),
-    cAllEvents(fEventCounter.addCounter("All events")),
-    cTrigger(fEventCounter.addCounter("Passed trigger"))
+    cAllEvents(fEventCounter.addCounter("All Events")),
+    cElectrons(fEventCounter.addCounter("Passed Electrons")),
+    cMuons(fEventCounter.addCounter("Passed Muons")),
+    cBjets(fEventCounter.addCounter("Passed Bjets"))
+    cTrigger(fEventCounter.addCounter("Passed Trigger"))
     // fElectronSelection(config.getParameter<ParameterSet>("ElectronSelection"),
     // 		       fEventCounter, fHistoWrapper, nullptr, "Veto"),
     //cSelected(fEventCounter.addCounter("Selected events"))
@@ -192,8 +198,8 @@ void Kinematics::process(Long64_t entry) {
     // double GenP_Mothers  = gen.mothers().size();
     // double GenP_Daughters= gen.daughters().size();
 
-    std::cout << "fEvent.genparticles().at(1).pt() " = << fEvent.genparticles().at(1).pt() << std::endl;
-      
+    // std::cout << "fEvent.genparticles().at(1).pt() " = << fEvent.genparticles().at(1).pt() << std::endl;
+    
     // Electrons
     if(std::abs(genP_PdgId) == 11 && genP_Status < 10){
 
@@ -210,6 +216,8 @@ void Kinematics::process(Long64_t entry) {
     }
     if(nGenElectrons == 0) continue;
 
+    // Increment Counters
+    cElectrons.increment();
 
     // Muons
     if(std::abs(genP_PdgId) == 13 && genP_Status < 10){
@@ -227,7 +235,9 @@ void Kinematics::process(Long64_t entry) {
     }
     if(nGenMuons == 0) continue;
 
-
+    // Increment Counters
+    cMuons.increment();
+    
     // Bjets
     if(std::abs(genP_PdgId) == 5){
       
@@ -245,6 +255,8 @@ void Kinematics::process(Long64_t entry) {
     }
     if(nGenBjets == 0) continue;
 
+    // Increment Counters
+    cBjets.increment();
 
     // Trigger
     std::sort( v_leptonPt.begin(), v_leptonPt.end(), DescendingOrder() );
@@ -267,6 +279,7 @@ void Kinematics::process(Long64_t entry) {
     }// else{
     if (!bPassTrg) continue;
 
+    // Increment Counters    
     cTrigger.increment();
     
   }// for( auto& gen : fEvent.genparticles().getAllGenpCollection() ){
