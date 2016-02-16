@@ -192,6 +192,8 @@ void Kinematics::process(Long64_t entry) {
     // double GenP_Mothers  = gen.mothers().size();
     // double GenP_Daughters= gen.daughters().size();
 
+    std::cout << "fEvent.genparticles().at(1).pt() " = << fEvent.genparticles().at(1).pt() << std::endl;
+      
     // Electrons
     if(std::abs(genP_PdgId) == 11 && genP_Status < 10){
 

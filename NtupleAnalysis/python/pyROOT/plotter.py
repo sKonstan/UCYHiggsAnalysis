@@ -1265,9 +1265,9 @@ class Plotter(object):
     
         self._CreateCanvas(True)
         self._CheckHistosBinning()
+        self._AddDataHistoToDrawList()
         self._AddHistosToStack()
         self._AddHistosToRatioStack(refDataset)
-        self._AddDataHistoToDrawList()        
         self._DrawHistos(stackOpts)
         self._DrawHistosRatio(ratioStackOpts)
         self._DrawItemsInDrawList()
