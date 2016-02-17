@@ -46,11 +46,9 @@ class TriggerDumper {
     private:
 
         bool filter();
-	bool useFilter;
+	bool cfg_useFilter;
 	bool booked;
-
 	bool isCorrectObject(int,std::string);
-
 
 	TTree* theTree;
 
@@ -61,11 +59,11 @@ class TriggerDumper {
 	edm::EDGetTokenT<edm::TriggerResults> trgResultsToken;
         edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> trgObjectsToken;
         edm::EDGetTokenT<std::vector<l1extra::L1EtMissParticle>> trgL1ETMToken;
-	std::vector<std::string> triggerBits;
         std::vector<std::string> selectedTriggers;
-	std::vector<std::string> trgMatchStr;
     	std::vector<std::string> trgMatchBranches;
-	double trgMatchDr;
+	std::vector<std::string> cfg_triggerBits;
+	std::vector<std::string> cfg_trgMatchStr;
+	double cfg_trgMatchDr;
 
 	edm::TriggerNames names;
 	edm::Handle<pat::TriggerObjectStandAloneCollection> patTriggerObjects;
@@ -81,6 +79,13 @@ class TriggerDumper {
         std::vector<double> HLTTau_eta;
         std::vector<double> HLTTau_phi;
         std::vector<double> HLTTau_e;
+
+
+	// Even uncommenting this causes a crash on runtime
+//        std::vector<double> HLTMu_pt;
+//        std::vector<double> HLTMu_eta;
+//        std::vector<double> HLTMu_phi;
+//        std::vector<double> HLTMu_e;
 
         int nTrgDiscriminators;
         std::vector<bool> *trgdiscriminators;

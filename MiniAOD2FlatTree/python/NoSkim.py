@@ -2,11 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 skim = cms.EDFilter("AnalysisSkim",
                     TriggerResults = cms.InputTag("TriggerResults::HLT"),
-                    HLTPaths       = cms.vstring(
-        "HLT_LooseIsoPFTau50_Trk30_eta2p1_MET80_JetIdCleaned_v",
-        "HLT_Mu8_v",
-        "HLT_Mu17_v",
-        ),
+                    HLTPaths       = cms.vstring(),
                     JetCollection  = cms.InputTag("slimmedJets"),
                     JetUserFloats  = cms.vstring(
 	"pileupJetId:fullDiscriminant",

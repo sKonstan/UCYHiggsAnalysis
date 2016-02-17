@@ -12,19 +12,18 @@ from UCYHiggsAnalysis.MiniAOD2FlatTree.tools.dataOptions import getOptionsDataVe
 bSummary         = False #Default is "False"
 bDependencies    = False #Default is "False" 
 bDumpCollections = False #Default is "False"
-iMaxEvents       = 1000
+iMaxEvents       = 5000
 iReportEvery     = 1
-skimType         = "DefaultSkim" #"NoSkim #"DefaultSkim"
+skimType         = "NoSkim" #"NoSkim #"DefaultSkim"
 #dataset          = "/ttHJetToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8_mWCutfix/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/Miniaodsim"
 #dataset          = "/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v3/MINIAODSIM"
 #dataset          = "/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
 #dataset          = "/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
 #dataset          = "/DoubleMuon/Run2015D-PromptReco-v4/MINIAOD"
 #dataset          = "/DoubleEG/Run2015D-PromptReco-v4/MINIAOD"
-#dataset          = "/DoubleMuon/Run2015D-PromptReco-v4/MINIAOD"
-dataset          = "/MuonEG/Run2015D-PromptReco-v4/MINIAOD"
+#dataset          = "/MuonEG/Run2015D-PromptReco-v4/MINIAOD"
 #dataset          = "/SingleElectron/Run2015D-PromptReco-v4/MINIAOD"
-#dataset          = "/SingleMuon/Run2015D-PromptReco-v4/MINIAOD"
+dataset          = "/SingleMuon/Run2015D-PromptReco-v4/MINIAOD"
 
 # For Debugging Purposes:
 bDebug      = False   #Default is "False"

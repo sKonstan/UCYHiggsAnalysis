@@ -184,12 +184,15 @@ bool MiniAOD2FlatTreeFilter::filter(edm::Event& iEvent, const edm::EventSetup& i
   if (metNoiseFilterDumper) accept = accept && metNoiseFilterDumper->fill(iEvent,iSetup);
   if (tauDumper) {
     accept = accept && tauDumper->fill(iEvent,iSetup);
-    if (trgDumper) trgDumper->triggerMatch(trigger::TriggerTau,tauDumper->selected());
+    if (trgDumper) trgDumper->triggerMatch(trigger::TriggerTau, tauDumper->selected());
   }
-  if (electronDumper) accept = accept && electronDumper->fill(iEvent,iSetup);
+  if (electronDumper){
+    accept = accept && electronDumper->fill(iEvent,iSetup);
+    if (trgDumper) trgDumper->triggerMatch(trigger::TriggerElectron, electronDumper->selected());
+  }
   if (muonDumper) {
     accept = accept && muonDumper->fill(iEvent,iSetup);
-    if (trgDumper) trgDumper->triggerMatch(trigger::TriggerMuon,muonDumper->selected());
+    if (trgDumper) trgDumper->triggerMatch(trigger::TriggerMuon, muonDumper->selected());
   }
   if (jetDumper) accept = accept && jetDumper->fill(iEvent,iSetup);
   if (metDumper) accept = accept && metDumper->fill(iEvent,iSetup);
