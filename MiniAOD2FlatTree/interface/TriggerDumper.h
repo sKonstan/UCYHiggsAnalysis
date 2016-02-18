@@ -46,13 +46,10 @@ class TriggerDumper {
     private:
 
         bool filter();
-	bool cfg_useFilter;
 	bool booked;
 	bool isCorrectObject(int,std::string);
-
-	TTree* theTree;
-
 	bool *iBit; 
+	TTree* theTree;
 	int  *iCountAll;
 	int  *iCountPassed;
 	edm::ParameterSet inputCollection;
@@ -61,32 +58,31 @@ class TriggerDumper {
         edm::EDGetTokenT<std::vector<l1extra::L1EtMissParticle>> trgL1ETMToken;
         std::vector<std::string> selectedTriggers;
     	std::vector<std::string> trgMatchBranches;
+
+	bool cfg_useFilter;
+	double cfg_trgMatchDr;
 	std::vector<std::string> cfg_triggerBits;
 	std::vector<std::string> cfg_trgMatchStr;
-	double cfg_trgMatchDr;
 
 	edm::TriggerNames names;
 	edm::Handle<pat::TriggerObjectStandAloneCollection> patTriggerObjects;
-
         double L1MET_l1extra_x;
         double L1MET_l1extra_y;
 	double L1MET_x;
         double L1MET_y;
 	double HLTMET_x;
 	double HLTMET_y;
+        std::vector<double> HLTMu_pt;
+        std::vector<double> HLTMu_eta;
+        std::vector<double> HLTMu_phi;
+        std::vector<double> HLTMu_e;
 
-        std::vector<double> HLTTau_pt;
-        std::vector<double> HLTTau_eta;
-        std::vector<double> HLTTau_phi;
-        std::vector<double> HLTTau_e;
-
-
-	// Even uncommenting this causes a crash on runtime
-//        std::vector<double> HLTMu_pt;
-//        std::vector<double> HLTMu_eta;
-//        std::vector<double> HLTMu_phi;
-//        std::vector<double> HLTMu_e;
-
+	// Even uncommenting these below causes a crash on runtime! No idea why. Mem-related?
+        // std::vector<double> HLTEle_pt;
+	// std::vector<double> HLTEle_eta;
+        // std::vector<double> HLTEle_phi;
+        // std::vector<double> HLTEle_e;
+       
         int nTrgDiscriminators;
         std::vector<bool> *trgdiscriminators;
 

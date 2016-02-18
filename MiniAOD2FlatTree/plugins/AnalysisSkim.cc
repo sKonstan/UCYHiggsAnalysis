@@ -117,7 +117,7 @@ bool AnalysisSkim::filter(edm::Event& iEvent, const edm::EventSetup& iSetup ){
       std::cout << std::string(width*10, '=') << std::endl;
     }
 
-    // For-loop: All trigger bits (passed from the py cfg file)
+    // For-loop: All trigger bits
     for(size_t i = 0; i < cfg_triggerBits.size(); ++i){
       std::regex hlt_re(cfg_triggerBits[i]);
       int n = 0;

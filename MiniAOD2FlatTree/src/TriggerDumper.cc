@@ -9,11 +9,12 @@ TriggerDumper::TriggerDumper(edm::ConsumesCollector&& iConsumesCollector, const 
     trgL1ETMToken(iConsumesCollector.consumes<std::vector<l1extra::L1EtMissParticle>>(pset.getParameter<edm::InputTag>("L1Extra"))) {
   inputCollection = pset;
   booked          = false;
+
+  cfg_debugMode   = inputCollection.getUntrackedParameter<bool>("debugMode");
   cfg_triggerBits = inputCollection.getParameter<std::vector<std::string> >("TriggerBits");
   cfg_useFilter   = inputCollection.getUntrackedParameter<bool>("filter",false);
   cfg_trgMatchStr = inputCollection.getUntrackedParameter<std::vector<std::string> >("TriggerMatch",std::vector<std::string>());
   cfg_trgMatchDr  = inputCollection.getUntrackedParameter<double>("TriggerMatchDR",0.1);
-  cfg_debugMode   = inputCollection.getUntrackedParameter<bool>("debugMode");
   width           = 10;
 }
 
@@ -22,7 +23,7 @@ TriggerDumper::~TriggerDumper(){}
 
 
 void TriggerDumper::book(TTree* tree){
-  if (cfg_debugMode) std::cout << "void TriggerDumper::book()" << std::endl;
+  if (cfg_debugMode){ std::cout << "void TriggerDumper::book()" << std::endl;}
 
   theTree = tree;
 
@@ -31,7 +32,7 @@ void TriggerDumper::book(TTree* tree){
 
 
 void TriggerDumper::book(const edm::Run& iRun, HLTConfigProvider hltConfig){
-  if (cfg_debugMode) std::cout << "void TriggerDumper::book()" << std::endl;
+  if (cfg_debugMode){ std::cout << "void TriggerDumper::book()" << std::endl;}
 
   if(booked) return;
   booked = true;
@@ -43,22 +44,20 @@ void TriggerDumper::book(const edm::Run& iRun, HLTConfigProvider hltConfig){
   theTree->Branch("HLTMET_x"       , &HLTMET_x       );
   theTree->Branch("HLTMET_y"       , &HLTMET_y       );
 
-  theTree->Branch("HLTTau_pt"      , &HLTTau_pt      );  
-  theTree->Branch("HLTTau_eta"     , &HLTTau_eta     );
-  theTree->Branch("HLTTau_phi"     , &HLTTau_phi     );
-  theTree->Branch("HLTTau_e"       , &HLTTau_e       );
-
-//  theTree->Branch("HLTMu_pt"       , &HLTMu_pt      );  
-//  theTree->Branch("HLTMu_eta"      , &HLTMu_eta     );
-//  theTree->Branch("HLTMu_phi"      , &HLTMu_phi     );
-//  theTree->Branch("HLTMu_e"        , &HLTMu_e       );
+  theTree->Branch("HLTMu_pt"       , &HLTMu_pt      );  
+  theTree->Branch("HLTMu_eta"      , &HLTMu_eta     );
+  theTree->Branch("HLTMu_phi"      , &HLTMu_phi     );
+  theTree->Branch("HLTMu_e"        , &HLTMu_e       );
     
+  // theTree->Branch("HLTEle_pt"      , &HLTEle_pt      );  
+  // theTree->Branch("HLTEle_eta"     , &HLTEle_eta     );
+  // theTree->Branch("HLTEle_phi"     , &HLTEle_phi     );
+  // theTree->Branch("HLTEle_e"       , &HLTEle_e       );
 
-  // For-loop: All trigger bits (user-defined from python cfg file)
+
+  // For-loop: All trigger bits
   for(size_t i = 0; i < cfg_triggerBits.size(); ++i){
-    // std::cout << "cfg_triggerBits["<<i<<"] = " << cfg_triggerBits[i] << std::endl;
     selectedTriggers.push_back(cfg_triggerBits[i]);
-
     // NOTE: Do not find the exact names or versions of HLT path names
     // because they do change in the middle of the run causing buggy behavior
   }
@@ -77,7 +76,7 @@ void TriggerDumper::book(const edm::Run& iRun, HLTConfigProvider hltConfig){
 
 
   // Trigger matching
-  std::regex obj_re("((Tau)|(Mu)|(Ele))");
+  std::regex obj_re("((Mu)|(Ele))");
   // For-loop: All triggers requested for matching
   for(size_t imatch = 0; imatch < cfg_trgMatchStr.size(); ++imatch){
     std::string name = "";
@@ -85,39 +84,31 @@ void TriggerDumper::book(const edm::Run& iRun, HLTConfigProvider hltConfig){
     
     // Search for matching string to append in front of the trigger
     if (std::regex_search(cfg_trgMatchStr[imatch], match, obj_re) && match.size() > 0) name = match.str(0); 
-    if(name=="Tau") name = "Taus";       // FIXME, these should come from the config
-    if(name=="Mu")  name = "Muons";      // FIXME, these should come from the config    
-    if(name=="Ele") name = "Electrons"; // FIXME, these should come from the config    
+    
+    // FIXME, these should come from the config    
+    if(name=="Mu")  name = "Muons";    
+    if(name=="Ele") name = "Electrons";
     name+= "_TrgMatch_";
     
-    if (cfg_debugMode) std::cout << "cfg_trgMatchStr["<<imatch<<"] = " << cfg_trgMatchStr[imatch] << std::endl;
+    if (cfg_debugMode){ std::cout << "cfg_trgMatchStr["<<imatch<<"] = " << cfg_trgMatchStr[imatch] << std::endl;}
     
     std::regex match_re(cfg_trgMatchStr[imatch]);
     // For-loop: All selected triggers
     for(size_t i = 0; i < selectedTriggers.size(); ++i){		
-      
-      if (cfg_debugMode) std::cout << "selectedTriggers["<<i<<"] = " << selectedTriggers[i] << std::endl;
-    
       if (std::regex_search(selectedTriggers[i], match_re)) {
 	std::string branchName = name+cfg_trgMatchStr[imatch] + "x";
 	bool exists = false;
-	      
 	// For-loop: All trigger match branches
 	for(size_t j = 0; j < trgMatchBranches.size(); ++j){
-	  
-	  if (cfg_debugMode) std::cout << "trgMatchBranches["<<j<<"] = " << trgMatchBranches[j] << std::endl;	  
-	  
 	  if(trgMatchBranches[j] == branchName){
 	    exists = true;
 	    break;
 	  }
 	}
-
 	if(!exists) trgMatchBranches.push_back(branchName);
       }
     }// for(size_t i = 0; i < selectedTriggers.size(); ++i){		
   }// for(size_t imatch = 0; imatch < cfg_trgMatchStr.size(); ++imatch){
-
 
   // The discriminators
   nTrgDiscriminators = trgMatchBranches.size();
@@ -133,7 +124,7 @@ void TriggerDumper::book(const edm::Run& iRun, HLTConfigProvider hltConfig){
 
 
 bool TriggerDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
-  if (cfg_debugMode) std::cout << "void TriggerDumper::fill()" << std::endl;
+  if (cfg_debugMode){ std::cout << "void TriggerDumper::fill()" << std::endl;}
 
   // Get a handle for L1 MET
   edm::Handle<std::vector<l1extra::L1EtMissParticle> > l1etmhandle;
@@ -182,8 +173,12 @@ bool TriggerDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
 	// If a match is found between the selected trigger name and the currect trigger name
 	if (pos == 0 && names.triggerName(j).size() > 0) {
-	  if (cfg_debugMode) std::cout << std::setw(5) << i << std::setw(width*6) << selectedTriggers[i] << std::setw(width*6) << names.triggerName(j)
-				       << std::setw(width)  << trgResultsHandle->accept(j) << std::endl;
+
+	  if (cfg_debugMode)
+	    {
+	      std::cout << std::setw(5) << i << std::setw(width*6) << selectedTriggers[i] << std::setw(width*6) << names.triggerName(j)
+			<< std::setw(width)  << trgResultsHandle->accept(j) << std::endl;
+	    }
 
 	  //Set the bit result of the given trigger and increment the general counter
 	  iBit[i] = trgResultsHandle->accept(j);
@@ -207,16 +202,17 @@ bool TriggerDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
 
     // Print debugging info?
-    if (cfg_debugMode){
-      std::cout << "\n" << std::setw(width*8) << std::endl;
-      std::cout << std::string(width*17, '=') << std::endl;
-      std::cout << std::setw(5)       << "Index"  << std::setw(width*7) << "Collection" << std::setw(width)   << "L1ETM "
-		<< std::setw(width)   << "MET "   << std::setw(width)   << "Tau "       << std::setw(width)   << "Mu"
-		<< std::setw(width)   << "Ele"    << std::setw(width+4) << "Pt "        << std::setw(width+4) << "Eta "
-		<< std::setw(width+4) << "Phi"    << std::setw(width+4) << "Energy" 
-                << std::endl;
-      std::cout << std::string(width*17, '=') << std::endl;
-    }
+    if (cfg_debugMode)
+      {
+	std::cout << "\n" << std::setw(width*8) << std::endl;
+	std::cout << std::string(width*17, '=') << std::endl;
+	std::cout << std::setw(5)       << "Index"  << std::setw(width*7) << "Collection" << std::setw(width)   << "L1ETM "
+		  << std::setw(width)   << "MET "   << std::setw(width)   << "Mu"		<< std::setw(width)   << "Ele"    
+		  << std::setw(width+4) << "Pt "    << std::setw(width+4) << "Eta " 	<< std::setw(width+4) << "Phi"   
+		  << std::setw(width+4) << "Energy" 
+		  << std::endl;
+	std::cout << std::string(width*17, '=') << std::endl;
+      }
 
     // Sanity check
     if(patTriggerObjects.isValid()){
@@ -228,7 +224,6 @@ bool TriggerDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
 	index++;
 	bool bL1ETM = false;
 	bool bMET   = false;
-	bool bTau   = false;
 	bool bMu    = false;
 	bool bEle   = false;
 
@@ -248,26 +243,6 @@ bool TriggerDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
 	  //std::cout << "Trigger MET " << patTriggerObject.p4().Pt() << std::endl;
 	}
 	
-	if(patTriggerObject.id(trigger::TriggerTau)){
-	  bTau = true;
-	  std::vector<std::string> pathNamesAll  = patTriggerObject.pathNames(false);
-	  bool fired = false;
-
-	  // For-loop: All path names
-	  for(size_t i = 0; i < pathNamesAll.size(); ++i){
-	    // std::cout << "pathNamesAll["<<i<<"] = " << pathNamesAll[i] << std::endl;
-	    if(patTriggerObject.hasPathName( pathNamesAll[i], false, true )) fired = true;
-	  }
-
-	  // Save the HLT tau p4 when fired
-	  if(fired){
-	    HLTTau_pt .push_back( patTriggerObject.p4().Pt()  );
-	    HLTTau_eta.push_back( patTriggerObject.p4().Eta() );
-	    HLTTau_phi.push_back( patTriggerObject.p4().Phi() );
-	    HLTTau_e  .push_back( patTriggerObject.p4().E()   );	   	    
-	  }
-	  
-	}// if(patTriggerObject.id(trigger::TriggerTau)){
 
 	if(patTriggerObject.id(trigger::TriggerMuon)){
 	  bMu = true;
@@ -280,12 +255,12 @@ bool TriggerDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
 	    if(patTriggerObject.hasPathName( pathNamesAll[i], false, true )) fired = true;
 	  }
 
-	  // Save the HLT tau p4 when fired
+	  // Save the HLT muon p4 when fired
 	  if(fired){
-	    // HLTMu_pt .push_back( patTriggerObject.p4().Pt()  );
-	    // HLTMu_eta.push_back( patTriggerObject.p4().Eta() );
-	    // HLTMu_phi.push_back( patTriggerObject.p4().Phi() );
-	    // HLTMu_e  .push_back( patTriggerObject.p4().E()   );	   	    
+	    HLTMu_pt .push_back( patTriggerObject.p4().Pt()  );
+	    HLTMu_eta.push_back( patTriggerObject.p4().Eta() );
+	    HLTMu_phi.push_back( patTriggerObject.p4().Phi() );
+	    HLTMu_e  .push_back( patTriggerObject.p4().E()   );	   	    
 	  }
 	  
 	}// if(patTriggerObject.id(trigger::TriggerMuon)){
@@ -302,24 +277,25 @@ bool TriggerDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
 	    if(patTriggerObject.hasPathName( pathNamesAll[i], false, true )) fired = true;
 	  }
 
-	  // Save the HLT tau p4 when fired
+	  // Save the HLT electron p4 when fired
 	  if(fired){
-	    // HLTMu_pt .push_back( patTriggerObject.p4().Pt()  );
-	    // HLTMu_eta.push_back( patTriggerObject.p4().Eta() );
-	    // HLTMu_phi.push_back( patTriggerObject.p4().Phi() );
-	    // HLTMu_e  .push_back( patTriggerObject.p4().E()   );	   	    
+	    // HLTEle_pt .push_back( patTriggerObject.p4().Pt()  );
+	    // HLTEle_eta.push_back( patTriggerObject.p4().Eta() );
+	    // HLTEle_phi.push_back( patTriggerObject.p4().Phi() );
+	    // HLTEle_e  .push_back( patTriggerObject.p4().E()   );	   	    
 	  }
 	  
 	}// if(patTriggerObject.id(trigger::TriggerElectron)){
 	
 	
-	if (cfg_debugMode){
-	  std::cout << index << std::setw(width*7) << patTriggerObject.collection() 
-		    << std::setw(width) << bL1ETM  << std::setw(width) << bMET << std::setw(width) << bTau
-		    << std::setw(width) << bMu     << std::setw(width) << bEle
-		    << std::setw(width+4) << patTriggerObject.p4().Pt()  <<  std::setw(width+4) << patTriggerObject.p4().Eta() 
-		    << std::setw(width+4) << patTriggerObject.p4().Phi() <<  std::setw(width+4) << patTriggerObject.p4().E() << std::endl;
-	}
+	if (cfg_debugMode)
+	  {
+	    std::cout << index << std::setw(width*7)   << patTriggerObject.collection() 
+		      << std::setw(width)   << bL1ETM  << std::setw(width) << bMET
+		      << std::setw(width)   << bMu     << std::setw(width) << bEle
+		      << std::setw(width)   << patTriggerObject.p4().Pt()  << std::setw(width+4) << patTriggerObject.p4().Eta() 
+		      << std::setw(width+4) << patTriggerObject.p4().Phi() << std::setw(width+4) << patTriggerObject.p4().E() << std::endl;
+	  }
 
       }// for (pat::TriggerObjectStandAlone patTriggerObject : *patTriggerObjects) {
     }// if(patTriggerObjects.isValid()){
@@ -330,7 +306,7 @@ bool TriggerDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
 
 bool TriggerDumper::filter(){
-  if (cfg_debugMode) std::cout << "void TriggerDumper::filter()" << std::endl;
+  if (cfg_debugMode){ std::cout << "void TriggerDumper::filter()" << std::endl;}
 
   if(!cfg_useFilter) return true;
 
@@ -345,7 +321,7 @@ bool TriggerDumper::filter(){
 
 
 void TriggerDumper::reset(){
-  if (cfg_debugMode) std::cout << "void TriggerDumper::reset()" << std::endl;
+  if (cfg_debugMode){ std::cout << "void TriggerDumper::reset()" << std::endl;}
   
   if(booked){
 
@@ -357,15 +333,15 @@ void TriggerDumper::reset(){
     HLTMET_x = 0;
     HLTMET_y = 0;
 
-    HLTTau_pt .clear();
-    HLTTau_eta.clear();
-    HLTTau_phi.clear();
-    HLTTau_e  .clear();
+    HLTMu_pt .clear();
+    HLTMu_eta.clear();
+    HLTMu_phi.clear();
+    HLTMu_e  .clear();
 
-//    HLTMu_pt .clear();
-//    HLTMu_eta.clear();
-//    HLTMu_phi.clear();
-//    HLTMu_e  .clear();
+    // HLTEle_pt .clear();
+    // HLTEle_eta.clear();
+    // HLTEle_phi.clear();
+    // HLTEle_e  .clear();
 
     // For-loop: All trigger discriminators
     for(int i = 0; i < nTrgDiscriminators; ++i) trgdiscriminators[i].clear();
@@ -376,7 +352,7 @@ void TriggerDumper::reset(){
 
 
 std::pair<int,int> TriggerDumper::counters(std::string path){
-  if (cfg_debugMode) std::cout << "void TriggerDumper::counters()" << std::endl;
+  if (cfg_debugMode){ std::cout << "void TriggerDumper::counters()" << std::endl;}
 
   int index = -1;
   // Forl-loop: All selected triggers
@@ -394,10 +370,18 @@ std::pair<int,int> TriggerDumper::counters(std::string path){
 
 
 void TriggerDumper::triggerMatch(int id, std::vector<reco::Candidate::LorentzVector> objs){
-  if (cfg_debugMode) std::cout << "void TriggerDumper::triggerMatch()" << std::endl;
-  // Called inside MiniAOD2FlatTreeFilter.cc
+  if (cfg_debugMode){ std::cout << "void TriggerDumper::triggerMatch()" << std::endl;}
 
-  // For-loop: All objects
+  // Called inside MiniAOD2FlatTreeFilter.cc. Takes as input the trigger object type (CMSSW enumerator)
+  // and a vector of lorentz vectors from given dumper [e.g. muDumper->selected()]. 
+  // Loops over selected objects (custom electrons or muons or taus collections) and does a nested
+  // loop over the triggers defined in cfg file (cfg_trgMatchStr[]). If the deltaR between the selected object
+  // and the trigger discriminator object is below a value (cfg_trgMatchDr) then a match is made. Finally, 
+  // for each trigger discriminator a match-boolean is saved.
+
+  trgdiscriminators[i].push_back(matchFound);
+      
+  // For-loop: All selected objects (electrons or muons or taus)
   for(size_t iobj = 0; iobj < objs.size(); ++iobj){
 
     // For-loop: All trigger discriminators
@@ -432,7 +416,7 @@ void TriggerDumper::triggerMatch(int id, std::vector<reco::Candidate::LorentzVec
 	    }
 	    if(!fired) continue;
 
-	    double dr = ROOT::Math::VectorUtil::DeltaR(objs[iobj],patTriggerObject.p4());
+	    double dr = ROOT::Math::VectorUtil::DeltaR(objs[iobj], patTriggerObject.p4());
 	    if(dr < cfg_trgMatchDr) matchFound = true;
 	    
 	  }// if(patTriggerObject.id(id)){	  	  
@@ -449,7 +433,7 @@ void TriggerDumper::triggerMatch(int id, std::vector<reco::Candidate::LorentzVec
 
 
 bool TriggerDumper::isCorrectObject(int id, std::string trgObject){
-  if (cfg_debugMode) std::cout << "void TriggerDumper::isCorrect()" << std::endl;
+  if (cfg_debugMode){ std::cout << "void TriggerDumper::isCorrect()" << std::endl;}
 
   //http://cmslxr.fnal.gov/source/DataFormats/HLTReco/interface/TriggerTypeDefs.h
   std::string sid = "";
