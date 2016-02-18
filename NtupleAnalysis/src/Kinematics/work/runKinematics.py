@@ -28,14 +28,30 @@ Usage:
 ./runKinematics.py <path-to-multicrab-directory>"
 
 Example:
-./runKinematics.py /afs/cern.ch/user/a/attikis/public/multicrab_CMSSW752_Default_07Jan2016/
+./runKinematics.py -m /afs/cern.ch/user/a/attikis/public/multicrab_CMSSW752_Default_07Jan2016/
+
+or
+
+./runKinematics.py -m /afs/cern.ch/user/a/attikis/public/multicrab_CMSSW752_Default_07Jan2016/ -j 16
+
+The available ROOT options for the Error-Ignore-Level are (const Int_t):
+        kUnset    =  -1
+        kPrint    =   0
+        kInfo     =   1000
+        kWarning  =   2000
+        kError    =   3000
+        kBreak    =   4000
+        kSysError =   5000
+        kFatal    =   6000
+
+ROOT.gErrorIgnoreLevel = 4000 suppresses "Error in <TCling::RegisterModule>: cannot find dictionary module FrameworkDict_rdict.pcm"
 '''
 #================================================================================================ 
 # Imports
 #================================================================================================ 
 import sys
 from optparse import OptionParser
-
+import ROOT
 from UCYHiggsAnalysis.NtupleAnalysis.main import Process, PSet, Analyzer
 
 
@@ -47,7 +63,7 @@ bSilent   = True        # Default is "True"
 prefix    = "analysis"  # Default is "analysis"
 postfix   = ""          # Default is ""
 maxEvts   = -1          # Default is -1
-
+ROOT.gErrorIgnoreLevel = 4000
 
 #================================================================================================ 
 # Setup the main function

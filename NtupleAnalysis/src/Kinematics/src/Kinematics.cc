@@ -172,22 +172,21 @@ void Kinematics::process(Long64_t entry) {
   if( !fEvent.isMC() ) return;
 
   // Variable declarations
-  Size_t nGenParticles = 0;
+  unsigned int genP_Index = -1;
   size_t nGenMuons     = 0;
   size_t nGenElectrons = 0;
   size_t nGenBjets     = 0;
   bool bPassTrg        = true;
   std::vector<double> v_leptonPt;
 
-  // For-loop: All GenParticles
-  for( auto& gen : fEvent.genparticles().getAllGenpCollection() ){
-    nGenParticles++;
+  for( auto& gen : fEvent.genparticles().getAllGenpCollection()){
 
     // Get loop variables
-    int genP_PdgId       = gen.pdgId();
-    double genP_Pt       = gen.pt();
-    double genP_Eta      = gen.eta();
-    double genP_Status   = gen.status(); // PYTHIA8: http://home.thep.lu.se/~torbjorn/pythia81html/ParticleProperties.html
+    genP_Index++;
+    int genP_PdgId          = gen.pdgId();
+    double genP_Pt          = gen.pt();
+    double genP_Eta         = gen.eta();
+    double genP_Status      = gen.status(); // PYTHIA8: http://home.thep.lu.se/~torbjorn/pythia81html/ParticleProperties.html
     // double GenP_Phi      = gen.phi();
     // double GenP_E        = gen.e();
     // double GenP_Mass     = gen.mass();
@@ -198,8 +197,7 @@ void Kinematics::process(Long64_t entry) {
     // double GenP_Mothers  = gen.mothers().size();
     // double GenP_Daughters= gen.daughters().size();
 
-    // std::cout << "fEvent.genparticles().at(1).pt() " = << fEvent.genparticles().at(1).pt() << std::endl;
-    
+    std::cout << "fEvent.genparticles().at(" << genP_Index << ").pt() = " << fEvent.genparticles().getAllGenpCollection().at(genP_Index).pt() << std::endl;
     // Electrons
     if(std::abs(genP_PdgId) == 11 && genP_Status < 10){
 
