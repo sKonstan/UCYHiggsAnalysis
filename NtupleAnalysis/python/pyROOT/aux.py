@@ -119,7 +119,7 @@ class AuxClass(object):
 
         info   = []
         align  = "{:<20} {:<20} {:<20} {:<20}"
-        header = align.format("Timer Name", "Start", "Finish", "Elapsed")
+        header = align.format("Timer Name", "Elapsed Time", "Start Time", "Finish Time")
         hLine  = "="*len(header)
         info.append(hLine)
         info.append(header)
@@ -128,7 +128,11 @@ class AuxClass(object):
         # For-loop: All timers and calculate start, finish and elapsed time
         for cName, cTime in self.timerDict.iteritems():
             (sTime, fTime, eTime, units) = self._CalculateTimer(cName)
-            info.append( align.format(cName, sTime, fTime, "%0.2f %s" % (eTime, units) ) )
+            elapsed  = "%0.2f %s" % (eTime, units)
+            start    = sTime
+            finish   = fTime
+            
+            info.append( align.format(cName, elapsed, start, finish) )
 
         self.PrintList(info)
         return

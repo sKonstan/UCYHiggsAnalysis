@@ -40,7 +40,7 @@ class Plotter(object):
         self.THStack           = ROOT.THStack("THStack", "Stack for TPadPlot Histograms")
         self.THStackRatio      = ROOT.THStack("THStackRatio", "Stack for TPadRatio Histograms")
         self.TMultigraph       = ROOT.TMultiGraph("TMultigraph", "ROOT.TMultiGraph holding various ROOT.TGraphs")
-        print
+        self.SetupRoot()
         return
     
     
@@ -64,7 +64,7 @@ class Plotter(object):
 
         Drawing options: http://root.cern.ch/root/html/THistPainter.html
         '''
-        self.Print("Drawing Histogram Stack")
+        self.Verbose("Drawing Histogram Stack")
 
         if hasattr(self, 'TPadPlot'):
             self.TPadPlot.cd()
@@ -81,7 +81,7 @@ class Plotter(object):
 
         Drawing options: http://root.cern.ch/root/html/THistPainter.html
         '''
-        self.Print("Drawing Histogram Stack")
+        self.Verbose("Drawing Histogram Stack")
 
         if not hasattr(self, 'TPadRatio'):
             raise Exception("Cannot draw ratio histograms. A dedicaded TPad was not created.")
@@ -210,11 +210,11 @@ class Plotter(object):
         canvasName    = "Canvas:"+self.THDumbie.GetAttribute("name")
 
         if not twoPads:
-            self.Print("Creating a TCanvas with name '%s'" % (self.THDumbie.GetAttribute("name")) )
+            self.Verbose("Creating a TCanvas with name '%s'" % (self.THDumbie.GetAttribute("name")) )
             self.TCanvas = ROOT.TCanvas( canvasName, canvasName, 1)
             self.TCanvas.cd()
         else:
-            self.Print("Creating a 2-pad TCanvas with name '%s'" % (self.THDumbie.GetAttribute("name")) )
+            self.Verbose("Creating a 2-pad TCanvas with name '%s'" % (self.THDumbie.GetAttribute("name")) )
             self.THRatio = self.CreateDumbieHisto("THRatio")
             self._CustomiseTHRatio()
             self.TCanvas = ROOT.TCanvas( canvasName, canvasName, ROOT.gStyle.GetCanvasDefW(), int(ROOT.gStyle.GetCanvasDefH()*self.canvasFactor))
@@ -302,7 +302,7 @@ class Plotter(object):
             self.Print("ROOT already set. Doing nothing")
             return
 
-        self.Print("Resetting ROOT, setting TDR style, and setting:")
+        self.Verbose("Resetting ROOT, setting TDR style, and setting:")
 
         info   = []
         align  = "{:<15} {:<10}"
@@ -310,7 +310,8 @@ class Plotter(object):
         info.append( align.format("MaxDigits"      , ": " + str( maxDigits) ) ) 
         info.append( align.format("NumberContours" , ": " + str( nContours) ) )
         info.append( align.format("gerrIgnoreLevel", ": " + str( errIgnoreLevel) ) )
-        self.PrintList(info, False)
+        if (self.verbose):
+            self.PrintList(info, False)
         
         ROOT.gROOT.Reset()
         ROOT.gROOT.SetBatch(self.batchMode)
@@ -338,7 +339,7 @@ class Plotter(object):
 
 
     def CustomiseHistos(self):
-        self.Print("Customising all histograms")
+        self.Verbose("Customising all histograms")
 
         if not hasattr(self, 'histosNormed'):
             raise Exception("Cannot customise histograms. Need to call first NormaliseHistos() and then CustomiseHistos()")
@@ -349,7 +350,7 @@ class Plotter(object):
 
     
     def NormaliseHistos(self, normOption):
-        self.Print("Normalising all histograms '%s'" % (normOption) )
+        self.Verbose("Normalising all histograms '%s'" % (normOption) )
     
         if not hasattr(self, 'Datasets'):
             raise Exception("Cannot normalise histograms as no datasets exist. Check that you have added some datasets")
@@ -420,7 +421,7 @@ class Plotter(object):
         '''
         Add all datasets in the datasetObjects list to the plotter
         '''
-        self.Print("Adding '%s' datasets to the plotter object" % (len(datasetObjects) ) )
+        self.Verbose("Adding '%s' datasets to the plotter object" % (len(datasetObjects) ) )
             
         for d in datasetObjects:
             self.Verbose("Adding dataset %s from file %s." % (d.name, d.rootFile.GetName()))
@@ -433,7 +434,7 @@ class Plotter(object):
         Add the default CMS text on the canvas. Several defaults are available. 
         For available options see the class TextClass(object) under tools/text.py.
         '''
-        self.Print("Adding CMS Text to draw object list")
+        self.Verbose("Adding CMS Text to draw object list")
         
         if hasattr(self, 'TPadPlot'):
             self.TPadPlot.cd()
@@ -822,7 +823,7 @@ class Plotter(object):
 
 
     def CreateCutLines(self):
-        self.Print("Creating all TLine objects")
+        self.Verbose("Creating all TLine objects")
 
         if hasattr(self, "CutLinesCreated"):
             return
@@ -883,7 +884,7 @@ class Plotter(object):
 
 
     def CreateCutBoxes(self):
-        self.Print("Creating all TBox objects")
+        self.Verbose("Creating all TBox objects")
 
         if hasattr(self, "CutBoxesCreated"):
             return
@@ -953,7 +954,7 @@ class Plotter(object):
 
 
     def _DrawItemsInDrawList(self):
-        self.Print("Drawing items in draw list")
+        self.Verbose("Drawing items in draw list")
 
         self.CreateCutBoxes()
         self.CreateCutLines()
@@ -974,7 +975,7 @@ class Plotter(object):
 
 
     def _DrawItemsInDrawListRatio(self):
-        self.Print("Drawing items in draw list (ratio)")
+        self.Verbose("Drawing items in draw list (ratio)")
 
         if not hasattr(self, "TPadRatio"):
             raise Exception("Cannot draw items in draw list (ratio). The TPadRatio has not been created")
@@ -1239,7 +1240,7 @@ class Plotter(object):
         else:
             raise Exception("Cannot set histo label option '%s'. No THisto or THRatio histograms available!" % (option))
         return
-
+    
 
     def SetHistoLabelsSizeX(self, relSize):
         '''
@@ -1261,12 +1262,12 @@ class Plotter(object):
         self.Verbose()
         
         if type(drawObjects) == list:
-            self.Print("Copying '%s' drawObjects to all datasets: %s" % (len(drawObjects), "\"" + "\", \"".join(h.GetName() for h in drawObjects) + "\"") )
+            self.Verbose("Copying '%s' drawObjects to all datasets: %s" % (len(drawObjects), "\"" + "\", \"".join(h.GetName() for h in drawObjects) + "\"") )
             sys.exit()
             for d in drawObjects:
                 self._CopyToDatasets(d)
         else:
-            self.Print("Copying '1' drawObjects to all datasets: %s" % ("\"" + drawObjects.GetAttribute("name") + "\"") )
+            self.Verbose("Copying '1' drawObjects to all datasets: %s" % ("\"" + drawObjects.GetAttribute("name") + "\"") )
             self._CopyToDatasets(drawObjects)
         return
     
@@ -1327,7 +1328,7 @@ class Plotter(object):
     
 
     def _RedrawSelectedObjects(self):
-        self.Print("Re-drawing Legend and Histo dumbies")
+        self.Verbose("Re-drawing Legend and Histo dumbies")
 
         if hasattr(self, "TPadPlot"):
             self.TPadPlot.cd()
@@ -1340,7 +1341,7 @@ class Plotter(object):
 
 
     def _RedrawSelectedObjectsRatio(self, stackOpts):
-        self.Print("Re-drawing Legend and Histo dumbies")
+        self.Verbose("Re-drawing Legend and Histo dumbies")
         
         if not hasattr(self, "TPadRatio"):
             raise Exception("Cannot redraw objects on ratio pad.A dedicaded TPad was not created.")

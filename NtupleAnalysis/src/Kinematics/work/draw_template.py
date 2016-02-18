@@ -89,9 +89,10 @@ Eta = {
 
 
 wCounter = {
-    "yLabel": "Events / %0.1f", "yMin": 1.0, "yMax": None, "yUnits": "", "yCutLines": [], "gridY": True, "logY": True, "yCutBoxes": [], "xCutBoxes": [],
+    "xMin": 7.0, "xMax": None, "gridX": True, "gridXRatio": True, "logX": False,
+    "yLabel": "Events / %0.1f", "yMin": 1.0, "yMax": None, "yUnits": "", "yCutLines": [], "gridY": True,  "gridYRatio": True, "logY": True, "yCutBoxes": [], "xCutBoxes": [],
     "ratioLabel": "Ratio", "yMinRatio": 0.0, "yMaxRatio": 2.15 , "drawOptions": "HIST9", "legOptions": "F", "logYRatio": False, "logXRatio": False,
-    "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
+    "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92, 
 }
 
 
@@ -112,7 +113,27 @@ counter = histos.DrawObject( folder + "/counters/weighted", "counter", ""   , **
 def DoPlots(histo, datasetObjects, savePostfix=""):
 
     p = plotter.Plotter(verbose, batchMode)
-    p.SetupRoot(0, 4, 999, 2000)
+    p.AddDatasets(datasetObjects)
+    p.AddDrawObject(histo)
+    p.NormaliseHistos("toLuminosity") # "toLuminosity", "byXSection", "toOne", ""
+    p.AddCmsText("fb", prelim=True)
+    p.DatasetAsLegend(True)    
+    # p.Draw("") # "nostack", "stack"
+    p.DrawRatio("", "AP", "Data")
+    # p.SetHistosFillStyle(3001)
+    p.Save()
+    p.Exit()
+    
+    return
+
+
+#================================================================================================
+# Function Definition
+#================================================================================================
+def DoCounters(histo, datasetObjects, savePostfix=""):
+
+    p = plotter.Plotter(verbose, batchMode)
+    # p.SetupRoot(0, 4, 999, 2000)
     # p.SetupStatsBox("ksiourmen", xPos=0.90, yPos=0.88, width=0.20, height=0.12)
     p.AddDatasets(datasetObjects)
     p.AddDrawObject(histo)
@@ -120,13 +141,13 @@ def DoPlots(histo, datasetObjects, savePostfix=""):
     p.AddCmsText("fb", prelim=True)
     p.DatasetAsLegend(True)    
     # p.AddTF1("1000*cos(x)", 0, 200.0, False, {"lineColour": ROOT.kBlack})
-    p.DrawRatio("", "AP", "Data")
+    p.DrawRatio("", "AP", "ttHJetToNonbb_M125")
     # p.Draw("") # "nostack", "stack"
     # p.SetHistosFillStyle(3001)
-    # p.SetHistoLabelsOption("v")
-    p.SetHistoLabelsSizeX(0.4)
-    # p.SaveAs(savePath, histo.GetName() + "_test", savePostfix, saveFormats)
+    p.SetHistoLabelsOption("d")
+    p.SetHistoLabelsSizeX(0.6)
     p.Save()
+    # p.SaveAs(savePath, histo.GetName() + "_test", savePostfix, saveFormats)
     # p.Save(savePath, ["png"])    
     p.Exit()
     
@@ -138,9 +159,9 @@ def main():
     '''
     
     # Variables
-    # histoList = [AllElectronsEta, PassedElectronsEta]
-    # histoList = [AllElectronsPt, PassedElectronsPt]
-    histoList = [counter]
+    # histoList    = [AllElectronsEta, PassedElectronsEta]
+    histoList   = [AllElectronsPt, PassedElectronsPt]
+    counterList = [counter]
     
     # Datasets
     datasetManager = dataset.DatasetManager(opts.mcrab, analysis)
@@ -153,11 +174,16 @@ def main():
     # datasetManager.PrintSelections("DYJetsToLL_M_10to50")
     
     # One Histogram on a given canvas (many datasets)
+    auxObject.StartTimer("Histo Loop")
     for h in histoList:
         DoPlots( h, datasetObjects)
-    # Many Histograms on a given canvas (many datasets)
-    #DoPlots( histoList, datasetObjects, False )
 
+    for c in counterList:
+        DoCounters( c, datasetObjects)
+
+        
+    # Many Histograms on a given canvas (many datasets)
+    # DoPlots( histoList, datasetObjects)
     
 
 #================================================================================================
@@ -175,4 +201,3 @@ if __name__ == "__main__":
     auxObject.StartTimer("Total")
     main()
     auxObject.PrintTimers()
-#================================================================================================

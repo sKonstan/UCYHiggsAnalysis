@@ -539,9 +539,8 @@ class DrawObject:
         '''
         self.Verbose()
 
-        #self.THisto.GetXaxis().SetLabelSize(0)
         nBinsX = self.THisto.GetNbinsX()
-        for i in range(0, nBinsX+1):
+        for i in range(1, nBinsX+1):
             self.THisto.GetXaxis().SetBinLabel(i, "")
         return
 

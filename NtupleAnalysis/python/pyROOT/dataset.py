@@ -101,6 +101,8 @@ class Dataset(object):
         print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
         if message!="":
             print "\t", message
+        else:
+            return
         return
 
     
@@ -899,7 +901,7 @@ class DatasetManager:
         
         datasetNames = self.mcrab.GetDatasetsFromMulticrabDir(baseDir)    
         datasetNames.sort(key=lambda x: x.lower())
-        self.Print("Appending %s (alphabetically sorted) datasets to the dataset manager: %s" % (len(datasetNames), datasetNames))
+        self.Verbose("Appending %s (alphabetically sorted) datasets to the dataset manager: %s" % (len(datasetNames), datasetNames))
         
         for dName in datasetNames:
             rootFile      = self.mcrab.GetDatasetRootFile(baseDir, dName)
@@ -1275,11 +1277,13 @@ class DatasetManager:
         If nameList translates to only one dataset.Dataset, the
         dataset.Daataset object is renamed (i.e. dataset.DatasetMerged object is not created)
         '''
-        self.Verbose()
+        # self.Print()
+        print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
         
         (selected, notSelected, firstIndex) = _MergeStackHelper(self.datasets, nameList, "merge", allowMissingDatasets)
         if len(selected) == 0:
-            message = "=== dataset.py:\n\tDataset merge: no datasets '" +", ".join(nameList) + "' found, not doing anything"
+
+            message = "\No datasets '" +", ".join(nameList) + "' found, not doing anything"
             if allowMissingDatasets:
                 if not silent:
                     print >> sys.stderr, message
@@ -1287,8 +1291,9 @@ class DatasetManager:
                 raise Exception(message)
             return
         elif len(selected) == 1 and not keepSources:
+            message = "\tOne dataset '" + selected[0].GetName() + "' found from list '" + ", ".join(nameList)+"', renaming it to '%s'" % newName            
             if not silent:
-                print >> sys.stderr, "=== dataset.py:\n\tDataset merge: one dataset '" + selected[0].GetName() + "' found from list '" + ", ".join(nameList)+"', renaming it to '%s'" % newName
+                print >> sys.stderr, message
             self.Rename(selected[0].GetName(), newName)
             return
 
@@ -1338,7 +1343,7 @@ class DatasetManager:
                         self.GetDataset(name).SetLuminosity(value)
                         self.intLumi = value
 
-        self.Print("Luminosity is %s (1/pb) (read from %s)" % (self.intLumi, os.path.join(d.baseDir, fName)) )
+        self.Print("Luminosity is %s (1/pb), as read from %s" % (self.intLumi, os.path.join(d.baseDir, fName)) )
         return
 
 
