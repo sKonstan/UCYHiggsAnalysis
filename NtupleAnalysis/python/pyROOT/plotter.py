@@ -261,7 +261,6 @@ class Plotter(object):
         prints only name of histogram and number of entries.
         '''
         self.Verbose()
-        self.PadCover
 
         # Beautifications/Styling
         ROOT.gStyle.SetStatBorderSize(0)
@@ -429,12 +428,12 @@ class Plotter(object):
         return
 
 
-    def AddCmsText(self, energy, lumi, prelim=True):
+    def AddCmsText(self, lumiUnits = "fb", prelim=True):
         '''
         Add the default CMS text on the canvas. Several defaults are available. 
         For available options see the class TextClass(object) under tools/text.py.
         '''
-        self.Print("Drawing 'CMS Preliminary', '%s TeV' and '%s' text" % (energy, lumi) )        
+        self.Print("Adding CMS Text to draw object list")
         
         if hasattr(self, 'TPadPlot'):
             self.TPadPlot.cd()
@@ -443,11 +442,14 @@ class Plotter(object):
             self.textObject.AddDefaultText("preliminary", "")
         else:
             self.textObject.AddDefaultText("publication", "")
-        self.textObject.AddDefaultText("lumi", lumi)
-        self.textObject.AddDefaultText("energy", "(" + energy + " TeV)")
+
+        energy = self.GetDatasets()[0].GetEnergyString()
+        lumi   = self.GetDatasets()[0].GetLuminosityString(lumiUnits)
+        self.textObject.AddDefaultText("lumi"  , lumi  )
+        self.textObject.AddDefaultText("energy", energy)
         self.ExtendDrawLists(self.textObject.GetTextList(), addToRatio=False)        
         return
-
+    
 
     def _IsValidSavePath(self, savePath):
         '''
@@ -493,17 +495,22 @@ class Plotter(object):
         return hList
     
     
-    def _SaveAs(self, saveName, saveFormats):
+    def _SaveAs(self, savePath, saveName, saveFormats=["png", "C", "eps", "pdf"]):
         '''
         Loop over all formats and save the canvas to 
         '''
         self.Verbose()
 
+        if saveName!=None:
+            saveName = savePath + saveName
+        else:
+            saveName = savePath + self.TCanvas.GetName().split(":")[-1]
+
         self.TCanvas.SetName(saveName)
         self.UpdateCanvas()
-
+            
         for ext in saveFormats:
-            name = self.TCanvas.GetName().split(":")[-1] + "." + ext
+            name =  saveName + "." + ext
             self.TCanvas.SaveAs(name)
             print "\t%s" % name
         return
@@ -519,7 +526,7 @@ class Plotter(object):
             raise Exception("Cannot save TCanvas. You first have to create one")
                 
         self._IsValidSavePath(savePath)
-        self._SaveAs(saveName, saveFormats)
+        self._SaveAs(savePath, saveName, saveFormats)
         return
 
 
@@ -533,8 +540,7 @@ class Plotter(object):
             raise Exception("Cannot save TCanvas. You first have to create one")
 
         self._IsValidSavePath(savePath)
-        saveName = savePath + self.TCanvas.GetName()
-        self._SaveAs(saveName, saveFormats)
+        self._SaveAs(savePath, None, saveFormats)
         return
 
 

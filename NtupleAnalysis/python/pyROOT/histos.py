@@ -563,3 +563,18 @@ class DrawObject:
             return self.GetAttribute("name")
         else:
             return prefix + self.GetAttribute("name")    
+        raise Exception("This should never be reached")
+        
+
+    def SetName(self, name):
+        self.Verbose()
+        self.name = name
+        return
+
+    
+    def GetName(self):
+        self.Verbose()
+        return self.name
+
+    
+        

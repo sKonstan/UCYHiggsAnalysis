@@ -33,11 +33,11 @@ import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.aux as aux
 #================================================================================================
 verbose       = False
 batchMode     = True
-myLumi        = 2.26 # in fb
 folder        = "Kinematics"
 analysis      = folder
+lumiInFb      = -1
 saveFormats   = ["png"] #, "pdf"]
-savePath      = ""
+savePath      = "/Users/attikis/Desktop/"
 
 
 #================================================================================================
@@ -109,7 +109,7 @@ counter = histos.DrawObject( folder + "/counters/weighted", "counter", ""   , **
 #================================================================================================
 # Function Definition
 #================================================================================================
-def DoPlots(histo, datasetObjects, intLumi, savePostfix=""):
+def DoPlots(histo, datasetObjects, savePostfix=""):
 
     p = plotter.Plotter(verbose, batchMode)
     p.SetupRoot(0, 4, 999, 2000)
@@ -117,20 +117,17 @@ def DoPlots(histo, datasetObjects, intLumi, savePostfix=""):
     p.AddDatasets(datasetObjects)
     p.AddDrawObject(histo)
     p.NormaliseHistos("toLuminosity") # "toLuminosity", "byXSection", "toOne", ""
-    p.AddCmsText("13", intLumi, prelim=True)
+    p.AddCmsText("fb", prelim=True)
     p.DatasetAsLegend(True)    
-
     # p.AddTF1("1000*cos(x)", 0, 200.0, False, {"lineColour": ROOT.kBlack})
-    # p.DrawRatio("", "AP", "Data")
-    # p.DrawRatio("", "AP", "ttHJetToNonbb_M125")
-    p.Draw("") # "nostack", "stack"
+    p.DrawRatio("", "AP", "Data")
+    # p.Draw("") # "nostack", "stack"
     # p.SetHistosFillStyle(3001)
-    #p.SetHistoLabelsOption("v")
+    # p.SetHistoLabelsOption("v")
     p.SetHistoLabelsSizeX(0.4)
-
     # p.SaveAs(savePath, histo.GetName() + "_test", savePostfix, saveFormats)
-    # p.Save()
-    p.Save("", ["png"])    
+    p.Save()
+    # p.Save(savePath, ["png"])    
     p.Exit()
     
     return
@@ -139,29 +136,25 @@ def DoPlots(histo, datasetObjects, intLumi, savePostfix=""):
 def main():
     '''
     '''
-
+    
     # Variables
-    #histoList = [AllElectronsEta, PassedElectronsEta]
+    # histoList = [AllElectronsEta, PassedElectronsEta]
     # histoList = [AllElectronsPt, PassedElectronsPt]
     histoList = [counter]
     
     # Datasets
-    auxObject.StartTimer("Dataset Manager")
     datasetManager = dataset.DatasetManager(opts.mcrab, analysis)
     datasetManager.LoadLuminosities("lumi.json")
     datasetManager.MergeData()
-    datasetObjects = datasetManager.GetAllDatasets()
-    # datasetObjects = datasetManager.GetMCDatasets()
-    # datasetObjects   = [datasetManager.GetDataset("TTJets")] #ttHJetToNonbb_M125
-    datasetManager.SetLuminosityForMC( datasetManager.GetLuminosity() ) #myLumi
-    intLumi        = datasetManager.GetLuminosityString("fb") 
-    datasetManager.PrintSummary()
+    datasetObjects = datasetManager.GetAllDatasets() # datasetManager.GetMCDatasets() # [datasetManager.GetDataset("TTJets")]
+    datasetManager.SetLuminosityForMC(lumiInFb)
+    # datasetManager.PrintSummary()
     # datasetManager.PrintDatasets()
-    datasetManager.PrintSelections("DYJetsToLL_M_10to50")
+    # datasetManager.PrintSelections("DYJetsToLL_M_10to50")
     
     # One Histogram on a given canvas (many datasets)
     for h in histoList:
-        DoPlots( h, datasetObjects, intLumi)
+        DoPlots( h, datasetObjects)
     # Many Histograms on a given canvas (many datasets)
     #DoPlots( histoList, datasetObjects, False )
 

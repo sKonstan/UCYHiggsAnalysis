@@ -466,12 +466,36 @@ class Dataset(object):
         self.xsection = xSections.crossSection(self.name, energy)
         return
 
+    
     def GetEnergy(self):
         self.Verbose()
         return self.energy
-        return
-    
 
+    
+    def GetEnergyString(self):
+        self.Verbose()
+        energy =  "(%0.0f TeV)" % (self.energy)
+        return energy
+
+
+    def GetLuminosityString(self, units = "fb"):
+        self.Verbose()
+
+        unitsFactor = 0
+        if units == "fb":
+            units       = "fb^{-1}"
+            unitsFactor = float(1.0/1000.0)
+        elif units == "pb":
+            units       = "pb^{-1}"
+            unitsFactor = float(1.0)
+        else:
+            self.Print("Unsupported units options '%s' for luminosity string. Select either 'fb' or 'pb'. EXIT" % (units) )
+            sys.exit()
+
+        intLumi = "%0.2f" % (self.lumi * unitsFactor)
+        return intLumi + " " + units
+
+    
     def SetLuminosity(self, lumi):
         self.Verbose()
         self.lumi = lumi
@@ -875,7 +899,7 @@ class DatasetManager:
         
         datasetNames = self.mcrab.GetDatasetsFromMulticrabDir(baseDir)    
         datasetNames.sort(key=lambda x: x.lower())
-        self.Print("Appending %s (alphabeetically sorted) datasets to the dataset manager:\n\t%s" % (len(datasetNames), datasetNames))
+        self.Print("Appending %s (alphabetically sorted) datasets to the dataset manager: %s" % (len(datasetNames), datasetNames))
         
         for dName in datasetNames:
             rootFile      = self.mcrab.GetDatasetRootFile(baseDir, dName)
@@ -1302,7 +1326,6 @@ class DatasetManager:
         self.Verbose()
         import json
 
-        # For-loop: All datasets
         for d in self.datasets:
             jsonName = os.path.join(d.baseDir, fName)
             if not os.path.exists(jsonName):
@@ -1327,9 +1350,13 @@ class DatasetManager:
         return self.intLumi
 
     
+    def GetEnergyString(self):
+        self.Verbose()
+        energy =  "(" + self.energy + " TeV)"
+        return energy
+
+
     def GetLuminosityString(self, units = "fb"):
-        '''
-        '''
         self.Verbose()
 
         unitsFactor = 0
@@ -1370,10 +1397,10 @@ class DatasetManager:
         '''
         self.Verbose()
 
-        if intLumi < 0:
+        if intLumi<0:
             intLumi = self.intLumi
         self.Print("Setting Luminosity for all MC samples to %s (1/pb)" % (intLumi) )
-                   
+
         # For-loop: All datasets
         for dataset in self.datasets:
             if not dataset.GetIsMC():
