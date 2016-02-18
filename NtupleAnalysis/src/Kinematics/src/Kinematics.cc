@@ -1,15 +1,15 @@
 // -*- c++ -*-
-#include "Framework/interface/BaseSelector.h"
-#include "Framework/interface/makeTH.h"
-
-#include "DataFormat/interface/Event.h"
-#include "EventSelection/interface/CommonPlots.h"
-#include "EventSelection/interface/EventSelections.h"
+#include <algorithm>  // std::sort
+#include <vector>     // std::vector
 
 #include "TDirectory.h"
 
-#include <algorithm>  // std::sort
-#include <vector>     // std::vector
+#include "Framework/interface/BaseSelector.h"
+#include "Framework/interface/makeTH.h"
+#include "DataFormat/interface/Event.h"
+#include "EventSelection/interface/CommonPlots.h"
+#include "EventSelection/interface/EventSelections.h"
+#include "Tools/interface/MCTools.h"
 
 class Kinematics: public BaseSelector {
 public:
@@ -178,26 +178,32 @@ void Kinematics::process(Long64_t entry) {
   size_t nGenBjets     = 0;
   bool bPassTrg        = true;
   std::vector<double> v_leptonPt;
-
-  for( auto& gen : fEvent.genparticles().getAllGenpCollection()){
+  MCTools mcTools(fEvent);  
+  
+  for( auto& genP : fEvent.genparticles().getAllGenpCollection()){
 
     // Get loop variables
     genP_Index++;
-    int genP_PdgId          = gen.pdgId();
-    double genP_Pt          = gen.pt();
-    double genP_Eta         = gen.eta();
-    double genP_Status      = gen.status(); // PYTHIA8: http://home.thep.lu.se/~torbjorn/pythia81html/ParticleProperties.html
-    // double GenP_Phi      = gen.phi();
-    // double GenP_E        = gen.e();
-    // double GenP_Mass     = gen.mass();
-    // double GenP_VertexX  = gen.vertexX();
-    // double GenP_VertexY  = gen.vertexY();
-    // double GenP_VertexZ  = gen.vertexX();
-    // double GenP_Charge   = gen.charge();
-    // double GenP_Mothers  = gen.mothers().size();
-    // double GenP_Daughters= gen.daughters().size();
+    int genP_PdgId          = genP.pdgId();
+    double genP_Pt          = genP.pt();
+    double genP_Eta         = genP.eta();
+    double genP_Status      = genP.status(); // PYTHIA8: http://home.thep.lu.se/~torbjorn/pythia81html/ParticleProperties.html
+    // double GenP_Phi      = genP.phi();
+    // double GenP_E        = genP.e();
+    // double GenP_Mass     = genP.mass();
+    // double GenP_VertexX  = genP.vertexX();
+    // double GenP_VertexY  = genP.vertexY();
+    // double GenP_VertexZ  = genP.vertexX();
+    // double GenP_Charge   = genP.charge();
+    // double GenP_Mothers  = genP.mothers().size();
+    // double GenP_Daughters= genP.daughters().size();
 
-    std::cout << "fEvent.genparticles().at(" << genP_Index << ").pt() = " << fEvent.genparticles().getAllGenpCollection().at(genP_Index).pt() << std::endl;
+    TLorentzVector p4 = mcTools.GetP4(genP_Index);
+    
+    std::cout << "p4.pt() = " << p4.Pt() << ", genP_Pt = " << genP_Pt << std::endl;
+
+    // std::cout << "fEvent.genparticles().at(" << genP_Index << ").pt() = " << fEvent.genparticles().getAllGenpCollection().at(genP_Index).pt() << std::endl;
+
     // Electrons
     if(std::abs(genP_PdgId) == 11 && genP_Status < 10){
 
@@ -260,6 +266,9 @@ void Kinematics::process(Long64_t entry) {
       }
     }// for(Size_t i=0; i < cfg_LeptonTriggerPtCutMin.size(); i++){
   }// else
+
+  bool bTest = mcTools.RecursivelyLookForMotherId(genP_Index, 24, true);
+  std::cout << "bTest = " << bTest << std::endl;
 
   // Increment Counters    
   cAllEvents.increment();
