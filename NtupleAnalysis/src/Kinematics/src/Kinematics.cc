@@ -91,11 +91,11 @@ Kinematics::Kinematics(const ParameterSet& config)
     cfg_BjetPtCutMin(config.getParameter<double>("BjetPtCutMin")),
     cfg_BjetEtaCutMax(config.getParameter<double>("BjetPtCutMax")),
     cfg_LeptonTriggerPtCutMin(config.getParameter<std::vector<double> >("LeptonTriggerPtCutMin")),
-    cAllEvents(fEventCounter.addCounter("All Events")),
-    cElectrons(fEventCounter.addCounter("Passed Electrons")),
-    cMuons(fEventCounter.addCounter("Passed Muons")),
-    cBjets(fEventCounter.addCounter("Passed Bjets")),
-    cTrigger(fEventCounter.addCounter("Passed Trigger"))
+    cAllEvents(fEventCounter.addCounter("All")),
+    cElectrons(fEventCounter.addCounter("Electrons")),
+    cMuons(fEventCounter.addCounter("Muons")),
+    cBjets(fEventCounter.addCounter("Bjets")),
+    cTrigger(fEventCounter.addCounter("Trigger"))
     // fElectronSelection(config.getParameter<ParameterSet>("ElectronSelection"),
     // 		       fEventCounter, fHistoWrapper, nullptr, "Veto"),
     //cSelected(fEventCounter.addCounter("Selected events"))
