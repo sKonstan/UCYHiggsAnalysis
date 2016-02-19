@@ -41,12 +41,23 @@ public:
 				     bool bOnlyChargedDaughters, 
 				     double minPt);
 
-  void GetHadronicTauChargedOrNeutralPions(int tauIndex, 
-					   int charge,
-					   std::vector<unsigned short> &chargedPions);
+  void GetHadronicTauFinalDaughters(const int genP_Index,
+				    std::vector<short int>& Daug);
+
+  void GetHadronicTauChargedPions(int tauIndex, 
+				  std::vector<short int> &pions);
+
+  void GetHadronicTauNeutralPions(int tauIndex, 
+				  std::vector<short int> &pions);
 
 private:
   Event *fEvent;
+
+  void _GetHadronicTauChargedOrNeutralPions(int tauIndex, 
+					    bool charged,
+					    std::vector<short int> &pions);
+
+
   
 };
 

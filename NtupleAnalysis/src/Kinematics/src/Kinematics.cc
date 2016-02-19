@@ -198,32 +198,37 @@ void Kinematics::process(Long64_t entry) {
     // double GenP_Mothers  = genP.mothers().size();
     int GenP_Daughters = genP.daughters().size();
 
+
     // TESTING
     // bool test  = mcTools.RecursivelyLookForMotherId(genP_Index, 24, true);
     // int momPos = mcTools.PosOfMotherId(genP_Index, 24, true);
     // int momId  = mcTools.LookForMotherId(genP_Index, 2212, true);
     // std::cout << "test = " << test << ", momPos = " << momPos  << ", momId = " << momId << std::endl;
+
     
     // tau-jets
-    if( abs(genP_PdgId) == 15 ){
+    if( fabs(genP_PdgId) == 15 ){
       TLorentzVector p4      = mcTools.GetP4(genP_Index);
       TLorentzVector p4_vis  = mcTools.GetVisibleP4( genP_Index );
-      TLorentzVector p4_vis2 = mcTools.GetVisibleP4( genP.daughters() );
-      std::cout << "\n***\t p4.Pt() = " << p4.Pt() << " p4.Eta() = " << p4.Eta() << std::endl;
-      std::cout << "***\t p4.Pt() = " << p4_vis.Pt() << " p4.Eta() = " << p4_vis.Eta() << std::endl;
-      std::cout << "***\t p4.Pt() = " << p4_vis2.Pt() << " p4.Eta() = " << p4_vis2.Eta() << std::endl;
+
       if (GenP_Daughters > 1) {
 	
 	int ldgDau_Index   = mcTools.GetLdgDaughter(genP_Index, false);
 	genParticle ldgDau = mcTools.GetGenP(ldgDau_Index);
-	std::cout << "***\t ldgDau.Pt() = " << ldgDau.pt() << ", ldgDau.pdgId() = " << ldgDau.pdgId() << std::endl;
+	std::cout << "ldgDau.Pt() = " << ldgDau.pt() << ", ldgDau.pdgId() = " << ldgDau.pdgId() << std::endl;
 
 	double maxSigCone = mcTools.GetHadronicTauMaxSignalCone(genP_Index, false, 5.0);
-	std::cout << "***\t maxSigCone = " << maxSigCone << std::endl; 
+	std::cout << "maxSigCone = " << maxSigCone << std::endl; 
+
+	std::vector<short int> chargedPions;
+	mcTools.GetHadronicTauChargedPions(genP_Index, chargedPions);
+	std::cout << "chargedPions = " << chargedPions.size() << std::endl;
+
+	std::vector<short int> neutralPions;
+	mcTools.GetHadronicTauNeutralPions(genP_Index, neutralPions);
+	std::cout << "neutralPions = " << neutralPions.size() << std::endl;
       }
-
     }
-
 
 
     // Electrons
