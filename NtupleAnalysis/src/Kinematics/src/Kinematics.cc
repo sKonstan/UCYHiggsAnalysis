@@ -204,6 +204,21 @@ void Kinematics::process(Long64_t entry) {
 
     // std::cout << "fEvent.genparticles().at(" << genP_Index << ").pt() = " << fEvent.genparticles().getAllGenpCollection().at(genP_Index).pt() << std::endl;
 
+
+    // bool test  = mcTools.RecursivelyLookForMotherId(genP_Index, 24, true);
+    // int momPos = mcTools.PosOfMotherId(genP_Index, 24, true);
+    // int momId  = mcTools.LookForMotherId(genP_Index, 2212, true);
+    // std::cout << "test = " << test << ", momPos = " << momPos  << ", momId = " << momId << std::endl;
+    
+    // tau-jets
+    if( abs(genP_PdgId) == 15 ){
+      TLorentzVector p4     = mcTools.GetP4(genP_Index);
+      TLorentzVector p4_vis = mcTools.GetVisibleP4( genP.daughters() );
+      std::cout << "***\t p4.Pt() = " << p4.Pt() << " p4.Eta() = " << p4.Eta() << std::endl;
+      std::cout << "***\t p4_Vis.Pt() = " << p4_vis.Pt() << " p4_vis.Eta() = " << p4_vis.Eta() << std::endl;
+    }
+
+
     // Electrons
     if(std::abs(genP_PdgId) == 11 && genP_Status < 10){
 
@@ -219,6 +234,7 @@ void Kinematics::process(Long64_t entry) {
       }
     }
     if(nGenElectrons == 0) continue;
+
 
     // Muons
     if(std::abs(genP_PdgId) == 13 && genP_Status < 10){
@@ -236,7 +252,8 @@ void Kinematics::process(Long64_t entry) {
     }
     if(nGenMuons == 0) continue;
     
-    // Bjets
+
+    // b-jets
     if(std::abs(genP_PdgId) == 5){
       
       hAllGenBjetsPt ->Fill(genP_Pt);
@@ -266,12 +283,6 @@ void Kinematics::process(Long64_t entry) {
       }
     }// for(Size_t i=0; i < cfg_LeptonTriggerPtCutMin.size(); i++){
   }// else
-
-  bool test = mcTools.RecursivelyLookForMotherId(genP_Index, 24, true);
-  int momPos = mcTools.PosOfMotherId(genP_Index, 24, true);
-  int momId  = mcTools.LookForMotherId(genP_Index, 2212, true);
-
-  std::cout << "test = " << test << ", momPos = " << momPos  << ", momId = " << momId << std::endl;
 
   // Increment Counters    
   cAllEvents.increment();

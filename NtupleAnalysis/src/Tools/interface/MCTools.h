@@ -24,7 +24,7 @@ public:
   int PosOfMotherId(int genP_Index, int momId, const bool takeAbsId);
   TLorentzVector GetP4(const int genP_Index);
   bool LookForMotherId(int genP_Index, int momId, const bool takeAbsId);
-  TLorentzVector GetVisibleP4(const std::vector<unsigned short>& daughters);
+  TLorentzVector GetVisibleP4(const std::vector<short int>& daughters);
   
 private:
   Event *fEvent;

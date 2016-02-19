@@ -142,7 +142,7 @@ bool MCTools::LookForMotherId(int genP_Index,
 }
 
 
-TLorentzVector MCTools::GetVisibleP4(const std::vector<unsigned short>& daughters){
+TLorentzVector MCTools::GetVisibleP4(const std::vector<short int>& daughters){
 
   /*
     Returns the 4-vector sum of all visible daughters. If one would use this
@@ -158,20 +158,20 @@ TLorentzVector MCTools::GetVisibleP4(const std::vector<unsigned short>& daughter
   // For-loop: Daughters
   for (unsigned short i = 0; i< daughters.size(); i++){
 
-    unsigned short index dau_Index = daughters.at(i);
+    unsigned short dau_Index = daughters.at(i);
     int dau_PdgId                  = abs( dau_Index );
 
     // Skip invisible daughters (neutrinos)
-    if( (id == 12)  || (id == 14)  || (id == 16) ){ continue; }
+    if( (dau_PdgId == 12)  || (dau_PdgId == 14)  || (dau_PdgId == 16) ){ continue; }
 
-    // Get properties
-    Double_t pt   = GenP_Pt  ->at(index);
-    Double_t eta  = GenP_Eta ->at(index);
-    Double_t phi  = GenP_Phi ->at(index);
-    Double_t mass = GenP_Mass->at(index);
+    genParticle dau  = GetGenP(dau_Index);
+    double genP_Pt   = dau.pt();
+    double genP_Eta  = dau.eta();
+    double genP_Phi  = dau.phi();                                                                                                                                           
+    double genP_Mass = dau.mass();
 
     TLorentzVector tmp;
-    tmp.SetPtEtaPhiM(pt, eta, phi, mass);
+    tmp.SetPtEtaPhiM(genP_Pt, genP_Eta, genP_Phi, genP_Mass);
     p4 += tmp;
 
   } // For-loop: Daughters
