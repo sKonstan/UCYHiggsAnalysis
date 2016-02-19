@@ -200,7 +200,7 @@ void Kinematics::process(Long64_t entry) {
 
     TLorentzVector p4 = mcTools.GetP4(genP_Index);
     
-    std::cout << "p4.pt() = " << p4.Pt() << ", genP_Pt = " << genP_Pt << std::endl;
+    // std::cout << "p4.pt() = " << p4.Pt() << ", genP_Pt = " << genP_Pt << std::endl;
 
     // std::cout << "fEvent.genparticles().at(" << genP_Index << ").pt() = " << fEvent.genparticles().getAllGenpCollection().at(genP_Index).pt() << std::endl;
 
@@ -268,7 +268,7 @@ void Kinematics::process(Long64_t entry) {
   }// else
 
   bool bTest = mcTools.RecursivelyLookForMotherId(genP_Index, 24, true);
-  std::cout << "bTest = " << bTest << std::endl;
+  int momPos = mcTools.PosOfMotherId(genP_Index, 24, true);
 
   // Increment Counters    
   cAllEvents.increment();
