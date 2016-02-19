@@ -42,13 +42,13 @@ public:
 				     double minPt);
 
   void GetHadronicTauFinalDaughters(const int genP_Index,
-				    std::vector<short int>& Daug);
+				    std::vector<short int>& finalDaughters);
 
   void GetHadronicTauChargedPions(int tauIndex, 
-				  std::vector<short int> &pions);
+				  std::vector<short int> &chargedPions);
 
   void GetHadronicTauNeutralPions(int tauIndex, 
-				  std::vector<short int> &pions);
+				  std::vector<short int> &neutralPions);
 
 private:
   Event *fEvent;

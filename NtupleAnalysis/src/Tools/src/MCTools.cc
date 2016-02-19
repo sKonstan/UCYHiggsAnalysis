@@ -263,8 +263,9 @@ double MCTools::GetHadronicTauMaxSignalCone(const int genP_Index,
 					    double minPt){
 
   genParticle genP = GetGenP(genP_Index);
-  if (fabs(genP.pdgId() != 15) ) {
-    std::cout << "=== MCTools::GetHadronicTauMaxSignalCone():\n\t Particle with index " << genP_Index << " is not a tau. Return -1" << std::endl;
+  if ( std::abs(genP.pdgId()) != 15) {
+    std::cout << "=== MCTools::GetHadronicTauMaxSignalCone():" << std::endl;
+    std::cout << "\t Particle with index " << genP_Index << " is not a tau (pdgId = " << genP.pdgId() << "). Return" << std::endl;
     return -1;
   }
 
@@ -306,21 +307,22 @@ double MCTools::GetHadronicTauMaxSignalCone(const int genP_Index,
 
 
 void MCTools::GetHadronicTauFinalDaughters(const int genP_Index,
-					   std::vector<short int>& daughters){
+					   std::vector<short int>& finalDaughters){
 
   genParticle genP = GetGenP(genP_Index);
-  int genP_PdgId   = fabs(genP.pdgId());
+  int genP_PdgId   = std::abs(genP.pdgId());
   if (genP_PdgId != 15) {
-    std::cout << "=== MCTools::GetHadronicTauFinalDaughters():\n\t Particle with index " << genP_Index << " is not a tau. Return" << std::endl;
+    // std::cout << "=== MCTools::GetHadronicTauFinalDaughters():" << std::endl;
+    // std::cout << "\t Particle with index " << genP_Index << " is not a tau (pdgId = " << genP.pdgId() << "). Return" << std::endl;
     return;
   }
 
   if (genP.daughters().size() == 0) return;
 
   // For-loop: Daughters
-  for (size_t i = 0; i< daughters.size(); i++){
+  for (size_t i = 0; i< genP.daughters().size(); i++){
 
-    int dau_Index   = daughters.at(i);
+    int dau_Index   = genP.daughters().at(i);
     genParticle dau = GetGenP(dau_Index);
     int dau_PdgId   = dau.pdgId();
 
@@ -329,7 +331,7 @@ void MCTools::GetHadronicTauFinalDaughters(const int genP_Index,
     if ( (dau_PdgId == 111 || dau_PdgId == 211 || dau_PdgId == 321 ||   //pi0,pi+/-,K+/-
           dau_PdgId == 130 || dau_PdgId == 310 || dau_PdgId == 311 ||   //K0L,K0S,K0
 	  dau_PdgId == 211 || dau_PdgId == 223)                     //eta and omega
-	 || (dau_PdgId == 22 && genP_PdgId==15 && daughters.size()!=0 ) ){  //Avoid leptonic decay
+	 || (dau_PdgId == 22 && genP_PdgId==15 && finalDaughters.size()!=0 ) ){  //Avoid leptonic decay
       // Because of the mixing of Generator and Detector simulation particles
       // in the list check if the particle has a parent already in the list
       // If it does then it comes from a hadronic interaction with the
@@ -337,23 +339,20 @@ void MCTools::GetHadronicTauFinalDaughters(const int genP_Index,
       int ifound = 0;
 
       // For-loop: Daughters
-      for (size_t j = 0; j < daughters.size(); j++){
+      for (size_t j = 0; j < finalDaughters.size(); j++){
 
-	int jdau_Index   = daughters.at(j);
+	int jdau_Index   = finalDaughters.at(j);
 	genParticle jdau = GetGenP(jdau_Index);
 	int jdau_PdgId   = jdau.pdgId();
+	if (RecursivelyLookForMotherId(dau_Index, jdau_PdgId, true) ) ifound += 1;
 
-	if (RecursivelyLookForMotherId(dau_Index, jdau_PdgId, true) ) 
-	  {
-	    ifound += 1;
-	  }
       }// for (short int j=0; j< daughters.size(); j++){
 
-      if (ifound == 0) daughters.push_back(dau_Index);
+      if (ifound == 0) finalDaughters.push_back(dau_Index);
     
     } // if ( (dau_PdgId == 111 ...
 
-    GetHadronicTauFinalDaughters(dau_Index, daughters);
+    GetHadronicTauFinalDaughters(dau_Index, finalDaughters);
   }
   return;
 }
@@ -363,10 +362,13 @@ void MCTools::GetHadronicTauFinalDaughters(const int genP_Index,
 void MCTools::_GetHadronicTauChargedOrNeutralPions(int genP_Index, 
 						   bool charged,
 						   std::vector<short int> &pions){
-  
+
+  std::cout << "=== MCTools::_GetHadronicTauChargedOrNeutralPions():\n\t Requires debugging!" << std::endl;  
+
   genParticle genP = GetGenP(genP_Index);
-  if (fabs(genP.pdgId() != 15) ) {
-    std::cout << "=== MCTools::GetHadronicTauChargedOrNeutralPions():\n\t Particle with index " << genP_Index << " is not a tau. Return" << std::endl;
+  if ( std::abs(genP.pdgId()) != 15) {
+    std::cout << "=== MCTools::_GetHadronicTauChargedOrNeutralPions():" << std::endl;
+    std::cout << "\t Particle with index " << genP_Index << " is not a tau (pdgId = " << genP.pdgId() << "). Return" << std::endl;
     return;
   }
 
@@ -385,14 +387,10 @@ void MCTools::_GetHadronicTauChargedOrNeutralPions(int genP_Index,
     int dau_Charge  = dau.charge();
 
     // Keep only the pi+/-, K+/-, omegas
-    if (charged)
-      { 
-	if( fabs(dau_Charge)>0 )continue;
-      }
-    else // Keep only the p0, K0 etc..
-      { 
-	if( fabs(dau_Charge)!=0 ) continue;
-      }
+    if (charged && std::abs(dau_Charge)==0 ) continue;
+
+    // Keep only the p0, K0 etc..
+    if (!charged && std::abs(dau_Charge)!=0 ) continue;
 
     // Save to container
     pions.push_back(dau_Index);
@@ -404,9 +402,9 @@ void MCTools::_GetHadronicTauChargedOrNeutralPions(int genP_Index,
 
 
 void MCTools::GetHadronicTauNeutralPions(int genP_Index, 
-					 std::vector<short int> &chargedPions){
+					 std::vector<short int> &neutralPions){
 
-  _GetHadronicTauChargedOrNeutralPions(genP_Index, false, chargedPions);
+  _GetHadronicTauChargedOrNeutralPions(genP_Index, false, neutralPions);
   return;
 }
 

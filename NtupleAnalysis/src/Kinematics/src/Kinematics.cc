@@ -181,9 +181,9 @@ void Kinematics::process(Long64_t entry) {
   MCTools mcTools(fEvent);  
   
   for( auto& genP : fEvent.genparticles().getAllGenpCollection()){
+    genP_Index++;
 
     // Get loop variables
-    genP_Index++;
     int genP_PdgId          = genP.pdgId();
     double genP_Pt          = genP.pt();
     double genP_Eta         = genP.eta();
@@ -196,10 +196,11 @@ void Kinematics::process(Long64_t entry) {
     // double GenP_VertexZ  = genP.vertexX();
     // double GenP_Charge   = genP.charge();
     // double GenP_Mothers  = genP.mothers().size();
-    int GenP_Daughters = genP.daughters().size();
+    // int GenP_Daughters = genP.daughters().size();
 
 
     // TESTING
+    // ==============================================================================================================================
     // bool test  = mcTools.RecursivelyLookForMotherId(genP_Index, 24, true);
     // int momPos = mcTools.PosOfMotherId(genP_Index, 24, true);
     // int momId  = mcTools.LookForMotherId(genP_Index, 2212, true);
@@ -208,27 +209,28 @@ void Kinematics::process(Long64_t entry) {
     
     // tau-jets
     if( fabs(genP_PdgId) == 15 ){
-      TLorentzVector p4      = mcTools.GetP4(genP_Index);
-      TLorentzVector p4_vis  = mcTools.GetVisibleP4( genP_Index );
 
-      if (GenP_Daughters > 1) {
-	
-	int ldgDau_Index   = mcTools.GetLdgDaughter(genP_Index, false);
-	genParticle ldgDau = mcTools.GetGenP(ldgDau_Index);
-	std::cout << "ldgDau.Pt() = " << ldgDau.pt() << ", ldgDau.pdgId() = " << ldgDau.pdgId() << std::endl;
+      // TLorentzVector p4      = mcTools.GetP4(genP_Index);
+      // TLorentzVector p4_vis  = mcTools.GetVisibleP4( genP_Index );
 
-	double maxSigCone = mcTools.GetHadronicTauMaxSignalCone(genP_Index, false, 5.0);
-	std::cout << "maxSigCone = " << maxSigCone << std::endl; 
+      // int ldgDau_Index   = mcTools.GetLdgDaughter(genP_Index, false);
+      // genParticle ldgDau = mcTools.GetGenP(ldgDau_Index);
+      // std::cout << "ldgDau.Pt() = " << ldgDau.pt() << ", ldgDau.pdgId() = " << ldgDau.pdgId() << std::endl;
+      
+      // double maxSigCone = mcTools.GetHadronicTauMaxSignalCone(genP_Index, false, 5.0);
+      // std::cout << "maxSigCone = " << maxSigCone << std::endl; 
+      
+      std::vector<short int> chargedPions;
+      mcTools.GetHadronicTauChargedPions(genP_Index, chargedPions);
 
-	std::vector<short int> chargedPions;
-	mcTools.GetHadronicTauChargedPions(genP_Index, chargedPions);
-	std::cout << "chargedPions = " << chargedPions.size() << std::endl;
-
-	std::vector<short int> neutralPions;
-	mcTools.GetHadronicTauNeutralPions(genP_Index, neutralPions);
-	std::cout << "neutralPions = " << neutralPions.size() << std::endl;
-      }
+      
+      std::vector<short int> neutralPions;
+      mcTools.GetHadronicTauNeutralPions(genP_Index, neutralPions);
+      std::cout << "chargedPions = " << chargedPions.size() << ", neutralPions = " << neutralPions.size() << std::endl;
+      
     }
+
+    // ==============================================================================================================================
 
 
     // Electrons
