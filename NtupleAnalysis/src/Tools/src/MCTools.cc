@@ -14,8 +14,13 @@ MCTools::MCTools(Event &fEvt){
 
 MCTools::~MCTools(){}  
 
+bool MCTools::IsNeutrino(const int pdgId){
+  if( ( fabs(pdgId) == 12)  || ( fabs(pdgId) == 14)  || ( fabs(pdgId) == 16) ) return true;
+  else return false;
+}
 
-genParticle MCTools::GetGenP(int genP_Index){
+
+genParticle MCTools::GetGenP(const unsigned int genP_Index){
   return fEvent->genparticles().getAllGenpCollection().at(genP_Index);
 }
 
@@ -33,12 +38,11 @@ TLorentzVector MCTools::GetP4(const int genP_Index){
 }
 
 
-bool MCTools::RecursivelyLookForMotherId(int genP_Index,
+bool MCTools::RecursivelyLookForMotherId(const unsigned int genP_Index,
 					 int momId,
 					 const bool takeAbsId){
 
   genParticle genP     = GetGenP(genP_Index);
-  // int genP_PdgId       = genP.pdgId();
   unsigned short nMoms = genP.mothers().size();
   if (nMoms == 0) return false;
 
@@ -68,9 +72,9 @@ bool MCTools::RecursivelyLookForMotherId(int genP_Index,
 }
 
 
-int MCTools::PosOfMotherId(int genP_Index,
-			   int momId,
-			   const bool takeAbsId){
+int MCTools::GetPosOfMotherId(const unsigned int genP_Index,
+			      int momId,
+			      const bool takeAbsId){
   
   genParticle genP     = GetGenP(genP_Index);
   unsigned short nMoms = genP.mothers().size();
@@ -104,7 +108,7 @@ int MCTools::PosOfMotherId(int genP_Index,
       else return mom_Index;
     }
     else {
-      mom_Index = PosOfMotherId(mom_Index, momId, takeAbsId);
+      mom_Index = GetPosOfMotherId(mom_Index, momId, takeAbsId);
       return mom_Index;
     }
   }// for (unsigned short i = 0; i < nMoms; i++){
@@ -113,7 +117,7 @@ int MCTools::PosOfMotherId(int genP_Index,
 
 
 
-bool MCTools::LookForMotherId(int genP_Index,
+bool MCTools::LookForMotherId(const unsigned int genP_Index,
 			      int momId,
 			      const bool takeAbsId){
 
@@ -152,26 +156,25 @@ TLorentzVector MCTools::GetVisibleP4(const std::vector<short int>& daughters){
     the tau itself or that of the intermediate resonance (e.g. rho, alpha_1)
   */
 
-  TLorentzVector p4;
+  TLorentzVector p4(0,0,0,0);
   if (daughters.size() == 0) return p4;
 
   // For-loop: Daughters
   for (unsigned short i = 0; i< daughters.size(); i++){
 
-    unsigned short dau_Index = daughters.at(i);
-    int dau_PdgId                  = abs( dau_Index );
+    int dau_Index   = daughters.at(i);
+    genParticle dau = GetGenP(dau_Index);
+    int dau_PdgId   = dau.pdgId();
+    double dau_Pt   = dau.pt();
+    double dau_Eta  = dau.eta();
+    double dau_Phi  = dau.phi();                                                                                                                                           
+    double dau_Mass = dau.mass();
 
     // Skip invisible daughters (neutrinos)
-    if( (dau_PdgId == 12)  || (dau_PdgId == 14)  || (dau_PdgId == 16) ){ continue; }
-
-    genParticle dau  = GetGenP(dau_Index);
-    double genP_Pt   = dau.pt();
-    double genP_Eta  = dau.eta();
-    double genP_Phi  = dau.phi();                                                                                                                                           
-    double genP_Mass = dau.mass();
+    if ( IsNeutrino(dau_PdgId) ) continue;
 
     TLorentzVector tmp;
-    tmp.SetPtEtaPhiM(genP_Pt, genP_Eta, genP_Phi, genP_Mass);
+    tmp.SetPtEtaPhiM(dau_Pt, dau_Eta, dau_Phi, dau_Mass);
     p4 += tmp;
 
   } // For-loop: Daughters
@@ -180,33 +183,155 @@ TLorentzVector MCTools::GetVisibleP4(const std::vector<short int>& daughters){
 }
 
 
+TLorentzVector MCTools::GetVisibleP4(const unsigned int genP_Index){
 
-// ================================================================================================================================================
+  // Overloaded version ofTLorentzVector MCTools::GetVisibleP4() 
 
-/*
-double MCTools::getWeight(const Event& fEvent){
- 
+  genParticle genP = GetGenP(genP_Index);
+  const std::vector<short int> daughters = genP.daughters();
 
-  if(h_weight == 0)
-    throw hplus::Exception("runtime") << "MCTools enabled, but no MCToolss in multicrab!";
+  TLorentzVector p4(0,0,0,0);
+  if (daughters.size() == 0) return p4;
 
-  int NPU = fEvent.vertexInfo().simulatedValue();
-  int bin = h_weight->GetXaxis()->FindBin( NPU );
-  //std::cout << "***" << NPU << ":" << bin << ":" << h_weight->GetBinContent( bin ) << std::endl;
-  return h_weight->GetBinContent( bin );
+  // For-loop: Daughters
+  for (unsigned short i = 0; i< daughters.size(); i++){
+
+    int dau_Index   = daughters.at(i);
+    genParticle dau = GetGenP(dau_Index);
+    int dau_PdgId   = dau.pdgId();
+    double dau_Pt   = dau.pt();
+    double dau_Eta  = dau.eta();
+    double dau_Phi  = dau.phi();                                                                                                                                           
+    double dau_Mass = dau.mass();
+
+    // Skip invisible daughters (neutrinos)
+    if ( IsNeutrino(dau_PdgId) ) continue;
+
+    TLorentzVector tmp;
+    tmp.SetPtEtaPhiM(dau_Pt, dau_Eta, dau_Phi, dau_Mass);
+    p4 += tmp;
+
+  } // For-loop: Daughters
+
+  return p4;
 }
 
-void MCTools::calculateWeights(TH1* h_data, TH1* h_mc){
-  if(!h_data or !h_mc)
-    throw hplus::Exception("runtime") << "Did not find pileup distributions";
 
-  h_data->Scale(1.0/h_data->Integral());
-  h_mc->Scale(1.0/h_mc->Integral());
-  //std::cout << h_data->Integral() << ", " << h_mc->Integral() << std::endl;
+int MCTools::GetLdgDaughter(const int genP_Index, 
+			    bool bOnlyChargedDaughters){
 
-  h_weight = (TH1*)h_data->Clone("lumiWeights");
-  h_weight->Divide(h_mc);
-//   for (int i = 1; i < h_weight->GetNbinsX()+1; ++i)
-//     std::cout << i << ":" << h_weight->GetBinContent(i) << std::endl;
+
+  genParticle genP = GetGenP(genP_Index);
+  const std::vector<short int> daughters = genP.daughters();
+
+  // Declarations
+  int ldgPtIndex = -1;
+  double ldgPt   = -1.0;
+
+  if (daughters.size() == 0) return ldgPtIndex;
+
+  // For-loop: Daughters
+  for (size_t i = 0; i< daughters.size(); i++){
+    
+    int dau_Index   = daughters.at(i);
+    genParticle dau = GetGenP(dau_Index);
+    int dau_PdgId   = dau.pdgId();
+
+    // Skip invisible daughters (neutrinos)
+    if ( IsNeutrino(dau_PdgId) ) continue;
+
+    // Get pt and charge
+    double dau_Pt     = dau.pt();
+    double dau_Charge = dau.charge();
+    
+    if(bOnlyChargedDaughters && fabs(dau_Charge) < 1 ) continue;
+
+    // Find leading daughter index
+    if (dau_Pt > ldgPt ){
+      ldgPt      = dau_Pt;
+      ldgPtIndex = dau_Index;
+    }
+    
+  }  // For-loop: Daughters
+
+  return ldgPtIndex;
+}
+
+
+double MCTools::GetHadronicTauMaxSignalCone(const int genP_Index,
+					    bool bOnlyChargedDaughters, 
+					    double minPt){
+
+  genParticle genP = GetGenP(genP_Index);
+  if (fabs(genP.pdgId() != 15) ) {
+    std::cout << "=== MCTools::GetHadronicTauMaxSignalCone():\n\t Particle with index " << genP_Index << " is not a tau. Return -1" << std::endl;
+    return -1;
+  }
+
+  const std::vector<short int> daughters = genP.daughters();
+  if (daughters.size() <= 1) return -1;
+
+  // Get Ldg Charged Track properties
+  const int ldgChTk_Index   = GetLdgDaughter(genP_Index, true);
+  TLorentzVector ldgChTk_P4 = GetP4(ldgChTk_Index);
+
+  double dRMax = -1.0;
+
+  // For-loop: Daughters
+  for (size_t i = 0; i< daughters.size(); i++){
+
+    int dau_Index   = daughters.at(i);
+    genParticle dau = GetGenP(dau_Index);
+    int dau_PdgId   = dau.pdgId();
+
+    // Skip self and neutrinos
+    if (dau_Index == ldgChTk_Index) continue;
+    if (IsNeutrino(dau_PdgId)) continue;
+
+    // Get Daughter properties
+    TLorentzVector dau_P4 = GetP4(dau_Index);
+    double dau_Charge     = dau.charge();
+
+    // Consider only charged daughters above minPt
+    if (dau_P4.Pt() < minPt) continue;
+    if (bOnlyChargedDaughters){ if( fabs(dau_Charge) < 1 ) continue; }
+
+    double dR = ROOT::Math::VectorUtil::DeltaR(ldgChTk_P4, dau_P4);
+    if (dR > dRMax) dRMax = dR;
+    
+  } // For-loop: Daughters
+
+  return dRMax;
+}
+
+
+/*
+void MCTools::GetHadronicTauChargedOrNeutralPions(int tauIndex, 
+						  int charge,
+						  std::vector<unsigned short> &chargedPions){
+  
+  
+  if (GenP_Daughters->at(tauIndex).size() == 0) return;
+
+  // Get the pi+/-,pi0, K+/-, K0,K0L,KOS,eta,omegas and gammas
+  std::vector<unsigned short> hTau_Dau;
+  GetHadronicTauFinalDaughters(tauIndex, hTau_Dau);
+  
+  // For-loop: Daughters
+  for (unsigned short i = 0; i< hTau_Dau.size(); i++){
+
+    // Get Daughter properties
+    int daughter_index     = hTau_Dau.at(i);
+    Double_t daughter_charge = GenP_Charge->at(daughter_index);
+
+    // Keep only the pi+/-, K+/-, omegas
+    if( fabs(daughter_charge) != charge ) continue;
+    
+    // Save to container
+    chargedPions.push_back(daughter_index);
+    
+  } // For-loop: Daughters
+  
+  return;
 }
 */

@@ -6,10 +6,11 @@
 
 #include <cmath>
 #include <iomanip>
-#include <TLorentzVector.h>
 #include <string>
-#include <cmath>
 #include <vector>
+
+#include "TLorentzVector.h"
+#include "Math/VectorUtil.h"
 
 using namespace std;
 typedef Particle<ParticleCollection<double>> genParticle;
@@ -19,13 +20,31 @@ class MCTools {
 public:
   MCTools(Event &fEvt);
   ~MCTools();
-  genParticle GetGenP(int genP_Index);
-  bool RecursivelyLookForMotherId(int genP_Index, int momId, const bool posn);
-  int PosOfMotherId(int genP_Index, int momId, const bool takeAbsId);
+  genParticle GetGenP(const unsigned int genP_Index);
+  bool RecursivelyLookForMotherId(const unsigned int genP_Index, 
+				  int momId, 
+				  const bool posn);
   TLorentzVector GetP4(const int genP_Index);
-  bool LookForMotherId(int genP_Index, int momId, const bool takeAbsId);
+  bool LookForMotherId(const unsigned int genP_Index, 
+		       int momId, 
+		       const bool takeAbsId);
+  TLorentzVector GetVisibleP4(const unsigned int genP_Index);
   TLorentzVector GetVisibleP4(const std::vector<short int>& daughters);
-  
+  bool IsNeutrino(const int pdgId);
+  int GetPosOfMotherId(const unsigned int genP_Index,
+		       int momId, 
+		       const bool takeAbsId);
+  int GetLdgDaughter(const int genP_Index, 
+		     bool bOnlyChargedDaughters);
+
+  double GetHadronicTauMaxSignalCone(const int genP_Index, 
+				     bool bOnlyChargedDaughters, 
+				     double minPt);
+
+  void GetHadronicTauChargedOrNeutralPions(int tauIndex, 
+					   int charge,
+					   std::vector<unsigned short> &chargedPions);
+
 private:
   Event *fEvent;
   

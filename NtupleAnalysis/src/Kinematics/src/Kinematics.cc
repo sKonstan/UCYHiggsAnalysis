@@ -196,15 +196,9 @@ void Kinematics::process(Long64_t entry) {
     // double GenP_VertexZ  = genP.vertexX();
     // double GenP_Charge   = genP.charge();
     // double GenP_Mothers  = genP.mothers().size();
-    // double GenP_Daughters= genP.daughters().size();
+    int GenP_Daughters = genP.daughters().size();
 
-    TLorentzVector p4 = mcTools.GetP4(genP_Index);
-    
-    // std::cout << "p4.pt() = " << p4.Pt() << ", genP_Pt = " << genP_Pt << std::endl;
-
-    // std::cout << "fEvent.genparticles().at(" << genP_Index << ").pt() = " << fEvent.genparticles().getAllGenpCollection().at(genP_Index).pt() << std::endl;
-
-
+    // TESTING
     // bool test  = mcTools.RecursivelyLookForMotherId(genP_Index, 24, true);
     // int momPos = mcTools.PosOfMotherId(genP_Index, 24, true);
     // int momId  = mcTools.LookForMotherId(genP_Index, 2212, true);
@@ -212,11 +206,24 @@ void Kinematics::process(Long64_t entry) {
     
     // tau-jets
     if( abs(genP_PdgId) == 15 ){
-      TLorentzVector p4     = mcTools.GetP4(genP_Index);
-      TLorentzVector p4_vis = mcTools.GetVisibleP4( genP.daughters() );
-      std::cout << "***\t p4.Pt() = " << p4.Pt() << " p4.Eta() = " << p4.Eta() << std::endl;
-      std::cout << "***\t p4_Vis.Pt() = " << p4_vis.Pt() << " p4_vis.Eta() = " << p4_vis.Eta() << std::endl;
+      TLorentzVector p4      = mcTools.GetP4(genP_Index);
+      TLorentzVector p4_vis  = mcTools.GetVisibleP4( genP_Index );
+      TLorentzVector p4_vis2 = mcTools.GetVisibleP4( genP.daughters() );
+      std::cout << "\n***\t p4.Pt() = " << p4.Pt() << " p4.Eta() = " << p4.Eta() << std::endl;
+      std::cout << "***\t p4.Pt() = " << p4_vis.Pt() << " p4.Eta() = " << p4_vis.Eta() << std::endl;
+      std::cout << "***\t p4.Pt() = " << p4_vis2.Pt() << " p4.Eta() = " << p4_vis2.Eta() << std::endl;
+      if (GenP_Daughters > 1) {
+	
+	int ldgDau_Index   = mcTools.GetLdgDaughter(genP_Index, false);
+	genParticle ldgDau = mcTools.GetGenP(ldgDau_Index);
+	std::cout << "***\t ldgDau.Pt() = " << ldgDau.pt() << ", ldgDau.pdgId() = " << ldgDau.pdgId() << std::endl;
+
+	double maxSigCone = mcTools.GetHadronicTauMaxSignalCone(genP_Index, false, 5.0);
+	std::cout << "***\t maxSigCone = " << maxSigCone << std::endl; 
+      }
+
     }
+
 
 
     // Electrons
@@ -291,107 +298,4 @@ void Kinematics::process(Long64_t entry) {
   if (nGenBjets > 0) cBjets.increment();
   if (bPassTrg) cTrigger.increment();
   
-  /*
-  // std::cout << "=== Kinematics.cc:\n\t Kinematics::process()" << std::endl;
-
-  //====== Initialize
-  cAllEvents.increment();
-  
-  //====== Apply trigger
-  if ( !(fEvent.passTriggerDecision()) ) return;
-  cTrigger.increment();
-
-  //====== MET filters to remove events with spurious sources of fake MET
-  const METFilterSelection::Data metFilterData = fMETFilterSelection.analyze(fEvent);
-  if ( !metFilterData.passedSelection() ) return;
-  
-  //====== GenParticle analysis
-  // if needed
-
-  //====== Check that primary vertex exists
-  int nVertices = fEvent.vertexInfo().value();
-  if (nVertices < 1) return;
-  cVertexSelection.increment();
-  
-  //====== Tau selection
-  const TauSelection::Data tauData = fTauSelection.analyze(fEvent);
-  if ( !tauData.hasIdentifiedTaus() ) return;
-  if ( fEvent.isMC() ) {
-    fEventWeight.multiplyWeight(tauData.getTauMisIDSF());
-    fEventWeight.multiplyWeight(tauData.getTauTriggerSF());
-  }
-  
-  //====== Fake tau SF
-  if ( fEvent.isMC() ) {
-    fEventWeight.multiplyWeight(tauData.getTauMisIDSF());
-    cFakeTauSFCounter.increment();
-  }
-
-  //====== Tau trigger SF
-  if ( fEvent.isMC() ) {
-    fEventWeight.multiplyWeight(tauData.getTauTriggerSF());
-    cTauTriggerSFCounter.increment();
-  }
-
-  //====== MET trigger SF
-  const METSelection::Data silentMETData = fMETSelection.silentAnalyze(fEvent, nVertices);
-  if ( fEvent.isMC() ) {
-    fEventWeight.multiplyWeight(silentMETData.getMETTriggerSF());
-  }
-  cMetTriggerSFCounter.increment();
-
-  //====== Electron veto
-  const ElectronSelection::Data eData = fElectronSelection.analyze(fEvent);
-  if ( eData.hasIdentifiedElectrons() ) return;
-
-  //====== Muon veto
-  const MuonSelection::Data muData = fMuonSelection.analyze(fEvent);
-  if ( muData.hasIdentifiedMuons() ) return;
-
-  //====== Jet selection
-  const JetSelection::Data jetData = fJetSelection.analyze(fEvent, tauData.getSelectedTau());
-  if ( !jetData.passedSelection() ) return;
-  
-  //====== Point of standard selections
-  // For-loop: Selected jets
-  for (auto& p: jetData.getSelectedJets()) {
-    // Filter by jet pt and eta
-    if (p.pt()  < cfg_fJetPtCutMin ) continue;
-    if (p.pt()  > cfg_fJetPtCutMax ) continue;
-    if (p.eta() < cfg_fJetEtaCutMin) continue;
-    if (p.eta() > cfg_fJetEtaCutMax) continue;
-
-    // Look for parton flavour
-    int id = std::abs(p.pdgId()); // FIXME switch to partonFlavour
-    if (id == 5)       hAllGenBjets->Fill(p.pt());
-    else if (id == 4)  hAllGenCjets->Fill(p.pt());
-    else if (id == 21) hAllGenGjets->Fill(p.pt());
-    else if (id == 1 || id == 2 || id == 3) hAllLightjets->Fill(p.pt());
-
-  }//for (auto& p: jetData.getSelectedJets()) {
-
-  const BJetSelection::Data bjetData = fBJetSelection.silentAnalyze(fEvent, jetData);
-  // For-loop: Selected b jets
-  for (auto& p: bjetData.getSelectedBJets()) {
-    // Filter by jet pt and eta
-    if (p.pt()  < cfg_fJetPtCutMin ) continue;
-    if (p.pt()  > cfg_fJetPtCutMax ) continue;
-    if (p.eta() < cfg_fJetEtaCutMin) continue;
-    if (p.eta() > cfg_fJetEtaCutMax) continue;
-
-    // Look for parton flavour
-    int id = std::abs(p.pdgId()); // FIXME switch to partonFlavour
-    if (id == 5)       hPassedGenBjets->Fill(p.pt());
-    else if (id == 4)  hPassedGenCjets->Fill(p.pt());
-    else if (id == 21) hPassedGenGjets->Fill(p.pt());
-    else if (id == 1 || id == 2 || id == 3) hPassedGenLightjets->Fill(p.pt());
-
-  }// for (auto& p: bjetData.getSelectedBJets()) {
-
-  //====== All cuts passed
-  cSelected.increment();
-
-  //====== All Final plots
-  */
-
 }
