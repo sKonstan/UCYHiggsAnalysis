@@ -267,8 +267,11 @@ void Kinematics::process(Long64_t entry) {
     }// for(Size_t i=0; i < cfg_LeptonTriggerPtCutMin.size(); i++){
   }// else
 
-  bool bTest = mcTools.RecursivelyLookForMotherId(genP_Index, 24, true);
+  bool test = mcTools.RecursivelyLookForMotherId(genP_Index, 24, true);
   int momPos = mcTools.PosOfMotherId(genP_Index, 24, true);
+  int momId  = mcTools.LookForMotherId(genP_Index, 2212, true);
+
+  std::cout << "test = " << test << ", momPos = " << momPos  << ", momId = " << momId << std::endl;
 
   // Increment Counters    
   cAllEvents.increment();
