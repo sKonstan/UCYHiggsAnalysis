@@ -233,8 +233,15 @@ void Kinematics::process(Long64_t entry) {
 
     }
 
-    if (genP_Index == 0) mcTools.PrintGenParticle(genP_Index, true);
-    else mcTools.PrintGenParticle(genP_Index, false);
+    // mcTools.PrintMothers(genP_Index);
+    // mcTools.PrintDaughters(genP_Index);
+
+    // if (genP_Index == 0) mcTools.PrintGenParticle(genP_Index, true);
+    // else mcTools.PrintGenParticle(genP_Index, false);
+
+    // std::cout << "mcTools.GetLxy(" << genP_Index << ") = " << mcTools.GetLxy(genP_Index, 0, 0) << std::endl;
+    // std::cout << "mcTools.GetD0Mag(" << genP_Index << ") = " << mcTools.GetD0Mag(genP_Index, 0, 0) << std::endl;
+
 
     // ==============================================================================================================================
 

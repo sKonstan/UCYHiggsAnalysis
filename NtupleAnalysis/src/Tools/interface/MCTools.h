@@ -56,10 +56,23 @@ public:
 
   int GetTauDecayMode(const int genP_Index);
 
-  void PrintDaughters(const int genP_Index, bool bPrintHeaders=true);
+  void PrintMothers(const int genP_Index, 
+		    bool bPrintHeaders=true);
 
-  void PrintGenParticle(const int genP_Index, bool bPrintHeaders=true);
+  void PrintDaughters(const int genP_Index,
+		      bool bPrintHeaders=true);
 
+  void PrintGenParticle(const int genP_Index, 
+			bool bPrintHeaders=true);
+
+  double GetLxy(const int genP_Index,
+		double refX=0.0,
+		double refY=0.0);
+
+  double GetD0Mag(const int genP_Index,
+		  const int mom_Index,
+		  double refX=0.0,
+		  double refY=0.0);
 
 private:
   Event *fEvent;

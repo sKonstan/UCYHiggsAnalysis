@@ -42,6 +42,7 @@ bool MCTools::RecursivelyLookForMotherId(const unsigned int genP_Index,
 					 int momId,
 					 const bool takeAbsId){
 
+  cout << "=== MCTools::RecursivelyLookForMotherId():\n\t Requires debugging!" << endl;
   genParticle genP     = GetGenP(genP_Index);
   unsigned short nMoms = genP.mothers().size();
   if (nMoms == 0) return false;
@@ -76,6 +77,7 @@ int MCTools::GetPosOfMotherId(const unsigned int genP_Index,
 			      int momId,
 			      const bool takeAbsId){
   
+  cout << "=== MCTools::GetPosOfMotherId():\n\t Requires debugging!" << endl;
   genParticle genP     = GetGenP(genP_Index);
   unsigned short nMoms = genP.mothers().size();
   if (nMoms == 0) return 65535;
@@ -121,6 +123,7 @@ bool MCTools::LookForMotherId(const unsigned int genP_Index,
 			      int momId,
 			      const bool takeAbsId){
 
+  cout << "=== MCTools::LookForMotherId():\n\t Requires debugging!" << endl;
   genParticle genP     = GetGenP(genP_Index);
   unsigned short nMoms = genP.mothers().size();
 
@@ -220,7 +223,7 @@ TLorentzVector MCTools::GetVisibleP4(const unsigned int genP_Index){
 int MCTools::GetLdgDaughter(const int genP_Index, 
 			    bool bOnlyChargedDaughters){
 
-
+  cout << "=== MCTools::GetLdgDaughter():\n\t Requires debugging!" << endl;
   genParticle genP = GetGenP(genP_Index);
   const vector<short int> daughters = genP.daughters();
 
@@ -262,6 +265,7 @@ double MCTools::GetHadronicTauMaxSignalCone(const int genP_Index,
 					    bool bOnlyChargedDaughters, 
 					    double minPt){
 
+  cout << "=== MCTools::GetHadronicTauMaxSignalCone():\n\t Requires debugging!" << endl;
   genParticle genP = GetGenP(genP_Index);
   if ( abs(genP.pdgId()) != 15) {
     cout << "=== MCTools::GetHadronicTauMaxSignalCone():" << endl;
@@ -309,6 +313,7 @@ double MCTools::GetHadronicTauMaxSignalCone(const int genP_Index,
 void MCTools::GetHadronicTauFinalDaughters(const int genP_Index,
 					   vector<short int>& finalDaughters){
 
+  cout << "=== MCTools::GetHadronicTauFinalDaughters():\n\t Requires debugging!" << endl;
   genParticle genP = GetGenP(genP_Index);
   int genP_PdgId   = abs(genP.pdgId());
   if (genP_PdgId != 15) {
@@ -420,6 +425,7 @@ void MCTools::GetHadronicTauChargedPions(const int genP_Index,
 
 
 bool MCTools::IsFinalStateTau(const int genP_Index){
+  cout << "=== MCTools::IsFinalStateTau():\n\t Requires debugging!" << endl;
 
   genParticle genP = GetGenP(genP_Index);
   int genP_PdgId   = genP.pdgId();
@@ -442,6 +448,8 @@ bool MCTools::IsFinalStateTau(const int genP_Index){
 
 bool MCTools::IsFinalStateHadronicTau(const int genP_Index){
 
+  cout << "=== MCTools::IsFinalStateHadronicTau():\n\t Requires debugging!" << endl;
+
   genParticle genP = GetGenP(genP_Index);
   int genP_PdgId   = genP.pdgId();
 
@@ -461,6 +469,7 @@ bool MCTools::IsFinalStateHadronicTau(const int genP_Index){
 
 
 int MCTools::GetTauDecayMode(const int genP_Index){
+  cout << "=== MCTools::GetTauDecayMode():\n\t Requires debugging!" << endl;
 
   genParticle genP = GetGenP(genP_Index);
   int genP_PdgId   = genP.pdgId();
@@ -524,6 +533,37 @@ int MCTools::GetTauDecayMode(const int genP_Index){
 }
 
 
+void MCTools::PrintMothers(const int genP_Index, bool bPrintHeaders){
+
+  genParticle genP = GetGenP(genP_Index);
+  int genP_PdgId   = genP.pdgId();
+
+  const vector<short int> mothers = genP.mothers();
+  if (mothers.size() == 0) return;
+
+  if (bPrintHeaders) cout << "\n" << endl;
+  if (bPrintHeaders) cout << setw(15*2) << genP_Index << " (" << genP_PdgId << ")" << endl;
+  if (bPrintHeaders) cout << string(15*4, '=') << endl;
+  if (bPrintHeaders) cout << setw(15) << "genP_Index " << setw(15) << "genP_PdgId" << setw(15) << "mom_Index " << setw(15) << "mom_PdgId" << endl;
+  if (bPrintHeaders) cout << string(15*4, '=') << endl;
+
+  // For-loop: All mothers
+  for (unsigned short i = 0; i < mothers.size(); i++){
+
+    int mom_Index   = mothers.at(i);
+    genParticle dau = GetGenP(mom_Index);
+    int mom_PdgId   = dau.pdgId();
+
+    cout << setw(15) << genP_Index << setw(15) << genP_PdgId << setw(15) << mom_Index << setw(15) << mom_PdgId << endl;
+
+    PrintMothers(mom_Index, false);
+  }
+
+  if (bPrintHeaders) cout << string(15*4, '=') << endl;
+  return;
+}
+
+
 void MCTools::PrintDaughters(const int genP_Index, bool bPrintHeaders){
 
   genParticle genP = GetGenP(genP_Index);
@@ -556,8 +596,6 @@ void MCTools::PrintDaughters(const int genP_Index, bool bPrintHeaders){
 
 
 void MCTools::PrintGenParticle(const int genP_Index, bool bPrintHeaders){
-
-
 
   genParticle genP    = GetGenP(genP_Index);
   double genP_Pt      = genP.pt();
@@ -608,4 +646,53 @@ void MCTools::PrintGenParticle(const int genP_Index, bool bPrintHeaders){
   
   //  << setw(10) << setprecision(3) << genP_Pt
   return;
+}
+
+
+double MCTools::GetLxy(const int genP_Index,
+		       double refX,
+		       double refY){
+
+  cout << "=== MCTools::GetLxy():\n\t Requires debugging!" << endl;
+ 
+  // The distance traversed by a long-lived particle is Lxy (decay length).
+  // Assuming the origin (0, 0) as the Primary Vertex (the point where the
+  // particle was produced) and (vtx_X, vtx_Y) as the Secondary Vertex (the
+  // point where the long-lived particle reaches before decaying), then Lxy is
+  // obtained from Pythagoras theorem.
+  // Particles that decay promptly should have Lxy very close to zero.
+  genParticle genP = GetGenP(genP_Index);
+  double genP_VtxX = genP.vertexX();
+  double genP_VtxY = genP.vertexY();
+  double LxySq     = pow( (genP_VtxX - refX), 2) + pow( (genP_VtxY - refY), 2);
+  double Lxy       = sqrt(LxySq);
+  return Lxy;
+}
+
+
+double MCTools::GetD0Mag(const int genP_Index,
+			 const int mom_Index,
+			 double refX,
+			 double refY){
+  
+  cout << "=== MCTools::GetD0Mag():\n\t Requires debugging!" << endl;
+
+  // See: https://root.cern.ch/root/html524/TMath.html#TopOfPage
+  // The distance traversed by a long-lived particle is Lxy (decay length).
+  // Particles that decay promptly should have Lxy very close to zero.
+  // Simple trigonometry will reveal that the tangent of the angle between the
+  // long-lived particles' decay product and it's own direction will give:
+  // sin( |phi_mom - genP_Phi| ) = d0/Lxy
+  // Then d0 can be simply obtained by multiplying the tangent of the azimuthal
+  // angle difference with the decay length Lxy:
+
+  double Lxy       = GetLxy(genP_Index);
+  genParticle genP = GetGenP(genP_Index);
+  genParticle mom  = GetGenP(mom_Index);
+  double genP_Phi  = genP.phi();
+  double mom_Phi   = mom.phi();
+  double deltaPhi  = fabs(genP_Phi - mom_Phi);
+  double d0Mag     = TMath::Sin(genP_Phi)*Lxy;
+
+  return d0Mag;
 }
