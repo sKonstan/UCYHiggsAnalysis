@@ -47,7 +47,7 @@ bool MCTools::RecursivelyLookForMotherId(const unsigned int genP_Index,
   if (nMoms == 0) return false;
 
 #ifdef DEBUG
-  std::cout << "Looking for mother #" << momId << " of genParticle with index (pdgid) "<< genP_Index << "(" << genP_pdgId << ")" << std::endl;
+  cout << "Looking for mother #" << momId << " of genParticle with index (pdgid) "<< genP_Index << "(" << genP_pdgId << ")" << endl;
 #endif
 
   int myId;
@@ -58,7 +58,7 @@ bool MCTools::RecursivelyLookForMotherId(const unsigned int genP_Index,
     genParticle mom        = GetGenP(mom_Index);
     int mom_PdgId          = mom.pdgId();
 
-    // std::cout << "genP_Index = " << genP_Index << ", genP_PdgId = " << genP_PdgId << ", mom_Index = " << mom_Index << ", mom_PdgId = " << mom_PdgId << std::endl;
+    // cout << "genP_Index = " << genP_Index << ", genP_PdgId = " << genP_PdgId << ", mom_Index = " << mom_Index << ", mom_PdgId = " << mom_PdgId << endl;
 
     if (!takeAbsId) {
       myId  = fabs(mom_PdgId);
@@ -146,7 +146,7 @@ bool MCTools::LookForMotherId(const unsigned int genP_Index,
 }
 
 
-TLorentzVector MCTools::GetVisibleP4(const std::vector<short int>& daughters){
+TLorentzVector MCTools::GetVisibleP4(const vector<short int>& daughters){
 
   /*
     Returns the 4-vector sum of all visible daughters. If one would use this
@@ -188,7 +188,7 @@ TLorentzVector MCTools::GetVisibleP4(const unsigned int genP_Index){
   // Overloaded version ofTLorentzVector MCTools::GetVisibleP4() 
 
   genParticle genP = GetGenP(genP_Index);
-  const std::vector<short int> daughters = genP.daughters();
+  const vector<short int> daughters = genP.daughters();
 
   TLorentzVector p4(0,0,0,0);
   if (daughters.size() == 0) return p4;
@@ -222,7 +222,7 @@ int MCTools::GetLdgDaughter(const int genP_Index,
 
 
   genParticle genP = GetGenP(genP_Index);
-  const std::vector<short int> daughters = genP.daughters();
+  const vector<short int> daughters = genP.daughters();
 
   // Declarations
   int ldgPtIndex = -1;
@@ -263,13 +263,13 @@ double MCTools::GetHadronicTauMaxSignalCone(const int genP_Index,
 					    double minPt){
 
   genParticle genP = GetGenP(genP_Index);
-  if ( std::abs(genP.pdgId()) != 15) {
-    std::cout << "=== MCTools::GetHadronicTauMaxSignalCone():" << std::endl;
-    std::cout << "\t Particle with index " << genP_Index << " is not a tau (pdgId = " << genP.pdgId() << "). Return" << std::endl;
+  if ( abs(genP.pdgId()) != 15) {
+    cout << "=== MCTools::GetHadronicTauMaxSignalCone():" << endl;
+    cout << "\t Particle with index " << genP_Index << " is not a tau (pdgId = " << genP.pdgId() << "). Return" << endl;
     return -1;
   }
 
-  const std::vector<short int> daughters = genP.daughters();
+  const vector<short int> daughters = genP.daughters();
   if (daughters.size() <= 1) return -1;
 
   // Get Ldg Charged Track properties
@@ -307,13 +307,13 @@ double MCTools::GetHadronicTauMaxSignalCone(const int genP_Index,
 
 
 void MCTools::GetHadronicTauFinalDaughters(const int genP_Index,
-					   std::vector<short int>& finalDaughters){
+					   vector<short int>& finalDaughters){
 
   genParticle genP = GetGenP(genP_Index);
-  int genP_PdgId   = std::abs(genP.pdgId());
+  int genP_PdgId   = abs(genP.pdgId());
   if (genP_PdgId != 15) {
-    // std::cout << "=== MCTools::GetHadronicTauFinalDaughters():" << std::endl;
-    // std::cout << "\t Particle with index " << genP_Index << " is not a tau (pdgId = " << genP.pdgId() << "). Return" << std::endl;
+    // cout << "=== MCTools::GetHadronicTauFinalDaughters():" << endl;
+    // cout << "\t Particle with index " << genP_Index << " is not a tau (pdgId = " << genP.pdgId() << "). Return" << endl;
     return;
   }
 
@@ -361,21 +361,23 @@ void MCTools::GetHadronicTauFinalDaughters(const int genP_Index,
 
 void MCTools::_GetHadronicTauChargedOrNeutralPions(int genP_Index, 
 						   bool charged,
-						   std::vector<short int> &pions){
+						   vector<short int> &pions){
 
-  std::cout << "=== MCTools::_GetHadronicTauChargedOrNeutralPions():\n\t Requires debugging!" << std::endl;  
+  cout << "=== MCTools::_GetHadronicTauChargedOrNeutralPions():\n\t Requires debugging!" << endl;  
 
+  // Only consider taus
   genParticle genP = GetGenP(genP_Index);
-  if ( std::abs(genP.pdgId()) != 15) {
-    std::cout << "=== MCTools::_GetHadronicTauChargedOrNeutralPions():" << std::endl;
-    std::cout << "\t Particle with index " << genP_Index << " is not a tau (pdgId = " << genP.pdgId() << "). Return" << std::endl;
+
+  if (TMath::Abs( genP.pdgId() ) != 15){
+    // cout << "=== MCTools::_GetHadronicTauChargedOrNeutralPions():" << endl;
+    // cout << "\t Particle with index " << genP_Index << " is not a tau (pdgId = " << genP.pdgId() << "). Return" << endl;
     return;
   }
-
+  
   if (genP.daughters().size() == 0) return;
 
   // Get the pi+/-,pi0, K+/-, K0, K0L, KOS, Eta, Omegas and Gammas
-  std::vector<short int> daughters;
+  vector<short int> daughters;
   GetHadronicTauFinalDaughters(genP_Index, daughters);
   
   // For-loop: Daughters
@@ -387,10 +389,10 @@ void MCTools::_GetHadronicTauChargedOrNeutralPions(int genP_Index,
     int dau_Charge  = dau.charge();
 
     // Keep only the pi+/-, K+/-, omegas
-    if (charged && std::abs(dau_Charge)==0 ) continue;
+    if (charged && abs(dau_Charge)==0 ) continue;
 
     // Keep only the p0, K0 etc..
-    if (!charged && std::abs(dau_Charge)!=0 ) continue;
+    if (!charged && abs(dau_Charge)!=0 ) continue;
 
     // Save to container
     pions.push_back(dau_Index);
@@ -401,18 +403,209 @@ void MCTools::_GetHadronicTauChargedOrNeutralPions(int genP_Index,
 }
 
 
-void MCTools::GetHadronicTauNeutralPions(int genP_Index, 
-					 std::vector<short int> &neutralPions){
+void MCTools::GetHadronicTauNeutralPions(const int genP_Index, 
+					 vector<short int> &neutralPions){
 
   _GetHadronicTauChargedOrNeutralPions(genP_Index, false, neutralPions);
   return;
 }
 
 
-void MCTools::GetHadronicTauChargedPions(int genP_Index, 
-					 std::vector<short int> &chargedPions){
+void MCTools::GetHadronicTauChargedPions(const int genP_Index, 
+					 vector<short int> &chargedPions){
 
   _GetHadronicTauChargedOrNeutralPions(genP_Index, true, chargedPions);
   return;
 }
 
+
+bool MCTools::IsFinalStateTau(const int genP_Index){
+
+  genParticle genP = GetGenP(genP_Index);
+  int genP_PdgId   = genP.pdgId();
+
+  // Only consider taus
+  if (TMath::Abs( genP_PdgId ) != 15) return false;
+
+  const vector<short int> daughters = genP.daughters();
+  // For-loop: All daughters
+  for (unsigned short i = 0; i < daughters.size(); i++){
+
+    int dau_Index   = daughters.at(i);
+    genParticle dau = GetGenP(dau_Index);
+    int dau_PdgId   = dau.pdgId();   
+    if ( TMath::Abs(dau_PdgId) == 15) return false;
+  }
+  return true;
+}
+
+
+bool MCTools::IsFinalStateHadronicTau(const int genP_Index){
+
+  genParticle genP = GetGenP(genP_Index);
+  int genP_PdgId   = genP.pdgId();
+
+  // Only consider taus
+  if (TMath::Abs( genP_PdgId ) != 15) return false;
+
+  // Only consider final state taus (do not decay to self)
+  bool bIsFinalStateTau  = IsFinalStateTau( genP_Index );
+  if (!bIsFinalStateTau) return false;
+
+  // Only consider tau-jets
+  // bool bIsHadronicTauDecay = IsHadronicTauDecay(indx);
+  // if (!bIsHadronicTauDecay) return false;
+
+  return true;
+}
+
+
+int MCTools::GetTauDecayMode(const int genP_Index){
+
+  genParticle genP = GetGenP(genP_Index);
+  int genP_PdgId   = genP.pdgId();
+
+  // Only consider taus
+  if (TMath::Abs( genP_PdgId ) != 15) return -1;
+
+  unsigned int nPipm = 0;
+  unsigned int nPi0s = 0;
+  unsigned int nKpm  = 0;
+  unsigned int nCharged=0;
+  unsigned int nOtherCharged = 0; // Other than pions, Kaons.
+  unsigned int nOtherNeutral = 0; // K_S, K_L, Sigma, etc..
+  unsigned int nLeptons = 0;      // e, mu
+
+  const vector<short int> daughters = genP.daughters();
+  if (daughters.size() <= 0) return -1;
+
+  // For-loop: All daughters
+  for (unsigned short i = 0; i < daughters.size(); i++){
+
+    int dau_Index   = daughters.at(i);
+    genParticle dau = GetGenP(dau_Index);
+    // int dau_PdgId   = dau.pdgId();   
+    int dau_Charge  = dau.charge();   
+    
+    // Leptonic decays
+    if ( fabs(dau_Index) == 11 || fabs(dau_Index) == 13 ) nLeptons++;
+    
+    if (dau_Charge > 0) {
+      nCharged++;
+      if (dau_Index == 211) {
+	nPipm++;
+      }
+      else if (dau_Index == 321){
+	nKpm++;
+      }
+      else {
+	nOtherCharged++;
+      }
+    }
+    else {
+      if (dau_Index == 111){
+	nPi0s ++;
+      }
+      else{
+	nOtherNeutral++;
+      }
+    }
+  }  // For-loop: Daughters
+  
+  // Determine return value
+  if (nLeptons !=0 ) return 0;
+  
+  if (nOtherNeutral !=0 ) {
+    return ((nCharged/2)*10 + 8);      // it returns 8, 18, 28 for 1, 3, 5 prong
+  }
+  else{
+    return ((nCharged/2)*10 + nPi0s); // it returns a value depending on nProngs+nPi0s (i.e. 3prongs+3pi0 =13)
+  }
+}
+
+
+void MCTools::PrintDaughters(const int genP_Index, bool bPrintHeaders){
+
+  genParticle genP = GetGenP(genP_Index);
+  int genP_PdgId   = genP.pdgId();
+
+  const vector<short int> daughters = genP.daughters();
+  if (daughters.size() == 0) return;
+
+  if (bPrintHeaders) cout << "\n" << endl;
+  if (bPrintHeaders) cout << setw(15*2) << genP_Index << " (" << genP_PdgId << ")" << endl;
+  if (bPrintHeaders) cout << string(15*4, '=') << endl;
+  if (bPrintHeaders) cout << setw(15) << "genP_Index " << setw(15) << "genP_PdgId" << setw(15) << "dau_Index " << setw(15) << "dau_PdgId" << endl;
+  if (bPrintHeaders) cout << string(15*4, '=') << endl;
+
+  // For-loop: All daughters
+  for (unsigned short i = 0; i < daughters.size(); i++){
+
+    int dau_Index   = daughters.at(i);
+    genParticle dau = GetGenP(dau_Index);
+    int dau_PdgId   = dau.pdgId();
+
+    cout << setw(15) << genP_Index << setw(15) << genP_PdgId << setw(15) << dau_Index << setw(15) << dau_PdgId << endl;
+
+    PrintDaughters(dau_Index, false);
+  }
+
+  if (bPrintHeaders) cout << string(15*4, '=') << endl;
+  return;
+}
+
+
+void MCTools::PrintGenParticle(const int genP_Index, bool bPrintHeaders){
+
+
+
+  genParticle genP    = GetGenP(genP_Index);
+  double genP_Pt      = genP.pt();
+  double genP_Eta     = genP.eta();
+  double genP_Phi     = genP.phi();
+  double genP_Mass    = genP.mass();
+  double genP_Energy  = genP.e();
+  double genP_Status  = genP.status();
+  double genP_PdgId   = genP.pdgId();
+  double genP_Charge  = genP.charge();
+  double genP_VertexX = genP.vertexX();
+  double genP_VertexY = genP.vertexY();
+  double genP_VertexZ = genP.vertexX();
+  double genP_Mothers = genP.mothers().size();
+  int genP_Daughters  = genP.daughters().size();
+  int mom_1 = -1;
+  int mom_2 = -1;
+  int dau_1 = -1;
+  int dau_2 = -1;
+
+  if (bPrintHeaders)
+    {
+      if (bPrintHeaders) cout << "\n" << endl;
+      if (bPrintHeaders) cout << string(15*10, '=') << endl;
+      cout << setw(6)  << "Index "  << setw(10) << "PdgId"   << setw(12) << "Pt"     << setw(14) << "Eta"  << setw(12) << "Phi"
+	   << setw(12) << "Mass "   << setw(12) << "Energy"  << setw(8)  << "Status" << setw(4)  << "Q"    << setw(12) << "VertexX"
+	   << setw(12) << "VertexY" << setw(12) << "VertexZ" << setw(6)  << "Mom1"   << setw(6)  << "Mom2"
+	   << setw(6)  << "Dau1"    << setw(6)  << "Dau2"    << endl;
+      if (bPrintHeaders) cout << string(15*10, '=') << endl;
+    }
+
+  if (genP_Mothers > 0)
+    {
+      mom_1 = genP.mothers().at(0);
+      mom_2 = genP.mothers().at(genP_Mothers-1);
+    }
+  if (genP_Daughters > 0)
+    {
+      dau_1 = genP.daughters().at(0);
+      dau_2 = genP.daughters().at(genP_Daughters-1);
+    }
+  
+
+  cout << std::setprecision(4)     << setw(6)  << genP_Index   << setw(10) << genP_PdgId   << setw(12) << genP_Pt     << setw(14) << genP_Eta  << setw(12) << genP_Phi
+       << setw(12) << genP_Mass    << setw(12) << genP_Energy  << setw(8)  << genP_Status  << setw(4)  << genP_Charge << setw(12) << genP_VertexX
+       << setw(12) << genP_VertexY << setw(12) << genP_VertexZ << setw(6)  << mom_1        << setw(6)  << mom_2
+       << setw(6)  << dau_1        << setw(6)  << dau_2        << endl;  
+  
+  //  << setw(10) << setprecision(3) << genP_Pt
+  return;
+}

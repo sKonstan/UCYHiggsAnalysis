@@ -220,15 +220,21 @@ void Kinematics::process(Long64_t entry) {
       // double maxSigCone = mcTools.GetHadronicTauMaxSignalCone(genP_Index, false, 5.0);
       // std::cout << "maxSigCone = " << maxSigCone << std::endl; 
       
-      std::vector<short int> chargedPions;
-      mcTools.GetHadronicTauChargedPions(genP_Index, chargedPions);
+      // std::vector<short int> chargedPions;
+      // mcTools.GetHadronicTauChargedPions(genP_Index, chargedPions);
+      // std::vector<short int> neutralPions;
+      // mcTools.GetHadronicTauNeutralPions(genP_Index, neutralPions);
+      // std::cout << "chargedPions = " << chargedPions.size() << ", neutralPions = " << neutralPions.size() << std::endl;
+      
+      // std::cout << "\nmcTools.IsFinalStateTau("<<genP_Index<<") = " << mcTools.IsFinalStateTau(genP_Index) << std::endl;
+      // std::cout << "mcTools.IsFinalStateHadronicTau("<<genP_Index<<") = " << mcTools.IsFinalStateHadronicTau(genP_Index) << std::endl;
+      // std::cout << "mcTools.GetTauDecayMode("<<genP_Index<<") = " << mcTools.GetTauDecayMode(genP_Index) << std::endl;
+      // mcTools.PrintDaughters(genP_Index);
 
-      
-      std::vector<short int> neutralPions;
-      mcTools.GetHadronicTauNeutralPions(genP_Index, neutralPions);
-      std::cout << "chargedPions = " << chargedPions.size() << ", neutralPions = " << neutralPions.size() << std::endl;
-      
     }
+
+    if (genP_Index == 0) mcTools.PrintGenParticle(genP_Index, true);
+    else mcTools.PrintGenParticle(genP_Index, false);
 
     // ==============================================================================================================================
 

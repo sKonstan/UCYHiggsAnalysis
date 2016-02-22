@@ -44,11 +44,22 @@ public:
   void GetHadronicTauFinalDaughters(const int genP_Index,
 				    std::vector<short int>& finalDaughters);
 
-  void GetHadronicTauChargedPions(int tauIndex, 
+  void GetHadronicTauChargedPions(const int genP_Index, 
 				  std::vector<short int> &chargedPions);
 
-  void GetHadronicTauNeutralPions(int tauIndex, 
+  void GetHadronicTauNeutralPions(const int genP_Index,
 				  std::vector<short int> &neutralPions);
+
+  bool IsFinalStateTau(const int genP_Index);
+
+  bool IsFinalStateHadronicTau(const int genP_Index);
+
+  int GetTauDecayMode(const int genP_Index);
+
+  void PrintDaughters(const int genP_Index, bool bPrintHeaders=true);
+
+  void PrintGenParticle(const int genP_Index, bool bPrintHeaders=true);
+
 
 private:
   Event *fEvent;

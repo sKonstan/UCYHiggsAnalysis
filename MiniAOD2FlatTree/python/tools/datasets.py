@@ -134,6 +134,11 @@ class Datasets:
             elif datasetType == "DoubleMuon":
                 datasetObjects.append(self.GetDatasetObject("/DoubleMuon/Run2015D-PromptReco-v4/MINIAOD"))
                 break
+            elif datasetType == "DiLepton":
+                datasetObjects.append(self.GetDatasetObject("/MuonEG/Run2015D-PromptReco-v4/MINIAOD"))
+                datasetObjects.append(self.GetDatasetObject("/DoubleMuon/Run2015D-PromptReco-v4/MINIAOD"))
+                datasetObjects.append(self.GetDatasetObject("/DoubleEG/Run2015D-PromptReco-v4/MINIAOD"))
+                break
             elif datasetType == "DoubleEG":
                 datasetObjects.append(self.GetDatasetObject("/DoubleEG/Run2015D-PromptReco-v4/MINIAOD"))
                 break
