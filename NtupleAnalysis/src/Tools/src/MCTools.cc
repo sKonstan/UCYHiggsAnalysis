@@ -40,9 +40,16 @@ TLorentzVector MCTools::GetP4(const int genP_Index){
 
 bool MCTools::RecursivelyLookForMotherId(const unsigned int genP_Index,
 					 int momId,
-					 const bool takeAbsId){
+					 const bool bAbsoluteMomId){
+  
+  /* 
+     Description:
+     Investigate all the mothers of the genParticle with index "genP_Index". 
+     If any of the genParticle's mothers has an id equal to "momId" return true,
+     otherwise return false. 
+   */
 
-  cout << "=== MCTools::RecursivelyLookForMotherId():\n\t Requires debugging!" << endl;
+  // cout << "=== MCTools::RecursivelyLookForMotherId():\n\t Requires debugging!" << endl;
   genParticle genP     = GetGenP(genP_Index);
   unsigned short nMoms = genP.mothers().size();
   if (nMoms == 0) return false;
@@ -61,13 +68,14 @@ bool MCTools::RecursivelyLookForMotherId(const unsigned int genP_Index,
 
     // cout << "genP_Index = " << genP_Index << ", genP_PdgId = " << genP_PdgId << ", mom_Index = " << mom_Index << ", mom_PdgId = " << mom_PdgId << endl;
 
-    if (!takeAbsId) {
-      myId  = fabs(mom_PdgId);
-      momId = fabs(momId);
-    }
+    if (!bAbsoluteMomId) 
+      {
+	myId  = fabs(mom_PdgId);
+	momId = fabs(momId);
+      }
     else myId = mom_PdgId;
     if (myId == momId) return true;
-    if (RecursivelyLookForMotherId(mom_Index, momId, takeAbsId) ) return true;
+    if (RecursivelyLookForMotherId(mom_Index, momId, bAbsoluteMomId) ) return true;
   }
   return false;
 }
@@ -75,12 +83,21 @@ bool MCTools::RecursivelyLookForMotherId(const unsigned int genP_Index,
 
 int MCTools::GetPosOfMotherId(const unsigned int genP_Index,
 			      int momId,
-			      const bool takeAbsId){
+			      const bool bAbsoluteMomId){
   
-  cout << "=== MCTools::GetPosOfMotherId():\n\t Requires debugging!" << endl;
+  /* 
+     Description:
+     Investigate all the mothers of the genParticle with index "genP_Index". 
+     If any of the genParticle's mothers has an id equal to "momId" return its index,
+     otherwise return -1
+
+     Note:
+     What if there are more than 1 mothers? In that case what should I return? 
+   */
+
   genParticle genP     = GetGenP(genP_Index);
   unsigned short nMoms = genP.mothers().size();
-  if (nMoms == 0) return 65535;
+  if (nMoms == 0) return -1; // 65535;
   int myId;
   int mom_Index;
 
@@ -91,7 +108,7 @@ int MCTools::GetPosOfMotherId(const unsigned int genP_Index,
     genParticle mom = GetGenP(mom_Index);
     int mom_PdgId   = mom.pdgId();
 
-    if (!takeAbsId) {
+    if (!bAbsoluteMomId) {
       myId = fabs(mom_PdgId);
       momId = fabs(momId);
     }
@@ -105,25 +122,34 @@ int MCTools::GetPosOfMotherId(const unsigned int genP_Index,
 	  mom_Index = mom.daughters().at(2);
 	  return mom_Index;
 	}
-	else return 65535;
+	else return -1; //65535;
       }
       else return mom_Index;
     }
     else {
-      mom_Index = GetPosOfMotherId(mom_Index, momId, takeAbsId);
+      mom_Index = GetPosOfMotherId(mom_Index, momId, bAbsoluteMomId);
       return mom_Index;
     }
   }// for (unsigned short i = 0; i < nMoms; i++){
-  return 65535;
+  return -1;//65535;
 }
 
 
 
 bool MCTools::LookForMotherId(const unsigned int genP_Index,
 			      int momId,
-			      const bool takeAbsId){
+			      const bool bAbsoluteMomId){
 
-  cout << "=== MCTools::LookForMotherId():\n\t Requires debugging!" << endl;
+  /* 
+     Description:
+     Investigate the immediate mothers of the genParticle with index "genP_Index". 
+     If an immediate mother has an id equal to "momId" return true,
+     otherwise return false.
+
+     Note:
+     What if there are more than 1 mothers? In that case what should I return? 
+   */
+
   genParticle genP     = GetGenP(genP_Index);
   unsigned short nMoms = genP.mothers().size();
 
@@ -137,52 +163,15 @@ bool MCTools::LookForMotherId(const unsigned int genP_Index,
     genParticle mom          = GetGenP(mom_Index);
     int mom_PdgId            = mom.pdgId();
 
-
-    if (!takeAbsId) {
+    if (!bAbsoluteMomId) {
       myId  = fabs(mom_PdgId);
       momId = fabs(momId);
     }
     else myId = mom_PdgId;
     if (myId == momId) return true;
+
   }// for (unsigned short i = 0; i < nMoms; i++) {
   return false;
-}
-
-
-TLorentzVector MCTools::GetVisibleP4(const vector<short int>& daughters){
-
-  /*
-    Returns the 4-vector sum of all visible daughters. If one would use this
-    to calculate the visible eT from a hadronic tau then the eT calculated would 
-    correcpond to the vector-sum eT of all decay products (and NOT the scalar eT sum)
-    In fact, the eT calculated using this 4-vector would be identical to the eT of 
-    the tau itself or that of the intermediate resonance (e.g. rho, alpha_1)
-  */
-
-  TLorentzVector p4(0,0,0,0);
-  if (daughters.size() == 0) return p4;
-
-  // For-loop: Daughters
-  for (unsigned short i = 0; i< daughters.size(); i++){
-
-    int dau_Index   = daughters.at(i);
-    genParticle dau = GetGenP(dau_Index);
-    int dau_PdgId   = dau.pdgId();
-    double dau_Pt   = dau.pt();
-    double dau_Eta  = dau.eta();
-    double dau_Phi  = dau.phi();                                                                                                                                           
-    double dau_Mass = dau.mass();
-
-    // Skip invisible daughters (neutrinos)
-    if ( IsNeutrino(dau_PdgId) ) continue;
-
-    TLorentzVector tmp;
-    tmp.SetPtEtaPhiM(dau_Pt, dau_Eta, dau_Phi, dau_Mass);
-    p4 += tmp;
-
-  } // For-loop: Daughters
-
-  return p4;
 }
 
 
@@ -223,7 +212,6 @@ TLorentzVector MCTools::GetVisibleP4(const unsigned int genP_Index){
 int MCTools::GetLdgDaughter(const int genP_Index, 
 			    bool bOnlyChargedDaughters){
 
-  cout << "=== MCTools::GetLdgDaughter():\n\t Requires debugging!" << endl;
   genParticle genP = GetGenP(genP_Index);
   const vector<short int> daughters = genP.daughters();
 
@@ -265,12 +253,14 @@ double MCTools::GetHadronicTauMaxSignalCone(const int genP_Index,
 					    bool bOnlyChargedDaughters, 
 					    double minPt){
 
-  cout << "=== MCTools::GetHadronicTauMaxSignalCone():\n\t Requires debugging!" << endl;
   genParticle genP = GetGenP(genP_Index);
+
   if ( abs(genP.pdgId()) != 15) {
+#ifdef DEBUG
     cout << "=== MCTools::GetHadronicTauMaxSignalCone():" << endl;
     cout << "\t Particle with index " << genP_Index << " is not a tau (pdgId = " << genP.pdgId() << "). Return" << endl;
-    return -1;
+#endif
+    return 0.0;
   }
 
   const vector<short int> daughters = genP.daughters();
@@ -316,9 +306,12 @@ void MCTools::GetHadronicTauFinalDaughters(const int genP_Index,
   cout << "=== MCTools::GetHadronicTauFinalDaughters():\n\t Requires debugging!" << endl;
   genParticle genP = GetGenP(genP_Index);
   int genP_PdgId   = abs(genP.pdgId());
+
   if (genP_PdgId != 15) {
-    // cout << "=== MCTools::GetHadronicTauFinalDaughters():" << endl;
-    // cout << "\t Particle with index " << genP_Index << " is not a tau (pdgId = " << genP.pdgId() << "). Return" << endl;
+#ifdef DEBUG
+    cout << "=== MCTools::GetHadronicTauFinalDaughters():" << endl;
+    cout << "\t Particle with index " << genP_Index << " is not a tau (pdgId = " << genP.pdgId() << "). Return" << endl;
+#endif
     return;
   }
 
@@ -374,8 +367,10 @@ void MCTools::_GetHadronicTauChargedOrNeutralPions(int genP_Index,
   genParticle genP = GetGenP(genP_Index);
 
   if (TMath::Abs( genP.pdgId() ) != 15){
-    // cout << "=== MCTools::_GetHadronicTauChargedOrNeutralPions():" << endl;
-    // cout << "\t Particle with index " << genP_Index << " is not a tau (pdgId = " << genP.pdgId() << "). Return" << endl;
+#ifdef DEBUG
+    cout << "=== MCTools::_GetHadronicTauChargedOrNeutralPions():" << endl;
+    cout << "\t Particle with index " << genP_Index << " is not a tau (pdgId = " << genP.pdgId() << "). Return" << endl;
+#endif    
     return;
   }
   
@@ -425,7 +420,16 @@ void MCTools::GetHadronicTauChargedPions(const int genP_Index,
 
 
 bool MCTools::IsFinalStateTau(const int genP_Index){
-  cout << "=== MCTools::IsFinalStateTau():\n\t Requires debugging!" << endl;
+
+  /*
+    Description:
+    Investigate the genParticle with index "genP_Index". 
+    If it is not a tau (pdgId=15) return false.
+    if it has a tau daughter (pdgId=15) return false.
+    Otherwise, return true.
+    In other words, it checks if a tau decays to a tau.
+    If yes, return false.
+  */
 
   genParticle genP = GetGenP(genP_Index);
   int genP_PdgId   = genP.pdgId();
@@ -446,31 +450,20 @@ bool MCTools::IsFinalStateTau(const int genP_Index){
 }
 
 
-bool MCTools::IsFinalStateHadronicTau(const int genP_Index){
-
-  cout << "=== MCTools::IsFinalStateHadronicTau():\n\t Requires debugging!" << endl;
-
-  genParticle genP = GetGenP(genP_Index);
-  int genP_PdgId   = genP.pdgId();
-
-  // Only consider taus
-  if (TMath::Abs( genP_PdgId ) != 15) return false;
-
-  // Only consider final state taus (do not decay to self)
-  bool bIsFinalStateTau  = IsFinalStateTau( genP_Index );
-  if (!bIsFinalStateTau) return false;
-
-  // Only consider tau-jets
-  // bool bIsHadronicTauDecay = IsHadronicTauDecay(indx);
-  // if (!bIsHadronicTauDecay) return false;
-
-  return true;
-}
-
-
 int MCTools::GetTauDecayMode(const int genP_Index){
-  cout << "=== MCTools::GetTauDecayMode():\n\t Requires debugging!" << endl;
+  
+  /*
+    Description:
+    Investigate the genParticle with index "genP_Index". 
+    If not a tau-lepton return -1. If the decay is unknown
+    (i.e. not supported) return -1.
 
+    Otherwise determine  the decay mode by counting the 
+    charged/neutral Pions, Kaons, leptons etc..
+  */
+
+  cout << "=== MCTools::GetTauDecayMode():\n\t Requires debugging!" << endl;
+  
   genParticle genP = GetGenP(genP_Index);
   int genP_PdgId   = genP.pdgId();
 
@@ -522,7 +515,7 @@ int MCTools::GetTauDecayMode(const int genP_Index){
   }  // For-loop: Daughters
   
   // Determine return value
-  if (nLeptons !=0 ) return 0;
+  if (nLeptons !=0 ) return 2;
   
   if (nOtherNeutral !=0 ) {
     return ((nCharged/2)*10 + 8);      // it returns 8, 18, 28 for 1, 3, 5 prong
@@ -530,10 +523,12 @@ int MCTools::GetTauDecayMode(const int genP_Index){
   else{
     return ((nCharged/2)*10 + nPi0s); // it returns a value depending on nProngs+nPi0s (i.e. 3prongs+3pi0 =13)
   }
+
+  return 0; // unknown decay
 }
 
 
-void MCTools::PrintMothers(const int genP_Index, bool bPrintHeaders){
+void MCTools::PrintMothersRecursively(const int genP_Index, bool bPrintHeaders){
 
   genParticle genP = GetGenP(genP_Index);
   int genP_PdgId   = genP.pdgId();
@@ -556,7 +551,7 @@ void MCTools::PrintMothers(const int genP_Index, bool bPrintHeaders){
 
     cout << setw(15) << genP_Index << setw(15) << genP_PdgId << setw(15) << mom_Index << setw(15) << mom_PdgId << endl;
 
-    PrintMothers(mom_Index, false);
+    PrintMothersRecursively(mom_Index, false);
   }
 
   if (bPrintHeaders) cout << string(15*4, '=') << endl;
@@ -564,7 +559,7 @@ void MCTools::PrintMothers(const int genP_Index, bool bPrintHeaders){
 }
 
 
-void MCTools::PrintDaughters(const int genP_Index, bool bPrintHeaders){
+void MCTools::PrintDaughtersRecursively(const int genP_Index, bool bPrintHeaders){
 
   genParticle genP = GetGenP(genP_Index);
   int genP_PdgId   = genP.pdgId();
@@ -587,7 +582,7 @@ void MCTools::PrintDaughters(const int genP_Index, bool bPrintHeaders){
 
     cout << setw(15) << genP_Index << setw(15) << genP_PdgId << setw(15) << dau_Index << setw(15) << dau_PdgId << endl;
 
-    PrintDaughters(dau_Index, false);
+    PrintDaughtersRecursively(dau_Index, false);
   }
 
   if (bPrintHeaders) cout << string(15*4, '=') << endl;
@@ -650,49 +645,113 @@ void MCTools::PrintGenParticle(const int genP_Index, bool bPrintHeaders){
 
 
 double MCTools::GetLxy(const int genP_Index,
-		       double refX,
-		       double refY){
+		       bool wrtPV){
 
-  cout << "=== MCTools::GetLxy():\n\t Requires debugging!" << endl;
- 
-  // The distance traversed by a long-lived particle is Lxy (decay length).
-  // Assuming the origin (0, 0) as the Primary Vertex (the point where the
-  // particle was produced) and (vtx_X, vtx_Y) as the Secondary Vertex (the
-  // point where the long-lived particle reaches before decaying), then Lxy is
-  // obtained from Pythagoras theorem.
-  // Particles that decay promptly should have Lxy very close to zero.
+  /* Description:
+     Investigate the genParticle with index "genP_Index". Find its 
+     production and decay vertices. The method vertexX() returns the 
+     production vertex. So, in order to determine the decay vertex 
+     we take one of the particle's daughtes and ask for its prodution
+     vertex. 
+
+     Explanation:
+     The distance traversed by a long-lived particle is Lxy (decay length).
+     Assuming the origin (0, 0) as the Primary Vertex (the point where the
+     particle was produced) and (vtx_X, vtx_Y) as the Secondary Vertex (the
+     point where the long-lived particle reaches before decaying), then Lxy is
+     obtained from Pythagoras theorem. Particles that decay promptly should 
+     have Lxy very close to zero.
+
+     Note: [from https://hypernews.cern.ch/HyperNews/CMS/get/generators/2429/1.html]
+     In CMS default pythia8 configuration K_S^0 is considered long-lived
+     enough that we leave them undecayed and they are passed to geant.  So geant
+     will decay them, but you will see them as status 1 for what concerns the
+     genParticles.
+     OTHER K_S^0).
+  */
+  
   genParticle genP = GetGenP(genP_Index);
-  double genP_VtxX = genP.vertexX();
-  double genP_VtxY = genP.vertexY();
-  double LxySq     = pow( (genP_VtxX - refX), 2) + pow( (genP_VtxY - refY), 2);
-  double Lxy       = sqrt(LxySq);
+  double refX  = 0.0;
+  double refY  = 0.0;
+
+  const vector<short int> daughters = genP.daughters();
+  if (daughters.size() == 0) return -1.0;
+
+  // Get one of the daugthers to determine the decay vertex (What if no daughters?)
+  int dau_Index   = daughters.at(0);
+  genParticle dau = GetGenP(dau_Index);
+  double dau_VtxX = dau.vertexX(); // [in cm]
+  double dau_VtxY = dau.vertexY(); // [in cm]
+  if (wrtPV)
+    {
+      refX = GetVertexX();
+      refY = GetVertexY();
+    }
+  double LxySq    = pow( (dau_VtxX - refX), 2) + pow( (dau_VtxY - refY), 2);
+  double Lxy      = sqrt(LxySq);
+
+#ifdef DEBUG
+  cout << "Lxy = [(" << dau_VtxX << " - " << refX << ")^2 + (" <<  dau_VtxY << " - " << refY << ")^2]^(1/2) = " << Lxy << " [cm]" << endl;
+#endif
   return Lxy;
 }
 
 
 double MCTools::GetD0Mag(const int genP_Index,
 			 const int mom_Index,
-			 double refX,
-			 double refY){
+			 bool wrtPV){
   
-  cout << "=== MCTools::GetD0Mag():\n\t Requires debugging!" << endl;
+  /* Description:
+     Investigate the genParticle with index "genP_Index". Find its 
 
-  // See: https://root.cern.ch/root/html524/TMath.html#TopOfPage
-  // The distance traversed by a long-lived particle is Lxy (decay length).
-  // Particles that decay promptly should have Lxy very close to zero.
-  // Simple trigonometry will reveal that the tangent of the angle between the
-  // long-lived particles' decay product and it's own direction will give:
-  // sin( |phi_mom - genP_Phi| ) = d0/Lxy
-  // Then d0 can be simply obtained by multiplying the tangent of the azimuthal
-  // angle difference with the decay length Lxy:
+     Explanation: 
+     The distance traversed by a long-lived particle is Lxy (decay length).
+     Particles that decay promptly should have Lxy very close to zero.
+     Simple trigonometry will reveal that the tangent of the angle between the
+     long-lived particles' decay product and it's own direction will give:
+     sin( |phi_mom - genP_Phi| ) = d0/Lxy
+     Then d0 can be simply obtained by multiplying the tangent of the azimuthal
+     angle difference with the decay length Lxy.
 
-  double Lxy       = GetLxy(genP_Index);
+     See:
+     https://root.cern.ch/root/html524/TMath.html#TopOfPage
+     https://root.cern.ch/doc/master/classTLorentzVector.html
+  */
+  
+  // Ensure genParticle with index genP_Index has mother with index mom_Index
+  if ( !IsItsMother(genP_Index, mom_Index) ) return -1.0;
+
+  // Ensure genParticle with index genP_Index has more than 1 daughters
   genParticle genP = GetGenP(genP_Index);
-  genParticle mom  = GetGenP(mom_Index);
-  double genP_Phi  = genP.phi();
-  double mom_Phi   = mom.phi();
-  double deltaPhi  = fabs(genP_Phi - mom_Phi);
-  double d0Mag     = TMath::Sin(genP_Phi)*Lxy;
+  if (genP.daughters().size() < 2) return -1.0;
+
+  // Get 4-momenta (to calculate angle between the mother and daughter directions)
+  TLorentzVector genP_p4 = GetP4(genP_Index);
+  TLorentzVector mom_p4  = GetP4(mom_Index);
+
+  // Calculate the |d0|
+  double angle = genP_p4.Angle(mom_p4.Vect());
+  double Lxy   = GetLxy(genP_Index, wrtPV);
+  double d0Mag = TMath::Sin(angle) * Lxy;
+
+#ifdef DEBUG
+  cout << "|d0| = sin(" << angle << ") * " << Lxy << " = " << d0Mag << endl;
+#endif
 
   return d0Mag;
+}
+
+
+bool MCTools::IsItsMother(const int genP_Index,
+			  const int mom_Index){
+  
+  genParticle genP = GetGenP(genP_Index);
+
+  // For-loop: All mothers
+  for (size_t i = 0; i < genP.mothers().size(); i++) {
+    unsigned short mom_Index_tmp = genP.mothers().at(i);
+    if (mom_Index == mom_Index_tmp) return true;
+  }
+
+  return false;
 }

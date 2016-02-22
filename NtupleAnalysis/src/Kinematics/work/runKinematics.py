@@ -79,10 +79,17 @@ def main():
         print "=== runKinematics:\n\t Not enough arguments passed to script execution. Printing docstring & EXIT."
         print __doc__
         sys.exit(0)
-    else:
-        if bVerbose:
-            print "=== runKinematics.py:\n\t Adding all datasets from multiCRAB directory \"%s\"" % (opts.mcrab)
+
+    if bVerbose:
+        print "=== runKinematics.py:\n\t Adding all datasets from multiCRAB directory \"%s\"" % (opts.mcrab)
+
+    if (opts.includeOnlyTasks):
+        process.addDatasetsFromMulticrab(opts.mcrab, includeOnlyTasks=opts.includeOnlyTasks)
+    elif (opts.excludeTasks):
+        process.addDatasetsFromMulticrab(opts.mcrab, excludeTasks=opts.excludeTasks)
+    else: #all datasets
         process.addDatasetsFromMulticrab(opts.mcrab)
+
 
     # Add Configuration Attributes
     print "=== runKinematics.py:\n\t Loading & Customising cfg parameters from \".kinematicsParameters\""
@@ -113,9 +120,11 @@ def main():
 #================================================================================================
 if __name__ == "__main__":
     
-    parser = OptionParser(usage="Usage: %prog [options]",add_help_option=False,conflict_handler="resolve")
-    parser.add_option("-m", "--mcrab" , dest="mcrab" , action="store", help="Path to the multicrab directory for input")
-    parser.add_option("-j", "--jCores", dest="jCores", action="store", type=int, help="Number of CPU cores (PROOF workes) to use. Default is all available.")
+    parser = OptionParser(usage="Usage: %prog [options]" , add_help_option=False,conflict_handler="resolve")
+    parser.add_option("-m", "--mcrab"   , dest="mcrab"   , action="store", help="Path to the multicrab directory for input")
+    parser.add_option("-j", "--jCores"  , dest="jCores"  , action="store", type=int, help="Number of CPU cores (PROOF workes) to use. Default is all available.")
+    parser.add_option("-i", "--includeOnlyTasks", dest="includeOnlyTasks", action="store", help="List of datasets in mcrab to include")
+    parser.add_option("-e", "--excludeTasks", dest="excludeTasks", action="store", help="List of datasets in mcrab to exclude")
     (opts, args) = parser.parse_args()
 
     if opts.mcrab == None:

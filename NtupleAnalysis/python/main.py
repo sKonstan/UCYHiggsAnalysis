@@ -19,7 +19,7 @@ import json
 
 import ROOT
 
-import datasets as datasetsTest
+import datasets as datasets
 import UCYHiggsAnalysis.NtupleAnalysis.tools.dataset as dataset
 import UCYHiggsAnalysis.NtupleAnalysis.tools.aux as aux
 import UCYHiggsAnalysis.NtupleAnalysis.tools.git as git
@@ -245,7 +245,7 @@ class Process:
 
         # Get the files
         if files is None:
-            files = datasetsTest.getFiles(name)
+            files = datasets.getFiles(name)
 
         # Get precursor for dataset
         precursor = dataset.DatasetPrecursor(name, files)
