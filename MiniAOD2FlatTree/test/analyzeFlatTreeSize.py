@@ -12,11 +12,9 @@ import math
 ###############################################################
 ### Options here
 ###############################################################
-filePath    = os.getcwd() + "/root/"
-datasets    = ["T_tW_antitop", "ST_tW_top", "WZ", "ZZ", "DYJetsToLL_M-50", "DYJetsToLL_M-10to50", "TTJets", "TTZToLLNuNu", "TTWJetsToLNu", "ttHJetToNonbb_M125"]
-datasets    = ["SingleElectron",  "ZZ", "ST_t-channel_top_4f_leptonDecays", "SingleMuon", "WZ", "ST_tW_top_5f_inclusiveDecays", "MuonEG",  "WW", 
-               "ST_tW_antitop_5f_inclusiveDecays", "DoubleEG", "DYJetsToLL_M-10to50", "TTJets", "DoubleMuon", "ST_s-channel_4f_leptonDecays", 
-               "ttHJetToNonbb_M125_ext1", "WJetsToLNu", "ST_t-channel_antitop_4f_leptonDecays", "ttHJetToNonbb_M125"]
+filePath    = "/afs/cern.ch/work/a/attikis/multicrab/multicrab_CMSSW752_Default_18Feb2016_10h27m20s/"
+datasets    = ["MuonEG_246908_260426_25ns_Silver", "DoubleEG_246908_260426_25ns_Silver", "DoubleMuon_246908_260426_25ns_Silver"]
+
 outFileName = "treeInfo.log"
 treeName    = "Events"
 
@@ -37,10 +35,11 @@ def GetObjectByName(fileIn, objectName):
     raise Exception("Could not find object with name '%s' in input ROOT file with name '%s'." % ( objectName, fileIn.GetName() ) )
 
 
-def OpenTFile(filePath, fileName, mode):
+def OpenTFile(filePath, dataset, fileName, mode):
     '''
     '''
-    return ROOT.TFile.Open( filePath + fileName, mode, fileName, 1, 0)
+    fullPath = filePath + dataset + "/results/" + fileName
+    return ROOT.TFile.Open(fullPath, mode, fileName, 1, 0)
             
 
 def CreateFile(filePath, fileName, fileMode, titleLines, ):
@@ -63,11 +62,11 @@ if __name__ == "__main__":
 
     # For-loop: All datasets
     for dataset in datasets:
-        inFileName  = "miniAOD2FlatTree_%s.root" % (dataset)
+        inFileName  = "miniAOD2FlatTree-%s.root" % (dataset)
 
         # Open ROOT file
         print "=== analyzeFlatTreeSize.py:\n\t Opening ROOT file \"%s\"" % (filePath + inFileName)
-        fileIn = OpenTFile(filePath, inFileName, "READ")
+        fileIn = OpenTFile(filePath, dataset, inFileName, "READ")
 
         # Get the TTree    
         treeIn = GetObjectByName(fileIn, treeName) #treeIn = fileIn.Get(treeName)
@@ -104,12 +103,13 @@ if __name__ == "__main__":
 
         # Create a txt file
         title     = []
-        hLine     = '='*75
-        titleLine = '\n{:<55}  {:>10}  {:<5}'.format("TBranch", "Size", "Units\n")
-        title.append(" "*30 + dataset + "\n")
-        title.append(hLine)
+        hLine     = '='*90
+        txtAlign  = '\n{:<65}  {:>10}  {:>5}'
+        titleLine = txtAlign.format("TBranch", "Size", "Units")
+        title.append(" "*30 + dataset)
+        title.append("\n" + hLine)
         title.append(titleLine)
-        title.append(hLine)
+        title.append("\n" + hLine)
         fileOut = CreateFile(os.getcwd(), "treeSize.txt", "a", title)
 
         # For-loop: All dictionary keys/values
@@ -118,16 +118,16 @@ if __name__ == "__main__":
         
             # Convert to kilo-bytes before saving and Keep only two decimals
             bSize   = '%0.3f' % (bSize)
-            newLine = '\n{:<55}  {:>10}  {:<5}'.format(bName, bSize, "%")
+            newLine = txtAlign.format(bName, bSize, "%")
 
             # Write line to file
             fileOut.write(newLine)
 
         # Write final lines
-        lastLine_1a = '\n{:<55}  {:>10}  {:<5}'.format("Total Size"         , '%0.2f' % (totalSize_MB) , "MB")
-        lastLine_1b = '\n{:<55}  {:>10}  {:<5}'.format("Basket Size "       , '%0.2f' % (basketSize_MB), "MB")
-        lastLine_2a = '\n{:<55}  {:>10}  {:<5}'.format("Total Size  / Event", '%0.2f' % ((totalSize_MB/nEntries)*1e+03), "kB")
-        lastLine_2b = '\n{:<55}  {:>10}  {:<5}'.format("Basket Size / Event", '%0.2f' % ((basketSize_MB/nEntries)*1e+03), "kB")
+        lastLine_1a = txtAlign.format("Total Size"         , '%0.2f' % (totalSize_MB) , "MB")
+        lastLine_1b = txtAlign.format("Basket Size "       , '%0.2f' % (basketSize_MB), "MB")
+        lastLine_2a = txtAlign.format("Total Size  / Event", '%0.2f' % ((totalSize_MB/nEntries)*1e+03), "kB")
+        lastLine_2b = txtAlign.format("Basket Size / Event", '%0.2f' % ((basketSize_MB/nEntries)*1e+03), "kB")
         # 
         fileOut.write(lastLine_1a)
         fileOut.write(lastLine_1b)

@@ -300,7 +300,7 @@ void SelectorImpl::SlaveTerminate() {
 
   if(fOutputFile) {
     fOutputFile->Write();
-    std::cout << "=== SelectorImpl::SlaveBegin()\n\t Saved output file" << std::endl;
+    // std::cout << "=== SelectorImpl::SlaveBegin()\n\t Saved output file" << std::endl;
     gROOT->GetListOfFiles()->Remove(fOutputFile);
     fOutputFile->Close();
     if(fProofFile) {

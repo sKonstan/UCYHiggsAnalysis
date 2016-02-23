@@ -8,16 +8,14 @@ https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookCRAB3Tutorial#Setup_the_e
 # Import Modules
 #================================================================================================
 from WMCore.Configuration import Configuration
-# See https://github.com/dmwm/CRABClient/blob/master/src/python/CRABClient/ClientUtilities.py
 from CRABClient.UserUtilities import getUsernameFromSiteDB
-#from CRABClient.UserUtilities import getWorkArea
+# [https://github.com/dmwm/CRABClient/blob/master/src/python/CRABClient/ClientUtilities.py]
 
 
 #================================================================================================
 # General Section: The user specifies generic parameters about the request (e.g. request name).
 #================================================================================================
 config = Configuration()
-
 config.section_("General")
 config.General.requestName     = rName
 config.General.workArea        = dirName
@@ -26,6 +24,7 @@ config.General.transferLogs    = True
 #config.General.failureLimit
 #config.General.instance
 #config.General.activity
+
 
 #================================================================================================
 # JobType Section: Contains all the parameters of the user job type and related configurables
@@ -49,6 +48,7 @@ config.JobType.outputFiles = ['miniAOD2FlatTree.root']
 # config.JobType.sendPythonFolde
 # config.JobType.externalPluginFile
 
+
 #================================================================================================
 # Data Section: Contains all parameters related to the data to be analyzed (incl. splitting params)
 #================================================================================================
@@ -59,11 +59,12 @@ config.Data.splitting     = 'LumiBased' # EventBased, FileBased, LumiBased (1 lu
 config.Data.unitsPerJob   = 5
 config.Data.publication   = False
 config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
-config.Data.totalUnits    = -1
+### Collision Data
+# config.Data.totalUnits    = -1 
 ### MC: How many files (when Data.splitting='FileBased'), lumi sections (when Data.splitting='LumiBased') or events (when Data.splitting='EventAwareLumiBased') to analyze
-#config.Data.splitting     = "EventAwareLumiBased"  # Used with "config.Data.totalUnits"
-#config.Data.totalUnits    = 100000                 # Used with "config.Data.splitting"
-#config.Data.unitsPerJob   = 5000
+config.Data.splitting     = "EventAwareLumiBased"  # Used with "config.Data.totalUnits"
+config.Data.totalUnits    = 100000                 # Used with "config.Data.splitting"
+config.Data.unitsPerJob   = 5000
 
 # config.Data.allowNonValidInputDatase
 # config.Data.outputPrimaryDataset
@@ -81,6 +82,7 @@ config.Data.totalUnits    = -1
 # config.Data.ignoreLocality
 # config.Data.userInputFiles
 
+
 #================================================================================================
 # Site Section: Contains the Grid site parameters (incl. stage out information)
 #================================================================================================
@@ -88,7 +90,6 @@ config.section_("Site")
 config.Site.storageSite = 'T2_CH_CERN' 
 config.Site.blacklist   = ['T2_US_Florida'] #suspicious
 # config.Site.whitelist = ['T2_CH_CERN', 'T2_FI_HIP']
-
 
 
 #================================================================================================
