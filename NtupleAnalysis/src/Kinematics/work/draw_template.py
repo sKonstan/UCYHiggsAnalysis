@@ -145,7 +145,8 @@ def DoCounters(histo, datasetObjects, savePostfix=""):
     # p.Draw("") # "nostack", "stack"
     # p.SetHistosFillStyle(3001)
     p.SetHistoLabelsOption("d")
-    p.SetHistoLabelsSizeX(0.6)
+    p.SetHistoLabelsSizeX(0.8)
+    p.SetHistoAxisOffsetX(0.04)
     p.Save()
     # p.SaveAs(savePath, histo.GetName() + "_test", savePostfix, saveFormats)
     # p.Save(savePath, ["png"])    
