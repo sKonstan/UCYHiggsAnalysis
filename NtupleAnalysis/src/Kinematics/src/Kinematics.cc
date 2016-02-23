@@ -11,6 +11,8 @@
 #include "EventSelection/interface/EventSelections.h"
 #include "Tools/interface/MCTools.h"
 
+//#define DEBUG
+
 class Kinematics: public BaseSelector {
 public:
   struct AscendingOrder{ bool operator() (double a, double b) const{  return ( a < b ); } };
@@ -96,32 +98,31 @@ Kinematics::Kinematics(const ParameterSet& config)
     cMuons(fEventCounter.addCounter("Muons")),
     cBjets(fEventCounter.addCounter("Bjets")),
     cTrigger(fEventCounter.addCounter("Trigger"))
-    // fElectronSelection(config.getParameter<ParameterSet>("ElectronSelection"),
-    // 		       fEventCounter, fHistoWrapper, nullptr, "Veto"),
-    //cSelected(fEventCounter.addCounter("Selected events"))
 { }
 
 void Kinematics::book(TDirectory *dir) {
-  // std::cout << "=== Kinematics.cc:\n\t Kinematics::book()" << std::endl;
+#ifdef DEBUG
+  std::cout << "=== Kinematics.cc:\n\t Kinematics::book()" << std::endl;
+#endif
 
   // Book histograms in event selection classes
   // fElectronSelection.bookHistograms(dir);
   // fMuonSelection.bookHistograms(dir);
   // fJetSelection.bookHistograms(dir);
-  // fAngularCutsCollinear.bookHistograms(dir);
   // fBJetSelection.bookHistograms(dir);
   // fMETSelection.bookHistograms(dir);
 
   // Book non-common histograms
-  hPassedElectronsPt  = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "PassedElectronsPt" , "PassedElectronsPt:Electron p_{T}, GeVc^{-1}:Event", PT_BINS, 0, PT_MAX);
-  hPassedElectronsEta = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "PassedElectronsEta" , "PassedElectronsEta:Electron #eta:Events", ETA_BINS, -ETA_MAX, ETA_MAX);
-  hAllElectronsPt     = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllElectronsPt" , "AllElectronsPt:Electron p_{T}, GeVc^{-1}:Event", PT_BINS, 0, PT_MAX);
-  hAllElectronsEta    = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllElectronsEta" , "AllElectronsEta:Electron #eta:Events", ETA_BINS, -ETA_MAX, ETA_MAX);
+  hPassedElectronsPt  = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "PassedElectronsPt" , "PassedElectronsPt:Electron p_{T}, GeVc^{-1}:Event", PT_BINS, 0, PT_MAX );
+  hPassedElectronsEta = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "PassedElectronsEta", "PassedElectronsEta:Electron #eta:Events"  , ETA_BINS, -ETA_MAX, ETA_MAX);
+  hPassedMuonsPt      = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "PassedMuonsPt"     , "PassedMuonsPt:Muon p_{T}, GeVc^{-1}:Event", PT_BINS , 0       , PT_MAX );
+  hPassedMuonsEta     = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "PassedMuonsEta"    , "PassedMuonsEta:Muon #eta:Events"          , ETA_BINS, -ETA_MAX, ETA_MAX);
+  //
+  hAllElectronsPt     = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllElectronsPt" , "AllElectronsPt:Electron p_{T}, GeVc^{-1}:Event", PT_BINS, 0, PT_MAX );
+  hAllElectronsEta    = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllElectronsEta", "AllElectronsEta:Electron #eta:Events"  , ETA_BINS, -ETA_MAX, ETA_MAX);
+  hAllMuonsPt         = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllMuonsPt"     , "AllMuonsPt:Muon p_{T}, GeVc^{-1}:Event", PT_BINS , 0       , PT_MAX );
+  hAllMuonsEta        = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllMuonsEta"    , "AllMuonsEta:Muon #eta:Events"          , ETA_BINS, -ETA_MAX, ETA_MAX);
 
-  hPassedMuonsPt  = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "PassedMuonsPt" , "PassedMuonsPt:Muon p_{T}, GeVc^{-1}:Event", PT_BINS, 0, PT_MAX);
-  hPassedMuonsEta = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "PassedMuonsEta" , "PassedMuonsEta:Muon #eta:Events", ETA_BINS, -ETA_MAX, ETA_MAX);
-  hAllMuonsPt     = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllMuonsPt" , "AllMuonsPt:Muon p_{T}, GeVc^{-1}:Event", PT_BINS, 0, PT_MAX);
-  hAllMuonsEta    = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllMuonsEta" , "AllMuonsEta:Muon #eta:Events", ETA_BINS, -ETA_MAX, ETA_MAX);
 
   hAllGenElectronsPt     = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllGenElectronsPt"    , "AllGenElectronsPt:Jet p_{T}, GeVc^{-1}:N_{jets}", PT_BINS, 0, PT_MAX);
   hAllGenMuonsPt         = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllGenMuonsPt"        , "AllGenMuonsPt:Jet p_{T}, GeVc^{-1}:N_{jets}"    , PT_BINS, 0, PT_MAX);
@@ -129,6 +130,7 @@ void Kinematics::book(TDirectory *dir) {
   hAllGenElectronsEta    = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllGenElectronsEta"   , "AllGenElectronsEta:Jet #eta:N_{jets}", ETA_BINS, -ETA_MAX, ETA_MAX);
   hAllGenMuonsEta        = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllGenMuonsEta"       , "AllGenMuonsEta:Jet #eta:N_{jets}"    , ETA_BINS, -ETA_MAX, ETA_MAX);
   hAllGenBjetsEta        = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllGenBjetsEta"       , "AllGenBjetsEta:Jet #eta:N_{jets}"    , ETA_BINS, -ETA_MAX, ETA_MAX);
+  //
   hPassedGenElectronsPt  = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "PassedGenElectronsPt" , "PassedGenElectronsPt:Jet p_{T}, GeVc^{-1}:N_{jets}", PT_BINS, 0, PT_MAX);
   hPassedGenMuonsPt      = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "PassedGenMuonsPt"     , "PassedGenMuonsPt:Jet p_{T}, GeVc^{-1}:N_{jets}"    , PT_BINS, 0, PT_MAX);
   hPassedGenBjetsPt      = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "PassedGenBjetsPt"     , "PassedGenBjetsPt:Jet p_{T}, GeVc^{-1}:N_{jets}"    , PT_BINS, 0, PT_MAX);
@@ -141,7 +143,9 @@ void Kinematics::book(TDirectory *dir) {
 
 
 void Kinematics::setupBranches(BranchManager& branchManager) {
-  // std::cout << "=== Kinematics.cc:\n\t Kinematics::setupBranches()" << std::endl;
+#ifdef DEBUG
+  std::cout << "=== Kinematics.cc:\n\t Kinematics::setupBranches()" << std::endl;
+#endif
   fEvent.setupBranches(branchManager);
 
   return;
@@ -149,7 +153,9 @@ void Kinematics::setupBranches(BranchManager& branchManager) {
 
 
 void Kinematics::process(Long64_t entry) {
-  // std::cout << "=== Kinematics.cc:\n\t Kinematics::process()" << std::endl;
+#ifdef DEBUG
+  std::cout << "=== Kinematics.cc:\n\t Kinematics::process()" << std::endl;
+#endif
 
   for(Electron elec: fEvent.electrons()) {
     hPassedElectronsPt->Fill(elec.pt());
@@ -171,86 +177,111 @@ void Kinematics::process(Long64_t entry) {
 
   if( !fEvent.isMC() ) return;
 
+  // Get the Events information
+  EventID evtID  = fEvent.eventID();
+  double evtNum  = evtID.event();
+  // double evtRun  = evtID.run();
+  // double evtLumi = evtID.lumi(); 
+  // Evt.trgPrescale() 
+  // Evt.nPUvertices() 
+  // Evt.NUP() 
+  // Evt.nGoodOfflineVertices() 
+  // Evt.pvX() 
+  // Evt.pvY() 
+  // Evt.pvZ() 
+  // Evt.pvDistanceToNextVertex() 
+  // Evt.pvDistanceToClosestVertex() 
+
+
+
   // Variable declarations
-  unsigned int genP_Index = -1;
-  size_t nGenMuons     = 0;
-  size_t nGenElectrons = 0;
-  size_t nGenBjets     = 0;
-  bool bPassTrg        = true;
+  static double firstEvt = evtID.event(); // static = only be executed once
+  int genP_Index         = -1;
+  size_t nGenMuons       = 0;
+  size_t nGenElectrons   = 0;
+  size_t nGenBjets       = 0;
+  bool bPassTrg          = true;
   std::vector<double> v_leptonPt;
   MCTools mcTools(fEvent);  
   
+  // For-loop: GenParticles
   for( auto& genP : fEvent.genparticles().getAllGenpCollection()){
     genP_Index++;
 
     // Get loop variables
-    int genP_PdgId          = genP.pdgId();
-    double genP_Pt          = genP.pt();
-    double genP_Eta         = genP.eta();
-    double genP_Status      = genP.status(); // PYTHIA8: http://home.thep.lu.se/~torbjorn/pythia81html/ParticleProperties.html
-    // double genP_Phi      = genP.phi();
-    // double genP_E        = genP.e();
-    // double genP_Mass     = genP.mass();
-    // double genP_VertexX  = genP.vertexX();
-    // double genP_VertexY  = genP.vertexY();
-    // double genP_VertexZ  = genP.vertexZ();
-    // double genP_Charge   = genP.charge();
-    // double genP_Mothers  = genP.mothers().size();
-    // int genP_Daughters = genP.daughters().size();
-
+    int genP_PdgId     = genP.pdgId();
+    double genP_Pt     = genP.pt();
+    double genP_Eta    = genP.eta();
+    double genP_Status = genP.status(); // PYTHIA8: http://home.thep.lu.se/~torbjorn/pythia81html/ParticleProperties.html
 
     // Electrons
     if(std::abs(genP_PdgId) == 11 && genP_Status < 10){
 
+      // Fill histos
       hAllGenElectronsPt ->Fill(genP_Pt);
       hAllGenElectronsEta->Fill(genP_Eta);
-
+      // Acceptance cuts
       if(genP_Pt >= cfg_ElePtCutMin && std::abs(genP_Eta) < cfg_EleEtaCutMax) {
-	// std::cout << "electron: Pt = " << genP_Pt << ", Eta = " << genP_Eta << ", Status = " << genP_Status << std::endl;
+
 	nGenElectrons++;
+	if (firstEvt == evtNum) mcTools.PrintGenParticle(genP_Index, true);
+	else
+	  {
+	    cout << "\n" << endl;
+	    mcTools.PrintGenParticle(genP_Index, false);
+	  }
 	v_leptonPt.push_back(genP_Pt);
+
+	// Fill histos
 	hPassedGenElectronsPt ->Fill(genP_Pt);
 	hPassedGenElectronsEta->Fill(genP_Eta);	
       }
-    }
+    }// Electrons
     if(nGenElectrons == 0) continue;
 
 
     // Muons
     if(std::abs(genP_PdgId) == 13 && genP_Status < 10){
 
+      // Fill histos
       hAllGenMuonsPt ->Fill(genP_Pt);
       hAllGenMuonsEta->Fill(genP_Eta);
 
+      // Acceptance cuts
       if(genP_Pt >= cfg_MuPtCutMin && std::abs(genP_Eta) < cfg_MuEtaCutMax){
-	// std::cout << "muon: Pt = " << genP_Pt << ", Eta = " << genP_Eta << ", Status = " << genP_Status << std::endl;
+
 	nGenMuons++;
+	mcTools.PrintGenParticle(genP_Index, false);
 	v_leptonPt.push_back(genP_Pt);
+
+	// Fill histos
 	hPassedGenMuonsPt ->Fill(genP_Pt);
 	hPassedGenMuonsEta->Fill(genP_Eta);
       }
-    }
+    }// Muons
     if(nGenMuons == 0) continue;
     
 
     // b-jets
     if(std::abs(genP_PdgId) == 5){
-      
+
+      // Fill histos
       hAllGenBjetsPt ->Fill(genP_Pt);
       hAllGenBjetsEta->Fill(genP_Eta);
       
+      // Acceptance cuts
       if(genP_Pt >= cfg_BjetPtCutMin && std::abs(genP_Eta) < cfg_BjetEtaCutMax){
-	
-	hPassedGenBjetsPt ->Fill(genP_Pt);
-	hPassedGenBjetsEta->Fill(genP_Eta);
-	
-	// std::cout << "bquark: Pt = " << genP_Pt << ", Eta = " << genP_Eta << ", Status = " << genP_Status << std::endl;
 	nGenBjets++;
+	mcTools.PrintGenParticle(genP_Index, false);
+	
+	// Fill histos
+	hPassedGenBjetsPt ->Fill(genP_Pt);
+	hPassedGenBjetsEta->Fill(genP_Eta);       
       }
-    }
+    }// b-jets
     if(nGenBjets == 0) continue;
     
-  }// for( auto& gen : fEvent.genparticles().getAllGenpCollection() ){
+  }// GenParticles
   
   // Trigger
   std::sort( v_leptonPt.begin(), v_leptonPt.end(), DescendingOrder() );
@@ -262,15 +293,18 @@ void Kinematics::process(Long64_t entry) {
 	break;
       }
     }// for(Size_t i=0; i < cfg_LeptonTriggerPtCutMin.size(); i++){
-  }// else
+  }
 
 
-   for( HLTTau hltTau : fEvent.triggerTaus() ){
-     cout<< " HLTTau_pt  = " << hltTau.pt()  << endl;
+
+  // cout << "fEvent.passTriggerDecision() = " << fEvent.passTriggerDecision() << endl;
+
+  // for( HLTTau hltTau : fEvent.triggerTaus() ){
+  //   cout<< " HLTTau_pt  = " << hltTau.pt()  << endl;
   //     cout<< " HLTTau_eta = " << hltTau.eta() << endl;
   //     cout<< " HLTTau_phi = " << hltTau.phi() << endl;
   //     cout<< " HLTTau_e   = " << hltTau.e()   << endl;
-   }
+  //   }
 
   // Increment Counters    
   cAllEvents.increment();
