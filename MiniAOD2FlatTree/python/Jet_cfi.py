@@ -11,7 +11,7 @@ JECpayloadAK4PFPuppi = cms.PSet(
 
 Jets = cms.VPSet(
     cms.PSet(
-        branchName     = cms.untracked.string("Jets"),
+        branchName     = cms.untracked.string("PFCHSJets"), 
         debugMode      = cms.untracked.bool(False),
         src            = cms.InputTag("slimmedJets"), #patJetsReapplyJECAK4CHS # made from ak4PFJetsCHS
         jecPayload     = JECpayloadAK4PFchs.payload,
@@ -34,7 +34,7 @@ Jets = cms.VPSet(
         ),
 
     cms.PSet(
-        branchName     = cms.untracked.string("JetsPuppi"),
+        branchName     = cms.untracked.string("PuppiJets"),
         debugMode      = cms.untracked.bool(False),
         src            = cms.InputTag("slimmedJetsPuppi"), #patJetsReapplyJECPuppi # made from ak4PFJets
         jecPayload     = JECpayloadAK4PFPuppi.payload,

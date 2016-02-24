@@ -13,11 +13,10 @@ public:
 
   // Disable copying, assignment, and moving
   // Mainly because according to the design, there should be no need for them
-  // ------>Ather<----- These are to be commented because of compilation error "use of Deleted Function...." 
-  //EventID(const EventID&) = delete;
-  //EventID(EventID&&) = delete;
-  //EventID& operator=(const EventID&) = delete;
-  //EventID& operator=(EventID&&) = delete;
+  EventID(const EventID&) = delete;
+  EventID(EventID&&) = delete;
+  EventID& operator=(const EventID&) = delete;
+  EventID& operator=(EventID&&) = delete;
 
   void setupBranches(BranchManager& mgr);
 
@@ -28,6 +27,7 @@ public:
   short NUP() const { return fNUP->value(); }
   /// Trigger prescale
   float trgPrescale() const { return fPrescale->value(); }
+
   short nPUvertices() const { return fNPUvertices->value(); }
   short nGoodOfflineVertices() const { return fNGoodOfflineVertices->value(); }
   float pvX() const { return fPvX->value(); }

@@ -8,10 +8,15 @@
 
 class HLTTauGeneratedCollection: public ParticleCollection<double> {
 public:
-  explicit HLTTauGeneratedCollection(const std::string& prefix="HLTTau"): ParticleCollection(prefix) {}
+  explicit HLTTauGeneratedCollection(const std::string& prefix="HLTTau")
+  : ParticleCollection(prefix)
+  {
+
+  }
   ~HLTTauGeneratedCollection() {}
 
   void setupBranches(BranchManager& mgr);
+
 
 
 protected:
@@ -23,11 +28,16 @@ template <typename Coll>
 class HLTTauGenerated: public Particle<Coll> {
 public:
   HLTTauGenerated() {}
-  HLTTauGenerated(const Coll* coll, size_t index): Particle<Coll>(coll, index) {}
+  HLTTauGenerated(const Coll* coll, size_t index)
+  : Particle<Coll>(coll, index)
+  {}
   ~HLTTauGenerated() {}
 
 
 
+
+
+protected:
 
 };
 

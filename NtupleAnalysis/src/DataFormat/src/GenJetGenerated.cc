@@ -9,10 +9,10 @@
 void GenJetGeneratedCollection::setupBranches(BranchManager& mgr) {
   ParticleCollection::setupBranches(mgr);
 
+  mgr.book(prefix()+"_auxEnergy", &fAuxEnergy);
   mgr.book(prefix()+"_emEnergy", &fEmEnergy);
   mgr.book(prefix()+"_hadEnergy", &fHadEnergy);
-  mgr.book(prefix()+"_auxEnergy", &fAuxEnergy);
   mgr.book(prefix()+"_invisEnergy", &fInvisEnergy);
+  mgr.book(prefix()+"_charge", &fCharge);
   mgr.book(prefix()+"_nGenConstituents", &fNGenConstituents);
-
 }

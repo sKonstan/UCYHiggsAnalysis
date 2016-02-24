@@ -8,6 +8,8 @@
 #include "DataFormat/interface/EventID.h"
 #include "DataFormat/interface/VertexInfo.h"
 #include "DataFormat/interface/METFilter.h"
+#include "DataFormat/interface/HLTEle.h"
+#include "DataFormat/interface/HLTMu.h"
 #include "DataFormat/interface/HLTTau.h"
 #include "DataFormat/interface/Tau.h"
 #include "DataFormat/interface/Jet.h"
@@ -54,6 +56,9 @@ public:
   const EventID& eventID() const { return fEventID; }
   const VertexInfo& vertexInfo() const { return fVertexInfo; }
   const METFilter& metFilter() const { return fMETFilter; }
+
+  const HLTEleCollection& triggerElectrons() const { return fTriggerEleCollection; }
+  const HLTMuCollection& triggerMuons() const { return fTriggerMuCollection; }
   const HLTTauCollection& triggerTaus() const { return fTriggerTauCollection; }
   const TauCollection& taus() const { return fTauCollection; }
 
@@ -93,8 +98,9 @@ private:
   BooleanOr fTriggerOr;
   BooleanOr fTriggerOr2;
 
+  HLTEleCollection fTriggerEleCollection;
+  HLTMuCollection fTriggerMuCollection;
   HLTTauCollection fTriggerTauCollection;
-  TauCollection fTauCollection;
   
   JetCollection fJetCollection;
   JetCollection fJetPFCHSCollection;
@@ -103,8 +109,10 @@ private:
   GenJetCollection fGenJetCollection;
   ElectronCollection fElectronCollection;
   MuonCollection fMuonCollection;
+  TauCollection fTauCollection;
   GenParticleCollection fGenParticleCollection;
   PFCandsCollection fPFCandidates;
+
   MET fGenMET;
   MET fMET_Type1;
   MET fMET_Type1_NoHF;

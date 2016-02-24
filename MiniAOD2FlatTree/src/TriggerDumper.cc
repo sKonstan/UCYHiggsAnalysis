@@ -48,7 +48,7 @@ void TriggerDumper::book(const edm::Run& iRun, HLTConfigProvider hltConfig){
   theTree->Branch("HLTMu_eta"      , &HLTMu_eta     );
   theTree->Branch("HLTMu_phi"      , &HLTMu_phi     );
   theTree->Branch("HLTMu_e"        , &HLTMu_e       );
-    
+  
   // theTree->Branch("HLTEle_pt"      , &HLTEle_pt      );  
   // theTree->Branch("HLTEle_eta"     , &HLTEle_eta     );
   // theTree->Branch("HLTEle_phi"     , &HLTEle_phi     );
@@ -279,10 +279,10 @@ bool TriggerDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
 	  // Save the HLT electron p4 when fired
 	  if(fired){
-	    // HLTEle_pt .push_back( patTriggerObject.p4().Pt()  );
-	    // HLTEle_eta.push_back( patTriggerObject.p4().Eta() );
-	    // HLTEle_phi.push_back( patTriggerObject.p4().Phi() );
-	    // HLTEle_e  .push_back( patTriggerObject.p4().E()   );	   	    
+	   // HLTEle_pt .push_back( patTriggerObject.p4().Pt()  );
+	   // HLTEle_eta.push_back( patTriggerObject.p4().Eta() );
+	   // HLTEle_phi.push_back( patTriggerObject.p4().Phi() );
+	   // HLTEle_e  .push_back( patTriggerObject.p4().E()   );	   	    
 	  }
 	  
 	}// if(patTriggerObject.id(trigger::TriggerElectron)){
@@ -379,8 +379,6 @@ void TriggerDumper::triggerMatch(int id, std::vector<reco::Candidate::LorentzVec
   // and the trigger discriminator object is below a value (cfg_trgMatchDr) then a match is made. Finally, 
   // for each trigger discriminator a match-boolean is saved.
 
-  trgdiscriminators[i].push_back(matchFound);
-      
   // For-loop: All selected objects (electrons or muons or taus)
   for(size_t iobj = 0; iobj < objs.size(); ++iobj){
 

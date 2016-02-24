@@ -178,10 +178,10 @@ void Kinematics::process(Long64_t entry) {
   if( !fEvent.isMC() ) return;
 
   // Get the Events information
-  EventID evtID  = fEvent.eventID();
-  double evtNum  = evtID.event();
-  // double evtRun  = evtID.run();
-  // double evtLumi = evtID.lumi(); 
+  // EventID evtID  = fEvent.eventID(); // will crash. the copy constructor is disabled (deleted)
+  double evtNum  = fEvent.eventID().event();
+  // double evtRun  = fEvent.eventtID().run();
+  // double evtLumi = fEvent.eventtID().lumi(); 
   // Evt.trgPrescale() 
   // Evt.nPUvertices() 
   // Evt.NUP() 

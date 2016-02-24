@@ -136,32 +136,32 @@ void TreeValidation::process(Long64_t entry) {
   // std::cout << "=== TreeValidation.cc:\n\t TreeValidation::process()" << std::endl;
 
 
-  EventID Evt = fEvent.eventID();
+  // EventID Evt = fEvent.eventID();  // not allowed
   //  std::cout << std::setw(10);
-  cout << "\n\n EventInfo_event                  "<<"\tevent()\t                   "<< Evt.event() << endl;
-  cout << " EventInfo_run\t                      "<<"\trun()\t                     "<< Evt.run() << endl;
-  cout << " EventInfo_lumi\t                     "<<"\tlumi()\t                    "<< Evt.lumi() << endl;
-  cout << " EventInfo_prescale                   "<<"\ttrgPrescale()\t             "<< Evt.trgPrescale() << endl;
-  cout << " EventInfo_nPUvertices\t              "<<"\tnPUvertices()\t             "<< Evt.nPUvertices() << endl;
-  cout << " EventInfo_NUP\t                      "<<"\tNUP()\t                     "<< Evt.NUP() << endl;
-  cout << " EventInfo_nGoodOfflineVertices\t     "<<"\tnGoodOfflineVertices()\t    "<< Evt.nGoodOfflineVertices() << endl;
-  cout << " EventInfo_pvX\t                      "<<"\tpvX()\t                     "<< Evt.pvX() << endl;
-  cout << " EventInfo_pvY\t                      "<<"\tpvY()\t                     "<< Evt.pvY() << endl;
-  cout << " EventInfo_pvZ\t                      "<<"\tpvZ()\t                     "<< Evt.pvZ() << endl;
-  cout << " EventInfo_pvDistanceToNextVertex     "<<"\tpvDistanceToNextVertex()    "<< Evt.pvDistanceToNextVertex() << endl;
-  cout << " EventInfo_pvDistanceToClosestVertex  "<<"\tpvDistanceToClosestVertex() "<< Evt.pvDistanceToClosestVertex() << endl;
+  cout << "\n\n EventInfo_event                  "<<"\tevent()\t                   "<< fEvent.eventID().event() << endl;
+  cout << " EventInfo_run\t                      "<<"\trun()\t                     "<< fEvent.eventID().run() << endl;
+  cout << " EventInfo_lumi\t                     "<<"\tlumi()\t                    "<< fEvent.eventID().lumi() << endl;
+  cout << " EventInfo_prescale                   "<<"\ttrgPrescale()\t             "<< fEvent.eventID().trgPrescale() << endl;
+  cout << " EventInfo_nPUvertices\t              "<<"\tnPUvertices()\t             "<< fEvent.eventID().nPUvertices() << endl;
+  cout << " EventInfo_NUP\t                      "<<"\tNUP()\t                     "<< fEvent.eventID().NUP() << endl;
+  cout << " EventInfo_nGoodOfflineVertices\t     "<<"\tnGoodOfflineVertices()\t    "<< fEvent.eventID().nGoodOfflineVertices() << endl;
+  cout << " EventInfo_pvX\t                      "<<"\tpvX()\t                     "<< fEvent.eventID().pvX() << endl;
+  cout << " EventInfo_pvY\t                      "<<"\tpvY()\t                     "<< fEvent.eventID().pvY() << endl;
+  cout << " EventInfo_pvZ\t                      "<<"\tpvZ()\t                     "<< fEvent.eventID().pvZ() << endl;
+  cout << " EventInfo_pvDistanceToNextVertex     "<<"\tpvDistanceToNextVertex()    "<< fEvent.eventID().pvDistanceToNextVertex() << endl;
+  cout << " EventInfo_pvDistanceToClosestVertex  "<<"\tpvDistanceToClosestVertex() "<< fEvent.eventID().pvDistanceToClosestVertex() << endl;
   cout << string(100, '=') << endl;
   
   METFilter metfl = fEvent.metFilter();
   cout << "\n" << endl;
-  cout << " METFilter_Flag_HBHENoiseFilter\t  " << "\tpassFlag_HBHENoiseFilter()\t      "<< metfl.passFlag_HBHENoiseFilter() << endl;
-  cout << " METFilter_Flag_HBHENoiseIsoFilter " << "\tpassFlag_HBHENoiseIsoFilter()\t   "<< metfl.passFlag_HBHENoiseIsoFilter() << endl;
-  cout << " METFilter_Flag_CSCTightHaloFilter " << "\tpassFlag_CSCTightHaloFilter()\t   "<< metfl.passFlag_CSCTightHaloFilter() << endl;
-  cout << " METFilter_Flag_goodVertices\t     " << "\tpassFlag_goodVertices()\t         "<< metfl.passFlag_goodVertices() << endl;
-  cout << " METFilter_Flag_eeBadScFilter\t    " << "\tpassFlag_eeBadScFilter()\t        "<< metfl.passFlag_eeBadScFilter() << endl;
-  cout << " METFilter_hbheNoiseTokenRun2Loose " << "\tpass_hbheNoiseTokenRun2Loose()\t  "<< metfl.pass_hbheNoiseTokenRun2Loose() << endl;
-  cout << " METFilter_hbheNoiseTokenRun2Tight " << "\tpass_hbheNoiseTokenRun2Tight()\t  "<< metfl.pass_hbheNoiseTokenRun2Tight() << endl;
-  cout << " METFilter_hbheIsoNoiseToken\t     " << "\tpass_hbheIsoNoiseToken()\t        "<< metfl.pass_hbheIsoNoiseToken() << endl;
+  cout << " METFilter_Flag_HBHENoiseFilter\t  " << "\tpassFlag_HBHENoiseFilter()\t     " << metfl.passFlag_HBHENoiseFilter() << endl;
+  cout << " METFilter_Flag_HBHENoiseIsoFilter " << "\tpassFlag_HBHENoiseIsoFilter()\t  " << metfl.passFlag_HBHENoiseIsoFilter() << endl;
+  cout << " METFilter_Flag_CSCTightHaloFilter " << "\tpassFlag_CSCTightHaloFilter()\t  " << metfl.passFlag_CSCTightHaloFilter() << endl;
+  cout << " METFilter_Flag_goodVertices\t     " << "\tpassFlag_goodVertices()\t        " << metfl.passFlag_goodVertices() << endl;
+  cout << " METFilter_Flag_eeBadScFilter\t    " << "\tpassFlag_eeBadScFilter()\t       " << metfl.passFlag_eeBadScFilter() << endl;
+  cout << " METFilter_hbheNoiseTokenRun2Loose " << "\tpasshbheNoiseTokenRun2Loose()\t  " << metfl.passHbheNoiseTokenRun2Loose() << endl;
+  cout << " METFilter_hbheNoiseTokenRun2Tight " << "\tpasshbheNoiseTokenRun2Tight()\t  " << metfl.passHbheNoiseTokenRun2Tight() << endl;
+  cout << " METFilter_hbheIsoNoiseToken\t     " << "\tpasshbheIsoNoiseToken()\t        " << metfl.passHbheIsoNoiseToken() << endl;
   cout << string(100, '=') << "\n" << endl;
 
   Size_t iTau=0;
@@ -413,69 +413,67 @@ void TreeValidation::process(Long64_t entry) {
       if(iJetPuppi==0)
   	{
 	  
-  	  cout<< " JetsPuppi_pt                                            "<<"\tpt()                                            "<<jet.pt() << endl;
-  	  cout<< " JetsPuppi_eta                                           "<<"\teta()                                           "<<jet.eta() << endl;
-  	  cout<< " JetsPuppi_phi                                           "<<"\tphi()                                           "<<jet.phi() << endl;
-  	  cout<< " JetsPuppi_e                                             "<<"\te()                                             "<<jet.e() << endl;
+  	  cout<< " PuppiJets_pt                                            "<<"\tpt()                                            "<<jet.pt() << endl;
+  	  cout<< " PuppiJets_eta                                           "<<"\teta()                                           "<<jet.eta() << endl;
+  	  cout<< " PuppiJets_phi                                           "<<"\tphi()                                           "<<jet.phi() << endl;
+  	  cout<< " PuppiJets_e                                             "<<"\te()                                             "<<jet.e() << endl;
 	  
-  	  cout<< " JetsPuppi_pdgId                                         "<<"\tMCjet()->pdgId()                                "<<jet.MCjet()->pdgId() << endl;
-  	  cout<< " JetsPuppi_hadronFlavour                                 "<<"\thadronFlavour()                                 "<<jet.hadronFlavour() << endl;
-  	  cout<< " JetsPuppi_partonFlavour                                 "<<"\tpartonFlavour()                                 "<<jet.partonFlavour() << endl;
+  	  cout<< " PuppiJets_pdgId                                         "<<"\tMCjet()->pdgId()                                "<<jet.MCjet()->pdgId() << endl;
+  	  cout<< " PuppiJets_hadronFlavour                                 "<<"\thadronFlavour()                                 "<<jet.hadronFlavour() << endl;
+  	  cout<< " PuppiJets_partonFlavour                                 "<<"\tpartonFlavour()                                 "<<jet.partonFlavour() << endl;
 	  
-  	  cout<< " JetsPuppi_combinedSecondaryVertexBJetTags               "<<"\tcombinedSecondaryVertexBJetTags()               "<<jet.combinedSecondaryVertexBJetTags() << endl;
-  	  cout<< " JetsPuppi_pfJetBProbabilityBJetTags                     "<<"\tpfJetBProbabilityBJetTags()                     "<<jet.pfJetBProbabilityBJetTags() << endl;
-  	  cout<< " JetsPuppi_pfJetProbabilityBJetTags                      "<<"\tpfJetProbabilityBJetTags()                      "<<jet.pfJetProbabilityBJetTags() << endl;
-  	  cout<< " JetsPuppi_pfTrackCountingHighPurBJetTags                "<<"\tpfTrackCountingHighPurBJetTags()                "<<jet.pfTrackCountingHighPurBJetTags() << endl;
-  	  cout<< " JetsPuppi_pfTrackCountingHighEffBJetTags                "<<"\tpfTrackCountingHighEffBJetTags()                "<<jet.pfTrackCountingHighEffBJetTags() << endl;
-  	  cout<< " JetsPuppi_pfSimpleSecondaryVertexHighEffBJetTags        "<<"\tpfSimpleSecondaryVertexHighEffBJetTags()        "<<jet.pfSimpleSecondaryVertexHighEffBJetTags() << endl;
-  	  cout<< " JetsPuppi_pfSimpleSecondaryVertexHighPurBJetTags        "<<"\tpfSimpleSecondaryVertexHighPurBJetTags()        "<<jet.pfSimpleSecondaryVertexHighPurBJetTags() << endl;
-  	  cout<< " JetsPuppi_pfCombinedSecondaryVertexV2BJetTags           "<<"\tpfCombinedSecondaryVertexV2BJetTags()           "<<jet.pfCombinedSecondaryVertexV2BJetTags() << endl;
-  	  cout<< " JetsPuppi_pfCombinedInclusiveSecondaryVertexV2BJetTags  "<<"\tpfCombinedInclusiveSecondaryVertexV2BJetTags()  "<<jet.pfCombinedInclusiveSecondaryVertexV2BJetTags() << endl;
-  	  cout<< " JetsPuppi_pfCombinedSecondaryVertexSoftLeptonBJetTags   "<<"\tpfCombinedSecondaryVertexSoftLeptonBJetTags()   "<<jet.pfCombinedSecondaryVertexSoftLeptonBJetTags() << endl;
-  	  cout<< " JetsPuppi_pfCombinedMVABJetTags                         "<<"\tpfCombinedMVABJetTags()                         "<<jet.pfCombinedMVABJetTags() << endl;
-  	  cout<< " JetsPuppi_pileupJetIdfullDiscriminant                   "<<"\tpileupJetIdfullDiscriminant()                   "<<jet.pileupJetIdfullDiscriminant() << endl;
-  	  cout<< " JetsPuppi_IDloose                                       "<<"\tIDloose()                                       "<<jet.IDloose() << endl;
-  	  cout<< " JetsPuppi_IDtight                                       "<<"\tIDtight()                                       "<<jet.IDtight() << endl;
-  	  cout<< " JetsPuppi_IDtightLeptonVeto                             "<<"\tIDtightLeptonVeto()                             "<<jet.IDtightLeptonVeto() << endl;
-  	  cout<< " JetsPuppi_PUIDloose                                     "<<"\tPUIDloose()                                     "<<jet.PUIDloose() << endl;
-  	  cout<< " JetsPuppi_PUIDmedium                                    "<<"\tPUIDmedium()                                    "<<jet.PUIDmedium() << endl;
-  	  cout<< " JetsPuppi_PUIDtight                                     "<<"\tPUIDtight()                                     "<<jet.PUIDtight() << endl;
-  	  cout<< " JetsPuppi_isBasicJet                                    "<<"\tisBasicJet()                                    "<<jet.isBasicJet() << endl;
-  	  cout<< " JetsPuppi_isCaloJet                                     "<<"\tisCaloJet()                                     "<<jet.isCaloJet() << endl;
-  	  cout<< " JetsPuppi_isJPTJet                                      "<<"\tisJPTJet()                                      "<<jet.isJPTJet() << endl;
-  	  cout<< " JetsPuppi_isPFJet                                       "<<"\tisPFJet()                                       "<<jet.isPFJet() << endl;
-  	  cout<< " JetsPuppi_neutralHadronEnergyFraction                   "<<"\tneutralHadronEnergyFraction()                   "<<jet.neutralHadronEnergyFraction() << endl;
-  	  cout<< " JetsPuppi_neutralEmEnergyFraction                       "<<"\tneutralEmEnergyFraction()                       "<<jet.neutralEmEnergyFraction() << endl;
-  	  cout<< " JetsPuppi_nConstituents                                 "<<"\tnConstituents()                                 "<<jet.nConstituents() << endl;
-  	  cout<< " JetsPuppi_chargedHadronMultiplicity                     "<<"\tchargedHadronMultiplicity()                     "<<jet.chargedHadronMultiplicity() << endl;
+  	  cout<< " PuppiJets_combinedSecondaryVertexBJetTags               "<<"\tcombinedSecondaryVertexBJetTags()               "<<jet.combinedSecondaryVertexBJetTags() << endl;
+  	  cout<< " PuppiJets_pfJetBProbabilityBJetTags                     "<<"\tpfJetBProbabilityBJetTags()                     "<<jet.pfJetBProbabilityBJetTags() << endl;
+  	  cout<< " PuppiJets_pfJetProbabilityBJetTags                      "<<"\tpfJetProbabilityBJetTags()                      "<<jet.pfJetProbabilityBJetTags() << endl;
+  	  cout<< " PuppiJets_pfTrackCountingHighPurBJetTags                "<<"\tpfTrackCountingHighPurBJetTags()                "<<jet.pfTrackCountingHighPurBJetTags() << endl;
+  	  cout<< " PuppiJets_pfTrackCountingHighEffBJetTags                "<<"\tpfTrackCountingHighEffBJetTags()                "<<jet.pfTrackCountingHighEffBJetTags() << endl;
+  	  cout<< " PuppiJets_pfSimpleSecondaryVertexHighEffBJetTags        "<<"\tpfSimpleSecondaryVertexHighEffBJetTags()        "<<jet.pfSimpleSecondaryVertexHighEffBJetTags() << endl;
+  	  cout<< " PuppiJets_pfSimpleSecondaryVertexHighPurBJetTags        "<<"\tpfSimpleSecondaryVertexHighPurBJetTags()        "<<jet.pfSimpleSecondaryVertexHighPurBJetTags() << endl;
+  	  cout<< " PuppiJets_pfCombinedSecondaryVertexV2BJetTags           "<<"\tpfCombinedSecondaryVertexV2BJetTags()           "<<jet.pfCombinedSecondaryVertexV2BJetTags() << endl;
+  	  cout<< " PuppiJets_pfCombinedInclusiveSecondaryVertexV2BJetTags  "<<"\tpfCombinedInclusiveSecondaryVertexV2BJetTags()  "<<jet.pfCombinedInclusiveSecondaryVertexV2BJetTags() << endl;
+  	  cout<< " PuppiJets_pfCombinedSecondaryVertexSoftLeptonBJetTags   "<<"\tpfCombinedSecondaryVertexSoftLeptonBJetTags()   "<<jet.pfCombinedSecondaryVertexSoftLeptonBJetTags() << endl;
+  	  cout<< " PuppiJets_pfCombinedMVABJetTags                         "<<"\tpfCombinedMVABJetTags()                         "<<jet.pfCombinedMVABJetTags() << endl;
+  	  cout<< " PuppiJets_pileupJetIdfullDiscriminant                   "<<"\tpileupJetIdfullDiscriminant()                   "<<jet.pileupJetIdfullDiscriminant() << endl;
+  	  cout<< " PuppiJets_IDloose                                       "<<"\tIDloose()                                       "<<jet.IDloose() << endl;
+  	  cout<< " PuppiJets_IDtight                                       "<<"\tIDtight()                                       "<<jet.IDtight() << endl;
+  	  cout<< " PuppiJets_IDtightLeptonVeto                             "<<"\tIDtightLeptonVeto()                             "<<jet.IDtightLeptonVeto() << endl;
+  	  cout<< " PuppiJets_PUIDloose                                     "<<"\tPUIDloose()                                     "<<jet.PUIDloose() << endl;
+  	  cout<< " PuppiJets_PUIDmedium                                    "<<"\tPUIDmedium()                                    "<<jet.PUIDmedium() << endl;
+  	  cout<< " PuppiJets_PUIDtight                                     "<<"\tPUIDtight()                                     "<<jet.PUIDtight() << endl;
+  	  cout<< " PuppiJets_isBasicJet                                    "<<"\tisBasicJet()                                    "<<jet.isBasicJet() << endl;
+  	  cout<< " PuppiJets_isCaloJet                                     "<<"\tisCaloJet()                                     "<<jet.isCaloJet() << endl;
+  	  cout<< " PuppiJets_isJPTJet                                      "<<"\tisJPTJet()                                      "<<jet.isJPTJet() << endl;
+  	  cout<< " PuppiJets_isPFJet                                       "<<"\tisPFJet()                                       "<<jet.isPFJet() << endl;
+  	  cout<< " PuppiJets_neutralHadronEnergyFraction                   "<<"\tneutralHadronEnergyFraction()                   "<<jet.neutralHadronEnergyFraction() << endl;
+  	  cout<< " PuppiJets_neutralEmEnergyFraction                       "<<"\tneutralEmEnergyFraction()                       "<<jet.neutralEmEnergyFraction() << endl;
+  	  cout<< " PuppiJets_nConstituents                                 "<<"\tnConstituents()                                 "<<jet.nConstituents() << endl;
+  	  cout<< " PuppiJets_chargedHadronMultiplicity                     "<<"\tchargedHadronMultiplicity()                     "<<jet.chargedHadronMultiplicity() << endl;
 	  
-  	  cout<< " JetsPuppi_pt_MCjet                                      "<<"\tMCjet()->pt()                                   "<<jet.MCjet()->pt() << endl;
-  	  cout<< " JetsPuppi_eta_MCjet                                     "<<"\tMCjet()->eta()                                  "<<jet.MCjet()->eta() << endl;
-  	  cout<< " JetsPuppi_phi_MCjet                                     "<<"\tMCjet()->phi()                                  "<<jet.MCjet()->phi() << endl;
-  	  cout<< " JetsPuppi_e_MCjet                                       "<<"\tMCjet()->e()                                    "<<jet.MCjet()->e() << endl;
+  	  cout<< " PuppiJets_pt_MCjet                                      "<<"\tMCjet()->pt()                                   "<<jet.MCjet()->pt() << endl;
+  	  cout<< " PuppiJets_eta_MCjet                                     "<<"\tMCjet()->eta()                                  "<<jet.MCjet()->eta() << endl;
+  	  cout<< " PuppiJets_phi_MCjet                                     "<<"\tMCjet()->phi()                                  "<<jet.MCjet()->phi() << endl;
+  	  cout<< " PuppiJets_e_MCjet                                       "<<"\tMCjet()->e()                                    "<<jet.MCjet()->e() << endl;
 	  
-  	  if(fEvent.isMC())
-  	    {
-  	      cout<< " JetsPuppi_pt_JESup                                      "<<"\tJESup_pt()                                     "<<jet.JESup_pt() << endl;
-  	      cout<< " JetsPuppi_eta_JESup                                     "<<"\tJESup_eta()                                    "<<jet.JESup_eta() << endl;
-  	      cout<< " JetsPuppi_phi_JESup                                     "<<"\tJESup_phi()                                    "<<jet.JESup_phi() << endl;
-  	      cout<< " JetsPuppi_e_JESup                                       "<<"\tJESup_e()                                      "<<jet.JESup_e() << endl;
-	      
-  	      cout<< " JetsPuppi_pt_JESdown                                    "<<"\tJESdown_pt()                                    "<<jet.JESdown_pt() << endl;
-  	      cout<< " JetsPuppi_eta_JESdown                                   "<<"\tJESdown_eta()                                   "<<jet.JESdown_eta() << endl;
-  	      cout<< " JetsPuppi_phi_JESdown                                   "<<"\tJESdown_phi()                                   "<<jet.JESdown_phi() << endl;
-  	      cout<< " JetsPuppi_e_JESdown                                     "<<"\tJESdown_e()                                     "<<jet.JESdown_e() << endl;
-	      
-  	      cout<< " JetsPuppi_pt_JERup                                      "<<"\tJERup_pt()                                      "<<"Not Included" << endl;//jet.JERup_pt() << endl;
-  	      cout<< " JetsPuppi_eta_JERup                                     "<<"\tJERup_eta()                                     "<<"Not Included" << endl;//jet.JERup_eta() << endl;
-  	      cout<< " JetsPuppi_phi_JERup                                     "<<"\tJERup_phi()                                     "<<"Not Included" << endl;//jet.JERup_phi() << endl;
-  	      cout<< " JetsPuppi_e_JERup                                       "<<"\tJERup_e()                                       "<<"Not Included" << endl;//jet.JERup_e() << endl;
-	      
-  	      cout<< " JetsPuppi_pt_JERdown                                    "<<"\tJERdown_pt()                                    "<<"Not Included" << endl;//jet.JERdown_pt() << endl;
-  	      cout<< " JetsPuppi_eta_JERdown                                   "<<"\tJERdown_eta()                                   "<<"Not Included" << endl;//jet.JERdown_eta() << endl;
-  	      cout<< " JetsPuppi_phi_JERdown                                   "<<"\tJERdown_phi()                                   "<<"Not Included" << endl;//jet.JERdown_phi() << endl;
-  	      cout<< " JetsPuppi_e_JERdown                                     "<<"\tJERdown_e()                                     "<<"Not Included" << endl;//jet.JERdown_e() << endl;
-  	    }
+	  cout<< " PuppiJets_pt_JESup                                      "<<"\tJESup_pt()                                     "<<jet.JESup_pt() << endl;
+	  cout<< " PuppiJets_eta_JESup                                     "<<"\tJESup_eta()                                    "<<jet.JESup_eta() << endl;
+	  cout<< " PuppiJets_phi_JESup                                     "<<"\tJESup_phi()                                    "<<jet.JESup_phi() << endl;
+	  cout<< " PuppiJets_e_JESup                                       "<<"\tJESup_e()                                      "<<jet.JESup_e() << endl;
+	  
+	  cout<< " PuppiJets_pt_JESdown                                    "<<"\tJESdown_pt()                                    "<<jet.JESdown_pt() << endl;
+	  cout<< " PuppiJets_eta_JESdown                                   "<<"\tJESdown_eta()                                   "<<jet.JESdown_eta() << endl;
+	  cout<< " PuppiJets_phi_JESdown                                   "<<"\tJESdown_phi()                                   "<<jet.JESdown_phi() << endl;
+	  cout<< " PuppiJets_e_JESdown                                     "<<"\tJESdown_e()                                     "<<jet.JESdown_e() << endl;
+	  
+	  cout<< " PuppiJets_pt_JERup                                      "<<"\tJERup_pt()                                      "<<jet.JERup_pt() << endl;
+	  cout<< " PuppiJets_eta_JERup                                     "<<"\tJERup_eta()                                     "<<jet.JERup_eta() << endl;
+	  cout<< " PuppiJets_phi_JERup                                     "<<"\tJERup_phi()                                     "<<jet.JERup_phi() << endl;
+	  cout<< " PuppiJets_e_JERup                                       "<<"\tJERup_e()                                       "<<jet.JERup_e() << endl;
+	  
+	  cout<< " PuppiJets_pt_JERdown                                    "<<"\tJERdown_pt()                                    "<<jet.JERdown_pt() << endl;
+	  cout<< " PuppiJets_eta_JERdown                                   "<<"\tJERdown_eta()                                   "<<jet.JERdown_eta() << endl;
+	  cout<< " PuppiJets_phi_JERdown                                   "<<"\tJERdown_phi()                                   "<<jet.JERdown_phi() << endl;
+	  cout<< " PuppiJets_e_JERdown                                     "<<"\tJERdown_e()                                     "<<jet.JERdown_e() << endl;
+	
   	}// if jet =0
       iJetPuppi++;
     }// loop on jet
@@ -485,69 +483,43 @@ void TreeValidation::process(Long64_t entry) {
 
 
   MET met1 = fEvent.met_Type1();
-  cout<< " MET_Type1                  "<<"\tval()                "<<met1.val() << endl;
-  cout<< " MET_Type1_x                "<<"\tx()                  "<<met1.x() << endl;
-  cout<< " MET_Type1_y                "<<"\ty()                  "<<met1.y() << endl;
-  cout<< " MET_Type1_significance     "<<"\tsignificance()       "<<met1.significance() << endl;
-  cout<< " MET_Type1_isCaloMET        "<<"\tisCaloMET()          "<<met1.isCaloMET() << endl;
-  cout<< " MET_Type1_isPFMET          "<<"\tisPFMET()            "<<met1.isPFMET() << endl;
-  cout<< " MET_Type1_isRecoMET        "<<"\tisRecoMET()          "<<met1.isRecoMET() << endl;
-
-  cout<<"_____________________________________________________________________________________________________________________________\n\n";
+  cout << " MET_Type1                  " << "\tval()                " << met1.val() << endl;
+  cout << " MET_Type1_x                " << "\tx()                  " << met1.x() << endl;
+  cout << " MET_Type1_y                " << "\ty()                  " << met1.y() << endl;
+  cout << " MET_Type1_phi              " << "\tphi()                " << met1.phi() << endl;
+  cout << " MET_Type1_significance     " << "\tsignificance()       " << met1.significance() << endl;
 
   MET met1NoHF = fEvent.met_Type1_NoHF();
-  cout<< " MET_Type1_NoHF                  "<<"\tval()                "<<met1NoHF.val() << endl;
-  cout<< " MET_Type1_NoHF_x                "<<"\tx()                  "<<met1NoHF.x() << endl;
-  cout<< " MET_Type1_NoHF_y                "<<"\ty()                  "<<met1NoHF.y() << endl;
-  cout<< " MET_Type1_NoHF_significance     "<<"\tsignificance()       "<<met1NoHF.significance() << endl;
-  cout<< " MET_Type1_NoHF_isCaloMET        "<<"\tisCaloMET()          "<<met1NoHF.isCaloMET() << endl;
-  cout<< " MET_Type1_NoHF_isPFMET          "<<"\tisPFMET()            "<<met1NoHF.isPFMET() << endl;
-  cout<< " MET_Type1_NoHF_isRecoMET        "<<"\tisRecoMET()          "<<met1NoHF.isRecoMET() << endl;
-
-  cout<<"_____________________________________________________________________________________________________________________________\n\n";
+  cout << " MET_Type1_NoHF_et               " << "\tet()                 " << met1NoHF.et() << endl;
+  cout << " MET_Type1_NoHF_x                " << "\tx()                  " << met1NoHF.x() << endl;
+  cout << " MET_Type1_NoHF_y                " << "\ty()                  " << met1NoHF.y() << endl;
+  cout << " MET_Type1_NoHF_phi              " << "\tphi()                " << met1NoHF.phi() << endl;
+  cout << " MET_Type1_NoHF_significance     " << "\tsignificance()       " << met1NoHF.significance() << endl;
 
   MET metPuppi = fEvent.met_Puppi();
-  cout<< " MET_Puppi                  "<<"\tval()                "<<metPuppi.val() << endl;
-  cout<< " MET_Puppi_x                "<<"\tx()                  "<<metPuppi.x() << endl;
-  cout<< " MET_Puppi_y                "<<"\ty()                  "<<metPuppi.y() << endl;
-  cout<< " MET_Puppi_significance     "<<"\tsignificance()       "<<metPuppi.significance() << endl;
-  cout<< " MET_Puppi_isCaloMET        "<<"\tisCaloMET()          "<<metPuppi.isCaloMET() << endl;
-  cout<< " MET_Puppi_isPFMET          "<<"\tisPFMET()            "<<metPuppi.isPFMET() << endl;
-  cout<< " MET_Puppi_isRecoMET        "<<"\tisRecoMET()          "<<metPuppi.isRecoMET() << endl;
-
-  cout<<"_____________________________________________________________________________________________________________________________\n\n";
+  cout<< " MET_Puppi_et               " << "\tet()                 " << metPuppi.et() << endl;
+  cout<< " MET_Puppi_x                " << "\tx()                  " << metPuppi.x() << endl;
+  cout<< " MET_Puppi_y                " << "\ty()                  " << metPuppi.y() << endl;
+  cout<< " MET_Puppi_phi              " << "\tphi()                " << metPuppi.phi() << endl;
+  cout<< " MET_Puppi_significance     " << "\tsignificance()       " << metPuppi.significance() << endl;
 
   MET metCalo = fEvent.calomet();
-  cout<< " CaloMET                   "<<"\tval()                "<<metCalo.val() << endl;
-  cout<< " CaloMET_x                 "<<"\tx()                  "<<metCalo.x() << endl;
-  cout<< " CaloMET_y                 "<<"\ty()                  "<<metCalo.y() << endl;
-  cout<< " CaloMET_sumEt             "<<"\tsumEt()              "<<metCalo.sumEt() << endl;
+  cout<< " CaloMET_et                " << "\tet()                 " << metCalo.et() << endl;
+  cout<< " CaloMET_x                 " << "\tx()                  " << metCalo.x() << endl;
+  cout<< " CaloMET_y                 " << "\ty()                  " << metCalo.y() << endl;
   
-  cout<<"_____________________________________________________________________________________________________________________________\n\n";
- 
-  if(fEvent.isMC())
+  if ( fEvent.isMC() )
     {
       MET genmet = fEvent.genMET();
-      cout<< " GenMET                      "<<"\tval()                  "<<genmet.val() << endl;
-      cout<< " GenMET_x                    "<<"\tx()                    "<<genmet.x() << endl;
-      cout<< " GenMET_y                    "<<"\ty()                    "<<genmet.y() << endl;
-      cout<< " GenMET_phi                  "<<"\tphi1()                 "<<genmet.phi1() << endl;
-      cout<< " GenMET_NeutralEMEtFraction  "<<"\tNeutralEMEtFraction()  "<<genmet.NeutralEMEtFraction() << endl;
-      cout<< " GenMET_NeutralEMEt          "<<"\tNeutralEMEt()          "<<genmet.NeutralEMEt() << endl;
-      cout<< " GenMET_ChargedMEtFraction   "<<"\tChargedMEtFraction()   "<<genmet.ChargedMEtFraction() << endl;
-      cout<< " GenMET_ChargedEMEt          "<<"\tChargedEMEt()          "<<genmet.ChargedEMEt() << endl;
-      cout<< " GenMET_NeutralHadEtFraction "<<"\tNeutralHadEtFraction() "<<genmet.NeutralHadEtFraction() << endl;
-      cout<< " GenMET_NeutralHadEt         "<<"\tNeutralHadEt()         "<<genmet.NeutralHadEt() << endl;
-      cout<< " GenMET_ChargedHadEtFraction "<<"\tChargedHadEtFraction() "<<genmet.ChargedHadEtFraction() << endl;
-      cout<< " GenMET_ChargedHadEt         "<<"\tChargedHadEt()         "<<genmet.ChargedHadEt() << endl;
-      cout<< " GenMET_MuonEtFraction       "<<"\tMuonEtFraction()       "<<genmet.MuonEtFraction() << endl;
-      cout<< " GenMET_MuonEt               "<<"\tMuonEt()               "<<genmet.MuonEt() << endl;
-      cout<<"_____________________________________________________________________________________________________________________________\n\n";
-      
+      cout<< " GenMET_et                   " << "\tet()                   " << genmet.et() << endl;
+      cout<< " GenMET_x                    " << "\tx()                    " << genmet.x() << endl;
+      cout<< " GenMET_y                    " << "\ty()                    " << genmet.y() << endl;
+      cout<< " GenMET_phi                  " << "\tphi()                  " << genmet.phi() << endl;
     }
 
   cout << endl;
-  if(fEvent.isMC())
+
+  if ( fEvent.isMC() )
     {
       Size_t iPFcand=0;
       for(PFCands pfcand : fEvent.pfCandidates())

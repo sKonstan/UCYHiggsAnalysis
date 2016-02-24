@@ -12,6 +12,8 @@ ROOT.PyConfig.IgnoreCommandLineOptions = True
 re_vector = re.compile("vector<(?P<type>.*)>")
 
 def writeFiles(header, source, headerName, sourceName):
+    '''
+    '''
     basedir = os.path.join(os.environ["HIGGSANALYSIS_BASE"], "NtupleAnalysis", "src", "DataFormat")
     hfile = os.path.join(basedir, "interface", headerName)
     ccfile = os.path.join(basedir, "src", sourceName)
@@ -21,10 +23,16 @@ def writeFiles(header, source, headerName, sourceName):
     f = open(ccfile, "w")
     f.write(source)
     f.close()
-    print "Generated "+hfile
-    print "Generated " +ccfile
+
+    print "\n=== hplusGenerateDataFormats.py:"
+    print "\t Generated " + hfile
+    print "\t Generated " + ccfile
+    return
+
 
 def getAdditionalFourVectorBranches(types, prefix):
+    '''
+    '''
     result = []
     for t in types.keys():
         if t.startswith("%s_eta"%prefix):
@@ -37,16 +45,22 @@ def getAdditionalFourVectorBranches(types, prefix):
                     result.append(suffix)
     return result
 
-def generateParticle(types, particle, discriminatorCaptions):
+
+def GenerateParticle(types, particle, discriminatorCaptions):
+    '''
+    '''
     discriminatorList = {}
+    # For-loop: All discriminator captions
     for k in discriminatorCaptions.keys():
         discriminatorList[k] = []
   
-    particleBranches = [particle+"s_"+x for x in ["pt", "eta", "phi", "e", "pdgId"]] # these are handled by Particle class
-    branchNames = filter(lambda n: n[0:len(particle)+2] == particle+"s_", types.keys())
+    particleBranches = [particle + "s_" + x for x in ["pt", "eta", "phi", "e", "pdgId"]] # these are handled by Particle class
+    branchNames = filter(lambda n: n[0:len(particle)+2] == particle + "s_", types.keys())
     branchNames.sort(key=lambda n: types[n]+n)
+    print "\n=== hplusGenerateDataFormats.py: Branch names for '%s' are:\n\t %s" % (particle, "\n\t ".join(branchNames))
+
     # Obtain four-vector branches and remove them from the branch list
-    additionalFourVectorBranches = getAdditionalFourVectorBranches(types, particle+"s")
+    additionalFourVectorBranches = getAdditionalFourVectorBranches(types, particle + "s")
     additionalFourVectorBranches.sort()
     for item in additionalFourVectorBranches:
         i = 0
@@ -59,9 +73,10 @@ def generateParticle(types, particle, discriminatorCaptions):
                 i += 1
 
     particleFloatType = None
-    branchObjects = []
-    branchAccessors = []
-    branchBooks = []
+    branchObjects     = []
+    branchAccessors   = []
+    branchBooks       = []
+    # For-loop: All branch names
     for branch in branchNames:
         name = branch[len(particle)+2:]
         capname = name[0].upper()+name[1:]
@@ -235,10 +250,15 @@ void {type}Collection::setupBranches(BranchManager& mgr) {{
 """.format(type=particle+"Generated", fvectorBranches=fvectorBranches, branchBooks="\n".join(branchBooks))
     writeFiles(header, source, particle+"Generated.h", particle+"Generated.cc")
 
-## Auto-generates the contents of the genparticle collection (note: only collection, no single genparticles provided)
-def generateGenParticles(types, particle):
-    branchNames = filter(lambda n: n[0:len(particle)+2] == particle+"s_", types.keys())
+
+def GenerateGenParticles(types, particle):
+    '''
+    Auto-generates the contents of the genparticle collection (note: only collection, no single genparticles provided)
+    '''
+    branchNames = filter(lambda n: n[0:len(particle)+2] == particle + "s_", types.keys() )
     branchNames.sort(key=lambda n: types[n]+n)
+    print "\n=== hplusGenerateDataFormats.py: Branch names for '%s' are:\n\t %s" % (particle, "\n\t ".join(branchNames))
+
     # Obtain four-vector branches and remove them from the branch list
     additionalFourVectorBranches = getAdditionalFourVectorBranches(types, particle+"s")
     additionalFourVectorBranches.sort()
@@ -383,17 +403,23 @@ void {type}Collection::setupBranches(BranchManager& mgr) {{
     writeFiles(header, source, name+"Generated.h", name+"Generated.cc")
 
 
-## Method for creating a class for a simple discriminator
-def generateDiscriminator(types, name, discriminatorPrefix):
+def GenerateDiscriminator(types, name, discriminatorPrefix):
+    '''
+    Method for creating a class for a simple discriminator
+    '''
     # Obtain list of discriminators
     branchNames = filter(lambda n: n[0:len(discriminatorPrefix)+1] == discriminatorPrefix+"_", types.keys())
     branchNames.sort(key=lambda n: types[n]+n)
+    print "\n=== hplusGenerateDataFormats.py: Branch names for '%s' are:\n\t %s" % (name, "\n\t ".join(branchNames))
+
     # Create list of discriminator names
-    discriminatorNameList = []
-    branchAccessors = ""
-    branchObjects = ""
+    discriminatorNameList  = []
     discrMethodGettersList = []
-    branchBookings = ""
+    branchAccessors = ""
+    branchObjects   = ""
+    branchBookings  = ""
+
+    # For-loop: All branch names    
     for n in branchNames:
         shortName = n.replace(discriminatorPrefix+"_", "")
         shortNameOriginal = shortName
@@ -483,17 +509,19 @@ def main(opts, args):
     f.Close()
     
     # The provided dictionaries are for grouping discriminators
-    generateParticle(types, "Tau", {"Isolation": "Isolation", "againstElectron": "AgainstElectron", "againstMuon": "AgainstMuon"})
-    generateParticle(types, "Jet", {"BJetTags": "BJetTags", "PUID": "PUID", "ID" : "JetID"})
-    generateParticle(types, "Muon", {"ID": "ID"})
-    generateParticle(types, "Electron", {"ID": "ID"})
-    generateParticle(types, "GenJet", {})
-    #generateParticle(types, "HLTTau", {})
-    generateParticle(types, "PFcandidate", {})
-    # HLTTau contains only generic momentum and pdgId information, no generation needed
-    generateDiscriminator(types, "METFilter", "METFilter")
-    generateGenParticles(types, "genParticle")
-    
+    GenerateParticle(types, "Electron", {"ID": "ID"}) # checked (includes trigger match)
+    GenerateParticle(types, "Muon", {"ID": "ID"})     # checked (includes trigger match)
+    GenerateParticle(types, "Tau", {"Isolation": "Isolation", "againstElectron": "AgainstElectron", "againstMuon": "AgainstMuon"}) #checked
+    GenerateParticle(types, "PFCHSJet", {"BJetTags": "BJetTags", "PUID": "PUID", "ID" : "JetID"}) # checked
+    GenerateParticle(types, "PuppiJet", {"BJetTags": "BJetTags", "PUID": "PUID", "ID" : "JetID"}) # checked
+    GenerateParticle(types, "GenJet", {})      # checked
+    GenerateParticle(types, "PFcandidate", {}) # checked
+    GenerateParticle(types, "HLTEle", {}) # HLTEle, HLTMu, HLTTau only contain  generic momentum and pdgId information, no generation needed
+    GenerateParticle(types, "HLTMu" , {}) # Since no future changes are foreseen it can be run once and then removed from from the autogeneration
+    GenerateParticle(types, "HLTTau", {}) 
+    # GenerateGenParticles(types , "GenParticle")            # checked. N.B: Commented because some things had to be added by hand!
+    GenerateDiscriminator(types, "METFilter", "METFilter") # checked
+
     return 0
 
 

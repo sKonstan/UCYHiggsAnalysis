@@ -9,4 +9,5 @@
 void HLTTauGeneratedCollection::setupBranches(BranchManager& mgr) {
   ParticleCollection::setupBranches(mgr);
 
+
 }

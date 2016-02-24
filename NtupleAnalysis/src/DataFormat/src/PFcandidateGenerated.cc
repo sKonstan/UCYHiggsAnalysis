@@ -11,11 +11,10 @@ void PFcandidateGeneratedCollection::setupBranches(BranchManager& mgr) {
 
   mgr.book(prefix()+"_IPTSignificance", &fIPTSignificance);
   mgr.book(prefix()+"_IPTwrtPV", &fIPTwrtPV);
+  mgr.book(prefix()+"_IPTwrtPVError", &fIPTwrtPVError);
   mgr.book(prefix()+"_IPzSignificance", &fIPzSignificance);
   mgr.book(prefix()+"_IPzwrtPV", &fIPzwrtPV);
+  mgr.book(prefix()+"_IPzwrtPVError", &fIPzwrtPVError);
   mgr.book(prefix()+"_NumOfHits", &fNumOfHits);
   mgr.book(prefix()+"_NumOfPixHits", &fNumOfPixHits);
-  mgr.book(prefix()+"_IPTwrtPVError", &fIPTwrtPVError);
-  mgr.book(prefix()+"_IPzwrtPVError", &fIPzwrtPVError);
-
 }
