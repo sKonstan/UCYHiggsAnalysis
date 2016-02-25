@@ -6,8 +6,8 @@
 
 Event::Event(const ParameterSet& config):
   fJetCollection(config.getParameter<std::string>("JetSelection.jetType", "Jets")),
-  fJetPFCHSCollection("Jets"),
-  fJetPuppiCollection("PuppiJets"),
+  fJetPFCHSCollection("PFCHSJets"),
+  fJetPuppiCollection("PuppiJets"), 
   fGenMET("GenMET"),
   fMET_Type1("MET_Type1"),
   fMET_Type1_NoHF("MET_Type1_NoHF"),

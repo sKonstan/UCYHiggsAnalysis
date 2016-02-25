@@ -102,19 +102,6 @@ public:
   float_type e()   const { return fCollection->fE->value()[index()]; }
   short pdgId()  const { return fCollection->fPdgId->value()[index()]; }
 
-  // For GenParticles..... Unless there is an elegant way to do this in GenParticle Class.....
-  float_type mass()   const { return fCollection->fMass->value()[index()]; }
-  float_type vertexX()   const { return fCollection->fVertexX->value()[index()]; }
-  float_type vertexY()   const { return fCollection->fVertexY->value()[index()]; }
-  float_type vertexZ()   const { return fCollection->fVertexZ->value()[index()]; }
-  int charge()   const { return fCollection->fCharge->value()[index()]; }
-  int status()   const { return fCollection->fStatus->value()[index()]; }
-
-  std::vector<short> mothers()   const { return fCollection->fMothers->value()[index()]; }
-  std::vector<short> daughters()   const { return fCollection->fDaughters->value()[index()]; }
-
-  
-
   float_type Phi() const { return phi(); }
 
   // Note: asking for polarP4 is more expensive than asking any of
@@ -205,19 +192,6 @@ public:
     mgr.book(prefix()+"_e"   +energySystematicsVariation(), &fE);
     mgr.book(prefix()+"_pdgId"                            , &fPdgId);
 
-
-    // For GenParticles..... Unless there is an elegant way to do this in GenParticle Class.....
-    mgr.book(prefix()+"_mass"                            , &fMass);
-    mgr.book(prefix()+"_vertexX"                         , &fVertexX);
-    mgr.book(prefix()+"_vertexY"                         , &fVertexY);
-    mgr.book(prefix()+"_vertexZ"                         , &fVertexZ);
-    mgr.book(prefix()+"_charge"                          , &fCharge);
-    mgr.book(prefix()+"_status"                          , &fStatus);
-    mgr.book(prefix()+"_mothers"                         , &fMothers);
-    mgr.book(prefix()+"_daughters"                       , &fDaughters);
-
-
-
   }
 
   size_t size() const { return fPt->value().size(); }
@@ -234,18 +208,6 @@ protected:
   const Branch<std::vector<float_type>> *fPhi;
   const Branch<std::vector<float_type>> *fE;
   const Branch<std::vector<short>> *fPdgId; 
-
-  // For GenParticles..... Unless there is an elegant way to do this in GenParticle Class.....
-  const Branch<std::vector<float_type>> *fMass; 
-  const Branch<std::vector<float_type>> *fVertexX;
-  const Branch<std::vector<float_type>> *fVertexY;
-  const Branch<std::vector<float_type>> *fVertexZ;
-  const Branch<std::vector<int>> *fCharge;
-  const Branch<std::vector<int>> *fStatus;
-  
-  const Branch<std::vector<std::vector<short>>> *fMothers;
-  const Branch<std::vector<std::vector<short>>> *fDaughters;
-
 
 };
 

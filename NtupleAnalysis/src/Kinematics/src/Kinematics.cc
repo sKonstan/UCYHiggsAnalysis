@@ -43,9 +43,9 @@ private:
   const double cfg_BjetEtaCutMax;
   const std::vector<double> cfg_LeptonTriggerPtCutMin;
   const double PT_MAX  = 200.0;
-  const int PT_BINS    =  10;
-  const double ETA_MAX =   3.0;
-  const int ETA_BINS   =  30;
+  const int PT_BINS    = 10;
+  const double ETA_MAX = 3.0;
+  const int ETA_BINS   = 30;
 
   // Event selection classes and event counters (in same order like they are applied)
   Count cAllEvents;
@@ -157,6 +157,7 @@ void Kinematics::process(Long64_t entry) {
   std::cout << "=== Kinematics.cc:\n\t Kinematics::process()" << std::endl;
 #endif
 
+
   for(Electron elec: fEvent.electrons()) {
     hPassedElectronsPt->Fill(elec.pt());
     hPassedElectronsEta->Fill(elec.eta());
@@ -164,7 +165,6 @@ void Kinematics::process(Long64_t entry) {
     hAllElectronsPt->Fill(elec.pt());
     hAllElectronsEta->Fill(elec.eta());
   }
-
 
   for(Muon mu: fEvent.muons()) {
     hPassedMuonsPt->Fill(mu.pt());
@@ -175,27 +175,12 @@ void Kinematics::process(Long64_t entry) {
   }
 
 
+  //  /* attikis
   if( !fEvent.isMC() ) return;
 
-  // Get the Events information
-  // EventID evtID  = fEvent.eventID(); // will crash. the copy constructor is disabled (deleted)
-  double evtNum  = fEvent.eventID().event();
-  // double evtRun  = fEvent.eventtID().run();
-  // double evtLumi = fEvent.eventtID().lumi(); 
-  // Evt.trgPrescale() 
-  // Evt.nPUvertices() 
-  // Evt.NUP() 
-  // Evt.nGoodOfflineVertices() 
-  // Evt.pvX() 
-  // Evt.pvY() 
-  // Evt.pvZ() 
-  // Evt.pvDistanceToNextVertex() 
-  // Evt.pvDistanceToClosestVertex() 
-
-
-
   // Variable declarations
-  static double firstEvt = evtID.event(); // static = only be executed once
+  static double firstEvt = fEvent.eventID().event(); // static = only be executed once
+  double evtNum          = fEvent.eventID().event();
   int genP_Index         = -1;
   size_t nGenMuons       = 0;
   size_t nGenElectrons   = 0;
@@ -203,9 +188,10 @@ void Kinematics::process(Long64_t entry) {
   bool bPassTrg          = true;
   std::vector<double> v_leptonPt;
   MCTools mcTools(fEvent);  
-  
+
   // For-loop: GenParticles
-  for( auto& genP : fEvent.genparticles().getAllGenpCollection()){
+  for(GenParticle genP: fEvent.genparticles()) {
+
     genP_Index++;
 
     // Get loop variables
@@ -214,6 +200,13 @@ void Kinematics::process(Long64_t entry) {
     double genP_Eta    = genP.eta();
     double genP_Status = genP.status(); // PYTHIA8: http://home.thep.lu.se/~torbjorn/pythia81html/ParticleProperties.html
 
+    if (firstEvt == evtNum) mcTools.PrintGenParticle(genP_Index, true);
+    else
+      {
+	cout << "\n" << endl;
+	mcTools.PrintGenParticle(genP_Index, false);
+      }
+    
     // Electrons
     if(std::abs(genP_PdgId) == 11 && genP_Status < 10){
 
@@ -224,12 +217,6 @@ void Kinematics::process(Long64_t entry) {
       if(genP_Pt >= cfg_ElePtCutMin && std::abs(genP_Eta) < cfg_EleEtaCutMax) {
 
 	nGenElectrons++;
-	if (firstEvt == evtNum) mcTools.PrintGenParticle(genP_Index, true);
-	else
-	  {
-	    cout << "\n" << endl;
-	    mcTools.PrintGenParticle(genP_Index, false);
-	  }
 	v_leptonPt.push_back(genP_Pt);
 
 	// Fill histos
@@ -238,7 +225,6 @@ void Kinematics::process(Long64_t entry) {
       }
     }// Electrons
     if(nGenElectrons == 0) continue;
-
 
     // Muons
     if(std::abs(genP_PdgId) == 13 && genP_Status < 10){
@@ -261,7 +247,6 @@ void Kinematics::process(Long64_t entry) {
     }// Muons
     if(nGenMuons == 0) continue;
     
-
     // b-jets
     if(std::abs(genP_PdgId) == 5){
 
@@ -295,22 +280,13 @@ void Kinematics::process(Long64_t entry) {
     }// for(Size_t i=0; i < cfg_LeptonTriggerPtCutMin.size(); i++){
   }
 
-
-
-  // cout << "fEvent.passTriggerDecision() = " << fEvent.passTriggerDecision() << endl;
-
-  // for( HLTTau hltTau : fEvent.triggerTaus() ){
-  //   cout<< " HLTTau_pt  = " << hltTau.pt()  << endl;
-  //     cout<< " HLTTau_eta = " << hltTau.eta() << endl;
-  //     cout<< " HLTTau_phi = " << hltTau.phi() << endl;
-  //     cout<< " HLTTau_e   = " << hltTau.e()   << endl;
-  //   }
-
   // Increment Counters    
   cAllEvents.increment();
   if (nGenElectrons > 0) cElectrons.increment();
   if (nGenMuons > 0) cMuons.increment();
   if (nGenBjets > 0) cBjets.increment();
   if (bPassTrg) cTrigger.increment();
-  
+  // attikis */ 
+
+  return;
 }

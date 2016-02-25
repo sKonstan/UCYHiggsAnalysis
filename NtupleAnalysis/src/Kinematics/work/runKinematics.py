@@ -104,8 +104,29 @@ def main():
 
     # Add Analysis Variations
     selections = allSelections.clone()
-    process.addAnalyzer("Kinematics", Analyzer("Kinematics", config=selections, silent=bSilent) )
+    process.addAnalyzer("Kinematics", Analyzer("Kinematics", config=selections, silent=bSilent) ) #trigger passed from selections
         
+
+    # NOTE: All triggers do NOT end with "_v" this is added by the Event.cc (or some other related DataFormat file). So, truncate the "_v" in the triggers.
+    # trg = PSet(
+    #     # No need to specify version numbers, they are automatically scanned in range 1--100 (remove the '_v' suffix)
+    #     triggerOR = ["HLT_LooseIsoPFTau50_Trk30_eta2p1_MET80",
+    #                  "HLT_LooseIsoPFTau50_Trk30_eta2p1_MET80_JetIdCleaned",
+    #                  "HLT_LooseIsoPFTau50_Trk30_eta2p1_MET120",
+    #                  "HLT_LooseIsoPFTau50_Trk30_eta2p1_MET120_JetIdCleaned",
+    #                  #"HLT_LooseIsoPFTau50_Trk30_eta2p1_MET120",
+    #                  #"HLT_LooseIsoPFTau35_Trk20_Prong1_MET70",HLT_LooseIsoPFTau50_Trk30_eta2p1_MET120_v1
+    #                  ],
+    #     triggerOR2 = [],
+    #     )
+    
+    
+    #allSelections = PSet(
+    #    histogramAmbientLevel = histoLevel,
+    #    Trigger = trg,
+    #    )
+
+
     # Pick events
     # process.addOptions(EventSaver = PSet(enabled = True,pickEvents = True))
 

@@ -44,7 +44,6 @@ public:
   bool passHbheNoiseTokenRun2Loose() const { return fHbheNoiseTokenRun2Loose->value(); }
   bool passHbheNoiseTokenRun2Tight() const { return fHbheNoiseTokenRun2Tight->value(); }
 
-
 protected:
   const Branch<bool> *fFlag_CSCTightHaloFilter;
   const Branch<bool> *fFlag_HBHENoiseFilter;

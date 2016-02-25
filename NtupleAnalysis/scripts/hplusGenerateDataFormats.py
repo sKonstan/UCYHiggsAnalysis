@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 import os
 import re
 import sys
@@ -53,50 +52,62 @@ def GenerateParticle(types, particle, discriminatorCaptions):
     # For-loop: All discriminator captions
     for k in discriminatorCaptions.keys():
         discriminatorList[k] = []
-  
+        
     particleBranches = [particle + "s_" + x for x in ["pt", "eta", "phi", "e", "pdgId"]] # these are handled by Particle class
-    branchNames = filter(lambda n: n[0:len(particle)+2] == particle + "s_", types.keys())
+    branchNames      = filter(lambda n: n[0:len(particle)+2] == particle + "s_", types.keys())
     branchNames.sort(key=lambda n: types[n]+n)
     print "\n=== hplusGenerateDataFormats.py: Branch names for '%s' are:\n\t %s" % (particle, "\n\t ".join(branchNames))
 
     # Obtain four-vector branches and remove them from the branch list
-    additionalFourVectorBranches = getAdditionalFourVectorBranches(types, particle + "s")
+    additionalFourVectorBranches = getAdditionalFourVectorBranches(types, particle + "s")    
     additionalFourVectorBranches.sort()
+    
+    print "=== hplusGenerateDataFormats.py: Additional 4-vector Branches for '%s' are:\n\t %s" % (particle, "\n\t ".join(additionalFourVectorBranches))
     for item in additionalFourVectorBranches:
         i = 0
         while i < len(branchNames):
             b = branchNames[i]
-            # Remove also syst. uncertainties since they are handled separately
+            # Remove also syst. uncertainties (since they are handled separately)
             if b.endswith(item) or b.endswith("up") or b.endswith("Up") or b.endswith("down") or b.endswith("Down"):
                 del branchNames[i]
             else:
                 i += 1
+
 
     particleFloatType = None
     branchObjects     = []
     branchAccessors   = []
     branchBooks       = []
     # For-loop: All branch names
-    for branch in branchNames:
-        name = branch[len(particle)+2:]
+    for i, branch in enumerate(branchNames):
+        name    = branch[len(particle)+2:]
         capname = name[0].upper()+name[1:]
         vectype = types[branch]
+        if "vector<vector" in vectype:
+            vectype = vectype.replace("vector<vector", "vector<std::vector")
+            # print vectype
+        
         m = re_vector.search(vectype)
         if not m:
             raise Exception("Could not interpret type %s as vector" % vectype)
         realtype = m.group("type")
-        
+
+        # Print a table to see what's going on
+        PrintTable(i, "{:<55} {:<55} {:<30} {:>30}", ["Name", "CapName", "VecType", "RealType"], [name, capname, vectype, realtype], True)
+
+        # For "pt", "eta", "phi", "e", "pdgId"
         if branch in particleBranches:
             if particleFloatType == None:
                 particleFloatType = realtype
             elif particleFloatType != realtype:
                 if realtype in ["float", "double"]:
                     raise Exception("Mismatch in 4-vector branch types: all of them must be of the same type, and now {branch} has {type} while others have {otype}".format(branch=branch, type=realtype, otype=particleFloatType))
-        else:
+        else: # Not "pt", "eta", "phi", "e", "pdgId"
             # Collect branches
             branchObjects.append("  const Branch<std::{vectype}> *f{vecname};".format(vectype=vectype, vecname=capname))
             branchAccessors.append("  {type} {name}() const {{ return this->fCollection->f{capname}->value()[this->index()]; }}".format(type=realtype, name=name, capname=capname))
             branchBooks.append("  mgr.book(prefix()+\"_{name}\", &f{capname});".format(name=name, capname=capname))
+
             # Collect discriminators
             for k in discriminatorCaptions.keys():
                 if branch.startswith(particle) and k in branch:
@@ -144,7 +155,7 @@ def GenerateParticle(types, particle, discriminatorCaptions):
     if particle != "HLTTau":
         prefix += "s"
 
-    # additional four-vectors for collection
+    # Additional four-vectors for collection
     preInit = ": ParticleCollection(prefix)"
     for item in additionalFourVectorBranches:
         preInit += ",\n    f%s(prefix)"%item
@@ -154,6 +165,7 @@ def GenerateParticle(types, particle, discriminatorCaptions):
     inits = ""
     inits += "\n".join(map(str,initList))
     fvectorgetters = ""
+    
     for item in additionalFourVectorBranches:
         fvectorgetters += "  const ParticleCollection<double>* get%sCollection() const { return &f%s; }\n"%(item, item)
     if len(additionalFourVectorBranches) > 0:
@@ -249,12 +261,15 @@ void {type}Collection::setupBranches(BranchManager& mgr) {{
 }}
 """.format(type=particle+"Generated", fvectorBranches=fvectorBranches, branchBooks="\n".join(branchBooks))
     writeFiles(header, source, particle+"Generated.h", particle+"Generated.cc")
+    return
 
 
 def GenerateGenParticles(types, particle):
     '''
     Auto-generates the contents of the genparticle collection (note: only collection, no single genparticles provided)
     '''
+
+    # Generate branch names 
     branchNames = filter(lambda n: n[0:len(particle)+2] == particle + "s_", types.keys() )
     branchNames.sort(key=lambda n: types[n]+n)
     print "\n=== hplusGenerateDataFormats.py: Branch names for '%s' are:\n\t %s" % (particle, "\n\t ".join(branchNames))
@@ -262,6 +277,8 @@ def GenerateGenParticles(types, particle):
     # Obtain four-vector branches and remove them from the branch list
     additionalFourVectorBranches = getAdditionalFourVectorBranches(types, particle+"s")
     additionalFourVectorBranches.sort()
+
+    print "=== hplusGenerateDataFormats.py: Additional 4-vector Branches for '%s' are:\n\t %s" % (particle, "\n\t ".join(additionalFourVectorBranches))
     for item in additionalFourVectorBranches:
         i = 0
         while i < len(branchNames):
@@ -271,6 +288,8 @@ def GenerateGenParticles(types, particle):
                 del branchNames[i]
             else:
                 i += 1
+
+    # Determine float type
     floattype = None
     if len(additionalFourVectorBranches) > 0:
         for t in types.keys():
@@ -283,13 +302,14 @@ def GenerateGenParticles(types, particle):
             raise Exception("Error: this should not happen")
 
     branchObjects = []
-    branchBooks = []
+    branchBooks   = []
     branchGetters = []
-    for branch in branchNames:
-        name = branch[len(particle)+2:]
-        capname = name[0].upper()+name[1:]
+    for i, branch in enumerate(branchNames):
+        name     = branch[len(particle)+2:]
+        capname  = name[0].upper()+name[1:]
         datatype = types[branch]
-        m = re_vector.search(datatype)
+
+        m        = re_vector.search(datatype)
         realtype = types[branch]
         if not m:
             datatype = types[branch]
@@ -297,11 +317,14 @@ def GenerateGenParticles(types, particle):
             datatype = "std::%s"%datatype
             realtype = m.group("type")
         
+        # Print a table to see what's going on
+        PrintTable(i, "{:<20} {:<20} {:<40} {:>20}", ["Name", "CapName", "DataType", "RealType"], [name, capname, datatype, realtype], True)
+
         # Collect branches
         branchObjects.append("  const Branch<{datatype}> *f{vecname};".format(datatype=datatype, vecname=capname))
         branchBooks.append("  mgr.book(\"{type}s_{name}\", &f{capname});".format(type=particle, name=name, capname=capname))
         branchGetters.append("  const {datatype} get{capname}() const {{ return f{capname}->value(); }}".format(datatype=datatype, capname=capname))
-
+        
     includes = "#include \"DataFormat/interface/Particle.h\"\n"
     includes += "#include <vector>\n"
 
@@ -309,7 +332,7 @@ def GenerateGenParticles(types, particle):
     if particle != "HLTTau":
         prefix += "s"
 
-    # additional four-vectors for collection
+    # Additional four-vectors for collection
     preInit = ""
     for item in additionalFourVectorBranches:
         if len(preInit) > 0:
@@ -324,7 +347,9 @@ def GenerateGenParticles(types, particle):
     inits += "\n".join(map(str,initList))
     fvectorgetters = ""
     fvectorgettersimpl = ""
+
     for item in additionalFourVectorBranches:
+        print "item = ", item
         fvectorgetters += "  const std::vector<Particle<ParticleCollection<float_type>>> get%sCollection() const;\n"%item
         fvectorgettersimpl += "const std::vector<Particle<ParticleCollection<%s>>> %sGeneratedCollection::get%sCollection() const {\n"%(floattype, particle[0].upper()+particle[1:],item)
         fvectorgettersimpl += "  std::vector<Particle<ParticleCollection<float_type>>> v;\n"
@@ -401,6 +426,7 @@ void {type}Collection::setupBranches(BranchManager& mgr) {{
            fvectorgettersimpl=fvectorgettersimpl)
     name = particle[0].upper()+particle[1:]
     writeFiles(header, source, name+"Generated.h", name+"Generated.cc")
+    return
 
 
 def GenerateDiscriminator(types, name, discriminatorPrefix):
@@ -492,47 +518,89 @@ void {type}::setupBranches(BranchManager& mgr) {{
 """.format(type=name+"Generated", branchBooks=branchBookings)
     # Write files
     writeFiles(header, source, name+"Generated.h", name+"Generated.cc")
+    return
+
+
+def PrintTable(counter, textAlign, colNamesList, colValuesList, bPrint=False):
+    '''
+    '''
+    if not bPrint:
+        return
+
+    rows  = []
+    title = textAlign.format(*colNamesList)
+    hLine = "="*len(title)
+    vals  = textAlign.format(*colValuesList)
+
+    if (counter < 1):
+        rows.append(hLine)
+        rows.append(title)
+        rows.append(hLine)
+    rows.append(vals)
+
+    for r in rows:
+        print r
+    return
+
 
 def main(opts, args):
+    '''
+    '''
     if not "HIGGSANALYSIS_BASE" in os.environ:
-        print "Environment variable $HIGGSANALYSIS_BASE not set, please source setup.sh"
+        print "=== hplusGenerateDataFormats.py:\n\t Environment variable $HIGGSANALYSIS_BASE not set, please source setup.sh"
         return 1
 
-    f = ROOT.TFile.Open(args[0])
-    tree = f.Get(opts.tree)
+    # Open the input flat-tree ROOT file
+    f = ROOT.TFile.Open(opts.file)
+
+    # Geth the Tree
+    tree  = f.Get(opts.tree)
     types = {}
+
+    # For-loop: All Branches
     for branch in tree.GetListOfBranches():
-        t = branch.GetClassName() # objects
+
+        # Get objects (vector<int>, vector<float>, etc..)
+        t = branch.GetClassName() 
+
+        # Get basic types (bool, int, float,  etc..)
         if t == "":
-            t = branch.GetListOfLeaves()[0].GetTypeName() # basic types
+            t = branch.GetListOfLeaves()[0].GetTypeName() 
+
+        # Create dictionary: key= BranchName, value = variable type
         types[branch.GetName()] = t
+
+    # Close ROOT file
     f.Close()
+
+    print "=== hplusGenerateDataFormats.py:\n\t Found '%s' Branches in TTree with name '%s', inside ROOT file '%s'" % (len(types), opts.tree, opts.file)
     
     # The provided dictionaries are for grouping discriminators
-    GenerateParticle(types, "Electron", {"ID": "ID"}) # checked (includes trigger match)
-    GenerateParticle(types, "Muon", {"ID": "ID"})     # checked (includes trigger match)
-    GenerateParticle(types, "Tau", {"Isolation": "Isolation", "againstElectron": "AgainstElectron", "againstMuon": "AgainstMuon"}) #checked
-    GenerateParticle(types, "PFCHSJet", {"BJetTags": "BJetTags", "PUID": "PUID", "ID" : "JetID"}) # checked
-    GenerateParticle(types, "PuppiJet", {"BJetTags": "BJetTags", "PUID": "PUID", "ID" : "JetID"}) # checked
-    GenerateParticle(types, "GenJet", {})      # checked
-    GenerateParticle(types, "PFcandidate", {}) # checked
-    GenerateParticle(types, "HLTEle", {}) # HLTEle, HLTMu, HLTTau only contain  generic momentum and pdgId information, no generation needed
-    GenerateParticle(types, "HLTMu" , {}) # Since no future changes are foreseen it can be run once and then removed from from the autogeneration
-    GenerateParticle(types, "HLTTau", {}) 
-    # GenerateGenParticles(types , "GenParticle")            # checked. N.B: Commented because some things had to be added by hand!
-    GenerateDiscriminator(types, "METFilter", "METFilter") # checked
+    #GenerateParticle(types, "Electron", {"ID": "ID"}) # checked (includes trigger match)
+    #GenerateParticle(types, "Muon", {"ID": "ID"})     # checked (includes trigger match)
+    #GenerateParticle(types, "Tau", {"Isolation": "Isolation", "againstElectron": "AgainstElectron", "againstMuon": "AgainstMuon"}) #checked
+    #GenerateParticle(types, "PFCHSJet", {"BJetTags": "BJetTags", "PUID": "PUID", "ID" : "JetID"}) # checked
+    #GenerateParticle(types, "PuppiJet", {"BJetTags": "BJetTags", "PUID": "PUID", "ID" : "JetID"}) # checked
+    #GenerateParticle(types, "GenJet", {})      # checked
+    #GenerateParticle(types, "PFcandidate", {}) # checked
+    #GenerateParticle(types, "HLTEle", {}) # HLTEle, HLTMu, HLTTau only contain  generic momentum and pdgId information, no generation needed
+    #GenerateParticle(types, "HLTMu" , {}) # Since no future changes are foreseen it can be run once and then removed from from the autogeneration
+    #GenerateParticle(types, "HLTTau", {}) 
+    # GenerateGenParticles(types , "GenParticle")            # checked. N.B: At the momment ome things had to be added by hand.
+    GenerateParticle(types , "GenParticle", {})            # checked. N.B: At the momment ome things had to be added by hand.
+    #GenerateDiscriminator(types, "METFilter", "METFilter") # checked
 
     return 0
 
 
 if __name__ == "__main__":
     parser = OptionParser(usage="Usage: %prog [options] root_file")
-    parser.add_option("--tree", dest="tree", default="Events",
-                      help="Generate data format from this tree (default: 'Events')")
 
+    parser.add_option("-f", "--file", dest="file", help="Generate data format from this flat-tree ROOT file (default: None)")
+    parser.add_option("-t", "--tree", dest="tree", default="Events", help="Generate data format from this tree (default: 'Events')")
     (opts, args) = parser.parse_args()
-    if len(args) != 1:
-        parser.error("You should give exactly one root_file, got %d" % len(args))
 
+    if opts.file == None:
+        parser.error("\n\t You should give a flat-tree ROOT file as argument with the -f options")
 
     sys.exit(main(opts, args))

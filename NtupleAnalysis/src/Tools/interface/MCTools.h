@@ -13,14 +13,14 @@
 #include "Math/VectorUtil.h"
 
 using namespace std;
-typedef Particle<ParticleCollection<double>> genParticle;
+//typedef GenParticleCollection genParticle;
 
 class MCTools {
   
 public:
   MCTools(Event &fEvt);
   ~MCTools();
-  genParticle GetGenP(const unsigned int genP_Index);
+  GenParticle GetGenP(const size_t genP_Index);
 
   bool RecursivelyLookForMotherId(const unsigned int genP_Index, 
 				  int momId, 
