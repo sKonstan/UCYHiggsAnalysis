@@ -62,7 +62,6 @@ bVerbose  = False       # Default is "False"
 bSilent   = True        # Default is "True"
 prefix    = "analysis"  # Default is "analysis"
 postfix   = ""          # Default is ""
-maxEvts   = -1          # Default is -1
 ROOT.gErrorIgnoreLevel = 4000
 
 #================================================================================================ 
@@ -71,7 +70,7 @@ ROOT.gErrorIgnoreLevel = 4000
 def main():
     
     # Setup the process
-    process = Process(outputPrefix=prefix, outputPostfix=postfix, maxEvents=maxEvts, verbose=bVerbose)
+    process = Process(outputPrefix=prefix, outputPostfix=postfix, maxEvents=opts.maxEvts, verbose=bVerbose)
 
 
     # Adding a dataset 
@@ -146,6 +145,7 @@ if __name__ == "__main__":
     parser.add_option("-j", "--jCores"  , dest="jCores"  , action="store", type=int, help="Number of CPU cores (PROOF workes) to use. Default is all available.")
     parser.add_option("-i", "--includeOnlyTasks", dest="includeOnlyTasks", action="store", help="List of datasets in mcrab to include")
     parser.add_option("-e", "--excludeTasks", dest="excludeTasks", action="store", help="List of datasets in mcrab to exclude")
+    parser.add_option("--maxEvts", dest="maxEvts", type=int, default = -1, action="store", help="Maximum number of events to run on")
     (opts, args) = parser.parse_args()
 
     if opts.mcrab == None:

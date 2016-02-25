@@ -179,8 +179,8 @@ void Kinematics::process(Long64_t entry) {
   if( !fEvent.isMC() ) return;
 
   // Variable declarations
-  static double firstEvt = fEvent.eventID().event(); // static = only be executed once
-  double evtNum          = fEvent.eventID().event();
+  // static double firstEvt = fEvent.eventID().event(); // static = only be executed once
+  // double evtNum          = fEvent.eventID().event();
   int genP_Index         = -1;
   size_t nGenMuons       = 0;
   size_t nGenElectrons   = 0;
@@ -190,7 +190,8 @@ void Kinematics::process(Long64_t entry) {
   MCTools mcTools(fEvent);  
 
   // For-loop: GenParticles
-  for(GenParticle genP: fEvent.genparticles()) {
+  //  for(GenParticle genP: fEvent.genparticles()) {
+  for(auto genP: fEvent.genparticles()) {
 
     genP_Index++;
 
@@ -200,12 +201,12 @@ void Kinematics::process(Long64_t entry) {
     double genP_Eta    = genP.eta();
     double genP_Status = genP.status(); // PYTHIA8: http://home.thep.lu.se/~torbjorn/pythia81html/ParticleProperties.html
 
-    if (firstEvt == evtNum) mcTools.PrintGenParticle(genP_Index, true);
-    else
-      {
-	cout << "\n" << endl;
-	mcTools.PrintGenParticle(genP_Index, false);
-      }
+    // if (genP_Index==0) mcTools.PrintGenParticle(genP_Index, true);
+    // else
+    //   {
+    // 	cout << "\n" << endl;
+    // 	mcTools.PrintGenParticle(genP_Index, false);
+    //   }
     
     // Electrons
     if(std::abs(genP_PdgId) == 11 && genP_Status < 10){
@@ -237,7 +238,6 @@ void Kinematics::process(Long64_t entry) {
       if(genP_Pt >= cfg_MuPtCutMin && std::abs(genP_Eta) < cfg_MuEtaCutMax){
 
 	nGenMuons++;
-	mcTools.PrintGenParticle(genP_Index, false);
 	v_leptonPt.push_back(genP_Pt);
 
 	// Fill histos
@@ -257,7 +257,6 @@ void Kinematics::process(Long64_t entry) {
       // Acceptance cuts
       if(genP_Pt >= cfg_BjetPtCutMin && std::abs(genP_Eta) < cfg_BjetEtaCutMax){
 	nGenBjets++;
-	mcTools.PrintGenParticle(genP_Index, false);
 	
 	// Fill histos
 	hPassedGenBjetsPt ->Fill(genP_Pt);

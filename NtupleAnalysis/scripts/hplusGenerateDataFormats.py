@@ -93,7 +93,7 @@ def GenerateParticle(types, particle, discriminatorCaptions):
         realtype = m.group("type")
 
         # Print a table to see what's going on
-        PrintTable(i, "{:<55} {:<55} {:<30} {:>30}", ["Name", "CapName", "VecType", "RealType"], [name, capname, vectype, realtype], True)
+        PrintTable(i, "{:<55} {:<55} {:<30} {:>30}", ["Name", "CapName", "VecType", "RealType"], [name, capname, vectype, realtype], False)
 
         # For "pt", "eta", "phi", "e", "pdgId"
         if branch in particleBranches:
@@ -318,7 +318,7 @@ def GenerateGenParticles(types, particle):
             realtype = m.group("type")
         
         # Print a table to see what's going on
-        PrintTable(i, "{:<20} {:<20} {:<40} {:>20}", ["Name", "CapName", "DataType", "RealType"], [name, capname, datatype, realtype], True)
+        PrintTable(i, "{:<20} {:<20} {:<40} {:>20}", ["Name", "CapName", "DataType", "RealType"], [name, capname, datatype, realtype], False)
 
         # Collect branches
         branchObjects.append("  const Branch<{datatype}> *f{vecname};".format(datatype=datatype, vecname=capname))
@@ -576,19 +576,19 @@ def main(opts, args):
     print "=== hplusGenerateDataFormats.py:\n\t Found '%s' Branches in TTree with name '%s', inside ROOT file '%s'" % (len(types), opts.tree, opts.file)
     
     # The provided dictionaries are for grouping discriminators
-    #GenerateParticle(types, "Electron", {"ID": "ID"}) # checked (includes trigger match)
-    #GenerateParticle(types, "Muon", {"ID": "ID"})     # checked (includes trigger match)
-    #GenerateParticle(types, "Tau", {"Isolation": "Isolation", "againstElectron": "AgainstElectron", "againstMuon": "AgainstMuon"}) #checked
-    #GenerateParticle(types, "PFCHSJet", {"BJetTags": "BJetTags", "PUID": "PUID", "ID" : "JetID"}) # checked
-    #GenerateParticle(types, "PuppiJet", {"BJetTags": "BJetTags", "PUID": "PUID", "ID" : "JetID"}) # checked
-    #GenerateParticle(types, "GenJet", {})      # checked
-    #GenerateParticle(types, "PFcandidate", {}) # checked
-    #GenerateParticle(types, "HLTEle", {}) # HLTEle, HLTMu, HLTTau only contain  generic momentum and pdgId information, no generation needed
-    #GenerateParticle(types, "HLTMu" , {}) # Since no future changes are foreseen it can be run once and then removed from from the autogeneration
-    #GenerateParticle(types, "HLTTau", {}) 
-    # GenerateGenParticles(types , "GenParticle")            # checked. N.B: At the momment ome things had to be added by hand.
-    GenerateParticle(types , "GenParticle", {})            # checked. N.B: At the momment ome things had to be added by hand.
-    #GenerateDiscriminator(types, "METFilter", "METFilter") # checked
+    GenerateParticle(types, "Electron", {"ID": "ID"}) # includes trigger match
+    GenerateParticle(types, "Muon", {"ID": "ID"})     # includes trigger match
+    GenerateParticle(types, "Tau", {"Isolation": "Isolation", "againstElectron": "AgainstElectron", "againstMuon": "AgainstMuon"})
+    GenerateParticle(types, "PFCHSJet", {"BJetTags": "BJetTags", "PUID": "PUID", "ID" : "JetID"})
+    GenerateParticle(types, "PuppiJet", {"BJetTags": "BJetTags", "PUID": "PUID", "ID" : "JetID"})
+    GenerateParticle(types, "GenJet", {})
+    GenerateParticle(types, "PFcandidate", {})
+    GenerateParticle(types, "HLTEle", {}) # HLTEle, HLTMu, HLTTau only contain generic momentum and pdgId information, no generation needed
+    GenerateParticle(types, "HLTMu" , {}) # Since no future changes are foreseen it can be run once and then removed from from the autogeneration
+    GenerateParticle(types, "HLTTau", {}) # but can also be left on for auto-generate.
+    GenerateParticle(types , "GenParticle", {})
+    GenerateDiscriminator(types, "METFilter", "METFilter")
+    ### GenerateGenParticles(types , "GenParticle") # Used by HIP because they have custom genParticle collections
 
     return 0
 
