@@ -1,34 +1,50 @@
 #!/usr/bin/env python
 from UCYHiggsAnalysis.NtupleAnalysis.main import PSet
-import UCYHiggsAnalysis.NtupleAnalysis.parameters.scaleFactors as scaleFactors
+# import UCYHiggsAnalysis.NtupleAnalysis.parameters.scaleFactors as scaleFactors
 
 
-#====== General parameters
+#================================================================================================  
+# General parameters
+#================================================================================================  
 histoLevel = "Debug"  # Options: Systematics, Vital, Informative, Debug
 
-#====== Trigger
+#================================================================================================  
+# Trigger
+#================================================================================================  
+# No need to specify version numbers, they are automatically scanned in range 1--100 (remove the '_v' suffix)
 trg = PSet(
-  # No need to specify version numbers, they are automatically scanned in range 1--100 (remove the '_v' suffix)
-  triggerOR = ["HLT_LooseIsoPFTau50_Trk30_eta2p1_MET80",
-               "HLT_LooseIsoPFTau50_Trk30_eta2p1_MET80_JetIdCleaned",
-               "HLT_LooseIsoPFTau50_Trk30_eta2p1_MET120",
-               "HLT_LooseIsoPFTau50_Trk30_eta2p1_MET120_JetIdCleaned",
-               #"HLT_LooseIsoPFTau50_Trk30_eta2p1_MET120",
-               #"HLT_LooseIsoPFTau35_Trk20_Prong1_MET70",HLT_LooseIsoPFTau50_Trk30_eta2p1_MET120_v1
-               ],
-  triggerOR2 = [],
-)
+    triggerOR = ["HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ",
+                 "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ",
+                 "HLT_IsoMu20",
+                 "HLT_IsoTkMu20",
+                 "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ",
+                 "HLT_Ele23_WPLoose_Gsf",
+                 "HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL",
+                 "HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL",
+                 "HLT_DiMu9_Ele9_CaloIdL_TrackIdL",
+                 "HLT_Mu8_DiEle12_CaloIdL_TrackIdL",
+                 "HLT_TripleMu_12_10_5",
+                 "HLT_Ele16_Ele12_Ele8_CaloIdL_TrackIdL",
+                 ],
+    triggerOR2 = [],
+    )
 
-#====== MET filter
+
+#================================================================================================  
+# MET filter
+#================================================================================================  
 metFilter = PSet(
-  discriminators = ["hbheNoiseTokenRun2Loose", # Loose is recommended
-                    "hbheIsoNoiseToken", # under scrutiny
-                    "Flag_CSCTightHaloFilter",
-                    "Flag_eeBadScFilter",
-                    "Flag_goodVertices"]
-)
+    discriminators = ["hbheNoiseTokenRun2Loose", # Loose is recommended
+                      "hbheIsoNoiseToken", # under scrutiny
+                      "Flag_CSCTightHaloFilter",
+                      "Flag_eeBadScFilter",
+                      "Flag_goodVertices"]
+    )
 
-#====== Tau selection
+
+#================================================================================================  
+# Tau selection
+#================================================================================================  
 tauSelection = PSet(
   applyTriggerMatching = True,
    triggerMatchingCone = 0.1,   # DeltaR for matching offline tau with trigger tau
@@ -42,14 +58,18 @@ tauSelection = PSet(
         isolationDiscr = "byLooseCombinedIsolationDeltaBetaCorr3Hits",
   
 )
-# tau misidentification scale factors
-scaleFactors.assignTauMisidentificationSF(tauSelection, "eToTau", "full", "nominal")
-scaleFactors.assignTauMisidentificationSF(tauSelection, "muToTau", "full", "nominal")
-scaleFactors.assignTauMisidentificationSF(tauSelection, "jetToTau", "full", "nominal")
-# tau trigger SF
-scaleFactors.assignTauTriggerSF(tauSelection, "nominal")
 
-#====== Electron veto
+# # tau misidentification scale factors
+# scaleFactors.assignTauMisidentificationSF(tauSelection, "eToTau", "full", "nominal")
+# scaleFactors.assignTauMisidentificationSF(tauSelection, "muToTau", "full", "nominal")
+# scaleFactors.assignTauMisidentificationSF(tauSelection, "jetToTau", "full", "nominal")
+# # tau trigger SF
+# scaleFactors.assignTauTriggerSF(tauSelection, "nominal")
+
+
+#================================================================================================  
+# Electron veto
+#================================================================================================  
 eVeto = PSet(
          electronPtCut = 15.0,
         electronEtaCut = 2.5,
@@ -57,7 +77,10 @@ eVeto = PSet(
      electronIsolation = "veto", # loosest possible for vetoing ("veto"), "tight" for selecting
 )
 
-#====== Muon veto
+
+#================================================================================================  
+# Muon veto
+#================================================================================================  
 muVeto = PSet(
              muonPtCut = 10.0,
             muonEtaCut = 2.5,
@@ -65,7 +88,10 @@ muVeto = PSet(
          muonIsolation = "veto", # loosest possible for vetoing ("veto"), "tight" for selecting
 )
 
-#====== Jet selection
+
+#================================================================================================  
+# Jet selection
+#================================================================================================  
 jetSelection = PSet(
                jetType = "Jets", # options: Jets (AK4PFCHS), JetsPuppi (AK4Puppi)
               jetPtCut = 30.0,
@@ -76,18 +102,11 @@ jetSelection = PSet(
             jetIDDiscr = "IDtight", # options: IDloose, IDtight, IDtightLeptonVeto
           jetPUIDDiscr = "", # does not work at the moment 
 )
+
  
-#====== Angular cuts / collinear
-angularCutsCollinear = PSet(
-       nConsideredJets = 3,    # Number of highest-pt jets to consider (excluding jet corresponding to tau)
-enableOptimizationPlots = True, # 2D histograms for optimizing angular cuts
-        cutValueJet1 = 0.0,   # Cut value in degrees (circular cut)
-        cutValueJet2 = 0.0,   # Cut value in degrees (circular cut)
-        cutValueJet3 = 0.0,   # Cut value in degrees (circular cut)
-        cutValueJet4 = 0.0,   # Cut value in degrees (circular cut)
-)
- 
-#====== B-jet selection
+#================================================================================================  
+# B-jet selection
+#================================================================================================  
 bjetSelection = PSet(
              #bjetDiscr = "combinedInclusiveSecondaryVertexV2BJetTags",
              bjetDiscr = "pfCombinedInclusiveSecondaryVertexV2BJetTags",
@@ -96,7 +115,9 @@ bjetSelection = PSet(
  numberOfBJetsCutDirection = ">=", # options: ==, !=, <, <=, >, >=
 )
 
-#====== MET selection
+#================================================================================================  
+# MET selection
+#================================================================================================  
 metSelection = PSet(
            METCutValue = 120.0,
        METCutDirection = ">", # options: ==, !=, <, <=, >, >=
@@ -106,19 +127,12 @@ metSelection = PSet(
    applyPhiCorrections = False  # FIXME: no effect yet
 )
 # MET trigger SF
-scaleFactors.assignMETTriggerSF(metSelection, bjetSelection.bjetDiscrWorkingPoint, "nominal")
+# scaleFactors.assignMETTriggerSF(metSelection, bjetSelection.bjetDiscrWorkingPoint, "nominal")
 
-#====== Angular cuts / back-to-back
-angularCutsBackToBack = PSet(
-       nConsideredJets = 3,    # Number of highest-pt jets to consider (excluding jet corresponding to tau)
-enableOptimizationPlots = True, # 2D histograms for optimizing angular cuts
-        cutValueJet1 = 0.0,   # Cut value in degrees (circular cut)
-        cutValueJet2 = 0.0,   # Cut value in degrees (circular cut)
-        cutValueJet3 = 0.0,   # Cut value in degrees (circular cut)
-        cutValueJet4 = 0.0,   # Cut value in degrees (circular cut)
-)
 
-#====== Common plots options
+#================================================================================================  
+# Common plots options
+#================================================================================================  
 commonPlotsOptions = PSet(
   # Splitting of histograms as function of one or more parameters
   # Example: histogramSplitting = [PSet(label="tauPt", binLowEdges=[60, 70, 80, 100, 120], useAbsoluteValues=False)],
@@ -141,10 +155,13 @@ commonPlotsOptions = PSet(
               mtBins = PSet(nBins=160, axisMin=0., axisMax=800.), # 5 GeV bin width for tail fitter
          invmassBins = PSet(nBins=50, axisMin=0., axisMax=500.),
   # Enable/Disable some debug-level plots
-       enablePUDependencyPlots = True,
+  enablePUDependencyPlots = True,
 )
 
-#====== Build all selections group
+
+#================================================================================================  
+# Create the PSet with all selections
+#================================================================================================  
 allSelections = PSet(
  histogramAmbientLevel = histoLevel,
                Trigger = trg,
@@ -153,9 +170,7 @@ allSelections = PSet(
      ElectronSelection = eVeto,
          MuonSelection = muVeto,
           JetSelection = jetSelection,
-  AngularCutsCollinear = angularCutsCollinear,
          BJetSelection = bjetSelection,
           METSelection = metSelection,
- AngularCutsBackToBack = angularCutsBackToBack,
            CommonPlots = commonPlotsOptions,
 )

@@ -57,14 +57,16 @@ config.Data.inputDataset  = dataset
 config.Data.inputDBS      = 'global'    # 'phys03'
 config.Data.publication   = False
 config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
+
 ### Collision Data
-# config.Data.splitting     = 'LumiBased' # EventBased, FileBased, LumiBased (1 lumi ~= 300 events)
-# config.Data.unitsPerJob   = 5
-# config.Data.totalUnits    = -1 
+config.Data.splitting     = 'LumiBased' # EventBased, FileBased, LumiBased (1 lumi ~= 300 events)
+config.Data.unitsPerJob   = 5
+config.Data.totalUnits    = -1 
+
 ### MC: How many files (when Data.splitting='FileBased'), lumi sections (when Data.splitting='LumiBased') or events (when Data.splitting='EventAwareLumiBased') to analyze
-config.Data.splitting     = "EventAwareLumiBased"  # Used with "config.Data.totalUnits"
-config.Data.totalUnits    = 150000                 # Used with "config.Data.splitting"
-config.Data.unitsPerJob   = 5000
+#config.Data.splitting     = "EventAwareLumiBased"  # Used with "config.Data.totalUnits"
+#config.Data.totalUnits    = 200000                 # Used with "config.Data.splitting"
+#config.Data.unitsPerJob   = 5000
 
 # config.Data.allowNonValidInputDatase
 # config.Data.outputPrimaryDataset

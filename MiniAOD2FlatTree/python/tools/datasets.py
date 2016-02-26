@@ -131,25 +131,35 @@ class Datasets:
             elif datasetType == "MC":
                 if not self.GetDatasetObject(dataset).isData():
                     datasetObjects.append(self.GetDatasetObject(dataset))
-            elif datasetType == "DoubleMuon":
-                datasetObjects.append(self.GetDatasetObject("/DoubleMuon/Run2015D-PromptReco-v4/MINIAOD"))
-                break
-            elif datasetType == "DiLepton":
-                datasetObjects.append(self.GetDatasetObject("/MuonEG/Run2015D-PromptReco-v4/MINIAOD"))
-                datasetObjects.append(self.GetDatasetObject("/DoubleMuon/Run2015D-PromptReco-v4/MINIAOD"))
-                datasetObjects.append(self.GetDatasetObject("/DoubleEG/Run2015D-PromptReco-v4/MINIAOD"))
-                break
-            elif datasetType == "DoubleEG":
-                datasetObjects.append(self.GetDatasetObject("/DoubleEG/Run2015D-PromptReco-v4/MINIAOD"))
-                break
-            elif datasetType == "MuonEG":
-                datasetObjects.append(self.GetDatasetObject("/MuonEG/Run2015D-PromptReco-v4/MINIAOD"))
-                break
             elif datasetType == "SingleMuon":
+                # CMS DAS, Search: dataset=/SingleMuon/Run2015*/MINIAOD
+                datasetObjects.append(self.GetDatasetObject("/SingleMuon/Run2015C_25ns-05Oct2015-v1/MINIAOD"))
+                datasetObjects.append(self.GetDatasetObject("/SingleMuon/Run2015D-05Oct2015-v1/MINIAOD"))
                 datasetObjects.append(self.GetDatasetObject("/SingleMuon/Run2015D-PromptReco-v4/MINIAOD"))
                 break
             elif datasetType == "SingleElectron":
+                # CMS DAS, Search: dataset=/SingleElectron/Run2015*/MINIAOD
+                datasetObjects.append(self.GetDatasetObject("/SingleElectron/Run2015C_25ns-05Oct2015-v1/MINIAOD"))
+                datasetObjects.append(self.GetDatasetObject("/SingleElectron/Run2015D-05Oct2015-v1/MINIAOD"))
                 datasetObjects.append(self.GetDatasetObject("/SingleElectron/Run2015D-PromptReco-v4/MINIAOD"))
+                break
+            elif datasetType == "DoubleMuon":
+                # CMS DAS, Search: dataset=/DoubleMuon/Run2015*/MINIAOD
+                datasetObjects.append(self.GetDatasetObject("/DoubleMuon/Run2015C_25ns-05Oct2015-v1/MINIAOD"))
+                datasetObjects.append(self.GetDatasetObject("/DoubleMuon/Run2015D-05Oct2015-v1/MINIAOD"))
+                datasetObjects.append(self.GetDatasetObject("/DoubleMuon/Run2015D-PromptReco-v4/MINIAOD"))
+                break
+            elif datasetType == "DoubleEG":
+                # CMS DAS, Search: dataset=/DoubleEG/Run2015*/MINIAOD
+                datasetObjects.append(self.GetDatasetObject("/DoubleEG/Run2015C_25ns-05Oct2015-v1/MINIAOD"))
+                datasetObjects.append(self.GetDatasetObject("/DoubleEG/Run2015D-05Oct2015-v1/MINIAOD"))
+                datasetObjects.append(self.GetDatasetObject("/DoubleEG/Run2015D-PromptReco-v4/MINIAOD"))
+                break
+            elif datasetType == "MuonEG":
+                # CMS DAS, Search: dataset=/MuonEG/Run2015*/MINIAOD
+                datasetObjects.append(self.GetDatasetObject("/MuonEG/Run2015C_25ns-05Oct2015-v1/MINIAOD"))
+                datasetObjects.append(self.GetDatasetObject("/MuonEG/Run2015D-05Oct2015-v2/MINIAOD")) #not v1!?
+                datasetObjects.append(self.GetDatasetObject("/MuonEG/Run2015D-PromptReco-v4/MINIAOD"))
                 break
             else:
                 raise Exception("=== datasets.py:\n\t Could not determine datasets for dataset type '%s'. Available types are:\n\t %s" % (datasetType, "\n\t ".join(datasetTypes)) )
@@ -164,11 +174,21 @@ class Datasets:
         self.DebugMode()
 
         self.DataDatasets_MiniAODv2 = [
-            "/DoubleMuon/Run2015D-PromptReco-v4/MINIAOD",
-            "/DoubleEG/Run2015D-PromptReco-v4/MINIAOD",
-            "/MuonEG/Run2015D-PromptReco-v4/MINIAOD",
+            "/SingleMuon/Run2015C_25ns-05Oct2015-v1/MINIAOD",
+            "/SingleMuon/Run2015D-05Oct2015-v1/MINIAOD",
             "/SingleMuon/Run2015D-PromptReco-v4/MINIAOD",
-            "/SingleElectron/Run2015D-PromptReco-v4/MINIAOD"
+            "/SingleElectron/Run2015C_25ns-05Oct2015-v1/MINIAOD",
+            "/SingleElectron/Run2015D-05Oct2015-v1/MINIAOD",
+            "/SingleElectron/Run2015D-PromptReco-v4/MINIAOD",
+            "/DoubleMuon/Run2015C_25ns-05Oct2015-v1/MINIAOD",
+            "/DoubleMuon/Run2015D-05Oct2015-v1/MINIAOD",
+            "/DoubleMuon/Run2015D-PromptReco-v4/MINIAOD",
+            "/DoubleEG/Run2015C_25ns-05Oct2015-v1/MINIAOD",
+            "/DoubleEG/Run2015D-05Oct2015-v1/MINIAOD",
+            "/DoubleEG/Run2015D-PromptReco-v4/MINIAOD",
+            "/MuonEG/Run2015C_25ns-05Oct2015-v1/MINIAOD",
+            "/MuonEG/Run2015D-05Oct2015-v2/MINIAOD", #not v1!?
+            "/MuonEG/Run2015D-PromptReco-v4/MINIAOD",
             ]
         
         self.McDatasets_MiniAODv2   = [

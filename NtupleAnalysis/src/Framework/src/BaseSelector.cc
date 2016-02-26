@@ -38,7 +38,7 @@ void BaseSelector::bookInternal(TDirectory *dir) {
 
 void BaseSelector::processInternal(Long64_t entry) {
   fEventWeight.beginEvent();
-  //====== Set event weight as negative is generator weight is negative
+  //====== Set event weight as negative if generator weight is negative (only for MC @NLO)
   if (fEvent.isMC()) {
     if (fEvent.genWeight().weight() < 0.0) {
       fEventWeight.multiplyWeight(-1.0);
@@ -61,13 +61,16 @@ void BaseSelector::processInternal(Long64_t entry) {
   
   //====== Top pT weighting
   if (fEvent.isMC() && isttbar()) {
+    
+    std::cout << "=== BaseSelector::processInternal():\n\t Fix top-pt weights and then unccoments the code below" << std::endl;
     // For down variation, do not apply weight
-    if (iTopPtVariation == 0) {
-      fEventWeight.multiplyWeight(std::abs(fEvent.topPtWeight().weight()));
-    } else if (iTopPtVariation == 1) {
-      // For up variation, apply weight twice 
-      fEventWeight.multiplyWeight(fEvent.topPtWeight().weight() * fEvent.topPtWeight().weight());
-    }
+    // if (iTopPtVariation == 0) {
+    //   fEventWeight.multiplyWeight(std::abs(fEvent.topPtWeight().weight()));
+    // } else if (iTopPtVariation == 1) {
+    //   // For up variation, apply weight twice 
+    //   fEventWeight.multiplyWeight(fEvent.topPtWeight().weight() * fEvent.topPtWeight().weight());
+    // }
+    
   }
   cTopPtReweighted.increment();
   
