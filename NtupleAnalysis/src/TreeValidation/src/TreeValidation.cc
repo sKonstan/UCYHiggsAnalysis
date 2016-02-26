@@ -48,7 +48,7 @@ private:
   ElectronSelection fElectronSelection;
   MuonSelection fMuonSelection;
   JetSelection fJetSelection;
-  AngularCutsCollinear fAngularCutsCollinear;
+  // AngularCutsCollinear fAngularCutsCollinear;
   BJetSelection fBJetSelection;
   METSelection fMETSelection;
   Count cSelected;
@@ -89,8 +89,8 @@ TreeValidation::TreeValidation(const ParameterSet& config)
 		   fEventCounter, fHistoWrapper, nullptr, "Veto"),
     fJetSelection(config.getParameter<ParameterSet>("JetSelection"),
 		  fEventCounter, fHistoWrapper, nullptr, ""),
-    fAngularCutsCollinear(config.getParameter<ParameterSet>("AngularCutsCollinear"),
-			  fEventCounter, fHistoWrapper, nullptr, ""),
+    // fAngularCutsCollinear(config.getParameter<ParameterSet>("AngularCutsCollinear"),
+    // 			  fEventCounter, fHistoWrapper, nullptr, ""),
     fBJetSelection(config.getParameter<ParameterSet>("BJetSelection"),
 		   fEventCounter, fHistoWrapper, nullptr, ""),
     fMETSelection(config.getParameter<ParameterSet>("METSelection"),
@@ -106,7 +106,7 @@ void TreeValidation::book(TDirectory *dir) {
   fElectronSelection.bookHistograms(dir);
   fMuonSelection.bookHistograms(dir);
   fJetSelection.bookHistograms(dir);
-  fAngularCutsCollinear.bookHistograms(dir);
+  // fAngularCutsCollinear.bookHistograms(dir);
   fBJetSelection.bookHistograms(dir);
   fMETSelection.bookHistograms(dir);
 

@@ -44,16 +44,13 @@ public:
   
   //===== unique filling methods (to be called inside the event selection routine only, i.e. (before a passing decision is done))
   void fillControlPlotsAtVertexSelection(const Event& event);
-  //void fillControlPlotsAtVetoTauSelection(const Event& event, const VetoTauSelection::Data& tauVetoData);
   void fillControlPlotsAtElectronSelection(const Event& event, const ElectronSelection::Data& data);
   void fillControlPlotsAtMuonSelection(const Event& event, const MuonSelection::Data& data);
   void fillControlPlotsAtJetSelection(const Event& event, const JetSelection::Data& data);
-  void fillControlPlotsAtAngularCutsCollinear(const Event& event, const AngularCutsCollinear::Data& data);
+  // void fillControlPlotsAtAngularCutsCollinear(const Event& event, const AngularCutsCollinear::Data& data);
   void fillControlPlotsAtMETSelection(const Event& event, const METSelection::Data& data);
   void fillControlPlotsAtBtagging(const Event& event, const BJetSelection::Data& data);
-  void fillControlPlotsAtAngularCutsBackToBack(const Event& event, const AngularCutsBackToBack::Data& data);
-  //void fillControlPlotsAtTopSelection(const Event& event, const TopSelectionManager::Data& data);
-  //void fillControlPlotsAtEvtTopology(const Event& event, const EvtTopology::Data& data);
+  // void fillControlPlotsAtAngularCutsBackToBack(const Event& event, const AngularCutsBackToBack::Data& data);
   
   //===== unique filling methods (to be called AFTER return statement from analysis routine)
   void setNvertices(int vtx) { iVertices = vtx; fPUDependencyPlots->setNvtx(vtx); }
@@ -64,7 +61,6 @@ public:
   void fillControlPlotsAfterTopologicalSelections(const Event& event);
   void fillControlPlotsAfterAllSelections(const Event& event);
   void fillControlPlotsAfterAllSelectionsWithProbabilisticBtag(const Event& event, const METSelection::Data& metData, double btagWeight);
-  //void fillControlPlotsAfterAllSelectionsWithFullMass(const Event& event, FullHiggsMassCalculator::Data& data);
 
   /// Getter for all vertices
   int nVertices() const { return iVertices; }
@@ -98,11 +94,10 @@ private:
   const HistogramSettings fNjetsBinSettings;
   const HistogramSettings fMetBinSettings;
   const HistogramSettings fBJetDiscriminatorBinSettings;
-  const HistogramSettings fAngularCuts1DSettings;
+  // const HistogramSettings fAngularCuts1DSettings;
   //const HistogramSettings fTopMassBinSettings;
   //const HistogramSettings fWMassBinSettings;
   const HistogramSettings fMtBinSettings;
-  //const HistogramSettings fInvmassBinSettings;
 
   ///===== Histograms
   // NOTE: think before adding a histogram - they do slow down the analysis a lot
@@ -128,12 +123,12 @@ private:
   // MET trigger SF
   HistoSplitter::SplittedTripletTH1s hCtrlNjetsAfterJetSelectionAndMETSF;
   
-  // collinear angular cuts
-  HistoSplitter::SplittedTripletTH1s hCtrlCollinearAngularCutsMinimum;
-  HistoSplitter::SplittedTripletTH1s hCtrlCollinearAngularCutsJet1;
-  HistoSplitter::SplittedTripletTH1s hCtrlCollinearAngularCutsJet2;
-  HistoSplitter::SplittedTripletTH1s hCtrlCollinearAngularCutsJet3;
-  HistoSplitter::SplittedTripletTH1s hCtrlCollinearAngularCutsJet4;
+  // // collinear angular cuts
+  // HistoSplitter::SplittedTripletTH1s hCtrlCollinearAngularCutsMinimum;
+  // HistoSplitter::SplittedTripletTH1s hCtrlCollinearAngularCutsJet1;
+  // HistoSplitter::SplittedTripletTH1s hCtrlCollinearAngularCutsJet2;
+  // HistoSplitter::SplittedTripletTH1s hCtrlCollinearAngularCutsJet3;
+  // HistoSplitter::SplittedTripletTH1s hCtrlCollinearAngularCutsJet4;
   
   // this is the point of "standard selections"
   HistoSplitter::SplittedTripletTH1s hCtrlNVerticesAfterStdSelections;
@@ -163,12 +158,12 @@ private:
   HistoSplitter::SplittedTripletTH1s hCtrlBJetEta;
   HistoSplitter::SplittedTripletTH1s hCtrlBDiscriminator;
   
-  // back-to-back angular cuts
-  HistoSplitter::SplittedTripletTH1s hCtrlBackToBackAngularCutsMinimum;
-  HistoSplitter::SplittedTripletTH1s hCtrlBackToBackAngularCutsJet1;
-  HistoSplitter::SplittedTripletTH1s hCtrlBackToBackAngularCutsJet2;
-  HistoSplitter::SplittedTripletTH1s hCtrlBackToBackAngularCutsJet3;
-  HistoSplitter::SplittedTripletTH1s hCtrlBackToBackAngularCutsJet4;
+  // // back-to-back angular cuts
+  // HistoSplitter::SplittedTripletTH1s hCtrlBackToBackAngularCutsMinimum;
+  // HistoSplitter::SplittedTripletTH1s hCtrlBackToBackAngularCutsJet1;
+  // HistoSplitter::SplittedTripletTH1s hCtrlBackToBackAngularCutsJet2;
+  // HistoSplitter::SplittedTripletTH1s hCtrlBackToBackAngularCutsJet3;
+  // HistoSplitter::SplittedTripletTH1s hCtrlBackToBackAngularCutsJet4;
 
   // control plots after all selections
   HistoSplitter::SplittedTripletTH1s hCtrlNVerticesAfterAllSelections;
@@ -189,7 +184,7 @@ private:
   HistoSplitter::SplittedTripletTH1s hCtrlJetEtaAfterAllSelections;
   HistoSplitter::SplittedTripletTH2s hCtrlJetEtaPhiAfterAllSelections;
 
-  HistoSplitter::SplittedTripletTH1s hCtrlCollinearAngularCutsMinimumAfterAllSelections;
+  //HistoSplitter::SplittedTripletTH1s hCtrlCollinearAngularCutsMinimumAfterAllSelections;
 
   HistoSplitter::SplittedTripletTH1s hCtrlMETAfterAllSelections;
   HistoSplitter::SplittedTripletTH1s hCtrlMETPhiAfterAllSelections;
@@ -199,7 +194,7 @@ private:
   HistoSplitter::SplittedTripletTH1s hCtrlBJetEtaAfterAllSelections;
   HistoSplitter::SplittedTripletTH1s hCtrlBDiscriminatorAfterAllSelections;
   
-  HistoSplitter::SplittedTripletTH1s hCtrlBackToBackAngularCutsMinimumAfterAllSelections;
+  // HistoSplitter::SplittedTripletTH1s hCtrlBackToBackAngularCutsMinimumAfterAllSelections;
 
   HistoSplitter::SplittedTripletTH1s hCtrlDeltaPhiTauMetAfterAllSelections;
   
@@ -224,10 +219,10 @@ private:
   ElectronSelection::Data fElectronData;
   MuonSelection::Data fMuonData;
   JetSelection::Data fJetData;
-  AngularCutsBackToBack::Data fCollinearAngularCutsData;
+  // AngularCutsBackToBack::Data fCollinearAngularCutsData;
   BJetSelection::Data fBJetData;
   METSelection::Data fMETData;
-  AngularCutsCollinear::Data fBackToBackAngularCutsData;
+  //AngularCutsCollinear::Data fBackToBackAngularCutsData;
 
   /// Helper
   CommonPlotsHelper fHelper;
