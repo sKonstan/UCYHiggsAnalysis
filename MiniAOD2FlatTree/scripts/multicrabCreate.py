@@ -462,7 +462,7 @@ if __name__ == "__main__":
 
     parser.add_option("-d", "--dir", dest="taskDirName", type="string", default="", help="Custom name for multiCRAB directory name")
 
-    parser.add_option("-t", "--datasetType", dest="datasetType", type="string", default="", help="The type/group of datasets to run on. Currently the available types/groups are: \"All\", \"Signal\", \"Background\", \"CollisionData\", \"MC\", \"SelectedMC\", \"DoubleMuon\", \"DoubleEG\", \"MuonEG\", \"SingleMuon\", \"SingleElectron\", \"DiLepton\".")
+    parser.add_option("-t", "--datasetType", dest="datasetType", type="string", default="", help="The type/group of datasets to run on. Currently the available types/groups are: \"All\", \"Signal\", \"Background\", \"CollisionData\", \"MC\", \"SelectedMC\", \"DoubleMuon\", \"DoubleEG\", \"MuonEG\", \"SingleMuon\", \"SingleElectron\".")
 
     (opts, args) = parser.parse_args()
 

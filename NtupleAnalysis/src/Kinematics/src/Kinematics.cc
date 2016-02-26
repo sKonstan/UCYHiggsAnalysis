@@ -17,12 +17,7 @@ class Kinematics: public BaseSelector {
 public:
   struct AscendingOrder{ bool operator() (double a, double b) const{  return ( a < b ); } };
   struct DescendingOrder{ bool operator() (double a, double b) const{  return ( a > b ); } };
-enum BTagPartonType {
-    kBTagB,
-    kBTagC,
-    kBtagG,
-    kBtagLight,
-  };
+
   explicit Kinematics(const ParameterSet& config);
   virtual ~Kinematics() {}
 
@@ -34,7 +29,6 @@ enum BTagPartonType {
   virtual void process(Long64_t entry) override;
 
 private:
-  // Input parameters
   const double cfg_ElePtCutMin;
   const double cfg_EleEtaCutMax;
   const double cfg_MuPtCutMin;
@@ -49,12 +43,13 @@ private:
 
   // Event selection classes and event counters (in same order like they are applied)
   Count cAllEvents;
-  Count cElectrons;
-  Count cMuons;
-  Count cBjets;
   Count cTrigger;
+  Count cLeptons;
+  // Count cElectrons;
+  // Count cMuons;
+  Count cBjets;
+  Count cMET;
   // ElectronSelection fElectronSelection;
-  // Count cSelected;
     
   // Non-common histograms
   WrappedTH1* hAllElectronsPt;
@@ -65,6 +60,10 @@ private:
   WrappedTH1* hAllMuonsEta;
   WrappedTH1* hPassedMuonsPt;
   WrappedTH1* hPassedMuonsEta;
+  WrappedTH1* hAllJetsPt;
+  WrappedTH1* hAllJetsEta;
+  WrappedTH1* hPassedJetsPt;
+  WrappedTH1* hPassedJetsEta;
 
   WrappedTH1* hAllGenElectronsPt;
   WrappedTH1* hAllGenElectronsEta;
@@ -94,10 +93,12 @@ Kinematics::Kinematics(const ParameterSet& config)
     cfg_BjetEtaCutMax(config.getParameter<double>("BjetPtCutMax")),
     cfg_LeptonTriggerPtCutMin(config.getParameter<std::vector<double> >("LeptonTriggerPtCutMin")),
     cAllEvents(fEventCounter.addCounter("All")),
-    cElectrons(fEventCounter.addCounter("Electrons")),
-    cMuons(fEventCounter.addCounter("Muons")),
+    cTrigger(fEventCounter.addCounter("Trigger")),
+    cLeptons(fEventCounter.addCounter("Leptons")),
+    // cElectrons(fEventCounter.addCounter("Electrons")),
+    // cMuons(fEventCounter.addCounter("Muons")),
     cBjets(fEventCounter.addCounter("Bjets")),
-    cTrigger(fEventCounter.addCounter("Trigger"))
+    cMET(fEventCounter.addCounter("MET"))
 { }
 
 void Kinematics::book(TDirectory *dir) {
@@ -105,6 +106,7 @@ void Kinematics::book(TDirectory *dir) {
   std::cout << "=== Kinematics.cc:\n\t Kinematics::book()" << std::endl;
 #endif
 
+  
   // Book histograms in event selection classes
   // fElectronSelection.bookHistograms(dir);
   // fMuonSelection.bookHistograms(dir);
@@ -112,18 +114,23 @@ void Kinematics::book(TDirectory *dir) {
   // fBJetSelection.bookHistograms(dir);
   // fMETSelection.bookHistograms(dir);
 
-  // Book non-common histograms
+  // Book non-common histograms   // "Never", "Systematics", "Vital", "Informative", "Debug"
+
   hPassedElectronsPt  = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "PassedElectronsPt" , "PassedElectronsPt:Electron p_{T}, GeVc^{-1}:Event", PT_BINS, 0, PT_MAX );
   hPassedElectronsEta = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "PassedElectronsEta", "PassedElectronsEta:Electron #eta:Events"  , ETA_BINS, -ETA_MAX, ETA_MAX);
   hPassedMuonsPt      = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "PassedMuonsPt"     , "PassedMuonsPt:Muon p_{T}, GeVc^{-1}:Event", PT_BINS , 0       , PT_MAX );
   hPassedMuonsEta     = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "PassedMuonsEta"    , "PassedMuonsEta:Muon #eta:Events"          , ETA_BINS, -ETA_MAX, ETA_MAX);
+  hPassedJetsPt       = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "PassedJetsPt"      , "PassedJetsPt:Jet p_{T}, GeVc^{-1}:Event"  , PT_BINS , 0       , PT_MAX );
+  hPassedJetsEta      = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "PassedJetsEta"     , "PassedJetsEta:Jet #eta:Events"            , ETA_BINS, -ETA_MAX, ETA_MAX);
   //
   hAllElectronsPt     = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllElectronsPt" , "AllElectronsPt:Electron p_{T}, GeVc^{-1}:Event", PT_BINS, 0, PT_MAX );
   hAllElectronsEta    = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllElectronsEta", "AllElectronsEta:Electron #eta:Events"  , ETA_BINS, -ETA_MAX, ETA_MAX);
   hAllMuonsPt         = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllMuonsPt"     , "AllMuonsPt:Muon p_{T}, GeVc^{-1}:Event", PT_BINS , 0       , PT_MAX );
   hAllMuonsEta        = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllMuonsEta"    , "AllMuonsEta:Muon #eta:Events"          , ETA_BINS, -ETA_MAX, ETA_MAX);
+  hAllJetsPt          = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllJetsPt"      , "AllJetsPt:Jet p_{T}, GeVc^{-1}:Event"  , PT_BINS , 0       , PT_MAX );
+  hAllJetsEta         = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllJetsEta"     , "AllJetsEta:Jet #eta:Events"            , ETA_BINS, -ETA_MAX, ETA_MAX);
 
-
+  //
   hAllGenElectronsPt     = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllGenElectronsPt"    , "AllGenElectronsPt:Jet p_{T}, GeVc^{-1}:N_{jets}", PT_BINS, 0, PT_MAX);
   hAllGenMuonsPt         = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllGenMuonsPt"        , "AllGenMuonsPt:Jet p_{T}, GeVc^{-1}:N_{jets}"    , PT_BINS, 0, PT_MAX);
   hAllGenBjetsPt         = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllGenBjetsPt"        , "AllGenBjetsPt:Jet p_{T}, GeVc^{-1}:N_{jets}"    , PT_BINS, 0, PT_MAX);
@@ -156,31 +163,89 @@ void Kinematics::process(Long64_t entry) {
 #ifdef DEBUG
   std::cout << "=== Kinematics.cc:\n\t Kinematics::process()" << std::endl;
 #endif
+  
+  unsigned int nElectrons = 0;
+  unsigned int nMuons     = 0;
+  unsigned int nBjets     = 0;
+  unsigned int nLeptons   = 0;
 
-
+  // Electrons
   for(Electron elec: fEvent.electrons()) {
-    hPassedElectronsPt->Fill(elec.pt());
-    hPassedElectronsEta->Fill(elec.eta());
-    if(elec.pt() < 15 && std::abs(elec.eta()) > 2.4) continue;
-    hAllElectronsPt->Fill(elec.pt());
+    hAllElectronsPt ->Fill(elec.pt() );
     hAllElectronsEta->Fill(elec.eta());
+
+    if(elec.pt() < cfg_ElePtCutMin && std::abs(elec.eta()) > cfg_EleEtaCutMax) continue;
+    if (!elec.mvaEleID_PHYS14_PU20bx25_nonTrig_V1_wp80()) continue;
+    nElectrons++;
+
+  }
+
+  // Muons
+  for(Muon mu: fEvent.muons()) {
+    hAllMuonsPt ->Fill(mu.pt() );
+    hAllMuonsEta->Fill(mu.eta());
+    
+    if(mu.pt() < cfg_MuPtCutMin && std::abs(mu.eta()) > cfg_MuEtaCutMax) continue;
+    if ( !mu.muIDTight() ) continue;
+    nMuons++;
+  }
+  
+  
+  // Jets
+  for(Jet jet: fEvent.jets()) {
+    hAllJetsPt ->Fill(jet.pt() );
+    hAllJetsEta->Fill(jet.eta());
+    
+    if(jet.pt() < cfg_BjetPtCutMin && std::abs(jet.eta()) > cfg_BjetEtaCutMax) continue;
+    if ( jet.pfCombinedSecondaryVertexV2BJetTags() < 0.5 ) continue;
+    // if ( !jet.IDtight() ) continue;
+    nBjets++;
+  }
+  nLeptons = nMuons + nElectrons;  
+
+
+  // Fill counters
+  cAllEvents.increment();
+
+  // std::cout << "fEvent.passTriggerDecision() = " << fEvent.passTriggerDecision() << std::endl;  
+  if( !fEvent.passTriggerDecision() ) return;
+
+  cTrigger.increment();
+
+  if (nLeptons < 2) return;
+  cLeptons.increment();
+
+  if (nBjets < 2) return;
+  cBjets.increment();
+
+  if (fEvent.met_Type1().et() < 50) return;
+  cMET.increment();
+
+
+  // Fill histograms (after selections)
+  for(Electron elec: fEvent.electrons()) {
+    hPassedElectronsPt ->Fill(elec.pt() );
+    hPassedElectronsEta->Fill(elec.eta());
   }
 
   for(Muon mu: fEvent.muons()) {
-    hPassedMuonsPt->Fill(mu.pt());
+    hPassedMuonsPt ->Fill(mu.pt() );
     hPassedMuonsEta->Fill(mu.eta());
-    if(mu.pt() < 15 && std::abs(mu.eta()) > 2.4) continue;
-    hAllMuonsPt->Fill(mu.pt());
-    hAllMuonsEta->Fill(mu.eta());
+  }
+
+  for(Jet jet: fEvent.jets()) {
+    hPassedJetsPt ->Fill(jet.pt() );
+    hPassedJetsEta->Fill(jet.eta());
   }
 
 
-  //  /* attikis
+
+
+
+  /*-
   if( !fEvent.isMC() ) return;
 
   // Variable declarations
-  // static double firstEvt = fEvent.eventID().event(); // static = only be executed once
-  // double evtNum          = fEvent.eventID().event();
   int genP_Index         = -1;
   size_t nGenMuons       = 0;
   size_t nGenElectrons   = 0;
@@ -281,11 +346,19 @@ void Kinematics::process(Long64_t entry) {
 
   // Increment Counters    
   cAllEvents.increment();
-  if (nGenElectrons > 0) cElectrons.increment();
-  if (nGenMuons > 0) cMuons.increment();
-  if (nGenBjets > 0) cBjets.increment();
-  if (bPassTrg) cTrigger.increment();
-  // attikis */ 
+  
+  bool bFill = (nGenElectrons > 0);
+  if (bFill) cElectrons.increment();
+
+  bFill = (nGenElectrons > 0) && (nGenMuons > 0);
+  if (bFill) cMuons.increment();
+
+  bFill = (nGenElectrons > 0) && (nGenMuons > 0)  && (nGenBjets > 0);
+  if (bFill) cBjets.increment();
+
+  bFill = (nGenElectrons > 0) && (nGenMuons > 0)  && (nGenBjets > 0) && (bPassTrg);
+  if (bFill) cTrigger.increment();
+  */
 
   return;
 }
