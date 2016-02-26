@@ -25,14 +25,14 @@ void PUDependencyPlots::book(TDirectory* dir, bool isData) {
                                         fHistoSettings.bins(), fHistoSettings.min(), fHistoSettings.max());
   hNvtxJetSelection = fHistoWrapper.makeTH<TH1F>(level, myDir, "NvtxJetSelection", ";N_{vtx};N_{events}",
                                         fHistoSettings.bins(), fHistoSettings.min(), fHistoSettings.max());
-  hNvtxAngularCutsCollinear = fHistoWrapper.makeTH<TH1F>(level, myDir, "NvtxAngularCutsCollinear", ";N_{vtx};N_{events}",
-                                        fHistoSettings.bins(), fHistoSettings.min(), fHistoSettings.max());
+  // hNvtxAngularCutsCollinear = fHistoWrapper.makeTH<TH1F>(level, myDir, "NvtxAngularCutsCollinear", ";N_{vtx};N_{events}",
+  //                                       fHistoSettings.bins(), fHistoSettings.min(), fHistoSettings.max());
   hNvtxMETSelection = fHistoWrapper.makeTH<TH1F>(level, myDir, "NvtxMETSelection", ";N_{vtx};N_{events}",
                                         fHistoSettings.bins(), fHistoSettings.min(), fHistoSettings.max());
   hNvtxBtagging = fHistoWrapper.makeTH<TH1F>(level, myDir, "NvtxBtagging", ";N_{vtx};N_{events}",
                                         fHistoSettings.bins(), fHistoSettings.min(), fHistoSettings.max());
-  hNvtxAngularCutsBackToBack = fHistoWrapper.makeTH<TH1F>(level, myDir, "NvtxAngularCutsBackToBack", ";N_{vtx};N_{events}",
-                                        fHistoSettings.bins(), fHistoSettings.min(), fHistoSettings.max());
+  // hNvtxAngularCutsBackToBack = fHistoWrapper.makeTH<TH1F>(level, myDir, "NvtxAngularCutsBackToBack", ";N_{vtx};N_{events}",
+  //                                       fHistoSettings.bins(), fHistoSettings.min(), fHistoSettings.max());
   hNvtxAllSelections = fHistoWrapper.makeTH<TH1F>(level, myDir, "NvtxAllSelections", ";N_{vtx};N_{events}",
                                         fHistoSettings.bins(), fHistoSettings.min(), fHistoSettings.max());
   hNvtxAllSelectionsWithProbabilisticBtag = fHistoWrapper.makeTH<TH1F>(level, myDir, "NvtxAllSelectionsWithProbabilisticBtag", ";N_{vtx};N_{events}",
@@ -56,8 +56,6 @@ void PUDependencyPlots::fillControlPlotsAfterAntiIsolatedTauSelection(const Even
   hNvtxAntiIsolatedTau->Fill(fNvtx);
 }
 
-//void PUDependencyPlots::fillControlPlotsAtVetoTauSelection(const Event& event, const VetoTauSelection::Data& tauVetoData) { }
-
 void PUDependencyPlots::fillControlPlotsAtElectronSelection(const Event& event, const ElectronSelection::Data& data)  {
   if (data.hasIdentifiedElectrons()) return;
   hNvtxElectronVeto->Fill(fNvtx);
@@ -73,10 +71,10 @@ void PUDependencyPlots::fillControlPlotsAtJetSelection(const Event& event, const
   hNvtxJetSelection->Fill(fNvtx);
 }
 
-void PUDependencyPlots::fillControlPlotsAtAngularCutsCollinear(const Event& event, const AngularCutsCollinear::Data& data)  {
-  if (!data.passedSelection()) return;
-  hNvtxAngularCutsCollinear->Fill(fNvtx);
-}
+// void PUDependencyPlots::fillControlPlotsAtAngularCutsCollinear(const Event& event, const AngularCutsCollinear::Data& data)  {
+//   if (!data.passedSelection()) return;
+//   hNvtxAngularCutsCollinear->Fill(fNvtx);
+//}
 
 void PUDependencyPlots::fillControlPlotsAtMETSelection(const Event& event, const METSelection::Data& data)  {
   if (!data.passedSelection()) return;
@@ -88,10 +86,10 @@ void PUDependencyPlots::fillControlPlotsAtBtagging(const Event& event, const BJe
   hNvtxBtagging->Fill(fNvtx);
 }
 
-void PUDependencyPlots::fillControlPlotsAtAngularCutsBackToBack(const Event& event, const AngularCutsBackToBack::Data& data)  {
-  if (!data.passedSelection()) return;
-  hNvtxAngularCutsBackToBack->Fill(fNvtx);
-}
+// void PUDependencyPlots::fillControlPlotsAtAngularCutsBackToBack(const Event& event, const AngularCutsBackToBack::Data& data)  {
+//   if (!data.passedSelection()) return;
+//   hNvtxAngularCutsBackToBack->Fill(fNvtx);
+// }
 
 void PUDependencyPlots::fillControlPlotsAfterAllSelections(const Event& event)  {
   hNvtxAllSelections->Fill(fNvtx);

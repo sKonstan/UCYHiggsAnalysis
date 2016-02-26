@@ -22,11 +22,8 @@ CommonPlots::CommonPlots(const ParameterSet& config, const AnalysisType type, Hi
   fNjetsBinSettings(config.getParameter<ParameterSet>("njetsBins")),
   fMetBinSettings(config.getParameter<ParameterSet>("metBins")),
   fBJetDiscriminatorBinSettings(config.getParameter<ParameterSet>("bjetDiscrBins")),
-  fAngularCuts1DSettings(config.getParameter<ParameterSet>("angularCuts1DBins")),
-  //fTopMassBinSettings(config.getParameter<ParameterSet>("topMassBins")),
-  //fWMassBinSettings(config.getParameter<ParameterSet>("WMassBins")),
+  // fAngularCuts1DSettings(config.getParameter<ParameterSet>("angularCuts1DBins")),
   fMtBinSettings(config.getParameter<ParameterSet>("mtBins"))
-  //fInvmassBinSettings(config.getParameter<ParameterSet>("invmassBins")),
 { 
   // Create CommonPlotsBase objects
   fPUDependencyPlots = new PUDependencyPlots(histoWrapper, config.getParameter<bool>("enablePUDependencyPlots"), fNVerticesBinSettings);
@@ -90,22 +87,22 @@ void CommonPlots::book(TDirectory *dir, bool isData) {
     "NjetsAfterJetSelectionAndMETSF", ";Number of selected jets;N_{events}",
     fNjetsBinSettings.bins(), fNjetsBinSettings.min(), fNjetsBinSettings.max());
   
-  // collinear angular cuts
-  fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kVital, myDirs, hCtrlCollinearAngularCutsMinimum, 
-    "CollinearAngularCutsMinimum", ";min(#sqrt{#Delta#phi(#tau,MET)^{2}+(180^{#circ}-#Delta#phi(jet_{1..n},MET))^{2}}), ^{#circ};N_{events}", 
-    fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
-  fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kInformative, myDirs, hCtrlCollinearAngularCutsJet1, 
-    "CollinearAngularCutsJet1", ";min(#sqrt{#Delta#phi(#tau,MET)^{2}+(180^{#circ}-#Delta#phi(jet_{1},MET))^{2}}), ^{#circ};N_{events}", 
-    fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
-  fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kInformative, myDirs, hCtrlCollinearAngularCutsJet2, 
-    "CollinearAngularCutsJet2", ";min(#sqrt{#Delta#phi(#tau,MET)^{2}+(180^{#circ}-#Delta#phi(jet_{2},MET))^{2}}), ^{#circ};N_{events}", 
-    fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
-  fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kInformative, myDirs, hCtrlCollinearAngularCutsJet3, 
-    "CollinearAngularCutsJet3", ";min(#sqrt{#Delta#phi(#tau,MET)^{2}+(180^{#circ}-#Delta#phi(jet_{3},MET))^{2}}), ^{#circ};N_{events}", 
-    fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
-  fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kInformative, myDirs, hCtrlCollinearAngularCutsJet4, 
-    "CollinearAngularCutsJet4", ";min(#sqrt{#Delta#phi(#tau,MET)^{2}+(180^{#circ}-#Delta#phi(jet_{4},MET))^{2}}), ^{#circ};N_{events}", 
-    fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
+  // // collinear angular cuts
+  // fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kVital, myDirs, hCtrlCollinearAngularCutsMinimum, 
+  //   "CollinearAngularCutsMinimum", ";min(#sqrt{#Delta#phi(#tau,MET)^{2}+(180^{#circ}-#Delta#phi(jet_{1..n},MET))^{2}}), ^{#circ};N_{events}", 
+  //   fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
+  // fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kInformative, myDirs, hCtrlCollinearAngularCutsJet1, 
+  //   "CollinearAngularCutsJet1", ";min(#sqrt{#Delta#phi(#tau,MET)^{2}+(180^{#circ}-#Delta#phi(jet_{1},MET))^{2}}), ^{#circ};N_{events}", 
+  //   fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
+  // fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kInformative, myDirs, hCtrlCollinearAngularCutsJet2, 
+  //   "CollinearAngularCutsJet2", ";min(#sqrt{#Delta#phi(#tau,MET)^{2}+(180^{#circ}-#Delta#phi(jet_{2},MET))^{2}}), ^{#circ};N_{events}", 
+  //   fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
+  // fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kInformative, myDirs, hCtrlCollinearAngularCutsJet3, 
+  //   "CollinearAngularCutsJet3", ";min(#sqrt{#Delta#phi(#tau,MET)^{2}+(180^{#circ}-#Delta#phi(jet_{3},MET))^{2}}), ^{#circ};N_{events}", 
+  //   fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
+  // fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kInformative, myDirs, hCtrlCollinearAngularCutsJet4, 
+  //   "CollinearAngularCutsJet4", ";min(#sqrt{#Delta#phi(#tau,MET)^{2}+(180^{#circ}-#Delta#phi(jet_{4},MET))^{2}}), ^{#circ};N_{events}", 
+  //   fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
 
   // this is the point of "standard selections"
   fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kVital, myDirs, hCtrlNVerticesAfterStdSelections, 
@@ -180,22 +177,22 @@ void CommonPlots::book(TDirectory *dir, bool isData) {
     "BtagDiscriminator", ";b tag discriminator;N_{events}",
     fBJetDiscriminatorBinSettings.bins(), fBJetDiscriminatorBinSettings.min(), fBJetDiscriminatorBinSettings.max());
   
-  // back-to-back angular cuts
-  fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kVital, myDirs, hCtrlBackToBackAngularCutsMinimum, 
-    "BackToBackAngularCutsMinimum", ";min(#sqrt{(180^{#circ}-#Delta#phi(#tau,MET))^{2}+#Delta#phi(jet_{1..n},MET)^{2}}), ^{#circ};N_{events}", 
-    fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
-  fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kInformative, myDirs, hCtrlBackToBackAngularCutsJet1, 
-    "BackToBackAngularCutsJet1", ";min(#sqrt{#Delta#phi(#tau,MET)^{2}+(180^{#circ}-#Delta#phi(jet_{1},MET))^{2}}), ^{#circ};N_{events}", 
-    fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
-  fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kInformative, myDirs, hCtrlBackToBackAngularCutsJet2, 
-    "BackToBackAngularCutsJet2", ";min(#sqrt{#Delta#phi(#tau,MET)^{2}+(180^{#circ}-#Delta#phi(jet_{2},MET))^{2}}), ^{#circ};N_{events}", 
-    fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
-  fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kInformative, myDirs, hCtrlBackToBackAngularCutsJet3, 
-    "BackToBackAngularCutsJet3", ";min(#sqrt{#Delta#phi(#tau,MET)^{2}+(180^{#circ}-#Delta#phi(jet_{3},MET))^{2}}), ^{#circ};N_{events}", 
-    fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
-  fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kInformative, myDirs, hCtrlBackToBackAngularCutsJet4, 
-    "BackToBackAngularCutsJet4", ";min(#sqrt{#Delta#phi(#tau,MET)^{2}+(180^{#circ}-#Delta#phi(jet_{4},MET))^{2}}), ^{#circ};N_{events}", 
-    fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
+  // // back-to-back angular cuts
+  // fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kVital, myDirs, hCtrlBackToBackAngularCutsMinimum, 
+  //   "BackToBackAngularCutsMinimum", ";min(#sqrt{(180^{#circ}-#Delta#phi(#tau,MET))^{2}+#Delta#phi(jet_{1..n},MET)^{2}}), ^{#circ};N_{events}", 
+  //   fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
+  // fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kInformative, myDirs, hCtrlBackToBackAngularCutsJet1, 
+  //   "BackToBackAngularCutsJet1", ";min(#sqrt{#Delta#phi(#tau,MET)^{2}+(180^{#circ}-#Delta#phi(jet_{1},MET))^{2}}), ^{#circ};N_{events}", 
+  //   fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
+  // fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kInformative, myDirs, hCtrlBackToBackAngularCutsJet2, 
+  //   "BackToBackAngularCutsJet2", ";min(#sqrt{#Delta#phi(#tau,MET)^{2}+(180^{#circ}-#Delta#phi(jet_{2},MET))^{2}}), ^{#circ};N_{events}", 
+  //   fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
+  // fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kInformative, myDirs, hCtrlBackToBackAngularCutsJet3, 
+  //   "BackToBackAngularCutsJet3", ";min(#sqrt{#Delta#phi(#tau,MET)^{2}+(180^{#circ}-#Delta#phi(jet_{3},MET))^{2}}), ^{#circ};N_{events}", 
+  //   fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
+  // fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kInformative, myDirs, hCtrlBackToBackAngularCutsJet4, 
+  //   "BackToBackAngularCutsJet4", ";min(#sqrt{#Delta#phi(#tau,MET)^{2}+(180^{#circ}-#Delta#phi(jet_{4},MET))^{2}}), ^{#circ};N_{events}", 
+  //   fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
 
   // control plots after all selections
   fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kVital, myDirs, hCtrlNVerticesAfterAllSelections, 
@@ -251,9 +248,9 @@ void CommonPlots::book(TDirectory *dir, bool isData) {
     fEtaBinSettings.bins(), fEtaBinSettings.min(), fEtaBinSettings.max(),
     fPhiBinSettings.bins(), fPhiBinSettings.min(), fPhiBinSettings.max());
 
-  fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kVital, myDirs, hCtrlCollinearAngularCutsMinimumAfterAllSelections, 
-    "CollinearAngularCutsMinimum_AfterAllSelections", ";min(#sqrt{#Delta#phi(#tau,MET)^{2}+(180^{#circ}-#Delta#phi(jet_{1..n},MET))^{2}}), ^{#circ};N_{events}", 
-    fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
+  //  fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kVital, myDirs, hCtrlCollinearAngularCutsMinimumAfterAllSelections, 
+  //    "CollinearAngularCutsMinimum_AfterAllSelections", ";min(#sqrt{#Delta#phi(#tau,MET)^{2}+(180^{#circ}-#Delta#phi(jet_{1..n},MET))^{2}}), ^{#circ};N_{events}", 
+  //    fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
 
   fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kVital, myDirs, hCtrlMETAfterAllSelections, 
     "MET_AfterAllSelections", ";MET, GeV;N_{events}", 
@@ -275,9 +272,9 @@ void CommonPlots::book(TDirectory *dir, bool isData) {
     "BtagDiscriminator_AfterAllSelections", ";b tag discriminator;N_{events}",
     fBJetDiscriminatorBinSettings.bins(), fBJetDiscriminatorBinSettings.min(), fBJetDiscriminatorBinSettings.max());
   
-  fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kVital, myDirs, hCtrlBackToBackAngularCutsMinimumAfterAllSelections, 
-    "BackToBackAngularCutsMinimum_AfterAllSelections", ";min(#sqrt{(180^{#circ}-#Delta#phi(#tau,MET))^{2}+#Delta#phi(jet_{1..n},MET)^{2}}), ^{#circ};N_{events}", 
-    fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
+  //  fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kVital, myDirs, hCtrlBackToBackAngularCutsMinimumAfterAllSelections, 
+  //    "BackToBackAngularCutsMinimum_AfterAllSelections", ";min(#sqrt{(180^{#circ}-#Delta#phi(#tau,MET))^{2}+#Delta#phi(jet_{1..n},MET)^{2}}), ^{#circ};N_{events}", 
+  // fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
 
   fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kVital, myDirs, hCtrlDeltaPhiTauMetAfterAllSelections, 
     "DeltaPhiTauMet_AfterAllSelections", ";#Delta#phi(#tau,MET), {}^{#circ};N_{events}", 
@@ -310,10 +307,10 @@ void CommonPlots::initialize() {
   fElectronData = ElectronSelection::Data();
   fMuonData = MuonSelection::Data();
   fJetData = JetSelection::Data();
-  fCollinearAngularCutsData = AngularCutsBackToBack::Data();
+  // fCollinearAngularCutsData = AngularCutsBackToBack::Data();
   fBJetData = BJetSelection::Data();
   fMETData = METSelection::Data();
-  fBackToBackAngularCutsData = AngularCutsCollinear::Data();
+  //fBackToBackAngularCutsData = AngularCutsCollinear::Data();
   fHistoSplitter.initialize();
   
   for (auto& p: fBaseObjects) {
@@ -350,17 +347,17 @@ void CommonPlots::fillControlPlotsAtJetSelection(const Event& event, const JetSe
   }
 }
 
-void CommonPlots::fillControlPlotsAtAngularCutsCollinear(const Event& event, const AngularCutsCollinear::Data& data) {
-  fCollinearAngularCutsData = data;
-  fHistoSplitter.fillShapeHistogramTriplet(hCtrlCollinearAngularCutsMinimum, !bIsFakeTau, fCollinearAngularCutsData.getMinimumCutValue()); 
-  fHistoSplitter.fillShapeHistogramTriplet(hCtrlCollinearAngularCutsJet1, !bIsFakeTau, fCollinearAngularCutsData.get1DCutVariable(0));
-  fHistoSplitter.fillShapeHistogramTriplet(hCtrlCollinearAngularCutsJet2, !bIsFakeTau, fCollinearAngularCutsData.get1DCutVariable(1));
-  fHistoSplitter.fillShapeHistogramTriplet(hCtrlCollinearAngularCutsJet3, !bIsFakeTau, fCollinearAngularCutsData.get1DCutVariable(2));
-  fHistoSplitter.fillShapeHistogramTriplet(hCtrlCollinearAngularCutsJet4, !bIsFakeTau, fCollinearAngularCutsData.get1DCutVariable(3));
-  for (auto& p: fBaseObjects) {
-    p->fillControlPlotsAtAngularCutsCollinear(event, data);
-  }
-}
+// void CommonPlots::fillControlPlotsAtAngularCutsCollinear(const Event& event, const AngularCutsCollinear::Data& data) {
+//   fCollinearAngularCutsData = data;
+//   fHistoSplitter.fillShapeHistogramTriplet(hCtrlCollinearAngularCutsMinimum, !bIsFakeTau, fCollinearAngularCutsData.getMinimumCutValue()); 
+//   fHistoSplitter.fillShapeHistogramTriplet(hCtrlCollinearAngularCutsJet1, !bIsFakeTau, fCollinearAngularCutsData.get1DCutVariable(0));
+//   fHistoSplitter.fillShapeHistogramTriplet(hCtrlCollinearAngularCutsJet2, !bIsFakeTau, fCollinearAngularCutsData.get1DCutVariable(1));
+//   fHistoSplitter.fillShapeHistogramTriplet(hCtrlCollinearAngularCutsJet3, !bIsFakeTau, fCollinearAngularCutsData.get1DCutVariable(2));
+//   fHistoSplitter.fillShapeHistogramTriplet(hCtrlCollinearAngularCutsJet4, !bIsFakeTau, fCollinearAngularCutsData.get1DCutVariable(3));
+//   for (auto& p: fBaseObjects) {
+//     p->fillControlPlotsAtAngularCutsCollinear(event, data);
+//   }
+// }
 
 void CommonPlots::fillControlPlotsAtBtagging(const Event& event, const BJetSelection::Data& data) {
   fBJetData = data;
@@ -386,17 +383,17 @@ void CommonPlots::fillControlPlotsAtMETSelection(const Event& event, const METSe
   }
 }
 
-void CommonPlots::fillControlPlotsAtAngularCutsBackToBack(const Event& event, const AngularCutsBackToBack::Data& data) {
-  fBackToBackAngularCutsData = data;
-  fHistoSplitter.fillShapeHistogramTriplet(hCtrlBackToBackAngularCutsMinimum, !bIsFakeTau, fBackToBackAngularCutsData.getMinimumCutValue());
-  fHistoSplitter.fillShapeHistogramTriplet(hCtrlBackToBackAngularCutsJet1, !bIsFakeTau, fBackToBackAngularCutsData.get1DCutVariable(0));
-  fHistoSplitter.fillShapeHistogramTriplet(hCtrlBackToBackAngularCutsJet2, !bIsFakeTau, fBackToBackAngularCutsData.get1DCutVariable(1));
-  fHistoSplitter.fillShapeHistogramTriplet(hCtrlBackToBackAngularCutsJet3, !bIsFakeTau, fBackToBackAngularCutsData.get1DCutVariable(2));
-  fHistoSplitter.fillShapeHistogramTriplet(hCtrlBackToBackAngularCutsJet4, !bIsFakeTau, fBackToBackAngularCutsData.get1DCutVariable(3));
-  for (auto& p: fBaseObjects) {
-    p->fillControlPlotsAtAngularCutsBackToBack(event, data);
-  }
-}
+// void CommonPlots::fillControlPlotsAtAngularCutsBackToBack(const Event& event, const AngularCutsBackToBack::Data& data) {
+//   fBackToBackAngularCutsData = data;
+//   fHistoSplitter.fillShapeHistogramTriplet(hCtrlBackToBackAngularCutsMinimum, !bIsFakeTau, fBackToBackAngularCutsData.getMinimumCutValue());
+//   fHistoSplitter.fillShapeHistogramTriplet(hCtrlBackToBackAngularCutsJet1, !bIsFakeTau, fBackToBackAngularCutsData.get1DCutVariable(0));
+//   fHistoSplitter.fillShapeHistogramTriplet(hCtrlBackToBackAngularCutsJet2, !bIsFakeTau, fBackToBackAngularCutsData.get1DCutVariable(1));
+//   fHistoSplitter.fillShapeHistogramTriplet(hCtrlBackToBackAngularCutsJet3, !bIsFakeTau, fBackToBackAngularCutsData.get1DCutVariable(2));
+//   fHistoSplitter.fillShapeHistogramTriplet(hCtrlBackToBackAngularCutsJet4, !bIsFakeTau, fBackToBackAngularCutsData.get1DCutVariable(3));
+//   for (auto& p: fBaseObjects) {
+//     p->fillControlPlotsAtAngularCutsBackToBack(event, data);
+//   }
+//}
 
 //===== unique filling methods (to be called AFTER return statement from analysis routine)
 void CommonPlots::fillControlPlotsAfterTrigger(const Event& event) {
@@ -509,7 +506,8 @@ void CommonPlots::fillControlPlotsAfterAllSelections(const Event& event) {
     fHistoSplitter.fillShapeHistogramTriplet(hCtrlJetEtaAfterAllSelections, !bIsFakeTau, p.eta());
     fHistoSplitter.fillShapeHistogramTriplet(hCtrlJetEtaPhiAfterAllSelections, !bIsFakeTau, p.eta(), p.phi());
   }
-  fHistoSplitter.fillShapeHistogramTriplet(hCtrlCollinearAngularCutsMinimumAfterAllSelections, !bIsFakeTau, fCollinearAngularCutsData.getMinimumCutValue());
+
+  // fHistoSplitter.fillShapeHistogramTriplet(hCtrlCollinearAngularCutsMinimumAfterAllSelections, !bIsFakeTau, fCollinearAngularCutsData.getMinimumCutValue());
 
   fHistoSplitter.fillShapeHistogramTriplet(hCtrlMETAfterAllSelections, !bIsFakeTau, fMETData.getMET().R());
   fHistoSplitter.fillShapeHistogramTriplet(hCtrlMETPhiAfterAllSelections, !bIsFakeTau, fMETData.getMET().phi());
@@ -521,9 +519,9 @@ void CommonPlots::fillControlPlotsAfterAllSelections(const Event& event) {
     fHistoSplitter.fillShapeHistogramTriplet(hCtrlBDiscriminatorAfterAllSelections, !bIsFakeTau, p.bjetDiscriminator());
   }
   
-  fHistoSplitter.fillShapeHistogramTriplet(hCtrlBackToBackAngularCutsMinimumAfterAllSelections, !bIsFakeTau, fBackToBackAngularCutsData.getMinimumCutValue());
+  //  fHistoSplitter.fillShapeHistogramTriplet(hCtrlBackToBackAngularCutsMinimumAfterAllSelections, !bIsFakeTau, fBackToBackAngularCutsData.getMinimumCutValue());
 
-  fHistoSplitter.fillShapeHistogramTriplet(hCtrlDeltaPhiTauMetAfterAllSelections, !bIsFakeTau, fBackToBackAngularCutsData.getDeltaPhiTauMET());
+  //  fHistoSplitter.fillShapeHistogramTriplet(hCtrlDeltaPhiTauMetAfterAllSelections, !bIsFakeTau, fBackToBackAngularCutsData.getDeltaPhiTauMET());
   double myTransverseMass = -1.0;
   if (isQCDMeasurement()) {
     myTransverseMass = TransverseMass::reconstruct(fTauData.getAntiIsolatedTau(), fMETData.getMET());
