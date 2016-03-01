@@ -61,8 +61,8 @@ electronSelection = PSet(
 muonSelection = PSet(
     PtCut         = 5.0,
     EtaCut        = 2.4,
-    RelIsolString = "tight",     # (options: veto, none, loose, medium, tight)
-    muonID        = "muIDTight", # (options: muIDLoose, muIDMedium, muIDTight)
+    RelIsolString = "tight",     # [options: veto, none, loose, medium, tight ]
+    muonID        = "muIDTight", # [options: muIDLoose, muIDMedium, muIDTight ]
 )
 
 
@@ -70,16 +70,16 @@ muonSelection = PSet(
 # Tau selection
 #================================================================================================  
 tauSelection = PSet(
-  applyTriggerMatching = False,
-   triggerMatchingCone = 0.1,   # DeltaR for matching offline tau with trigger tau
-              tauPtCut = 20.0,
-             tauEtaCut = 2.1,
-        tauLdgTrkPtCut = 30.0,
-                prongs = 123,   # options: 1, 2, 3, 12, 13, 23, 123 or -1 (all)
-                  rtau = 0.0,   # to disable set to 0.0
-  againstElectronDiscr = "againstElectronTightMVA5",
-      againstMuonDiscr = "againstMuonTight3",
-        isolationDiscr = "byLooseCombinedIsolationDeltaBetaCorr3Hits",
+    TrgMatch    = False,
+    TrgDeltaR   =   0.1, # DeltaR for matching offline tau with trigger tau
+    PtCut       =  20.0,
+    EtaCut      =   2.4, # 2.1
+    LdgTrkPtCut =   5.0,
+    Nprongs     =  -1,   # [options: 1, 2, 3, 12, 13, 23, 123 or -1 (all) ]
+    Rtau        =   0.0, # [options: 0.0 to 1.0 (to disable set to 0.0)   ]
+    againstElectronDiscr = "againstElectronTightMVA5",  # [options: againstElectronVLooseMVA5, againstElectronMediumMVA5, againstElectronTightMVA5]
+    againstMuonDiscr     = "againstMuonTight3",         # [options: againstMuonLoose3, againstMuonTight3]
+    isolationDiscr       = "byLooseCombinedIsolationDeltaBetaCorr3Hits", # [options: 'byLoose..., byMedium..., byTight...]
   )
 
 # # tau misidentification scale factors

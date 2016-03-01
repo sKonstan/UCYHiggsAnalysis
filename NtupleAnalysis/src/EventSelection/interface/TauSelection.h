@@ -20,17 +20,16 @@ class WrappedTH2;
 
 class TauSelection: public BaseSelection {
 public:
-    enum TauMisIDRegionType {
-      kBarrel,
-      kEndcap,
-      kFullCoverage
-    };
+  enum TauMisIDRegionType {
+    kBarrel,
+    kEndcap,
+    kFullCoverage
+  };
   
-    /**
-    * Class to encapsulate the access to the data members of
-    * TauSelection. If you want to add a new accessor, add it here
-    * and keep all the data of TauSelection private.
-    */
+  // Class to encapsulate the access to the data members of
+  // TauSelection. If you want to add a new accessor, add it here
+  // and keep all the data of TauSelection private.
+  
   class Data {
   public:
     // The reason for pointer instead of reference is that const
@@ -86,17 +85,14 @@ public:
   };
   
   // Main class
-  /// Constructor with histogramming
   explicit TauSelection(const ParameterSet& config, EventCounter& eventCounter, HistoWrapper& histoWrapper, CommonPlots* commonPlots, const std::string& postfix = "");
-  /// Constructor without histogramming
   explicit TauSelection(const ParameterSet& config);
   virtual ~TauSelection();
 
   virtual void bookHistograms(TDirectory* dir);
   
-  /// Use silentAnalyze if you do not want to fill histograms or increment counters
+  /// Use silentAnalyze() if you do not want to fill histograms or increment counters. Otherwise use analyze()   
   Data silentAnalyze(const Event& event);
-  /// analyze does fill histograms and incrementes counters
   Data analyze(const Event& event);
 
 private:
@@ -107,14 +103,14 @@ private:
   bool passTrgMatching(const Tau& tau, std::vector<math::LorentzVectorT<double>>& trgTaus) const;
   bool passDecayModeFinding(const Tau& tau) const { return tau.decayModeFinding(); }
   bool passGenericDiscriminators(const Tau& tau) const { return tau.configurableDiscriminators(); }
-  bool passPtCut(const Tau& tau) const { return tau.pt() > fTauPtCut; }
-  bool passEtaCut(const Tau& tau) const { return std::abs(tau.eta()) < fTauEtaCut; }
-  bool passLdgTrkPtCut(const Tau& tau) const { return tau.lChTrkPt() > fTauLdgTrkPtCut; }
+  bool passPtCut(const Tau& tau) const { return tau.pt() > cfg_PtCut; }
+  bool passEtaCut(const Tau& tau) const { return std::abs(tau.eta()) < cfg_EtaCut; }
+  bool passLdgTrkPtCut(const Tau& tau) const { return tau.lChTrkPt() > cfg_LdgTrkPtCut; }
   bool passElectronDiscriminator(const Tau& tau) const { return tau.againstElectronDiscriminator(); }
   bool passMuonDiscriminator(const Tau& tau) const { return tau.againstMuonDiscriminator(); }
   bool passNprongsCut(const Tau& tau) const;
   bool passIsolationDiscriminator(const Tau& tau) const { return tau.isolationDiscriminator(); }
-  bool passRtauCut(const Tau& tau) const { return tau.rtau() > fTauRtauCut; }
+  bool passRtauCut(const Tau& tau) const { return tau.rtau() > cfg_RtauCut; }
   std::vector<TauMisIDRegionType> assignTauMisIDSFRegion(const ParameterSet& config, const std::string& label) const;
   std::vector<float> assignTauMisIDSFValue(const ParameterSet& config, const std::string& label) const;
   void setTauMisIDSFValue(Data& data);
@@ -122,29 +118,26 @@ private:
   bool tauMisIDSFBelongsToRegion(TauMisIDRegionType region, double eta);
   
   // Input parameters (discriminators handled in Dataformat/src/Event.cc)
-  const bool bApplyTriggerMatching;
-  const float fTriggerTauMatchingCone;
-  const float fTauPtCut;
-  const float fTauEtaCut;
-  const float fTauLdgTrkPtCut;
-  const int fTauNprongs;
-  const float fTauRtauCut;
-  // tau misidentification SF
+  const bool cfg_TrgMatch;
+  const float cfg_TrgDeltaR;
+  const float cfg_PtCut;
+  const float cfg_EtaCut;
+  const float cfg_LdgTrkPtCut;
+  const int cfg_Nprongs;
+  const float cfg_RtauCut;
+  // Misidentification SF
   std::vector<TauMisIDRegionType> fEToTauMisIDSFRegion;
   std::vector<float> fEToTauMisIDSFValue;
   std::vector<TauMisIDRegionType> fMuToTauMisIDSFRegion;
   std::vector<float> fMuToTauMisIDSFValue;
   std::vector<TauMisIDRegionType> fJetToTauMisIDSFRegion;
   std::vector<float> fJetToTauMisIDSFValue;
-  // tau trigger SF
+  // Trigger SF
   GenericScaleFactor fTauTriggerSFReader;
   
   // Event counter for passing selection
   Count cPassedTauSelection;
-  Count cPassedTauSelectionMultipleTaus;
-  Count cPassedAntiIsolatedTauSelection;
-  Count cPassedAntiIsolatedTauSelectionMultipleTaus;
-  // Sub counters
+  // Event sub-counters for passing selection
   Count cSubAll;
   Count cSubPassedTriggerMatching;
   Count cSubPassedDecayMode;
@@ -157,8 +150,7 @@ private:
   Count cSubPassedNprongs;
   Count cSubPassedIsolation;
   Count cSubPassedRtau;
-  Count cSubPassedAntiIsolation;
-  Count cSubPassedAntiIsolationRtau;
+
   // Histograms
   WrappedTH1 *hTriggerMatchDeltaR;
   WrappedTH1 *hTauPtTriggerMatched;
