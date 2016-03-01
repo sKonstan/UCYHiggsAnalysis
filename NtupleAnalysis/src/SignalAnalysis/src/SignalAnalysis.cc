@@ -116,13 +116,13 @@ void SignalAnalysis::process(Long64_t entry) {
 
   //====== Electron selection
   const ElectronSelection::Data eData = fElectronSelection.analyze(fEvent);
-  if ( eData.hasIdentifiedElectrons() ) return; //fixme
+  if ( !eData.hasIdentifiedElectrons() ) return; //fixme
   // fCommonPlots.fillControlPlotsAfterElectronSelection(fEvent); //fixme
 
 
   //====== Muon veto
   const MuonSelection::Data muData = fMuonSelection.analyze(fEvent);
-  if ( muData.hasIdentifiedMuons() ) return; //fixme
+  if ( !muData.hasIdentifiedMuons() ) return; //fixme
   // fCommonPlots.fillControlPlotsAfterMuonSelection(fEvent); //fixme 
 
 

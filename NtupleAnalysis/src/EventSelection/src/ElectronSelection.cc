@@ -26,11 +26,11 @@ ElectronSelection::ElectronSelection(const ParameterSet& config, EventCounter& e
   // Event counter for passing selection
   cPassedElectronSelection( fEventCounter.addCounter("passed e selection ("+postfix+")") ),
   // Event sub-counters for passing selection
-  cSubAll(            fEventCounter.addSubCounter("e selection (" + postfix + ")", "All events")       ),
-  cSubPassedPt(       fEventCounter.addSubCounter("e selection (" + postfix + ")", "Passed pt cut")    ),
-  cSubPassedEta(      fEventCounter.addSubCounter("e selection (" + postfix + ")", "Passed eta cut")   ),
-  cSubPassedID(       fEventCounter.addSubCounter("e selection (" + postfix + ")", "Passed ID")        ),
-  cSubPassedIsolation(fEventCounter.addSubCounter("e selection (" + postfix + ")", "Passed isolation") )
+  cSubAll(             fEventCounter.addSubCounter("e selection (" + postfix + ")", "All events")       ),
+  cSubPassedPt(        fEventCounter.addSubCounter("e selection (" + postfix + ")", "Passed pt cut")    ),
+  cSubPassedEta(       fEventCounter.addSubCounter("e selection (" + postfix + ")", "Passed eta cut")   ),
+  cSubPassedID(        fEventCounter.addSubCounter("e selection (" + postfix + ")", "Passed ID")        ),
+  cSubPassedIsolation( fEventCounter.addSubCounter("e selection (" + postfix + ")", "Passed isolation") )
 {
   initialize(config, postfix);
 }
@@ -68,6 +68,10 @@ void ElectronSelection::initialize(const ParameterSet& config, const std::string
     {
       cfg_RelIsoCut = 0.15; // Based on 2012 cut based isolation
     } 
+  else if (cfg_RelIsolString == "none" || cfg_RelIsolString == "None")
+    {
+      cfg_RelIsoCut = 99999.99;
+    }
   else if (cfg_RelIsolString == "tight" || cfg_RelIsolString == "Tight")
     {
       cfg_RelIsoCut = 0.10; // Based on 2012 cut based isolation
@@ -116,7 +120,7 @@ void ElectronSelection::bookHistograms(TDirectory* dir) {
 
 ElectronSelection::Data ElectronSelection::silentAnalyze(const Event& event) {
   ensureSilentAnalyzeAllowed(event.eventID());
-  disableHistogramsAndCounters();   // Disables histogram filling and counter
+  disableHistogramsAndCounters(); // Disables histogram filling and counter
   Data myData = privateAnalyze(event);
   enableHistogramsAndCounters();
 
@@ -198,9 +202,9 @@ ElectronSelection::Data ElectronSelection::privateAnalyze(const Event& event) {
     // Fill resolution histograms
     if ( event.isMC() ) 
       {
-	hPtResolution->Fill((electron.pt() - electron.MCelectron()->pt()) / electron.pt());
-	hEtaResolution->Fill((electron.eta() - electron.MCelectron()->eta()) / electron.eta());
-	hPhiResolution->Fill((electron.phi() - electron.MCelectron()->phi()) / electron.phi());
+	hPtResolution ->Fill( (electron.pt()  - electron.MCelectron()->pt()  ) / electron.pt()  );
+	hEtaResolution->Fill( (electron.eta() - electron.MCelectron()->eta() ) / electron.eta() );
+	hPhiResolution->Fill( (electron.phi() - electron.MCelectron()->phi() ) / electron.phi() );
       }
 
   } // For-loop: All electrons

@@ -77,10 +77,11 @@ private:
   Data privateAnalyze(const Event& iEvent);
 
   // Input parameters
-  const double fMuonPtCut;
-  const double fMuonEtaCut;
-  float fRelIsoCut;
-  bool fVetoMode;
+  const double cfg_PtCut;
+  const double cfg_EtaCut;
+  std::string cfg_RelIsolString;
+  float cfg_RelIsoCut;
+  bool cfg_VetoMode;
   
   // Event counter for passing selection
   Count cPassedMuonSelection;
