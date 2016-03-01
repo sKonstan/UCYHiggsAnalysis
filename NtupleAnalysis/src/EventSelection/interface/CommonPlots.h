@@ -21,8 +21,6 @@ public:
     kSignalAnalysis = 0,
     kEmbedding,
     kQCDMeasurement,
-    // kQCDNormalizationSystematicsSignalRegion, // Needed for obtaining normalization systematics to data-driven control plots
-    // kQCDNormalizationSystematicsControlRegion // Needed for obtaining normalization systematics to data-driven control plots
   };
 
   CommonPlots(const ParameterSet& config, const CommonPlots::AnalysisType type, HistoWrapper& histoWrapper);
@@ -32,15 +30,13 @@ public:
   
   /// Initialize (call this at the beginning of each event; prevents double-counting of events)
   void initialize();
+
   /// Sets factorisation bin (call this for each event before filling the first histogram!)
   void setFactorisationBinForEvent(const std::vector<float>& values=std::vector<float>{}) { fHistoSplitter.setFactorisationBinForEvent(values); }
   
-  /// Returns the histogram splitter object (usecase: QCD measurement)
+  /// Return the histogram splitter objects
   HistoSplitter& getHistoSplitter() { return fHistoSplitter; }
-  /// Returns the histogram settings for pt histograms (usecase: QCD measurement)
   const HistogramSettings& getPtBinSettings() const { return fPtBinSettings; }
-  /// Returns the histogram settings for MtBins (usecase: QCD measurement)
-  const HistogramSettings& getMtBinSettings() const { return fMtBinSettings; }
   
   //===== unique filling methods (to be called inside the event selection routine only, i.e. (before a passing decision is done))
   void fillControlPlotsAtVertexSelection(const Event& event);
@@ -53,27 +49,20 @@ public:
   //===== unique filling methods (to be called AFTER return statement from analysis routine)
   void setNvertices(int vtx) { iVertices = vtx; fPUDependencyPlots->setNvtx(vtx); }
   void fillControlPlotsAfterTrigger(const Event& event);
+  void fillControlPlotsAfterElectronSelection(const Event& event, const ElectronSelection::Data& data);
+  void fillControlPlotsAfterMuonSelection(const Event& event, const ElectronSelection::Data& data);
   void fillControlPlotsAfterTauSelection(const Event& event, const TauSelection::Data& data);
-  void fillControlPlotsAfterAntiIsolatedTauSelection(const Event& event, const TauSelection::Data& data);
-  void fillControlPlotsAfterMETTriggerScaleFactor(const Event& event);
-  void fillControlPlotsAfterTopologicalSelections(const Event& event);
+  void fillControlPlotsAfterJetSelections(const Event& event);
   void fillControlPlotsAfterAllSelections(const Event& event);
-  void fillControlPlotsAfterAllSelectionsWithProbabilisticBtag(const Event& event, const METSelection::Data& metData, double btagWeight);
 
   /// Getter for all vertices
   int nVertices() const { return iVertices; }
 
 private:
   /// Returns true if common plots is created by QCD measurement
-  // const bool isQCDMeasurement() const { return fAnalysisType == kQCDMeasurement ||
-  //   fAnalysisType == kQCDNormalizationSystematicsControlRegion || 
-  //   fAnalysisType == kQCDNormalizationSystematicsSignalRegion; }
   const bool isQCDMeasurement() const { return fAnalysisType == kQCDMeasurement; }
   
 private:
-  ///===== Config params
-  const bool fEnableGenuineTauHistograms;
-  
   ///===== Analysis type
   const AnalysisType fAnalysisType;
 
@@ -88,12 +77,10 @@ private:
   const HistogramSettings fPtBinSettings;
   const HistogramSettings fEtaBinSettings;
   const HistogramSettings fPhiBinSettings;
-  const HistogramSettings fDeltaPhiBinSettings;
   const HistogramSettings fRtauBinSettings;
   const HistogramSettings fNjetsBinSettings;
   const HistogramSettings fMetBinSettings;
   const HistogramSettings fBJetDiscriminatorBinSettings;
-  const HistogramSettings fMtBinSettings;
 
   ///===== Histograms
   // NOTE: think before adding a histogram - they do slow down the analysis a lot
@@ -174,11 +161,6 @@ private:
   HistoSplitter::SplittedTripletTH1s hCtrlBJetEtaAfterAllSelections;
   HistoSplitter::SplittedTripletTH1s hCtrlBDiscriminatorAfterAllSelections;
   
-  HistoSplitter::SplittedTripletTH1s hCtrlDeltaPhiTauMetAfterAllSelections;
-  
-  // shape plots after all selections
-  HistoSplitter::SplittedTripletTH1s hShapeTransverseMass;
-  HistoSplitter::SplittedTripletTH1s hShapeProbabilisticBtagTransverseMass;
 
   // Other plots
   WrappedTH1* hNSelectedVsRunNumber; // For data only

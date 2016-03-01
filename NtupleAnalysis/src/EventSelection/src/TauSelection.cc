@@ -288,7 +288,7 @@ TauSelection::Data TauSelection::privateAnalyze(const Event& event) {
     if (output.fSelectedTaus.size()) {
       fCommonPlots->fillControlPlotsAfterTauSelection(event, output);
     } else if (output.fAntiIsolatedTaus.size()) {
-      fCommonPlots->fillControlPlotsAfterAntiIsolatedTauSelection(event, output);
+      // fCommonPlots->fillControlPlotsAfterAntiIsolatedTauSelection(event, output); // attikis
     }
   }
   // Set tau misidentification SF value to data object

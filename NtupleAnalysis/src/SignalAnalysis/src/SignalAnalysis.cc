@@ -121,6 +121,7 @@ void SignalAnalysis::process(Long64_t entry) {
   // if ( fEvent.isMC() ){ fEventWeight.multiplyWeight(tauData.getTauMisIDSF()); }}
   //====== Tau trigger SF
   // if ( fEvent.isMC() ){ fEventWeight.multiplyWeight(tauData.getTauTriggerSF()); }
+  // fCommonPlots.fillControlPlotsAfterTauSelection(fEvent); //fixme
 
 
   //====== MET trigger SF
@@ -128,26 +129,25 @@ void SignalAnalysis::process(Long64_t entry) {
   if (fEvent.isMC()) {
     fEventWeight.multiplyWeight(silentMETData.getMETTriggerSF());
   }
-  fCommonPlots.fillControlPlotsAfterMETTriggerScaleFactor(fEvent);
   //std::cout << tauData.getSelectedTau().pt() << ":" << tauData.getTauMisIDSF() << ", " << tauData.getTauTriggerSF() << ", met=" << silentMETData.getMET().R() << ", SF=" << silentMETData.getMETTriggerSF() << std::endl;
 
   
-  //====== Electron veto
+  //====== Electron selection
   const ElectronSelection::Data eData = fElectronSelection.analyze(fEvent);
-  if ( eData.hasIdentifiedElectrons() ) return;
+  if ( eData.hasIdentifiedElectrons() ) return; //fixme
+  // fCommonPlots.fillControlPlotsAfterElectronSelection(fEvent); //fixme
+
 
   //====== Muon veto
   const MuonSelection::Data muData = fMuonSelection.analyze(fEvent);
-  if ( muData.hasIdentifiedMuons() ) return;
+  if ( muData.hasIdentifiedMuons() ) return; //fixme
+  // fCommonPlots.fillControlPlotsAfterMuonSelection(fEvent); //fixme 
 
 
   //====== Jet selection
   const JetSelection::Data jetData = fJetSelection.analyze(fEvent, tauData.getSelectedTau());
   if ( !jetData.passedSelection() ) return;
-
-
-  //====== Point of standard selections
-  fCommonPlots.fillControlPlotsAfterTopologicalSelections(fEvent);
+  fCommonPlots.fillControlPlotsAfterJetSelections(fEvent);
 
 
   //====== b-jet selection
