@@ -149,8 +149,15 @@ def CreateCrabTask(taskDirName, verbose=False):
     # If the task directory does not exist create it
     if not os.path.exists(taskDirName):
         os.mkdir(taskDirName)
+    else:
+        if verbose:
+            print "=== multicrabCreate.py:\n\t Created CRAB task directory \"%s\"" % (taskDirName)
+
     if verbose:
         print "=== multicrabCreate.py:\n\t Created CRAB task directory \"%s\"" % (taskDirName)
+    else:
+        return
+        
         
     # Copy file to be used (and others to be tracked) to the task directory
     cmd = "cp %s %s" %(PSET, taskDirName)
@@ -192,7 +199,7 @@ def GetRequestName(dataset):
             requestName += match.group("run")
 
         # Append the MC-tune (for MC samples only)
-        requestName = match.group("name")
+        #requestName = match.group("name")
         tune_match  = tune_re.search(requestName)
         if tune_match:
 	    requestName = tune_match.group("name")
@@ -212,13 +219,12 @@ def GetRequestName(dataset):
 	        requestName += "_"+ runRange + bunchSpacing
                 Ag                 = runRangeMatch.group("Silver") #Ag is symbol for chemical element of silver
                 if Ag == "_Silver":
-                    requestName += Ag                
+                    requestName += Ag
     else:
         raise Exception("=== multicrabCreate.py:\n\t Unexpected error for dataset '%s'. It must either be data or MC" %dataset)
 
     # Finally, replace dashes with underscores 
     requestName = requestName.replace("-","_")
-
     return requestName
 
 
@@ -397,9 +403,6 @@ PSET     = "runMiniAOD2FlatTree_DefaultSkim_cfg.py"
 # Main Program
 #================================================================================================
 def main(opts, args):
-    '''
-    Do all steps here
-    '''
     
     # Get the CMSSW version
     version = GetCmsswVersion(opts.verbose)

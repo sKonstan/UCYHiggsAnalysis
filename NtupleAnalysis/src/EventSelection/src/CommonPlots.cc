@@ -5,14 +5,9 @@
 
 CommonPlots::CommonPlots(const ParameterSet& config, const AnalysisType type, HistoWrapper& histoWrapper)
 : fEnableGenuineTauHistograms(true), // Needed always for limits
-  //fEnableGenuineTauHistograms(config.getParameter<bool>("enableGenuineTauHistograms")),
-  // Analysis type
   fAnalysisType(type),
-  // HistoWrapper
   fHistoWrapper(histoWrapper),
-  // Histogram splitter
   fHistoSplitter(config, histoWrapper),
-  // Settings for histogram binning
   fNVerticesBinSettings(config.getParameter<ParameterSet>("nVerticesBins")),
   fPtBinSettings(config.getParameter<ParameterSet>("ptBins")),
   fEtaBinSettings(config.getParameter<ParameterSet>("etaBins")),
@@ -22,7 +17,6 @@ CommonPlots::CommonPlots(const ParameterSet& config, const AnalysisType type, Hi
   fNjetsBinSettings(config.getParameter<ParameterSet>("njetsBins")),
   fMetBinSettings(config.getParameter<ParameterSet>("metBins")),
   fBJetDiscriminatorBinSettings(config.getParameter<ParameterSet>("bjetDiscrBins")),
-  // fAngularCuts1DSettings(config.getParameter<ParameterSet>("angularCuts1DBins")),
   fMtBinSettings(config.getParameter<ParameterSet>("mtBins"))
 { 
   // Create CommonPlotsBase objects
@@ -35,19 +29,19 @@ CommonPlots::~CommonPlots() { }
 void CommonPlots::book(TDirectory *dir, bool isData) { 
   fHistoSplitter.bookHistograms(dir);
   // Create directories for data driven control plots
-  std::string myLabel = "ForDataDrivenCtrlPlots";
-  std::string myFakeLabel = "ForDataDrivenCtrlPlotsEWKFakeTaus";
+  std::string myLabel        = "ForDataDrivenCtrlPlots";
+  std::string myFakeLabel    = "ForDataDrivenCtrlPlotsEWKFakeTaus";
   std::string myGenuineLabel = "ForDataDrivenCtrlPlotsEWKGenuineTaus";
-  if (fAnalysisType == kQCDNormalizationSystematicsSignalRegion) {
-    myLabel += "QCDNormalizationSignal";
-    myFakeLabel += "QCDNormalizationSignal";
-    myGenuineLabel += "QCDNormalizationSignal";
-  }
-  if (fAnalysisType == kQCDNormalizationSystematicsControlRegion) {
-    myLabel += "QCDNormalizationControl";
-    myFakeLabel += "QCDNormalizationControl";
-    myGenuineLabel += "QCDNormalizationControl";
-  }
+  // if (fAnalysisType == kQCDNormalizationSystematicsSignalRegion) {
+  //   myLabel += "QCDNormalizationSignal";
+  //   myFakeLabel += "QCDNormalizationSignal";
+  //   myGenuineLabel += "QCDNormalizationSignal";
+  // }
+  // if (fAnalysisType == kQCDNormalizationSystematicsControlRegion) {
+  //   myLabel += "QCDNormalizationControl";
+  //   myFakeLabel += "QCDNormalizationControl";
+  //   myGenuineLabel += "QCDNormalizationControl";
+  // }
   TDirectory* myCtrlDir = fHistoWrapper.mkdir(HistoLevel::kInformative, dir, myLabel);
   TDirectory* myCtrlEWKFakeTausDir = fHistoWrapper.mkdir(HistoLevel::kInformative, dir, myFakeLabel);
   TDirectory* myCtrlGenuineTausDir = fHistoWrapper.mkdir(HistoLevel::kInformative, dir, myGenuineLabel);
@@ -87,23 +81,6 @@ void CommonPlots::book(TDirectory *dir, bool isData) {
     "NjetsAfterJetSelectionAndMETSF", ";Number of selected jets;N_{events}",
     fNjetsBinSettings.bins(), fNjetsBinSettings.min(), fNjetsBinSettings.max());
   
-  // // collinear angular cuts
-  // fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kVital, myDirs, hCtrlCollinearAngularCutsMinimum, 
-  //   "CollinearAngularCutsMinimum", ";min(#sqrt{#Delta#phi(#tau,MET)^{2}+(180^{#circ}-#Delta#phi(jet_{1..n},MET))^{2}}), ^{#circ};N_{events}", 
-  //   fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
-  // fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kInformative, myDirs, hCtrlCollinearAngularCutsJet1, 
-  //   "CollinearAngularCutsJet1", ";min(#sqrt{#Delta#phi(#tau,MET)^{2}+(180^{#circ}-#Delta#phi(jet_{1},MET))^{2}}), ^{#circ};N_{events}", 
-  //   fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
-  // fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kInformative, myDirs, hCtrlCollinearAngularCutsJet2, 
-  //   "CollinearAngularCutsJet2", ";min(#sqrt{#Delta#phi(#tau,MET)^{2}+(180^{#circ}-#Delta#phi(jet_{2},MET))^{2}}), ^{#circ};N_{events}", 
-  //   fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
-  // fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kInformative, myDirs, hCtrlCollinearAngularCutsJet3, 
-  //   "CollinearAngularCutsJet3", ";min(#sqrt{#Delta#phi(#tau,MET)^{2}+(180^{#circ}-#Delta#phi(jet_{3},MET))^{2}}), ^{#circ};N_{events}", 
-  //   fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
-  // fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kInformative, myDirs, hCtrlCollinearAngularCutsJet4, 
-  //   "CollinearAngularCutsJet4", ";min(#sqrt{#Delta#phi(#tau,MET)^{2}+(180^{#circ}-#Delta#phi(jet_{4},MET))^{2}}), ^{#circ};N_{events}", 
-  //   fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
-
   // this is the point of "standard selections"
   fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kVital, myDirs, hCtrlNVerticesAfterStdSelections, 
     "NVertices_AfterStandardSelections", ";N_{vertices};N_{events}",
@@ -177,23 +154,6 @@ void CommonPlots::book(TDirectory *dir, bool isData) {
     "BtagDiscriminator", ";b tag discriminator;N_{events}",
     fBJetDiscriminatorBinSettings.bins(), fBJetDiscriminatorBinSettings.min(), fBJetDiscriminatorBinSettings.max());
   
-  // // back-to-back angular cuts
-  // fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kVital, myDirs, hCtrlBackToBackAngularCutsMinimum, 
-  //   "BackToBackAngularCutsMinimum", ";min(#sqrt{(180^{#circ}-#Delta#phi(#tau,MET))^{2}+#Delta#phi(jet_{1..n},MET)^{2}}), ^{#circ};N_{events}", 
-  //   fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
-  // fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kInformative, myDirs, hCtrlBackToBackAngularCutsJet1, 
-  //   "BackToBackAngularCutsJet1", ";min(#sqrt{#Delta#phi(#tau,MET)^{2}+(180^{#circ}-#Delta#phi(jet_{1},MET))^{2}}), ^{#circ};N_{events}", 
-  //   fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
-  // fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kInformative, myDirs, hCtrlBackToBackAngularCutsJet2, 
-  //   "BackToBackAngularCutsJet2", ";min(#sqrt{#Delta#phi(#tau,MET)^{2}+(180^{#circ}-#Delta#phi(jet_{2},MET))^{2}}), ^{#circ};N_{events}", 
-  //   fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
-  // fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kInformative, myDirs, hCtrlBackToBackAngularCutsJet3, 
-  //   "BackToBackAngularCutsJet3", ";min(#sqrt{#Delta#phi(#tau,MET)^{2}+(180^{#circ}-#Delta#phi(jet_{3},MET))^{2}}), ^{#circ};N_{events}", 
-  //   fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
-  // fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kInformative, myDirs, hCtrlBackToBackAngularCutsJet4, 
-  //   "BackToBackAngularCutsJet4", ";min(#sqrt{#Delta#phi(#tau,MET)^{2}+(180^{#circ}-#Delta#phi(jet_{4},MET))^{2}}), ^{#circ};N_{events}", 
-  //   fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
-
   // control plots after all selections
   fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kVital, myDirs, hCtrlNVerticesAfterAllSelections, 
     "NVertices_AfterAllSelections", ";N_{vertices};N_{events}",
@@ -248,10 +208,6 @@ void CommonPlots::book(TDirectory *dir, bool isData) {
     fEtaBinSettings.bins(), fEtaBinSettings.min(), fEtaBinSettings.max(),
     fPhiBinSettings.bins(), fPhiBinSettings.min(), fPhiBinSettings.max());
 
-  //  fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kVital, myDirs, hCtrlCollinearAngularCutsMinimumAfterAllSelections, 
-  //    "CollinearAngularCutsMinimum_AfterAllSelections", ";min(#sqrt{#Delta#phi(#tau,MET)^{2}+(180^{#circ}-#Delta#phi(jet_{1..n},MET))^{2}}), ^{#circ};N_{events}", 
-  //    fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
-
   fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kVital, myDirs, hCtrlMETAfterAllSelections, 
     "MET_AfterAllSelections", ";MET, GeV;N_{events}", 
     fMetBinSettings.bins(), fMetBinSettings.min(), fMetBinSettings.max());
@@ -272,23 +228,20 @@ void CommonPlots::book(TDirectory *dir, bool isData) {
     "BtagDiscriminator_AfterAllSelections", ";b tag discriminator;N_{events}",
     fBJetDiscriminatorBinSettings.bins(), fBJetDiscriminatorBinSettings.min(), fBJetDiscriminatorBinSettings.max());
   
-  //  fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kVital, myDirs, hCtrlBackToBackAngularCutsMinimumAfterAllSelections, 
-  //    "BackToBackAngularCutsMinimum_AfterAllSelections", ";min(#sqrt{(180^{#circ}-#Delta#phi(#tau,MET))^{2}+#Delta#phi(jet_{1..n},MET)^{2}}), ^{#circ};N_{events}", 
-  // fAngularCuts1DSettings.bins(), fAngularCuts1DSettings.min(), fAngularCuts1DSettings.max());
-
   fHistoSplitter.createShapeHistogramTriplet<TH1F>(fEnableGenuineTauHistograms, HistoLevel::kVital, myDirs, hCtrlDeltaPhiTauMetAfterAllSelections, 
     "DeltaPhiTauMet_AfterAllSelections", ";#Delta#phi(#tau,MET), {}^{#circ};N_{events}", 
     36, 0, 180);
   
-  // shape plots after all selections
-  if (fAnalysisType != kQCDNormalizationSystematicsSignalRegion && fAnalysisType != kQCDNormalizationSystematicsControlRegion) {
-    fHistoSplitter.createShapeHistogramTriplet<TH1F>(true, HistoLevel::kSystematics, myDirs3, hShapeTransverseMass, 
-      "shapeTransverseMass", ";m_{T}(tau,MET), GeV/c^{2};N_{events}",
-      fMtBinSettings.bins(), fMtBinSettings.min(), fMtBinSettings.max());
-    fHistoSplitter.createShapeHistogramTriplet<TH1F>(true, HistoLevel::kSystematics, myDirs3, hShapeProbabilisticBtagTransverseMass, 
-      "shapeTransverseMassProbabilisticBTag", ";m_{T}(tau,MET), GeV/c^{2};N_{events}",
-      fMtBinSettings.bins(), fMtBinSettings.min(), fMtBinSettings.max());
-  }
+   // shape plots after all selections
+   if (fAnalysisType != kQCDMeasurement) {
+     fHistoSplitter.createShapeHistogramTriplet<TH1F>(true, HistoLevel::kSystematics, myDirs3, hShapeTransverseMass, 
+       "shapeTransverseMass", ";m_{T}(tau,MET), GeV/c^{2};N_{events}",
+       fMtBinSettings.bins(), fMtBinSettings.min(), fMtBinSettings.max());
+     fHistoSplitter.createShapeHistogramTriplet<TH1F>(true, HistoLevel::kSystematics, myDirs3, hShapeProbabilisticBtagTransverseMass, 
+       "shapeTransverseMassProbabilisticBTag", ";m_{T}(tau,MET), GeV/c^{2};N_{events}",
+       fMtBinSettings.bins(), fMtBinSettings.min(), fMtBinSettings.max());
+   }
+
   if (isData) {
     hNSelectedVsRunNumber = fHistoWrapper.makeTH<TH1F>(HistoLevel::kInformative, dir, 
       "NSelectedVsRunNumber", "NSelectedVsRunNumber;Run number;N_{events}", 14000, 246000, 260000);
@@ -299,24 +252,23 @@ void CommonPlots::book(TDirectory *dir, bool isData) {
   }
 }
 
+
 void CommonPlots::initialize() {
-  iVertices = -1;
-  fTauData = TauSelection::Data();
-  //FakeTauIdentifier::Data fFakeTauData;
-  bIsFakeTau = false;
+  iVertices     = -1;
+  fTauData      = TauSelection::Data();
+  bIsFakeTau    = false;
   fElectronData = ElectronSelection::Data();
-  fMuonData = MuonSelection::Data();
-  fJetData = JetSelection::Data();
-  // fCollinearAngularCutsData = AngularCutsBackToBack::Data();
-  fBJetData = BJetSelection::Data();
-  fMETData = METSelection::Data();
-  //fBackToBackAngularCutsData = AngularCutsCollinear::Data();
+  fMuonData     = MuonSelection::Data();
+  fJetData      = JetSelection::Data();
+  fBJetData     = BJetSelection::Data();
+  fMETData      = METSelection::Data();
   fHistoSplitter.initialize();
   
-  for (auto& p: fBaseObjects) {
-    p->reset();
-  }
+  for (auto& p: fBaseObjects) { p->reset(); }
+
+  return;
 }
+
 
 //===== unique filling methods (to be called inside the event selection routine only)
 void CommonPlots::fillControlPlotsAtVertexSelection(const Event& event) {

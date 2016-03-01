@@ -8,6 +8,7 @@ from UCYHiggsAnalysis.NtupleAnalysis.main import PSet
 #================================================================================================  
 histoLevel = "Debug"  # Options: Systematics, Vital, Informative, Debug
 
+
 #================================================================================================  
 # Trigger
 #================================================================================================  
@@ -35,7 +36,7 @@ trg = PSet(
 #================================================================================================  
 metFilter = PSet(
     discriminators = ["hbheNoiseTokenRun2Loose", # Loose is recommended
-                      "hbheIsoNoiseToken", # under scrutiny
+                      "hbheIsoNoiseToken",       # under scrutiny
                       "Flag_CSCTightHaloFilter",
                       "Flag_eeBadScFilter",
                       "Flag_goodVertices"]
@@ -46,18 +47,17 @@ metFilter = PSet(
 # Tau selection
 #================================================================================================  
 tauSelection = PSet(
-  applyTriggerMatching = True,
+  applyTriggerMatching = False,
    triggerMatchingCone = 0.1,   # DeltaR for matching offline tau with trigger tau
-              tauPtCut = 60.0,
+              tauPtCut = 20.0,
              tauEtaCut = 2.1,
         tauLdgTrkPtCut = 30.0,
-                prongs = 123,    # options: 1, 2, 3, 12, 13, 23, 123 or -1 (all)
+                prongs = 123,   # options: 1, 2, 3, 12, 13, 23, 123 or -1 (all)
                   rtau = 0.0,   # to disable set to 0.0
   againstElectronDiscr = "againstElectronTightMVA5",
       againstMuonDiscr = "againstMuonTight3",
         isolationDiscr = "byLooseCombinedIsolationDeltaBetaCorr3Hits",
-  
-)
+  )
 
 # # tau misidentification scale factors
 # scaleFactors.assignTauMisidentificationSF(tauSelection, "eToTau", "full", "nominal")
@@ -133,12 +133,9 @@ metSelection = PSet(
 #================================================================================================  
 # Common plots options
 #================================================================================================  
-commonPlotsOptions = PSet(
-  # Splitting of histograms as function of one or more parameters
-  # Example: histogramSplitting = [PSet(label="tauPt", binLowEdges=[60, 70, 80, 100, 120], useAbsoluteValues=False)],
+commonPlots = PSet(
+  # histogramSplitting = [PSet(label="tauPt", binLowEdges=[60, 70, 80, 100, 120], useAbsoluteValues=False)],
   histogramSplitting = [],
-  # By default, inclusive (i.e. fake tau+genuine tau) and fake tau histograms are produced. Set to true to also produce genuine tau histograms (Note: will slow down running and enlarge resulting files).
-  enableGenuineTauHistograms = False, 
   # Bin settings (final bin setting done in datacardGenerator, there also variable bin width is supported)
        nVerticesBins = PSet(nBins=60, axisMin=0., axisMax=60.),
               ptBins = PSet(nBins=50, axisMin=0., axisMax=500.),
@@ -154,7 +151,6 @@ commonPlotsOptions = PSet(
            WMassBins = PSet(nBins=60, axisMin=0., axisMax=300.),
               mtBins = PSet(nBins=160, axisMin=0., axisMax=800.), # 5 GeV bin width for tail fitter
          invmassBins = PSet(nBins=50, axisMin=0., axisMax=500.),
-  # Enable/Disable some debug-level plots
   enablePUDependencyPlots = True,
 )
 
@@ -172,5 +168,5 @@ allSelections = PSet(
           JetSelection = jetSelection,
          BJetSelection = bjetSelection,
           METSelection = metSelection,
-           CommonPlots = commonPlotsOptions,
+           CommonPlots = commonPlots,
 )

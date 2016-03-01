@@ -39,6 +39,7 @@ private:
   Count cSelected;
     
   // Non-common histograms
+  WrappedTH1* hExample;
 
 };
 
@@ -61,10 +62,9 @@ SignalAnalysis::SignalAnalysis(const ParameterSet& config)
     cSelected(fEventCounter.addCounter("Selected events"))
 { }
 
+
 void SignalAnalysis::book(TDirectory *dir) {
-  // Book common plots histograms
   fCommonPlots.book(dir, isData());
-  // Book histograms in event selection classes
   fMETFilterSelection.bookHistograms(dir);
   fTauSelection.bookHistograms(dir);
   fElectronSelection.bookHistograms(dir);
@@ -74,53 +74,54 @@ void SignalAnalysis::book(TDirectory *dir) {
   fMETSelection.bookHistograms(dir);
 
   // Book non-common histograms
-  //hExample =  fHistoWrapper.makeTH<TH1F>(HistoLevel::kInformative, dir, "example pT", "example pT", 40, 0, 400);
+  hExample =  fHistoWrapper.makeTH<TH1F>(HistoLevel::kInformative, dir, "example pT", "example pT", 40, 0, 400);
 }
+
 
 void SignalAnalysis::setupBranches(BranchManager& branchManager) {
   fEvent.setupBranches(branchManager);
 }
+
 
 void SignalAnalysis::process(Long64_t entry) {
 
   //====== Initialize
   fCommonPlots.initialize();
   fCommonPlots.setFactorisationBinForEvent(std::vector<float> {});
-
   cAllEvents.increment();
 
+
   //====== Apply trigger
-  if (!(fEvent.passTriggerDecision()))
-    return;
+  if ( !(fEvent.passTriggerDecision()) ) return;
   cTrigger.increment();
   int nVertices = fEvent.vertexInfo().value();
   fCommonPlots.setNvertices(nVertices);
   fCommonPlots.fillControlPlotsAfterTrigger(fEvent);
 
+
   //====== MET filters to remove events with spurious sources of fake MET
   const METFilterSelection::Data metFilterData = fMETFilterSelection.analyze(fEvent);
-  if (!metFilterData.passedSelection())
-    return;
+  if ( !metFilterData.passedSelection() ) return;
   
+
   //====== GenParticle analysis
   // if needed
   
+
   //====== Check that primary vertex exists
-  if (nVertices < 1)
-    return;
+  if (nVertices < 1) return;
   cVertexSelection.increment();
   fCommonPlots.fillControlPlotsAtVertexSelection(fEvent);
   
+
   //====== Tau selection
   const TauSelection::Data tauData = fTauSelection.analyze(fEvent);
-  if (!tauData.hasIdentifiedTaus())
-    return;
-  
+  if ( !tauData.hasIdentifiedTaus() ) return;
   //====== Fake tau SF
   // if ( fEvent.isMC() ){ fEventWeight.multiplyWeight(tauData.getTauMisIDSF()); }}
-
   //====== Tau trigger SF
   // if ( fEvent.isMC() ){ fEventWeight.multiplyWeight(tauData.getTauTriggerSF()); }
+
 
   //====== MET trigger SF
   const METSelection::Data silentMETData = fMETSelection.silentAnalyze(fEvent, nVertices);
@@ -129,41 +130,45 @@ void SignalAnalysis::process(Long64_t entry) {
   }
   fCommonPlots.fillControlPlotsAfterMETTriggerScaleFactor(fEvent);
   //std::cout << tauData.getSelectedTau().pt() << ":" << tauData.getTauMisIDSF() << ", " << tauData.getTauTriggerSF() << ", met=" << silentMETData.getMET().R() << ", SF=" << silentMETData.getMETTriggerSF() << std::endl;
+
   
   //====== Electron veto
   const ElectronSelection::Data eData = fElectronSelection.analyze(fEvent);
-  if (eData.hasIdentifiedElectrons())
-    return;
+  if ( eData.hasIdentifiedElectrons() ) return;
 
   //====== Muon veto
   const MuonSelection::Data muData = fMuonSelection.analyze(fEvent);
-  if (muData.hasIdentifiedMuons())
-    return;
+  if ( muData.hasIdentifiedMuons() ) return;
+
 
   //====== Jet selection
   const JetSelection::Data jetData = fJetSelection.analyze(fEvent, tauData.getSelectedTau());
-  if (!jetData.passedSelection())
-    return;
+  if ( !jetData.passedSelection() ) return;
+
 
   //====== Point of standard selections
   fCommonPlots.fillControlPlotsAfterTopologicalSelections(fEvent);
 
+
   //====== b-jet selection
   const BJetSelection::Data bjetData = fBJetSelection.analyze(fEvent, jetData);
   if (!bjetData.passedSelection() ) return;
-
   //====== b tag SF
   // if ( fEvent.isMC() ) { fEventWeight.multiplyWeight(bjetData.getBTaggingScaleFactorEventWeight()); }
+
 
   //====== MET selection
   const METSelection::Data METData = fMETSelection.analyze(fEvent, nVertices);
   if ( !METData.passedSelection() ) return;
   
+
   //====== All cuts passed
   cSelected.increment();
 
+
   // Fill final plots
   fCommonPlots.fillControlPlotsAfterAllSelections(fEvent);
+
   
   //====== Finalize
   fEventSaver.save();
