@@ -340,7 +340,7 @@ WrappedTriplet *HistoWrapper::makeTHTriplet_(bool enableTrueHistogram, HistoLeve
       throw hplus::Exception("Logic") << "Expecting three directories when true histogram is enabled!";
   } else {
     if (dirs.size() != 2)
-      throw hplus::Exception("Logic") << "Expecting two directories when true histogram is enabled!";
+      throw hplus::Exception("Logic") << "Expecting two directories when true histogram is disabled!";
   }
   
   using THType = typename HistoWrapperTHTraits<T>::type;

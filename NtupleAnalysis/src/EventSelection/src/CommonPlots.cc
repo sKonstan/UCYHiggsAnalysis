@@ -29,9 +29,9 @@ void CommonPlots::book(TDirectory *dir, bool isData) {
   fHistoSplitter.bookHistograms(dir);
 
   // Create directories for data driven control plots
-  std::string myLabelA = "CommonPlotsA";
-  std::string myLabelB = "CommonPlotsB";
-  std::string myLabelC = "CommonPlotsC";
+  std::string myLabelA = "CommonPlots";
+  std::string myLabelB = "CommonPlots_FakeTaus";
+  std::string myLabelC = "CommonPlots_EWKGenuineTaus";
 
   TDirectory* myDirA = fHistoWrapper.mkdir(HistoLevel::kInformative, dir, myLabelA);
   TDirectory* myDirB = fHistoWrapper.mkdir(HistoLevel::kInformative, dir, myLabelB);

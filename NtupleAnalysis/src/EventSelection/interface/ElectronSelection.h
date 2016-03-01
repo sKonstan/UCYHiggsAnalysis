@@ -36,10 +36,6 @@ public:
     const std::vector<Electron>& getSelectedElectrons() const { return fSelectedElectrons; }
     const float getHighestSelectedElectronPt() const { return fHighestSelectedElectronPt; }
     const float getHighestSelectedElectronEta() const { return fHighestSelectedElectronEta; }
-    // FIXME: Add MC information if deemed necessary
-//     const bool eventContainsElectronFromCJet() const { return fHasElectronFromCjetStatus; }
-//     const bool eventContainsElectronFromBJet() const { return fHasElectronFromBjetStatus; }
-//     const bool eventContainsElectronFromCorBJet() const { return eventContainsElectronFromCJet() || eventContainsElectronFromBJet(); }
 
     friend class ElectronSelection;
 
@@ -47,25 +43,19 @@ public:
     /// pt and eta of highest pt electron passing the selection
     float fHighestSelectedElectronPt;
     float fHighestSelectedElectronEta;
-    /// MC info about non-isolated electrons
-    //bool fHasElectronFromCjetStatus;
-    //bool fHasElectronFromBjetStatus;
     /// Electron collection after all selections
     std::vector<Electron> fSelectedElectrons;
   };
   
   // Main class
-  /// Constructor with histogramming
   explicit ElectronSelection(const ParameterSet& config, EventCounter& eventCounter, HistoWrapper& histoWrapper, CommonPlots* commonPlots, const std::string& postfix);
-  /// Constructor without histogramming
   explicit ElectronSelection(const ParameterSet& config, const std::string& postfix);
   virtual ~ElectronSelection();
 
   virtual void bookHistograms(TDirectory* dir);
   
-  /// Use silentAnalyze if you do not want to fill histograms or increment counters
+  /// Use silentAnalyze() if you do not want to fill histograms or increment counters. Otherwise use analyze()
   Data silentAnalyze(const Event& event);
-  /// analyze does fill histograms and incrementes counters
   Data analyze(const Event& event);
 
 private:
@@ -75,10 +65,11 @@ private:
   Data privateAnalyze(const Event& iEvent);
 
   // Input parameters
-  const double fElectronPtCut;
-  const double fElectronEtaCut;
-  float fRelIsoCut;
-  bool fVetoMode;
+  const double cfg_PtCut;
+  const double cfg_EtaCut;
+  std::string cfg_RelIsolString;
+  float cfg_RelIsoCut;
+  bool cfg_VetoMode;
   
   // Event counter for passing selection
   Count cPassedElectronSelection;
@@ -103,6 +94,7 @@ private:
   WrappedTH1 *hIsolPtAfter;
   WrappedTH1 *hIsolEtaAfter;
   WrappedTH1 *hIsolVtxAfter;
+
 };
 
 #endif

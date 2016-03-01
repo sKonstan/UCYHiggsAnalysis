@@ -138,45 +138,6 @@ void HistoSplitter::createShapeHistogram(HistoLevel level, TDirectory* dir, Wrap
   setAxisLabelsForUnfoldedHisto(unfoldedHisto);
 }
 
-/*void HistoSplitter::createShapeHistogram(HistoLevel level, TDirectory* dir, HistoSplitter::SplittedTH1s& histoContainer, const std::string& title, const std::string& label, int nbins, double min, double max) {
-  if (fNUnfoldedBins == 1) {
-    // Create just one histogram
-    histoContainer.push_back(fHistoWrapper.makeTH<TH1F>(level, dir, title.c_str(), label.c_str(), nbins, min, max));
-    return;
-  }
-  // Create directory for the N x TH1 histograms, where N is the number of unfolded bins
-  TDirectory* myDir = dir->mkdir(title.c_str());
-  // Create N x TH1 histograms, where N is the number of unfolded bins
-  for (size_t i = 0; i < fNUnfoldedBins; ++i) {
-    std::stringstream s;
-    s << title.c_str() << i;
-    std::string myHistoTitle = getFullBinDescriptionStringByBinIndex(obtainIndicesFromUnfoldedIndex(i)) + ";" + label;
-    histoContainer.push_back(fHistoWrapper.makeTH<TH1F>(level, myDir, s.str().c_str(), myHistoTitle.c_str(), nbins, min, max));
-  }
-  // Create inclusive histogram
-  std::string myTitle = title+"Inclusive";
-  histoContainer.push_back(fHistoWrapper.makeTH<TH1F>(level, myDir, myTitle.c_str(), myTitle.c_str(), nbins, min, max));
-}
-
-void HistoSplitter::createShapeHistogram(HistoLevel level, TDirectory* dir, HistoSplitter::SplittedTH2s& histoContainer, const std::string& title, const std::string& label, int nbinsX, double minX, double maxX, int nbinsY, double minY, double maxY) {
-  if (fNUnfoldedBins == 1) {
-    // Create just one histogram
-    histoContainer.push_back(fHistoWrapper.makeTH<TH2F>(level, dir, title.c_str(), label.c_str(), nbinsX, minX, maxX, nbinsY, minY, maxY));
-    return;
-  }
-  // Create directory for the N x TH1 histograms, where N is the number of unfolded bins
-  TDirectory* myDir = dir->mkdir(title.c_str());
-  // Create N x TH2 histograms, where N is the number of unfolded bins
-  for (size_t i = 0; i < fNUnfoldedBins; ++i) {
-    std::stringstream s;
-    s << title.c_str() << i;
-    std::string myHistoTitle = getFullBinDescriptionStringByBinIndex(obtainIndicesFromUnfoldedIndex(i)) + ";" + label;
-    histoContainer.push_back(fHistoWrapper.makeTH<TH2F>(level, myDir, s.str().c_str(), myHistoTitle.c_str(), nbinsX, minX, maxX, nbinsY, minY, maxY));
-  }
-  // Create inclusive histogram
-  std::string myTitle = title+"Inclusive";
-  histoContainer.push_back(fHistoWrapper.makeTH<TH2F>(level, myDir, myTitle.c_str(), myTitle.c_str(), nbinsX, minX, maxX, nbinsY, minY, maxY));    
-}*/
 
 void HistoSplitter::fillShapeHistogram(WrappedUnfoldedFactorisationHisto* h, double value) {
   checkIndexValidity();
@@ -189,37 +150,6 @@ void HistoSplitter::fillShapeHistogram(WrappedUnfoldedFactorisationHisto* h, dou
   h->Fill(value, fCurrentUnfoldedBinIndex, weight);
 }
 
-/*void HistoSplitter::fillShapeHistogram(HistoSplitter::SplittedTH1s& histoContainer, double value) {
-  checkIndexValidity();
-  histoContainer[fCurrentUnfoldedBinIndex]->Fill(value);
-  // Fill inclusive histogram
-  if (fNUnfoldedBins > 1)
-    histoContainer[histoContainer.size()-1]->Fill(value);
-}
-
-void HistoSplitter::fillShapeHistogram(HistoSplitter::SplittedTH1s& histoContainer, double value, double weight) {
-  checkIndexValidity();
-  histoContainer[fCurrentUnfoldedBinIndex]->Fill(value, weight);
-  // Fill inclusive histogram
-  if (fNUnfoldedBins > 1)
-    histoContainer[histoContainer.size()-1]->Fill(value, weight);
-}
-
-void HistoSplitter::fillShapeHistogram(HistoSplitter::SplittedTH2s& histoContainer, double valueX, double valueY) {
-  checkIndexValidity();
-  histoContainer[fCurrentUnfoldedBinIndex]->Fill(valueX, valueY);
-  // Fill inclusive histogram
-  if (fNUnfoldedBins > 1)
-    histoContainer[histoContainer.size()-1]->Fill(valueX, valueY);
-}
-
-void HistoSplitter::fillShapeHistogram(HistoSplitter::SplittedTH2s& histoContainer, double valueX, double valueY, double weight) {
-  checkIndexValidity();
-  histoContainer[fCurrentUnfoldedBinIndex]->Fill(valueX, valueY, weight);
-  // Fill inclusive histogram
-  if (fNUnfoldedBins > 1)
-    histoContainer[histoContainer.size()-1]->Fill(valueX, valueY, weight);
-}*/
 
 const size_t HistoSplitter::getShapeBinIndex() const {
   size_t index = 0;

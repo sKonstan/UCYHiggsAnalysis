@@ -44,6 +44,29 @@ metFilter = PSet(
 
 
 #================================================================================================  
+# Electron selection
+#================================================================================================  
+electronSelection = PSet(
+    PtCut         = 7.0,
+    EtaCut        = 2.5,
+    RelIsolString = "tight", # (options: veto, loose, medium, tight)
+    electronID    = "mvaEleID_PHYS14_PU20bx25_nonTrig_V1_wp90", # highest (wp90) for vetoing (2012: wp95)
+
+)
+
+
+#================================================================================================  
+# Muon selection
+#================================================================================================  
+muonSelection = PSet(
+             muonPtCut = 5.0,
+            muonEtaCut = 2.4,
+                muonID = "muIDTight", # (options: muIDLoose, muIDMedium, muIDTight)
+         muonIsolation = "tight",     # (options: tight)
+)
+
+
+#================================================================================================  
 # Tau selection
 #================================================================================================  
 tauSelection = PSet(
@@ -66,27 +89,6 @@ tauSelection = PSet(
 # # tau trigger SF
 # scaleFactors.assignTauTriggerSF(tauSelection, "nominal")
 
-
-#================================================================================================  
-# Electron veto
-#================================================================================================  
-eVeto = PSet(
-         electronPtCut = 15.0,
-        electronEtaCut = 2.5,
-            electronID = "mvaEleID_PHYS14_PU20bx25_nonTrig_V1_wp90", # highest (wp90) for vetoing (2012: wp95)
-     electronIsolation = "veto", # loosest possible for vetoing ("veto"), "tight" for selecting
-)
-
-
-#================================================================================================  
-# Muon veto
-#================================================================================================  
-muVeto = PSet(
-             muonPtCut = 10.0,
-            muonEtaCut = 2.5,
-                muonID = "muIDLoose", # loosest option for vetoing (options: muIDLoose, muIDMedium, muIDTight)
-         muonIsolation = "veto", # loosest possible for vetoing ("veto"), "tight" for selecting
-)
 
 
 #================================================================================================  
@@ -156,9 +158,9 @@ allSelections = PSet(
  histogramAmbientLevel = histoLevel,
                Trigger = trg,
              METFilter = metFilter,
+     ElectronSelection = electronSelection,
+         MuonSelection = muonSelection,
           TauSelection = tauSelection,
-     ElectronSelection = eVeto,
-         MuonSelection = muVeto,
           JetSelection = jetSelection,
          BJetSelection = bjetSelection,
           METSelection = metSelection,

@@ -44,8 +44,7 @@ public:
   ~Electron() {}
 
   bool electronIDDiscriminator() const {
-    if (!fCollection->electronIDDiscriminatorIsValid())
-      return true;
+    if ( !fCollection->electronIDDiscriminatorIsValid() ) return true;
     return fCollection->fElectronIDDiscriminator->value()[index()];
   }
 };
