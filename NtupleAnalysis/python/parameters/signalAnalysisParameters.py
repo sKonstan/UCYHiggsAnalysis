@@ -95,14 +95,14 @@ tauSelection = PSet(
 # Jet selection
 #================================================================================================  
 jetSelection = PSet(
-               jetType = "Jets", # options: Jets (AK4PFCHS), JetsPuppi (AK4Puppi)
-              jetPtCut = 30.0,
-             jetEtaCut = 2.5,
-     tauMatchingDeltaR = 0.4,
-  numberOfJetsCutValue = 3,
-  numberOfJetsCutDirection = ">=", # options: ==, !=, <, <=, >, >=
-            jetIDDiscr = "IDtight", # options: IDloose, IDtight, IDtightLeptonVeto
-          jetPUIDDiscr = "", # does not work at the moment 
+    PtCut             = 20.0,
+    EtaCut            =  2.5,
+    TauMatchDeltaR    =  0.4,
+    NJetsCutValue     =  2,
+    NJetsCutDirection = ">=",       # [==, !=, <, <=, >, >=]
+    jetType           = "Jets",     # [Jets (AK4PFCHS), JetsPuppi (AK4Puppi)]
+    jetIDDiscr        = "IDtight",  # [IDloose, IDtight, IDtightLeptonVeto]
+    jetPUIDDiscr      = "",         # [does not work at the moment]
 )
 
  
@@ -116,6 +116,7 @@ bjetSelection = PSet(
  numberOfBJetsCutValue = 1,
  numberOfBJetsCutDirection = ">=", # options: ==, !=, <, <=, >, >=
 )
+
 
 #================================================================================================  
 # MET selection
