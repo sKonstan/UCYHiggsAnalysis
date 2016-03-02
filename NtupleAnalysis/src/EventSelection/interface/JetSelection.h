@@ -81,7 +81,7 @@ private:
   
   // Event counter for passing selection
   Count cPassedJetSelection;
-  // Sub counters
+  // Event sub-counters for passing selection
   Count cSubAll;
   Count cSubPassedJetID;
   Count cSubPassedJetPUID;
@@ -89,6 +89,7 @@ private:
   Count cSubPassedPt;
   Count cSubPassedEta;
   Count cSubPassedJetCount;
+
   // Histograms
   WrappedTH1 *hJetPtAll;
   WrappedTH1 *hJetEtaAll;

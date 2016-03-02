@@ -107,14 +107,14 @@ jetSelection = PSet(
 
  
 #================================================================================================  
-# B-jet selection
+# B-jet selection (Jets passing the "jetSelection" PSets are checked if they can be b-tagged)
 #================================================================================================  
 bjetSelection = PSet(
-             #bjetDiscr = "combinedInclusiveSecondaryVertexV2BJetTags",
-             bjetDiscr = "pfCombinedInclusiveSecondaryVertexV2BJetTags",
- bjetDiscrWorkingPoint = "Loose",
- numberOfBJetsCutValue = 1,
- numberOfBJetsCutDirection = ">=", # options: ==, !=, <, <=, >, >=
+    NJetsCutValue         = 1,
+    NJetsCutDirection     = ">=",  #[==, !=, <, <=, >, >=]
+    BjetDiscr             = "pfCombinedInclusiveSecondaryVertexV2BJetTags",
+    BjetDiscrWorkingPoint = "Loose",
+
 )
 
 
