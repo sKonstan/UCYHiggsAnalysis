@@ -287,7 +287,6 @@ class Dataset(object):
         return self.GetXSection() / allEvents
 
     
-
     def _GetEnergy(self):
         '''
         '''
@@ -798,6 +797,23 @@ class Dataset(object):
         return
 
 
+    def Close(self):
+        '''
+        Close the files
+        Can be useful when opening very many files in order to reduce
+        the memory footprint and not hit the limit of number of open
+        files
+        '''
+        #for f in self.rootFiles:
+        #    f.Close("R")
+        #    f.Delete()
+
+        self.rootFile.Close("R")
+        self.rootFile.Delete()
+        self.rootFile = "" #[]
+        return
+
+
 #================================================================================================ 
 # Class Definition
 #================================================================================================ 
@@ -920,7 +936,7 @@ class DatasetManager:
         self.Verbose()
         
         for d in self.datasets:
-            d.close()
+            d.Close()
         return
 
     
@@ -1147,7 +1163,7 @@ class DatasetManager:
             if not d.GetName() in nameList:
                 selected.append(d)
             elif close:
-                d.close()
+                d.Close()
         self.datasets = selected
         self._PopulateMap()
         return
@@ -1423,7 +1439,7 @@ class DatasetManager:
         rows   = []
         info   = []
         align  = "{:^35} {:^10} {:^10} {:^15} {:^15} {:^20} {:>15} {:>15} {:>15}"
-        header = align.format("Dataset", "Version", "E (TeV)", "XSection (pb)", "Lumi (1/pb)", "Norm Factor", "Events", "Unweighted", "Weighted")
+        header = align.format("Dataset", "Version", "E (TeV)", "XSection (pb)", "Lumi (1/pb)", "Norm Factor (sigma/N)", "Events", "Unweighted", "Weighted")
         hLine  = "="*len(header)
         info.append(hLine)
         info.append(header)

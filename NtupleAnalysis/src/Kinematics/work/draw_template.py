@@ -37,7 +37,7 @@ folder        = "Kinematics"
 analysis      = folder
 lumiInFb      = -1
 saveFormats   = ["png"] #, "pdf"]
-savePath      = "/Users/attikis/Desktop/"
+savePath      = "" #"/Users/attikis/Desktop/"
 
 
 #================================================================================================
@@ -121,7 +121,9 @@ def DoPlots(histo, datasetObjects, savePostfix=""):
     # p.Draw("") # "nostack", "stack"
     p.DrawRatio("", "AP", "Data")
     # p.SetHistosFillStyle(3001)
-    p.Save()
+    # p.Save()
+    # p.SaveAs(savePath, histo.GetName() + "_test", savePostfix, saveFormats)
+    p.Save(savePath, ["png"])    
     p.Exit()
     
     return
@@ -141,15 +143,16 @@ def DoCounters(histo, datasetObjects, savePostfix=""):
     p.AddCmsText("fb", prelim=True)
     p.DatasetAsLegend(True)    
     # p.AddTF1("1000*cos(x)", 0, 200.0, False, {"lineColour": ROOT.kBlack})
-    p.DrawRatio("", "AP", "ttHJetToNonbb_M125")
+    # p.DrawRatio("", "AP", "ttHJetToNonbb_M125")
+    p.DrawRatio("", "AP", "Data")
     # p.Draw("") # "nostack", "stack"
     # p.SetHistosFillStyle(3001)
     p.SetHistoLabelsOption("d")
     p.SetHistoLabelsSizeX(0.8)
     p.SetHistoAxisOffsetX(0.04)
-    p.Save()
+    # p.Save()
     # p.SaveAs(savePath, histo.GetName() + "_test", savePostfix, saveFormats)
-    # p.Save(savePath, ["png"])    
+    p.Save(savePath, ["png"])    
     p.Exit()
     
     return
@@ -168,10 +171,11 @@ def main():
     datasetManager = dataset.DatasetManager(opts.mcrab, analysis)
     datasetManager.LoadLuminosities("lumi.json")
     datasetManager.MergeData()
+    datasetManager.Remove("ttHJetToNonbb_M125")
     datasetObjects = datasetManager.GetAllDatasets() # datasetManager.GetMCDatasets() # [datasetManager.GetDataset("TTJets")]
     datasetManager.SetLuminosityForMC(lumiInFb)
-    # datasetManager.PrintSummary()
-    # datasetManager.PrintDatasets()
+    datasetManager.PrintSummary()
+    datasetManager.PrintDatasets()
     # datasetManager.PrintSelections("DYJetsToLL_M_10to50")
     
     # One Histogram on a given canvas (many datasets)
