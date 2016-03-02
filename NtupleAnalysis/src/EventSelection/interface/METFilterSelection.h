@@ -21,11 +21,10 @@ class WrappedTH2;
 class METFilterSelection: public BaseSelection {
 public:
   
-    /**
-    * Class to encapsulate the access to the data members of
-    * TauSelection. If you want to add a new accessor, add it here
-    * and keep all the data of TauSelection private.
-    */
+    // Class to encapsulate the access to the data members of
+    // TauSelection. If you want to add a new accessor, add it here
+    // and keep all the data of TauSelection private.
+
   class Data {
   public:
     // The reason for pointer instead of reference is that const
@@ -39,22 +38,18 @@ public:
     friend class METFilterSelection;
 
   private:
-    /// Boolean for passing selection
     bool bPassedSelection;
   };
   
-  // Main class
-  /// Constructor with histogramming
+  /// Constructor with/without histogramming
   explicit METFilterSelection(const ParameterSet& config, EventCounter& eventCounter, HistoWrapper& histoWrapper, CommonPlots* commonPlots, const std::string& postfix = "");
-  /// Constructor without histogramming
   explicit METFilterSelection(const ParameterSet& config);
   virtual ~METFilterSelection();
 
   virtual void bookHistograms(TDirectory* dir);
   
-  /// Use silentAnalyze if you do not want to fill histograms or increment counters
+  /// Use silentAnalyze() if you do not want to fill histograms or increment counters. Otherwise use analyze()
   Data silentAnalyze(const Event& event);
-  /// analyze does fill histograms and incrementes counters
   Data analyze(const Event& event);
 
 private:
@@ -64,12 +59,15 @@ private:
   Data privateAnalyze(const Event& iEvent);
 
   // Input parameters
-  
+  std::vector<std::string> cfg_Discriminators;
+    
   // Event counter for passing selection
   Count cSubAll;
   std::vector<Count> cSubPassedFilter;
   Count cPassedMETFilterSelection;
+
   // Histograms
+
 };
 
 #endif

@@ -53,7 +53,7 @@ public:
     double fHT; // HT (scalar sum of jets)
   };
   
-  // Main class
+  /// Constructor with/without histogrammi
   explicit JetSelection(const ParameterSet& config, EventCounter& eventCounter, HistoWrapper& histoWrapper, CommonPlots* commonPlots, const std::string& postfix = "");
   explicit JetSelection(const ParameterSet& config);
   virtual ~JetSelection();

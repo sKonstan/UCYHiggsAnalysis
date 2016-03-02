@@ -6,14 +6,14 @@ from UCYHiggsAnalysis.NtupleAnalysis.main import PSet
 #================================================================================================  
 # General parameters
 #================================================================================================  
-histoLevel = "Debug"  # Options: Systematics, Vital, Informative, Debug
+histoLevel = "Debug"  #[Systematics, Vital, Informative, Debug]
 
 
 #================================================================================================  
 # Trigger
 #================================================================================================  
 # No need to specify version numbers, they are automatically scanned in range 1--100 (remove the '_v' suffix)
-trg = PSet(
+trigger = PSet(
     triggerOR = ["HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ",
                  "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ",
                  "HLT_IsoMu20",
@@ -35,7 +35,7 @@ trg = PSet(
 # MET filter
 #================================================================================================  
 metFilter = PSet(
-    discriminators = ["hbheNoiseTokenRun2Loose", # Loose is recommended
+    Discriminators = ["hbheNoiseTokenRun2Loose", # Loose is recommended
                       "hbheIsoNoiseToken",       # under scrutiny
                       "Flag_CSCTightHaloFilter",
                       "Flag_eeBadScFilter",
@@ -96,8 +96,8 @@ tauSelection = PSet(
 #================================================================================================  
 jetSelection = PSet(
     PtCut             = 20.0,
-    EtaCut            =  2.5,
-    TauMatchDeltaR    =  0.4,
+    EtaCut            =  2.5, 
+    TauMatchDeltaR    =  0.4,       # FIXME: Should i remove this?
     NJetsCutValue     =  2,
     NJetsCutDirection = ">=",       # [==, !=, <, <=, >, >=]
     jetType           = "Jets",     # [PFCHSJets, PuppiJets]
@@ -155,14 +155,14 @@ commonPlots = PSet(
 # Create the PSet with all selections
 #================================================================================================  
 allSelections = PSet(
- histogramAmbientLevel = histoLevel,
-               Trigger = trg,
-             METFilter = metFilter,
-     ElectronSelection = electronSelection,
-         MuonSelection = muonSelection,
-          TauSelection = tauSelection,
-          JetSelection = jetSelection,
-         BJetSelection = bjetSelection,
-          METSelection = metSelection,
-           CommonPlots = commonPlots,
+    histogramAmbientLevel = histoLevel,
+    Trigger               = trigger,
+    METFilter             = metFilter,
+    ElectronSelection     = electronSelection,
+    MuonSelection         = muonSelection,
+    TauSelection          = tauSelection,
+    JetSelection          = jetSelection,
+    BJetSelection         = bjetSelection,
+    METSelection          = metSelection,
+    CommonPlots           = commonPlots,
 )
