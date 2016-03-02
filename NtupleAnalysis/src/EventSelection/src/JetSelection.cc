@@ -28,8 +28,8 @@ const Jet& JetSelection::Data::getJetMatchedToTau() const {
 
 JetSelection::JetSelection(const ParameterSet& config, EventCounter& eventCounter, HistoWrapper& histoWrapper, CommonPlots* commonPlots, const std::string& postfix)
   : BaseSelection(eventCounter, histoWrapper, commonPlots, postfix),
-    cfg_PtCut(          config.getParameter<float>("PtCut") ),
-    cfg_EtaCut(         config.getParameter<float>("EtaCut") ),
+    cfg_PtCut(          config.getParameter<float>("PtCut")          ),
+    cfg_EtaCut(         config.getParameter<float>("EtaCut")         ),
     cfg_TauMatchDeltaR( config.getParameter<float>("TauMatchDeltaR") ),
     cfg_NJetsCut(config, "NJetsCut"),
     // Event counter for passing selection

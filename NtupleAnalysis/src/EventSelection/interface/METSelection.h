@@ -31,11 +31,10 @@ public:
     kPuppiMET
   };
   
-    /**
-    * Class to encapsulate the access to the data members of
-    * TauSelection. If you want to add a new accessor, add it here
-    * and keep all the data of TauSelection private.
-    */
+  // Class to encapsulate the access to the data members of
+  // TauSelection. If you want to add a new accessor, add it here
+  // and keep all the data of TauSelection private.
+
   class Data {
   public:
     // The reason for pointer instead of reference is that const
@@ -52,28 +51,21 @@ public:
     friend class METSelection;
 
   private:
-    /// Boolean for passing selection
     bool bPassedSelection;
-    /// MET collection for storing MET object (as p2, because one needs to be able to manipulate it)
-    std::vector<math::XYVectorD> fSelectedMET;
-    /// MET significance
+    std::vector<math::XYVectorD> fSelectedMET; // MET collection for storing MET object (as p2 - easier tomanipulate)
     float fMETSignificance;
-    /// Cache MET trigger SF
-    float fMETTriggerSF;
+    float fMETTriggerSF; // Cache MET trigger SF
   };
   
   // Main class
-  /// Constructor with histogramming
   explicit METSelection(const ParameterSet& config, EventCounter& eventCounter, HistoWrapper& histoWrapper, CommonPlots* commonPlots, const std::string& postfix = "");
-  /// Constructor without histogramming
   explicit METSelection(const ParameterSet& config);
   virtual ~METSelection();
 
   virtual void bookHistograms(TDirectory* dir);
   
-  /// Use silentAnalyze if you do not want to fill histograms or increment counters
+  /// Use silentAnalyze() if you do not want to fill histograms or increment counters. Otherwise use analyze() 
   Data silentAnalyze(const Event& event, int nVertices);
-  /// analyze does fill histograms and incrementes counters
   Data analyze(const Event& event, int nVertices);
 
 private:
@@ -83,16 +75,20 @@ private:
   Data privateAnalyze(const Event& iEvent, int nVertices);
 
   // Input parameters
-  const DirectionalCut<float> fMETCut;
-  const DirectionalCut<float> fMETSignificanceCut;
-  const bool bApplyPhiCorrections;
-  METType fMETType;
-  // MET trigger SF
-  GenericScaleFactor fMETTriggerSFReader;
+  const DirectionalCut<float> cfg_METCut;
+  const DirectionalCut<float> cfg_METSignificanceCut;
+  const std::string cfg_METTypeString;
+  const bool cfg_PhiCorrections;
+  METType cfg_METType;
+  GenericScaleFactor cfg_METTriggerSFReader;
   
   // Event counter for passing selection
   Count cPassedMETSelection;
+
   // Histograms
+  WrappedTH1 *hMET;
+  WrappedTH1 *hMETSig;;
+
 };
 
 #endif

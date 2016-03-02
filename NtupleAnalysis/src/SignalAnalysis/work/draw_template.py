@@ -168,6 +168,7 @@ def main():
     datasetManager = dataset.DatasetManager(opts.mcrab, analysis)
     datasetManager.LoadLuminosities("lumi.json")
     datasetManager.MergeData()
+    datasetManager.Remove("ttHJetToNonbb_M125")
     datasetObjects = datasetManager.GetAllDatasets() # datasetManager.GetMCDatasets() # [datasetManager.GetDataset("TTJets")]
     datasetManager.SetLuminosityForMC(lumiInFb)
     # datasetManager.PrintSummary()

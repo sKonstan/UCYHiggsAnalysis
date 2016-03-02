@@ -382,9 +382,11 @@ class Plotter(object):
             dataset.histo.NormaliseToOne()
             return
         elif normOpt == "byXSection":
-            dataset.histo.NormaliseToFactor(dataset.GetNormFactor())
+            dataset.histo.NormaliseToFactor( dataset.GetNormFactor() )
         elif normOpt == "toLuminosity":
-            dataset.histo.NormaliseToFactor(dataset.GetLuminosity())
+            if dataset._IsData():
+                return
+            dataset.histo.NormaliseToFactor( dataset.GetNormFactor() * dataset.GetLuminosity() )
         else:
             raise Exception("Unknown histoObject normalisation option '%s'.!" % (dataset.histo.normalise))
         return

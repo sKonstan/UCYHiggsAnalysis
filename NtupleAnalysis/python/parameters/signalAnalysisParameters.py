@@ -100,7 +100,7 @@ jetSelection = PSet(
     TauMatchDeltaR    =  0.4,
     NJetsCutValue     =  2,
     NJetsCutDirection = ">=",       # [==, !=, <, <=, >, >=]
-    jetType           = "Jets",     # [Jets (AK4PFCHS), JetsPuppi (AK4Puppi)]
+    jetType           = "Jets",     # [PFCHSJets, PuppiJets]
     jetIDDiscr        = "IDtight",  # [IDloose, IDtight, IDtightLeptonVeto]
     jetPUIDDiscr      = "",         # [does not work at the moment]
 )
@@ -114,7 +114,6 @@ bjetSelection = PSet(
     NJetsCutDirection     = ">=",  #[==, !=, <, <=, >, >=]
     BjetDiscr             = "pfCombinedInclusiveSecondaryVertexV2BJetTags",
     BjetDiscrWorkingPoint = "Loose",
-
 )
 
 
@@ -122,12 +121,12 @@ bjetSelection = PSet(
 # MET selection
 #================================================================================================  
 metSelection = PSet(
-           METCutValue = 120.0,
-       METCutDirection = ">", # options: ==, !=, <, <=, >, >=
-  METSignificanceCutValue = -1000.0,
-  METSignificanceCutDirection = ">", # options: ==, !=, <, <=, >, >=
-               METType = "MET_Type1", # options: MET_Type1, MET_Type1_NoHF, MET_Puppi, GenMET, L1MET, HLTMET, CaloMET
-   applyPhiCorrections = False  # FIXME: no effect yet
+    METCutValue                 = 50.0,
+    METCutDirection             = ">=",        # [==, !=, <, <=, >, >=]
+    METSignificanceCutValue     = -1000.0,
+    METSignificanceCutDirection = ">",         # [==, !=, <, <=, >, >=]
+    METType                     = "MET_Type1", # [MET_Type1, MET_Type1_NoHF, MET_Puppi, GenMET, L1MET, HLTMET, CaloMET]
+    PhiCorrections              = False        # [FIXME: no effect yet]
 )
 # MET trigger SF
 # scaleFactors.assignMETTriggerSF(metSelection, bjetSelection.bjetDiscrWorkingPoint, "nominal")

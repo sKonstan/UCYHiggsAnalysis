@@ -493,6 +493,8 @@ class DrawObject:
         TH1.Sumw2() is called before the TH1.Scale() in order to scale the histogram errors correctly.
         '''
         self.Verbose()
+        if not isinstance(scaleFactor, float):
+            self.Print("WARNING! The scaleFactor variable passed as argument is an instance of float, but '%s' instead" % (type(scaleFactor) ) )
         
         errorIgnoreLevel       = ROOT.gErrorIgnoreLevel
         ROOT.gErrorIgnoreLevel = ROOT.kError
