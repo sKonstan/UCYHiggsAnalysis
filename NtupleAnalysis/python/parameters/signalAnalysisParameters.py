@@ -51,7 +51,6 @@ electronSelection = PSet(
     EtaCut        = 2.5,
     RelIsolString = "loose", # [veto, none, loose, medium, tight]
     electronID    = "mvaEleID_PHYS14_PU20bx25_nonTrig_V1_wp90", # [?]
-
 )
 
 
@@ -97,12 +96,13 @@ tauSelection = PSet(
 jetSelection = PSet(
     PtCut             = 20.0,
     EtaCut            =  2.5, 
-    TauMatchDeltaR    =  0.4,       # FIXME: Should i remove this?
+    TauMatchDeltaR    =  0.4,         # FIXME: Should i remove this? Is tau-jet included in SelectedJets?
     NJetsCutValue     =  2,
-    NJetsCutDirection = ">=",       # [==, !=, <, <=, >, >=]
-    jetType           = "Jets",     # [PFCHSJets, PuppiJets]
-    jetIDDiscr        = "IDtight",  # [IDloose, IDtight, IDtightLeptonVeto]
-    jetPUIDDiscr      = "",         # [does not work at the moment]
+    NJetsCutDirection = ">=",         # [==, !=, <, <=, >, >=]
+    #jetType           = "PFCHSJets", # [PFCHSJets, PuppiJets]
+    jetType           = "Jets",       # obsolete with new NTuples
+    jetIDDiscr        = "IDtight",    # [IDloose, IDtight, IDtightLeptonVeto]
+    jetPUIDDiscr      = "",           # [does not work at the moment]
 )
 
  
@@ -136,18 +136,18 @@ metSelection = PSet(
 # Common plots options
 #================================================================================================  
 commonPlots = PSet(
-  # histogramSplitting = [PSet(label="tauPt", binLowEdges=[60, 70, 80, 100, 120], useAbsoluteValues=False)],
-  histogramSplitting = [],
-  # Bin settings (final bin setting done in datacardGenerator, there also variable bin width is supported)
-       nVerticesBins = PSet(nBins=60, axisMin=0., axisMax=60.),
-              ptBins = PSet(nBins=50, axisMin=0., axisMax=500.),
-             etaBins = PSet(nBins=60, axisMin=-3.0, axisMax=3.0),
-             phiBins = PSet(nBins=72, axisMin=-3.1415926, axisMax=3.1415926),
-            rtauBins = PSet(nBins=55, axisMin=0., axisMax=1.1),
-           njetsBins = PSet(nBins=20, axisMin=0., axisMax=20.),
-             metBins = PSet(nBins=80, axisMin=0., axisMax=800.),
-       bjetDiscrBins = PSet(nBins=20, axisMin=-1.0, axisMax=1.0),
-  enablePUDependencyPlots = True,
+    # histogramSplitting = [PSet(label="tauPt", binLowEdges=[60, 70, 80, 100, 120], useAbsoluteValues=False)],
+    histogramSplitting = [],
+    # Bin settings (final bin setting done in datacardGenerator, there also variable bin width is supported)
+    NVerticesBins = PSet(nBins=60, axisMin= 0.0, axisMax= 60.0),
+    PtBins        = PSet(nBins=50, axisMin= 0.0, axisMax=500.0),
+    EtaBins       = PSet(nBins=60, axisMin=-3.0, axisMax=  3.0),
+    PhiBins       = PSet(nBins=72, axisMin=-3.1415926, axisMax=3.1415926),
+    RtauBins      = PSet(nBins=55, axisMin= 0.0, axisMax=  1.1),
+    NJetsBins     = PSet(nBins=20, axisMin= 0.0, axisMax= 20.0),
+    MetBins       = PSet(nBins=80, axisMin= 0.0, axisMax=800.0),
+    BjetDiscrBins = PSet(nBins=20, axisMin=-1.0, axisMax=  1.0),
+    enablePUDependencyPlots = True,
 )
 
 

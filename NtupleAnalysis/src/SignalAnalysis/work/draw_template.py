@@ -33,11 +33,12 @@ import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.aux as aux
 #================================================================================================
 verbose       = False
 batchMode     = True
-folder        = "Kinematics"
+folder        = "SignalAnalysis_mH125_Run2015D"
 analysis      = folder
 lumiInFb      = -1
-saveFormats   = ["png"] #, "pdf"]
-savePath      = "/Users/attikis/Desktop/"
+saveFormats   = ["png"]
+#savePath      = "/Users/attikis/Desktop/"
+savePath      = "/afs/cern.ch/user/a/attikis/public/html/"
 
 
 #================================================================================================
@@ -71,13 +72,6 @@ Pt = {
     "logYRatio": False, "logXRatio": False, "xLegMin": 0.70, "xLegMax": 0.95, "yLegMin": 0.78, "yLegMax": 0.93, "gridXRatio": True, "gridYRatio": True,
 }
 
-PtTest = {
-    "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00 , "xMax": ptMax, "binWidthX": None, "xCutLines": [20], "xCutBoxes": PtRange  , "gridX": True, "logX": False, 
-    "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E-01, "yMax": None , "binWidthY": None, "yCutLines": [10], "yCutBoxes": EvtRange, "gridY": True, "logY": True,
-    "ratioLabel": "Ratio", "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "drawOptions": "HIST9", "legOptions": "F", 
-    "logYRatio": False, "logXRatio": False, "xLegMin": 0.70, "xLegMax": 0.95, "yLegMin": 0.78, "yLegMax": 0.93, "gridXRatio": True, "gridYRatio": True,
-}
-
 
 Eta = {
     "xLabel": "#eta"           , "xUnits": "", "xMin": -etaMax, "xMax": +etaMax, "binWidthX": None, "xCutLines": [0], "gridX": True, "gridXRatio": False, "logX": False,
@@ -99,10 +93,10 @@ wCounter = {
 #================================================================================================
 # Create Histos OBjects
 #================================================================================================
-PassedElectronsPt   = histos.DrawObject( folder, "PassedElectronsPt" , "passed", **Pt )
-PassedElectronsEta  = histos.DrawObject( folder, "PassedElectronsEta", "passed", **Eta )
-AllElectronsPt      = histos.DrawObject( folder, "AllElectronsPt"    , "all"   , **Pt )
-AllElectronsEta     = histos.DrawObject( folder, "AllElectronsEta"   , "all"   , **Eta )
+#PassedElectronsPt   = histos.DrawObject( folder, "PassedElectronsPt" , "passed", **Pt )
+#PassedElectronsEta  = histos.DrawObject( folder, "PassedElectronsEta", "passed", **Eta )
+#AllElectronsPt      = histos.DrawObject( folder, "AllElectronsPt"    , "all"   , **Pt )
+#AllElectronsEta     = histos.DrawObject( folder, "AllElectronsEta"   , "all"   , **Eta )
 
 counter = histos.DrawObject( folder + "/counters/weighted", "counter", ""   , **wCounter )
 
@@ -121,7 +115,9 @@ def DoPlots(histo, datasetObjects, savePostfix=""):
     # p.Draw("") # "nostack", "stack"
     p.DrawRatio("", "AP", "Data")
     # p.SetHistosFillStyle(3001)
-    p.Save()
+    # p.Save()
+    p.Save(savePath, saveFormats)
+    # p.SaveAs(savePath, histo.GetName() + "_test", savePostfix, saveFormats)
     p.Exit()
     
     return
@@ -141,15 +137,15 @@ def DoCounters(histo, datasetObjects, savePostfix=""):
     p.AddCmsText("fb", prelim=True)
     p.DatasetAsLegend(True)    
     # p.AddTF1("1000*cos(x)", 0, 200.0, False, {"lineColour": ROOT.kBlack})
-    p.DrawRatio("", "AP", "ttHJetToNonbb_M125")
+    p.DrawRatio("", "AP", "Data") #ttHJetToNonbb_M125
     # p.Draw("") # "nostack", "stack"
     # p.SetHistosFillStyle(3001)
-    p.SetHistoLabelsOption("d")
+    p.SetHistoLabelsOption("u") #v, u, d
     p.SetHistoLabelsSizeX(0.8)
     p.SetHistoAxisOffsetX(0.04)
-    p.Save()
+    # p.Save()
+    p.Save(savePath, saveFormats)
     # p.SaveAs(savePath, histo.GetName() + "_test", savePostfix, saveFormats)
-    # p.Save(savePath, ["png"])    
     p.Exit()
     
     return
@@ -161,8 +157,10 @@ def main():
     
     # Variables
     # histoList    = [AllElectronsEta, PassedElectronsEta]
-    histoList   = [AllElectronsPt, PassedElectronsPt]
+    # histoList   = [AllElectronsPt, PassedElectronsPt]
+    histoList   = []
     counterList = [counter]
+
     
     # Datasets
     datasetManager = dataset.DatasetManager(opts.mcrab, analysis)
@@ -174,6 +172,7 @@ def main():
     # datasetManager.PrintSummary()
     # datasetManager.PrintDatasets()
     # datasetManager.PrintSelections("DYJetsToLL_M_10to50")
+
     
     # One Histogram on a given canvas (many datasets)
     auxObject.StartTimer("Histo Loop")

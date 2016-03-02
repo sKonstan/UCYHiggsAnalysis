@@ -83,16 +83,24 @@ METFilterSelection::Data METFilterSelection::privateAnalyze(const Event& iEvent)
   //====== Apply Cut: discriminators
   output.bPassedSelection = true;
   size_t i = 0;
-  while (i < iEvent.metFilter().getConfigurableDiscriminatorValues().size() && output.bPassedSelection) 
-    {
-      if ( iEvent.metFilter().getConfigurableDiscriminatorValues()[i] ) cSubPassedFilter[i].increment();
-      else output.bPassedSelection = false;
-      ++i;
-    }
-  
+  while (i < iEvent.metFilter().getConfigurableDiscriminatorValues().size() && output.bPassedSelection) {
+    if (iEvent.metFilter().getConfigurableDiscriminatorValues()[i]) 
+      {
+	cSubPassedFilter[i].increment();
+      }
+    else 
+      {
+	output.bPassedSelection = false;
+      }
+    ++i;
+  }//while
+
 
   //====== Passed MET filter selection
-  if (output.bPassedSelection)  cPassedMETFilterSelection.increment();
+  if (output.bPassedSelection) 
+    {
+      cPassedMETFilterSelection.increment();
+    }
   
 
   return output;

@@ -36,6 +36,7 @@ from optparse import OptionParser
 
 from UCYHiggsAnalysis.NtupleAnalysis.main import Process, PSet, Analyzer
 from UCYHiggsAnalysis.NtupleAnalysis.parameters.signalAnalysisParameters import allSelections
+from UCYHiggsAnalysis.NtupleAnalysis.parameters.ttbarAnalysisParameters import ttbarSelections
 from UCYHiggsAnalysis.NtupleAnalysis.AnalysisBuilder import AnalysisBuilder
 
 import ROOT
@@ -79,13 +80,12 @@ def main():
     else: #all datasets
         process.addDatasetsFromMulticrab(opts.mcrab)
 
-    # Set splitting of phase space (first bin is below first edge value and last bin is above last edge value)
-        allSelections.CommonPlots.histogramSplitting = [
-            #PSet(label="tauPt", binLowEdges=[60.0, 70.0, 80.0, 100.0], useAbsoluteValues=False),
-            ]
     # ================================================================================================
     # Selection customisations
     # ================================================================================================
+    # allSelections.CommonPlots.histogramSplitting = [
+    #     PSet(label="tauPt", binLowEdges=[60.0, 70.0, 80.0, 100.0], useAbsoluteValues=False),
+    #     ]
     # allSelections.TauSelection.rtau = 0.0
     # allSelections.BJetSelection.numberOfBJetsCutValue = 0
     # allSelections.BJetSelection.numberOfBJetsCutDirection = "=="
@@ -107,12 +107,15 @@ def main():
                               doSystematicVariations=False
                               )
 
+
     # ================================================================================================
     # Variations for optimisation
     # ================================================================================================
     # builder.addVariation("METSelection.METCutValue", [100,120,140])
     # builder.addVariation("AngularCutsBackToBack.workingPoint", ["Loose","Medium","Tight"])
-    builder.build(process, allSelections)
+    
+    # builder.build(process, allSelections)
+    builder.build(process, ttbarSelections)
 
     # ================================================================================================
     # Pick events

@@ -22,13 +22,14 @@ import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.aux as aux
 # Global variables
 #================================================================================================
 latexNamesDict = {}
-latexNamesDict["ttHJetToNonbb_M125"]  = "ttH"               # (m_{H^{0}} = 125 GeV)"
+latexNamesDict["ttHJetToNonbb_M125"]  = "ttH"
 latexNamesDict["TTJets"]              = "t#bar{t} + jets"
-latexNamesDict["DYJetsToLL_M_10to50"] = "DY"                # (m_{#ell#ell}=10-50 GeV)"
-latexNamesDict["WJetsToLNu"]          = "W^{#pm} #rightarrow l #nu_{l}" #to #ell #nu_{#ell}"
-latexNamesDict["WW"]                  = "WW"                # "W^{#pm} W^{#mp}"
-latexNamesDict["WZ"]                  = "WZ"                # "W^{#pm} Z^{0}"
-latexNamesDict["ZZ"]                  = "ZZ"                # "Z^{0} Z^{0}"
+latexNamesDict["DYJetsToLL_M_10to50"] = "DY"
+latexNamesDict["DYJetsToLL_M_50"]     = "Z+jets"
+latexNamesDict["WJetsToLNu"]          = "W^{#pm} #rightarrow l #nu_{l}"
+latexNamesDict["WW"]                  = "WW"
+latexNamesDict["WZ"]                  = "WZ"
+latexNamesDict["ZZ"]                  = "ZZ"
 latexNamesDict["MuonEG_246908_260426_25ns_Silver"]= "Data"
 
 

@@ -1253,7 +1253,6 @@ class Plotter(object):
         if not hasattr(self, "TPadPlot")  and hasattr(self, "TCanvas"):
             self.THDumbie.THisto.GetXaxis().SetLabelOffset(newValue)
         elif hasattr(self, "TPadRatio"):
-            print "self.THRatio.THisto.GetXaxis().GetLabelOffset() = ", self.THRatio.THisto.GetXaxis().GetLabelOffset() 
             self.THRatio.THisto.GetXaxis().SetLabelOffset(newValue)
         else:
             raise Exception("Cannot set histo x-axis offset to '%s'. No THisto or THRatio histograms available!" % (newValue))

@@ -176,7 +176,8 @@ TauSelection::Data TauSelection::analyze(const Event& event) {
   TauSelection::Data data = privateAnalyze(event);
 
   // Send data to CommonPlots
-  if (fCommonPlots != nullptr) fCommonPlots->fillControlPlotsAfterTauSelection(event, data);
+  // if (fCommonPlots != nullptr) fCommonPlots->fillControlPlotsAfterTauSelection(event, data); // HIP
+  if (fCommonPlots != nullptr) fCommonPlots->fillControlPlotsAtTauSelection(event, data); // new
 
   return data;
 }

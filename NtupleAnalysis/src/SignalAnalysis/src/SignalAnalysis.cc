@@ -9,7 +9,6 @@
 
 class SignalAnalysis: public BaseSelector {
 public:
-  // explicit SignalAnalysis(const ParameterSet& config, const TH1* skimCounters);
   explicit SignalAnalysis(const ParameterSet& config);
   virtual ~SignalAnalysis() {}
 
@@ -30,15 +29,20 @@ private:
   Count cTrigger;
   METFilterSelection fMETFilterSelection;
   Count cVertexSelection;
+  // Count cFakeTauSFCounter;
+  // Count cTauTriggerSFCounter;
+  // Count cMetTriggerSFCounter;
   ElectronSelection fElectronSelection;
   MuonSelection fMuonSelection;
+  Count cLeptons;
   TauSelection fTauSelection;
   JetSelection fJetSelection;
   BJetSelection fBJetSelection;
+  // Count cBTaggingSFCounter;
   METSelection fMETSelection;
   Count cSelected;
     
-  // Non-common histograms
+  // Histograms
   WrappedTH1* hExample;
 
 };
@@ -49,22 +53,24 @@ REGISTER_SELECTOR(SignalAnalysis);
 SignalAnalysis::SignalAnalysis(const ParameterSet& config)
   : BaseSelector(config),
     fCommonPlots(config.getParameter<ParameterSet>("CommonPlots"), CommonPlots::kSignalAnalysis, fHistoWrapper),
-    cAllEvents(fEventCounter.addCounter("All events")),
-    cTrigger(fEventCounter.addCounter("Passed trigger")),
-    fMETFilterSelection(config.getParameter<ParameterSet>("METFilter"), fEventCounter, fHistoWrapper, &fCommonPlots, ""),
-    cVertexSelection(fEventCounter.addCounter("Primary vertex selection")),
-    fElectronSelection(config.getParameter<ParameterSet>("ElectronSelection"), fEventCounter, fHistoWrapper, &fCommonPlots, ""),
-    fMuonSelection(config.getParameter<ParameterSet>("MuonSelection"), fEventCounter, fHistoWrapper, &fCommonPlots, ""),
-    fTauSelection(config.getParameter<ParameterSet>("TauSelection"), fEventCounter, fHistoWrapper, &fCommonPlots, ""), 
-    fJetSelection(config.getParameter<ParameterSet>("JetSelection"), fEventCounter, fHistoWrapper, &fCommonPlots, ""),
-    fBJetSelection(config.getParameter<ParameterSet>("BJetSelection"), fEventCounter, fHistoWrapper, &fCommonPlots, ""),
-    fMETSelection(config.getParameter<ParameterSet>("METSelection"), fEventCounter, fHistoWrapper, &fCommonPlots, ""),
-    cSelected(fEventCounter.addCounter("Selected events"))
+    cAllEvents( fEventCounter.addCounter("All events") ),
+    cTrigger( fEventCounter.addCounter("Passed trigger") ),
+    fMETFilterSelection( config.getParameter<ParameterSet>("METFilter"), fEventCounter, fHistoWrapper, &fCommonPlots, ""),
+    cVertexSelection( fEventCounter.addCounter("PV selection") ),
+    fElectronSelection( config.getParameter<ParameterSet>("ElectronSelection"), fEventCounter, fHistoWrapper, &fCommonPlots, ""),
+    fMuonSelection( config.getParameter<ParameterSet>("MuonSelection"), fEventCounter, fHistoWrapper, &fCommonPlots, ""),
+    cLeptons( fEventCounter.addCounter("Passed leptons") ),
+    fTauSelection( config.getParameter<ParameterSet>("TauSelection"), fEventCounter, fHistoWrapper, &fCommonPlots, ""), 
+    fJetSelection( config.getParameter<ParameterSet>("JetSelection"), fEventCounter, fHistoWrapper, &fCommonPlots, ""),
+    fBJetSelection( config.getParameter<ParameterSet>("BJetSelection"), fEventCounter, fHistoWrapper, &fCommonPlots, ""),
+    fMETSelection( config.getParameter<ParameterSet>("METSelection"), fEventCounter, fHistoWrapper, &fCommonPlots, ""),
+    cSelected( fEventCounter.addCounter("Selected events") )
 { }
 
 
 void SignalAnalysis::book(TDirectory *dir) {
   fCommonPlots.book(dir, isData());
+  // Book histograms in event selection classes
   fMETFilterSelection.bookHistograms(dir);
   fElectronSelection.bookHistograms(dir);
   fMuonSelection.bookHistograms(dir);
@@ -73,13 +79,17 @@ void SignalAnalysis::book(TDirectory *dir) {
   fBJetSelection.bookHistograms(dir);
   fMETSelection.bookHistograms(dir);
 
-  // Book non-common histograms
-  hExample =  fHistoWrapper.makeTH<TH1F>(HistoLevel::kInformative, dir, "example pT", "example pT", 40, 0, 400);
+  // Book histograms
+  hExample = fHistoWrapper.makeTH<TH1F>(HistoLevel::kInformative, dir, "example pT", "example pT", 40, 0, 400);
+
+  return;
 }
 
 
 void SignalAnalysis::setupBranches(BranchManager& branchManager) {
   fEvent.setupBranches(branchManager);
+
+  return;
 }
 
 
@@ -91,7 +101,7 @@ void SignalAnalysis::process(Long64_t entry) {
   cAllEvents.increment();
 
 
-  //====== Apply trigger
+  //====== Apply Cut: Trigger
   if ( !(fEvent.passTriggerDecision()) ) return;
   cTrigger.increment();
   int nVertices = fEvent.vertexInfo().value();
@@ -99,41 +109,56 @@ void SignalAnalysis::process(Long64_t entry) {
   fCommonPlots.fillControlPlotsAfterTrigger(fEvent);
 
 
-  //====== MET filters to remove events with spurious sources of fake MET
+  //====== Apply Cut: MET filters [remove events with spurious sources of fake MET]
   const METFilterSelection::Data metFilterData = fMETFilterSelection.analyze(fEvent);
   if ( !metFilterData.passedSelection() ) return;
   
 
   //====== GenParticle analysis
-  // if needed
-  
+  // if ( fEvent.isMC() )
+  // {
+  // } 
 
-  //====== Check that primary vertex exists
+
+  //====== Apply Cut: Primary Vertex (PV)
   if (nVertices < 1) return;
   cVertexSelection.increment();
   fCommonPlots.fillControlPlotsAtVertexSelection(fEvent);
   
-
-  //====== Electron selection
+  
+  /*
+  //====== Apply Cut: Electron selection
   const ElectronSelection::Data eData = fElectronSelection.analyze(fEvent);
-  if ( !eData.hasIdentifiedElectrons() ) return; //fixme
-  // fCommonPlots.fillControlPlotsAfterElectronSelection(fEvent); //fixme
+  if ( !eData.hasIdentifiedElectrons() ) return;
+  fCommonPlots.fillControlPlotsAfterElectronSelection(fEvent, eData);
 
 
-  //====== Muon veto
+  //====== Apply Cut: Muon selection
   const MuonSelection::Data muData = fMuonSelection.analyze(fEvent);
-  if ( !muData.hasIdentifiedMuons() ) return; //fixme
-  // fCommonPlots.fillControlPlotsAfterMuonSelection(fEvent); //fixme 
+  if ( !muData.hasIdentifiedMuons() ) return;
+  fCommonPlots.fillControlPlotsAfterMuonSelection(fEvent, muData);
+  */
 
 
-  //====== Tau selection
+  //====== Apply Cut: Lepton selection
+  const ElectronSelection::Data eData = fElectronSelection.analyze(fEvent);
+  const MuonSelection::Data muData    = fMuonSelection.analyze(fEvent);
+  const bool bFoundElectron           = eData.hasIdentifiedElectrons();
+  const bool bFoundMuon               = muData.hasIdentifiedMuons();
+  if ( !bFoundElectron && !bFoundMuon ) return;
+  fCommonPlots.fillControlPlotsAfterElectronSelection(fEvent, eData);
+  fCommonPlots.fillControlPlotsAfterMuonSelection(fEvent, muData);
+  cLeptons.increment();
+
+
+  //====== Apply Cut: Tau selection
   const TauSelection::Data tauData = fTauSelection.analyze(fEvent);
   if ( !tauData.hasIdentifiedTaus() ) return;
   //====== Fake tau SF
   // if ( fEvent.isMC() ){ fEventWeight.multiplyWeight(tauData.getTauMisIDSF()); }}
   //====== Tau trigger SF
   // if ( fEvent.isMC() ){ fEventWeight.multiplyWeight(tauData.getTauTriggerSF()); }
-  // fCommonPlots.fillControlPlotsAfterTauSelection(fEvent); //fixme
+  fCommonPlots.fillControlPlotsAfterTauSelection(fEvent, tauData);
 
 
   //====== MET trigger SF
@@ -143,13 +168,13 @@ void SignalAnalysis::process(Long64_t entry) {
   // }
 
 
-  //====== Jet selection
+  //====== Apply Cut: Jets selection
   const JetSelection::Data jetData = fJetSelection.analyze(fEvent, tauData.getSelectedTau());
   if ( !jetData.passedSelection() ) return;
   fCommonPlots.fillControlPlotsAfterJetSelections(fEvent);
 
 
-  //====== b-jet selection
+  //====== Apply Cut: b-Jets selection
   const BJetSelection::Data bjetData = fBJetSelection.analyze(fEvent, jetData);
   if (!bjetData.passedSelection() ) return;
   //====== b tag SF

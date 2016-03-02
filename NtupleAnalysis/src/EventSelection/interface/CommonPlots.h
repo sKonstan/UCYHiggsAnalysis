@@ -36,21 +36,24 @@ public:
   
   /// Return the histogram splitter objects
   HistoSplitter& getHistoSplitter() { return fHistoSplitter; }
-  const HistogramSettings& getPtBinSettings() const { return fPtBinSettings; }
+  const HistogramSettings& getPtBinSettings() const { return cfg_PtBinSettings; }
   
   //===== unique filling methods (to be called inside the event selection routine only, i.e. (before a passing decision is done))
+  // [Called inside the object selection class. e.g. called inside MuonSelection.cc]
   void fillControlPlotsAtVertexSelection(const Event& event);
   void fillControlPlotsAtElectronSelection(const Event& event, const ElectronSelection::Data& data);
   void fillControlPlotsAtMuonSelection(const Event& event, const MuonSelection::Data& data);
+  void fillControlPlotsAtTauSelection(const Event& event, const TauSelection::Data& data);
   void fillControlPlotsAtJetSelection(const Event& event, const JetSelection::Data& data);
   void fillControlPlotsAtMETSelection(const Event& event, const METSelection::Data& data);
   void fillControlPlotsAtBtagging(const Event& event, const BJetSelection::Data& data);
   
   //===== unique filling methods (to be called AFTER return statement from analysis routine)
+  // [Called inside the generic selection class. e.g. called inside SignalAnalysis.cc]
   void setNvertices(int vtx) { iVertices = vtx; fPUDependencyPlots->setNvtx(vtx); }
   void fillControlPlotsAfterTrigger(const Event& event);
   void fillControlPlotsAfterElectronSelection(const Event& event, const ElectronSelection::Data& data);
-  void fillControlPlotsAfterMuonSelection(const Event& event, const ElectronSelection::Data& data);
+  void fillControlPlotsAfterMuonSelection(const Event& event, const MuonSelection::Data& data);
   void fillControlPlotsAfterTauSelection(const Event& event, const TauSelection::Data& data);
   void fillControlPlotsAfterJetSelections(const Event& event);
   void fillControlPlotsAfterAllSelections(const Event& event);
@@ -73,14 +76,14 @@ private:
   HistoSplitter fHistoSplitter;
 
   ///===== Settings for histogram binning
-  const HistogramSettings fNVerticesBinSettings;
-  const HistogramSettings fPtBinSettings;
-  const HistogramSettings fEtaBinSettings;
-  const HistogramSettings fPhiBinSettings;
-  const HistogramSettings fRtauBinSettings;
-  const HistogramSettings fNjetsBinSettings;
-  const HistogramSettings fMetBinSettings;
-  const HistogramSettings fBJetDiscriminatorBinSettings;
+  const HistogramSettings cfg_NVerticesBinSettings;
+  const HistogramSettings cfg_PtBinSettings;
+  const HistogramSettings cfg_EtaBinSettings;
+  const HistogramSettings cfg_PhiBinSettings;
+  const HistogramSettings cfg_RtauBinSettings;
+  const HistogramSettings cfg_NJetsBinSettings;
+  const HistogramSettings cfg_MetBinSettings;
+  const HistogramSettings cfg_BJetDiscriminatorBinSettings;
 
   ///===== Histograms
   // NOTE: think before adding a histogram - they do slow down the analysis a lot
@@ -102,27 +105,24 @@ private:
  
   // jet selection
   HistoSplitter::SplittedTripletTH1s hCtrlNjets;
+  //
+  HistoSplitter::SplittedTripletTH1s hCtrlNVerticesAfterJetSelections;
+  HistoSplitter::SplittedTripletTH1s hCtrlSelectedTauPtAfterJetSelections;
+  HistoSplitter::SplittedTripletTH1s hCtrlSelectedTauEtaAfterJetSelections;
+  HistoSplitter::SplittedTripletTH1s hCtrlSelectedTauPhiAfterJetSelections;
+  HistoSplitter::SplittedTripletTH2s hCtrlSelectedTauEtaPhiAfterJetSelections;
+  HistoSplitter::SplittedTripletTH1s hCtrlSelectedTauLdgTrkPtAfterJetSelections;
+  HistoSplitter::SplittedTripletTH1s hCtrlSelectedTauDecayModeAfterJetSelections;
+  HistoSplitter::SplittedTripletTH1s hCtrlSelectedTauNProngsAfterJetSelections;
+  HistoSplitter::SplittedTripletTH1s hCtrlSelectedTauRtauAfterJetSelections;
+  HistoSplitter::SplittedTripletTH1s hCtrlSelectedTauSourceAfterJetSelections;
+  HistoSplitter::SplittedTripletTH1s hCtrlNJetsAfterJetSelections;
+  HistoSplitter::SplittedTripletTH1s hCtrlJetPtAfterJetSelections;
+  HistoSplitter::SplittedTripletTH1s hCtrlJetEtaAfterJetSelections;
+  HistoSplitter::SplittedTripletTH2s hCtrlJetEtaPhiAfterJetSelections;
   
   // MET trigger SF
   HistoSplitter::SplittedTripletTH1s hCtrlNjetsAfterJetSelectionAndMETSF;
-  
-  // this is the point of "standard selections"
-  HistoSplitter::SplittedTripletTH1s hCtrlNVerticesAfterStdSelections;
-  
-  HistoSplitter::SplittedTripletTH1s hCtrlSelectedTauPtAfterStdSelections;
-  HistoSplitter::SplittedTripletTH1s hCtrlSelectedTauEtaAfterStdSelections;
-  HistoSplitter::SplittedTripletTH1s hCtrlSelectedTauPhiAfterStdSelections;
-  HistoSplitter::SplittedTripletTH2s hCtrlSelectedTauEtaPhiAfterStdSelections;
-  HistoSplitter::SplittedTripletTH1s hCtrlSelectedTauLdgTrkPtAfterStdSelections;
-  HistoSplitter::SplittedTripletTH1s hCtrlSelectedTauDecayModeAfterStdSelections;
-  HistoSplitter::SplittedTripletTH1s hCtrlSelectedTauNProngsAfterStdSelections;
-  HistoSplitter::SplittedTripletTH1s hCtrlSelectedTauRtauAfterStdSelections;
-  HistoSplitter::SplittedTripletTH1s hCtrlSelectedTauSourceAfterStdSelections;
-  
-  HistoSplitter::SplittedTripletTH1s hCtrlNJetsAfterStdSelections;
-  HistoSplitter::SplittedTripletTH1s hCtrlJetPtAfterStdSelections;
-  HistoSplitter::SplittedTripletTH1s hCtrlJetEtaAfterStdSelections;
-  HistoSplitter::SplittedTripletTH2s hCtrlJetEtaPhiAfterStdSelections;
   
   // MET
   HistoSplitter::SplittedTripletTH1s hCtrlMET;
