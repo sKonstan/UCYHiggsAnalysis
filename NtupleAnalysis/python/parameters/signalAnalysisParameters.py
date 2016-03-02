@@ -8,6 +8,7 @@ from UCYHiggsAnalysis.NtupleAnalysis.main import PSet
 #================================================================================================  
 histoLevel = "Debug"  # Options: Systematics, Vital, Informative, Debug
 
+
 #================================================================================================  
 # Trigger
 #================================================================================================  
@@ -35,7 +36,7 @@ trg = PSet(
 #================================================================================================  
 metFilter = PSet(
     discriminators = ["hbheNoiseTokenRun2Loose", # Loose is recommended
-                      "hbheIsoNoiseToken", # under scrutiny
+                      "hbheIsoNoiseToken",       # under scrutiny
                       "Flag_CSCTightHaloFilter",
                       "Flag_eeBadScFilter",
                       "Flag_goodVertices"]
@@ -43,21 +44,43 @@ metFilter = PSet(
 
 
 #================================================================================================  
+# Electron selection
+#================================================================================================  
+electronSelection = PSet(
+    PtCut         = 7.0,
+    EtaCut        = 2.5,
+    RelIsolString = "loose", # [veto, none, loose, medium, tight]
+    electronID    = "mvaEleID_PHYS14_PU20bx25_nonTrig_V1_wp90", # [?]
+
+)
+
+
+#================================================================================================  
+# Muon selection
+#================================================================================================  
+muonSelection = PSet(
+    PtCut         = 5.0,
+    EtaCut        = 2.4,
+    RelIsolString = "loose",     # [veto, none, loose, medium, tight ]
+    muonID        = "muIDTight", # [muIDLoose, muIDMedium, muIDTight ]
+)
+
+
+#================================================================================================  
 # Tau selection
 #================================================================================================  
 tauSelection = PSet(
-  applyTriggerMatching = True,
-   triggerMatchingCone = 0.1,   # DeltaR for matching offline tau with trigger tau
-              tauPtCut = 60.0,
-             tauEtaCut = 2.1,
-        tauLdgTrkPtCut = 30.0,
-                prongs = 123,    # options: 1, 2, 3, 12, 13, 23, 123 or -1 (all)
-                  rtau = 0.0,   # to disable set to 0.0
-  againstElectronDiscr = "againstElectronTightMVA5",
-      againstMuonDiscr = "againstMuonTight3",
-        isolationDiscr = "byLooseCombinedIsolationDeltaBetaCorr3Hits",
-  
-)
+    TrgMatch    = False,
+    TrgDeltaR   =   0.1, # DeltaR for matching offline tau with trigger tau
+    PtCut       =  20.0,
+    EtaCut      =   2.4, # 2.1
+    LdgTrkPtCut =   5.0,
+    Nprongs     =  -1,   # [1, 2, 3, 12, 13, 23, 123 or -1 (all) ]
+    Rtau        =   0.0, # [0.0 to 1.0 (to disable set to 0.0)   ]
+    againstElectronDiscr = "againstElectronLooseMVA5",  # [againstElectronVLooseMVA5, againstElectronMediumMVA5, againstElectronTightMVA5]
+    againstMuonDiscr     = "againstMuonLoose3",         # [againstMuonLoose3, againstMuonTight3]
+    isolationDiscr       = "byLooseCombinedIsolationDeltaBetaCorr3Hits", # [byLoose..., byMedium..., byTight...]
+  )
 
 # # tau misidentification scale factors
 # scaleFactors.assignTauMisidentificationSF(tauSelection, "eToTau", "full", "nominal")
@@ -67,53 +90,33 @@ tauSelection = PSet(
 # scaleFactors.assignTauTriggerSF(tauSelection, "nominal")
 
 
-#================================================================================================  
-# Electron veto
-#================================================================================================  
-eVeto = PSet(
-         electronPtCut = 15.0,
-        electronEtaCut = 2.5,
-            electronID = "mvaEleID_PHYS14_PU20bx25_nonTrig_V1_wp90", # highest (wp90) for vetoing (2012: wp95)
-     electronIsolation = "veto", # loosest possible for vetoing ("veto"), "tight" for selecting
-)
-
-
-#================================================================================================  
-# Muon veto
-#================================================================================================  
-muVeto = PSet(
-             muonPtCut = 10.0,
-            muonEtaCut = 2.5,
-                muonID = "muIDLoose", # loosest option for vetoing (options: muIDLoose, muIDMedium, muIDTight)
-         muonIsolation = "veto", # loosest possible for vetoing ("veto"), "tight" for selecting
-)
-
 
 #================================================================================================  
 # Jet selection
 #================================================================================================  
 jetSelection = PSet(
-               jetType = "Jets", # options: Jets (AK4PFCHS), JetsPuppi (AK4Puppi)
-              jetPtCut = 30.0,
-             jetEtaCut = 2.5,
-     tauMatchingDeltaR = 0.4,
-  numberOfJetsCutValue = 3,
-  numberOfJetsCutDirection = ">=", # options: ==, !=, <, <=, >, >=
-            jetIDDiscr = "IDtight", # options: IDloose, IDtight, IDtightLeptonVeto
-          jetPUIDDiscr = "", # does not work at the moment 
+    PtCut             = 20.0,
+    EtaCut            =  2.5,
+    TauMatchDeltaR    =  0.4,
+    NJetsCutValue     =  2,
+    NJetsCutDirection = ">=",       # [==, !=, <, <=, >, >=]
+    jetType           = "Jets",     # [Jets (AK4PFCHS), JetsPuppi (AK4Puppi)]
+    jetIDDiscr        = "IDtight",  # [IDloose, IDtight, IDtightLeptonVeto]
+    jetPUIDDiscr      = "",         # [does not work at the moment]
 )
 
  
 #================================================================================================  
-# B-jet selection
+# B-jet selection (Jets passing the "jetSelection" PSets are checked if they can be b-tagged)
 #================================================================================================  
 bjetSelection = PSet(
-             #bjetDiscr = "combinedInclusiveSecondaryVertexV2BJetTags",
-             bjetDiscr = "pfCombinedInclusiveSecondaryVertexV2BJetTags",
- bjetDiscrWorkingPoint = "Loose",
- numberOfBJetsCutValue = 1,
- numberOfBJetsCutDirection = ">=", # options: ==, !=, <, <=, >, >=
+    NJetsCutValue         = 1,
+    NJetsCutDirection     = ">=",  #[==, !=, <, <=, >, >=]
+    BjetDiscr             = "pfCombinedInclusiveSecondaryVertexV2BJetTags",
+    BjetDiscrWorkingPoint = "Loose",
+
 )
+
 
 #================================================================================================  
 # MET selection
@@ -133,28 +136,18 @@ metSelection = PSet(
 #================================================================================================  
 # Common plots options
 #================================================================================================  
-commonPlotsOptions = PSet(
-  # Splitting of histograms as function of one or more parameters
-  # Example: histogramSplitting = [PSet(label="tauPt", binLowEdges=[60, 70, 80, 100, 120], useAbsoluteValues=False)],
+commonPlots = PSet(
+  # histogramSplitting = [PSet(label="tauPt", binLowEdges=[60, 70, 80, 100, 120], useAbsoluteValues=False)],
   histogramSplitting = [],
-  # By default, inclusive (i.e. fake tau+genuine tau) and fake tau histograms are produced. Set to true to also produce genuine tau histograms (Note: will slow down running and enlarge resulting files).
-  enableGenuineTauHistograms = False, 
   # Bin settings (final bin setting done in datacardGenerator, there also variable bin width is supported)
        nVerticesBins = PSet(nBins=60, axisMin=0., axisMax=60.),
               ptBins = PSet(nBins=50, axisMin=0., axisMax=500.),
              etaBins = PSet(nBins=60, axisMin=-3.0, axisMax=3.0),
              phiBins = PSet(nBins=72, axisMin=-3.1415926, axisMax=3.1415926),
-        deltaPhiBins = PSet(nBins=18, axisMin=0., axisMax=180.), # used in 2D plots, i.e. putting high number of bins here will cause troubles
             rtauBins = PSet(nBins=55, axisMin=0., axisMax=1.1),
            njetsBins = PSet(nBins=20, axisMin=0., axisMax=20.),
              metBins = PSet(nBins=80, axisMin=0., axisMax=800.),
        bjetDiscrBins = PSet(nBins=20, axisMin=-1.0, axisMax=1.0),
-   angularCuts1DBins = PSet(nBins=52, axisMin=0., axisMax=260.),
-         topMassBins = PSet(nBins=60, axisMin=0., axisMax=600.),
-           WMassBins = PSet(nBins=60, axisMin=0., axisMax=300.),
-              mtBins = PSet(nBins=160, axisMin=0., axisMax=800.), # 5 GeV bin width for tail fitter
-         invmassBins = PSet(nBins=50, axisMin=0., axisMax=500.),
-  # Enable/Disable some debug-level plots
   enablePUDependencyPlots = True,
 )
 
@@ -166,11 +159,11 @@ allSelections = PSet(
  histogramAmbientLevel = histoLevel,
                Trigger = trg,
              METFilter = metFilter,
+     ElectronSelection = electronSelection,
+         MuonSelection = muonSelection,
           TauSelection = tauSelection,
-     ElectronSelection = eVeto,
-         MuonSelection = muVeto,
           JetSelection = jetSelection,
          BJetSelection = bjetSelection,
           METSelection = metSelection,
-           CommonPlots = commonPlotsOptions,
+           CommonPlots = commonPlots,
 )

@@ -73,7 +73,7 @@ def main():
     process = Process(outputPrefix=prefix, outputPostfix=postfix, maxEvents=opts.maxEvts, verbose=bVerbose)
 
 
-    # Adding a dataset 
+    # Require at least two arguments (script-name, path to multicrab)
     if len(sys.argv) < 2:
         print "=== runKinematics:\n\t Not enough arguments passed to script execution. Printing docstring & EXIT."
         print __doc__

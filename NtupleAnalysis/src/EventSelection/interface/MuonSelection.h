@@ -37,10 +37,6 @@ public:
     const float getHighestSelectedMuonPt() const { return fHighestSelectedMuonPt; }
     const float getHighestSelectedMuonEta() const { return fHighestSelectedMuonEta; }
     const float getHighestSelectedMuonPtBeforePtCut() const { return fHighestSelectedMuonPtBeforePtCut; }
-    // FIXME: Add MC information if deemed necessary
-//     const bool eventContainsMuonFromCJet() const { return fHasMuonFromCjetStatus; }
-//     const bool eventContainsMuonFromBJet() const { return fHasMuonFromBjetStatus; }
-//     const bool eventContainsMuonFromCorBJet() const { return eventContainsMuonFromCJet() || eventContainsMuonFromBJet(); }
 
     friend class MuonSelection;
 
@@ -49,25 +45,19 @@ public:
     float fHighestSelectedMuonPt;
     float fHighestSelectedMuonEta;
     float fHighestSelectedMuonPtBeforePtCut;
-    /// MC info about non-isolated muons
-    //bool fHasMuonFromCjetStatus;
-    //bool fHasMuonFromBjetStatus;
-    /// Muon collection after all selections
+
     std::vector<Muon> fSelectedMuons;
   };
   
   // Main class
-  /// Constructor with histogramming
   explicit MuonSelection(const ParameterSet& config, EventCounter& eventCounter, HistoWrapper& histoWrapper, CommonPlots* commonPlots, const std::string& postfix);
-  /// Constructor without histogramming
   explicit MuonSelection(const ParameterSet& config, const std::string& postfix);
   virtual ~MuonSelection();
 
   virtual void bookHistograms(TDirectory* dir);
   
-  /// Use silentAnalyze if you do not want to fill histograms or increment counters
+  /// Use silentAnalyze() if you do not want to fill histograms or increment counters. Otherwise use analyze()
   Data silentAnalyze(const Event& event);
-  /// analyze does fill histograms and incrementes counters
   Data analyze(const Event& event);
 
 private:
@@ -77,14 +67,15 @@ private:
   Data privateAnalyze(const Event& iEvent);
 
   // Input parameters
-  const double fMuonPtCut;
-  const double fMuonEtaCut;
-  float fRelIsoCut;
-  bool fVetoMode;
+  const double cfg_PtCut;
+  const double cfg_EtaCut;
+  std::string cfg_RelIsolString;
+  float cfg_RelIsoCut;
+  bool cfg_VetoMode;
   
   // Event counter for passing selection
   Count cPassedMuonSelection;
-  // Sub counters
+  // Event sub-counters for passing selection       
   Count cSubAll;
   Count cSubPassedPt;
   Count cSubPassedEta;

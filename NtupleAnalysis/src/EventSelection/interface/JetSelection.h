@@ -22,11 +22,11 @@ class WrappedTH2;
 
 class JetSelection: public BaseSelection {
 public:
-    /**
-    * Class to encapsulate the access to the data members of
-    * TauSelection. If you want to add a new accessor, add it here
-    * and keep all the data of TauSelection private.
-    */
+  
+  // Class to encapsulate the access to the data members of
+  // TauSelection. If you want to add a new accessor, add it here
+  // and keep all the data of TauSelection private.
+
   class Data {
   public:
     // The reason for pointer instead of reference is that const
@@ -35,49 +35,34 @@ public:
     Data();
     ~Data();
 
-    // Status of passing event selection
     bool passedSelection() const { return bPassedSelection; }
-    // Obtain number of selected jets
     int getNumberOfSelectedJets() const { return fSelectedJets.size(); }
-    // Obtain collection of selected jets
     const std::vector<Jet>& getSelectedJets() const { return fSelectedJets; }
-    // Obtain collection of all jets
     const std::vector<Jet>& getAllJets() const { return fAllJets; }
-    // Check if jet matching to selected tau was a success
     bool jetMatchedToTauFound() const { return (fJetMatchedToTau.size() > 0); }
-    // Obtain jet matching to selected tau
     const Jet& getJetMatchedToTau() const;
-    // Obtain HT
     const double HT() const { return fHT; }
 
     friend class JetSelection;
 
   private:
-    /// Boolean for passing selection
     bool bPassedSelection;
-    /// All jets (needed for MET)
-    std::vector<Jet> fAllJets;
-    /// Jet collection after all selections
+    std::vector<Jet> fAllJets; // All jets (needed for MET)
     std::vector<Jet> fSelectedJets;
-    /// Jet matched to tau
     std::vector<Jet> fJetMatchedToTau;
-    /// HT (scalar sum of jets)
-    double fHT;
+    double fHT; // HT (scalar sum of jets)
   };
   
   // Main class
-  /// Constructor with histogramming
   explicit JetSelection(const ParameterSet& config, EventCounter& eventCounter, HistoWrapper& histoWrapper, CommonPlots* commonPlots, const std::string& postfix = "");
-  /// Constructor without histogramming
   explicit JetSelection(const ParameterSet& config);
   virtual ~JetSelection();
 
   virtual void bookHistograms(TDirectory* dir);
   
-  /// Use silentAnalyze if you do not want to fill histograms or increment counters
+  /// Use silentAnalyze() if you do not want to fill histograms or increment counters. Otherwise use analyze()    
   Data silentAnalyze(const Event& event, const Tau& tau);
   Data silentAnalyzeWithoutTau(const Event& event);
-  /// analyze does fill histograms and incrementes counters
   Data analyze(const Event& event, const Tau& tau);
   Data analyzeWithoutTau(const Event& event);
 
@@ -86,26 +71,25 @@ private:
   void initialize(const ParameterSet& config);
   /// The actual selection
   Data privateAnalyze(const Event& event, const math::LorentzVectorT<double>& tauP, const double tauPt);
-  
   void findJetMatchingToTau(std::vector<Jet>& collection, const Event& event, const math::LorentzVectorT<double>& tauP);
   
-  
   // Input parameters
-  const float fJetPtCut;
-  const float fJetEtaCut;
-  const float fTauMatchingDeltaR;
-  const DirectionalCut<int> fNumberOfJetsCut;
+  const float cfg_PtCut;
+  const float cfg_EtaCut;
+  const float cfg_TauMatchDeltaR;
+  const DirectionalCut<int> cfg_NJetsCut;
   
   // Event counter for passing selection
   Count cPassedJetSelection;
-  // Sub counters
+  // Event sub-counters for passing selection
   Count cSubAll;
   Count cSubPassedJetID;
   Count cSubPassedJetPUID;
-  Count cSubPassedDeltaRMatchWithTau;
-  Count cSubPassedEta;
+  Count cSubPassedMatchWithTau;
   Count cSubPassedPt;
+  Count cSubPassedEta;
   Count cSubPassedJetCount;
+
   // Histograms
   WrappedTH1 *hJetPtAll;
   WrappedTH1 *hJetEtaAll;

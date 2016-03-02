@@ -85,18 +85,18 @@ class AnalysisConfig:
             direction = "down"
         return direction
     
-## Class for building analyses
+
 class AnalysisBuilder:
+    '''
+    Class for building analyses
+    '''
     def __init__(self,
-                 name,                  # The module name (beware, the downstream python code has assumptions on this)
-                 # Required options
-                 dataEras=["2015"],        # Data era (see python/tools/dataset.py::_dataEras)
-                 searchModes=["m80to160"], # Search mode (see python/parameters/signalAnalysisParameters.py)
-                 # Optional options
-                 usePUreweighting=True,    # enable/disable vertex reweighting
-                 useTopPtReweighting=True, # enable/disable top pt reweighting for ttbar
-                 # Systematics options
-                 doSystematicVariations=False, # Enable/disable adding modules for systematic uncertainty variation
+                 name,                          # The module name (beware, the downstream python code has assumptions on this)
+                 dataEras=["2015"],             # Data era (see python/tools/dataset.py::_dataEras)
+                 searchModes=["m80to160"],      # Search mode (see python/parameters/signalAnalysisParameters.py)
+                 usePUreweighting      = True,  # enable/disable vertex reweighting
+                 useTopPtReweighting   = True,  # enable/disable top pt reweighting for ttbar
+                 doSystematicVariations= False, # Enable/disable adding modules for systematic uncertainty variation
                 ):
           self._name = name
           self._dataEras = []
@@ -170,14 +170,28 @@ class AnalysisBuilder:
         # Register the modules
         for module in configs:
             module.registerAnalysis(process)
-        print "\nAnalysisBuilder created %d modules\n"%len(configs)
-        #print configs[0]._config
-    
-    ## Builds iteratively the variations
-    # Logic: Variation specs are put into kwargs as key,value pairs 
-    #        For systematics key=systematics, value=identifier; only a single systematics variation per module is allowed
-    #        For variations key=config entry, value=value; multiple simultaneous variations per module are allowed
+        print "=== AnalysisBuilder.py:\n\t AnalysisBuilder created %d modules:" % (len(configs))
+
+        if (0):
+            print configs[0]._config
+            message  =  "=== AnalysisBuilder.py:\n\t Press \"q\" to abort, any other key to proceed: "
+            response = raw_input(message)
+            if (response!= "q"):
+                return
+            else:
+                print "=== AnalysisBuilder.py:\n\t EXIT"
+                sys.exit()
+        return
+
+
+
     def _buildVariation(self, config, moduleName, optName="", systName="", level=0, **kwargs):
+        '''
+        Builds iteratively the variations
+        Logic: Variation specs are put into kwargs as key,value pairs 
+        For systematics key=systematics, value=identifier; only a single systematics variation per module is allowed
+        For variations key=config entry, value=value; multiple simultaneous variations per module are allowed
+        '''
         configs = []
         keys = self._variations.keys()
         if len(keys) == 0:

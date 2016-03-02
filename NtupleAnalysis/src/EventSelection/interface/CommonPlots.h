@@ -21,8 +21,6 @@ public:
     kSignalAnalysis = 0,
     kEmbedding,
     kQCDMeasurement,
-    kQCDNormalizationSystematicsSignalRegion, // Needed for obtaining normalization systematics to data-driven control plots
-    kQCDNormalizationSystematicsControlRegion // Needed for obtaining normalization systematics to data-driven control plots
   };
 
   CommonPlots(const ParameterSet& config, const CommonPlots::AnalysisType type, HistoWrapper& histoWrapper);
@@ -32,49 +30,39 @@ public:
   
   /// Initialize (call this at the beginning of each event; prevents double-counting of events)
   void initialize();
+
   /// Sets factorisation bin (call this for each event before filling the first histogram!)
   void setFactorisationBinForEvent(const std::vector<float>& values=std::vector<float>{}) { fHistoSplitter.setFactorisationBinForEvent(values); }
   
-  /// Returns the histogram splitter object (usecase: QCD measurement)
+  /// Return the histogram splitter objects
   HistoSplitter& getHistoSplitter() { return fHistoSplitter; }
-  /// Returns the histogram settings for pt histograms (usecase: QCD measurement)
   const HistogramSettings& getPtBinSettings() const { return fPtBinSettings; }
-  /// Returns the histogram settings for MtBins (usecase: QCD measurement)
-  const HistogramSettings& getMtBinSettings() const { return fMtBinSettings; }
   
   //===== unique filling methods (to be called inside the event selection routine only, i.e. (before a passing decision is done))
   void fillControlPlotsAtVertexSelection(const Event& event);
   void fillControlPlotsAtElectronSelection(const Event& event, const ElectronSelection::Data& data);
   void fillControlPlotsAtMuonSelection(const Event& event, const MuonSelection::Data& data);
   void fillControlPlotsAtJetSelection(const Event& event, const JetSelection::Data& data);
-  // void fillControlPlotsAtAngularCutsCollinear(const Event& event, const AngularCutsCollinear::Data& data);
   void fillControlPlotsAtMETSelection(const Event& event, const METSelection::Data& data);
   void fillControlPlotsAtBtagging(const Event& event, const BJetSelection::Data& data);
-  // void fillControlPlotsAtAngularCutsBackToBack(const Event& event, const AngularCutsBackToBack::Data& data);
   
   //===== unique filling methods (to be called AFTER return statement from analysis routine)
   void setNvertices(int vtx) { iVertices = vtx; fPUDependencyPlots->setNvtx(vtx); }
   void fillControlPlotsAfterTrigger(const Event& event);
+  void fillControlPlotsAfterElectronSelection(const Event& event, const ElectronSelection::Data& data);
+  void fillControlPlotsAfterMuonSelection(const Event& event, const ElectronSelection::Data& data);
   void fillControlPlotsAfterTauSelection(const Event& event, const TauSelection::Data& data);
-  void fillControlPlotsAfterAntiIsolatedTauSelection(const Event& event, const TauSelection::Data& data);
-  void fillControlPlotsAfterMETTriggerScaleFactor(const Event& event);
-  void fillControlPlotsAfterTopologicalSelections(const Event& event);
+  void fillControlPlotsAfterJetSelections(const Event& event);
   void fillControlPlotsAfterAllSelections(const Event& event);
-  void fillControlPlotsAfterAllSelectionsWithProbabilisticBtag(const Event& event, const METSelection::Data& metData, double btagWeight);
 
   /// Getter for all vertices
   int nVertices() const { return iVertices; }
 
 private:
   /// Returns true if common plots is created by QCD measurement
-  const bool isQCDMeasurement() const { return fAnalysisType == kQCDMeasurement ||
-    fAnalysisType == kQCDNormalizationSystematicsControlRegion || 
-    fAnalysisType == kQCDNormalizationSystematicsSignalRegion; }
+  const bool isQCDMeasurement() const { return fAnalysisType == kQCDMeasurement; }
   
 private:
-  ///===== Config params
-  const bool fEnableGenuineTauHistograms;
-  
   ///===== Analysis type
   const AnalysisType fAnalysisType;
 
@@ -89,15 +77,10 @@ private:
   const HistogramSettings fPtBinSettings;
   const HistogramSettings fEtaBinSettings;
   const HistogramSettings fPhiBinSettings;
-  const HistogramSettings fDeltaPhiBinSettings;
   const HistogramSettings fRtauBinSettings;
   const HistogramSettings fNjetsBinSettings;
   const HistogramSettings fMetBinSettings;
   const HistogramSettings fBJetDiscriminatorBinSettings;
-  // const HistogramSettings fAngularCuts1DSettings;
-  //const HistogramSettings fTopMassBinSettings;
-  //const HistogramSettings fWMassBinSettings;
-  const HistogramSettings fMtBinSettings;
 
   ///===== Histograms
   // NOTE: think before adding a histogram - they do slow down the analysis a lot
@@ -122,13 +105,6 @@ private:
   
   // MET trigger SF
   HistoSplitter::SplittedTripletTH1s hCtrlNjetsAfterJetSelectionAndMETSF;
-  
-  // // collinear angular cuts
-  // HistoSplitter::SplittedTripletTH1s hCtrlCollinearAngularCutsMinimum;
-  // HistoSplitter::SplittedTripletTH1s hCtrlCollinearAngularCutsJet1;
-  // HistoSplitter::SplittedTripletTH1s hCtrlCollinearAngularCutsJet2;
-  // HistoSplitter::SplittedTripletTH1s hCtrlCollinearAngularCutsJet3;
-  // HistoSplitter::SplittedTripletTH1s hCtrlCollinearAngularCutsJet4;
   
   // this is the point of "standard selections"
   HistoSplitter::SplittedTripletTH1s hCtrlNVerticesAfterStdSelections;
@@ -158,13 +134,6 @@ private:
   HistoSplitter::SplittedTripletTH1s hCtrlBJetEta;
   HistoSplitter::SplittedTripletTH1s hCtrlBDiscriminator;
   
-  // // back-to-back angular cuts
-  // HistoSplitter::SplittedTripletTH1s hCtrlBackToBackAngularCutsMinimum;
-  // HistoSplitter::SplittedTripletTH1s hCtrlBackToBackAngularCutsJet1;
-  // HistoSplitter::SplittedTripletTH1s hCtrlBackToBackAngularCutsJet2;
-  // HistoSplitter::SplittedTripletTH1s hCtrlBackToBackAngularCutsJet3;
-  // HistoSplitter::SplittedTripletTH1s hCtrlBackToBackAngularCutsJet4;
-
   // control plots after all selections
   HistoSplitter::SplittedTripletTH1s hCtrlNVerticesAfterAllSelections;
   
@@ -184,8 +153,6 @@ private:
   HistoSplitter::SplittedTripletTH1s hCtrlJetEtaAfterAllSelections;
   HistoSplitter::SplittedTripletTH2s hCtrlJetEtaPhiAfterAllSelections;
 
-  //HistoSplitter::SplittedTripletTH1s hCtrlCollinearAngularCutsMinimumAfterAllSelections;
-
   HistoSplitter::SplittedTripletTH1s hCtrlMETAfterAllSelections;
   HistoSplitter::SplittedTripletTH1s hCtrlMETPhiAfterAllSelections;
   
@@ -194,13 +161,6 @@ private:
   HistoSplitter::SplittedTripletTH1s hCtrlBJetEtaAfterAllSelections;
   HistoSplitter::SplittedTripletTH1s hCtrlBDiscriminatorAfterAllSelections;
   
-  // HistoSplitter::SplittedTripletTH1s hCtrlBackToBackAngularCutsMinimumAfterAllSelections;
-
-  HistoSplitter::SplittedTripletTH1s hCtrlDeltaPhiTauMetAfterAllSelections;
-  
-  // shape plots after all selections
-  HistoSplitter::SplittedTripletTH1s hShapeTransverseMass;
-  HistoSplitter::SplittedTripletTH1s hShapeProbabilisticBtagTransverseMass;
 
   // Other plots
   WrappedTH1* hNSelectedVsRunNumber; // For data only
@@ -209,20 +169,16 @@ private:
   std::vector<CommonPlotsBase*> fBaseObjects;
   PUDependencyPlots* fPUDependencyPlots;
   
-  //====== Data cache
-  /// Cached data objects from silent analyze
-  //VertexSelection::Data fVertexData;
+  //====== Data cache: Cached data objects from silent analyze
+  // VertexSelection::Data fVertexData;
   int iVertices;
   TauSelection::Data fTauData;
-  //FakeTauIdentifier::Data fFakeTauData;
   bool bIsFakeTau; // FIXME: a boolean used at the moment
   ElectronSelection::Data fElectronData;
   MuonSelection::Data fMuonData;
   JetSelection::Data fJetData;
-  // AngularCutsBackToBack::Data fCollinearAngularCutsData;
   BJetSelection::Data fBJetData;
   METSelection::Data fMETData;
-  //AngularCutsCollinear::Data fBackToBackAngularCutsData;
 
   /// Helper
   CommonPlotsHelper fHelper;
