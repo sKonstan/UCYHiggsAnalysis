@@ -60,8 +60,8 @@ electronSelection = PSet(
 muonSelection = PSet(
     PtCut         = 5.0,
     EtaCut        = 2.4,
-    RelIsolString = "loose",     # [veto, none, loose, medium, tight ]
-    muonID        = "muIDTight", # [muIDLoose, muIDMedium, muIDTight ]
+    RelIsolString = "loose",      # [veto, none, loose, medium, tight ]
+    muonID        = "muIDMedium", # [muIDLoose, muIDMedium, muIDTight ]
 )
 
 
@@ -97,10 +97,10 @@ jetSelection = PSet(
     PtCut             = 20.0,
     EtaCut            =  2.5, 
     TauMatchDeltaR    =  0.4,         # FIXME: Should i remove this? Is tau-jet included in SelectedJets?
-    NJetsCutValue     =  2,
+    NJetsCutValue     =  3,
     NJetsCutDirection = ">=",         # [==, !=, <, <=, >, >=]
-    #jetType           = "PFCHSJets", # [PFCHSJets, PuppiJets]
-    jetType           = "Jets",       # obsolete with new NTuples
+    #jetType           = "PFCHSJets", # [PFCHSJets, PuppiJets] 
+    jetType           = "Jets",       # obsolete with new Ntuples
     jetIDDiscr        = "IDtight",    # [IDloose, IDtight, IDtightLeptonVeto]
     jetPUIDDiscr      = "",           # [does not work at the moment]
 )
@@ -121,7 +121,7 @@ bjetSelection = PSet(
 # MET selection
 #================================================================================================  
 metSelection = PSet(
-    METCutValue                 = 50.0,
+    METCutValue                 = 70.0,
     METCutDirection             = ">=",        # [==, !=, <, <=, >, >=]
     METSignificanceCutValue     = -1000.0,
     METSignificanceCutDirection = ">",         # [==, !=, <, <=, >, >=]
@@ -154,7 +154,7 @@ commonPlots = PSet(
 #================================================================================================  
 # Create the PSet with all selections
 #================================================================================================  
-allSelections = PSet(
+ttbarSelections = PSet(
     histogramAmbientLevel = histoLevel,
     Trigger               = trigger,
     METFilter             = metFilter,

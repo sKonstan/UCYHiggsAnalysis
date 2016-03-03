@@ -17,7 +17,7 @@ METFilterSelection::Data::~Data() { }
 
 METFilterSelection::METFilterSelection(const ParameterSet& config, EventCounter& eventCounter, HistoWrapper& histoWrapper, CommonPlots* commonPlots, const std::string& postfix)
 : BaseSelection(eventCounter, histoWrapper, commonPlots, postfix),
-  cfg_Discriminators( config.getParameter<std::vector<std::string>>("Discriminators") ),
+  cfg_Discriminators( config.getParameter<std::vector<std::string>>("discriminators") ),
   // Event counter for passing selection
   cSubAll(fEventCounter.addSubCounter( "METFilter selection (" + postfix + ")", "All events") ),
   cPassedMETFilterSelection( fEventCounter.addCounter("passed METFilter selection (" + postfix + ")") )
@@ -86,6 +86,7 @@ METFilterSelection::Data METFilterSelection::privateAnalyze(const Event& iEvent)
   while (i < iEvent.metFilter().getConfigurableDiscriminatorValues().size() && output.bPassedSelection) {
     if (iEvent.metFilter().getConfigurableDiscriminatorValues()[i]) 
       {
+	// std::cout << "iEvent.metFilter().getConfigurableDiscriminatorValues()["<<i<<"] = " << iEvent.metFilter().getConfigurableDiscriminatorValues()[i] << std::endl;
 	cSubPassedFilter[i].increment();
       }
     else 

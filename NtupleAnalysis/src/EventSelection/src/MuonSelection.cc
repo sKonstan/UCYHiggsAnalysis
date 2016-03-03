@@ -38,8 +38,8 @@ MuonSelection::MuonSelection(const ParameterSet& config, EventCounter& eventCoun
 
 MuonSelection::MuonSelection(const ParameterSet& config, const std::string& postfix)
 : BaseSelection(),
-  cfg_PtCut(config.getParameter<float>("muonPtCut")),
-  cfg_EtaCut(config.getParameter<float>("muonEtaCut")),
+  cfg_PtCut(config.getParameter<float>("PtCut")),
+  cfg_EtaCut(config.getParameter<float>("EtaCut")),
   cfg_RelIsolString(config.getParameter<std::string>("RelIsolString")),
   cfg_RelIsoCut(-1.0),
   cfg_VetoMode(false),
