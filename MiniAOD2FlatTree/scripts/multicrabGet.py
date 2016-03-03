@@ -260,17 +260,17 @@ def GetTaskReports(datasetPath, status, dashboardURL, verbose=False):
         result = crabCommand('status', dir = datasetPath)
 
         # Assess JOB success/failure for task
-        finished, failed, retrievedLog, retrievedOut = retrievedFiles(datasetPath, result, False)
+        finished, failed, retrievedLog, retrievedOut = RetrievedFiles(datasetPath, result, False)
 
         # Proceed according to the job status
         if retrievedLog < finished:
             print "=== multicrabGet.py:\n\t Retrieved logs (%s) < finished (%s). Executing CRAB command 'getlog'." % (retrievedLog, finished)
             touch(datasetPath)
-            dummy = crabCommand('getlog', dir = datasetPath) #xenios
+            dummy = crabCommand('getlog', dir = datasetPath)
 
         if retrievedOut < finished:
             print "=== multicrabGet.py:\n\t Retrieved output (%s) < finished (%s). Executing CRAB command 'getlog'." % (retrievedOut, finished)
-            dummy = crabCommand('getoutput', dir = datasetPath) #xenios
+            dummy = crabCommand('getoutput', dir = datasetPath)
             touch(datasetPath)
 
         if failed > 0:
@@ -278,7 +278,7 @@ def GetTaskReports(datasetPath, status, dashboardURL, verbose=False):
             dummy = crabCommand('resubmit', dir = datasetPath)
 
         # Assess JOB success/failure for task (again)
-        finished, failed, retrievedLog, retrievedOut = retrievedFiles(datasetPath, result, True)
+        finished, failed, retrievedLog, retrievedOut = RetrievedFiles(datasetPath, result, True)
         retrieved = min(finished, retrievedLog, retrievedOut)
         alljobs   = len(result['jobList'])
             
@@ -434,7 +434,7 @@ def main(opts, args):
     return
 
 
-def retrievedFiles(directory, crabResults, verbose=False):
+def RetrievedFiles(directory, crabResults, verbose=False):
     '''
     Determines whether the jobs Finished (Success or Failure), and whether 
     the logs and output files have been retrieved. Returns all these in form
@@ -481,10 +481,9 @@ def retrievedFiles(directory, crabResults, verbose=False):
             unknown+= 1 
         
     # Print results in a nice table
-    if verbose:
+    if verbose:        
 
-        # To avoid overwriting previous print statement
-        print
+        print # To avoid overwriting previous print statement
         
         # Summarise information
         nTotal    = str(nJobs)

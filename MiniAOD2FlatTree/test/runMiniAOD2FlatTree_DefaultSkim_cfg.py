@@ -12,16 +12,16 @@ from UCYHiggsAnalysis.MiniAOD2FlatTree.tools.dataOptions import getOptionsDataVe
 bSummary         = False #Default is "False"
 bDependencies    = False #Default is "False" 
 bDumpCollections = False #Default is "False"
-iMaxEvents       = 1000
+iMaxEvents       = 500
 iReportEvery     = 10
 skimType         = "DefaultSkim" #"TriggerSkim" #"NoSkim #"DefaultSkim" (all 3 are the same at the moment)
 #dataset          = "/ttHJetToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8_mWCutfix/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
-#dataset          = "/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v3/MINIAODSIM"
+dataset          = "/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v3/MINIAODSIM"
 #dataset          = "/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
 #dataset          = "/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
 #dataset          = "/DoubleMuon/Run2015D-PromptReco-v4/MINIAOD"
 #dataset          = "/DoubleEG/Run2015D-PromptReco-v4/MINIAOD"
-dataset          = "/MuonEG/Run2015D-PromptReco-v4/MINIAOD"
+#dataset          = "/MuonEG/Run2015D-PromptReco-v4/MINIAOD"
 #dataset          = "/SingleElectron/Run2015D-PromptReco-v4/MINIAOD"
 #dataset          = "/SingleMuon/Run2015D-PromptReco-v4/MINIAOD"
 
@@ -100,6 +100,7 @@ process.load("UCYHiggsAnalysis/MiniAOD2FlatTree/MET_cfi")
 process.load("UCYHiggsAnalysis/MiniAOD2FlatTree/Muon_cfi")
 process.load("UCYHiggsAnalysis/MiniAOD2FlatTree/PUInfo_cfi") 
 process.load("UCYHiggsAnalysis/MiniAOD2FlatTree/Tau_cfi")
+process.load("UCYHiggsAnalysis/MiniAOD2FlatTree/TopPt_cfi")
 
 ### Fixme
 TrgResultsSource = "TriggerResults::PAT"
@@ -112,6 +113,7 @@ if (bDebug):
 process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
                             OutputFileName      = cms.string("miniAOD2FlatTree.root"),
                             PUInfoInputFileName = process.PUInfo.OutputFileName,
+                            TopPtInputFileName  = process.TopPtProducer.OutputFileName,
                             CodeVersion         = cms.string(git.getCommitId()),
                             DataVersion         = cms.string(str(dataVersion.version)),
                             CMEnergy            = cms.int32(13),
@@ -126,6 +128,7 @@ process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
                                 PileupSummaryInfoSrc    = process.PUInfo.PileupSummaryInfoSrc, 
 	                        LHESrc                  = cms.untracked.InputTag("externalLHEProducer"),
 	                        OfflinePrimaryVertexSrc = cms.InputTag("offlineSlimmedPrimaryVertices"),
+                                TopPtProducer           = cms.InputTag("TopPtProducer"),
                                 branchName              = cms.untracked.string("EventInfo"),
                                 debugMode               = cms.untracked.bool(bDebug)
                             ),
@@ -300,7 +303,13 @@ produceCustomisations(process)
 #===============================================================================================
 # Module Execution
 #================================================================================================
-process.runEDFilter = cms.Path(process.PUInfo * process.skimCounterAll * process.skim * process.skimCounterPassed * process.CustomisationsSequence * process.dump)
+process.runEDFilter = cms.Path(process.PUInfo*
+                               process.TopPtProducer*
+                               process.skimCounterAll*
+                               process.skim*
+                               process.skimCounterPassed*
+                               process.CustomisationsSequence*
+                               process.dump)
 
 
 #===============================================================================================
