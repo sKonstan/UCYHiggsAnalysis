@@ -72,17 +72,22 @@ class TriggerDumper {
         double L1MET_y;
 	double HLTMET_x;
 	double HLTMET_y;
-        std::vector<double> HLTMu_pt;
-        std::vector<double> HLTMu_eta;
-        std::vector<double> HLTMu_phi;
-        std::vector<double> HLTMu_e;
-
 	// Even uncommenting these below causes a crash on runtime! No idea why. Mem-related?
         // std::vector<double> HLTEle_pt;
 	// std::vector<double> HLTEle_eta;
         // std::vector<double> HLTEle_phi;
         // std::vector<double> HLTEle_e;
-       
+
+	// std::vector<double> HLTMu_pt;
+        // std::vector<double> HLTMu_eta;
+        // std::vector<double> HLTMu_phi;
+        // std::vector<double> HLTMu_e;
+
+        std::vector<double> HLTTau_pt;
+        std::vector<double> HLTTau_eta;
+        std::vector<double> HLTTau_phi;
+        std::vector<double> HLTTau_e;
+
         int nTrgDiscriminators;
         std::vector<bool> *trgdiscriminators;
 

@@ -44,15 +44,20 @@ void TriggerDumper::book(const edm::Run& iRun, HLTConfigProvider hltConfig){
   theTree->Branch("HLTMET_x"       , &HLTMET_x       );
   theTree->Branch("HLTMET_y"       , &HLTMET_y       );
 
-  theTree->Branch("HLTMu_pt"       , &HLTMu_pt      );  
-  theTree->Branch("HLTMu_eta"      , &HLTMu_eta     );
-  theTree->Branch("HLTMu_phi"      , &HLTMu_phi     );
-  theTree->Branch("HLTMu_e"        , &HLTMu_e       );
-  
   // theTree->Branch("HLTEle_pt"      , &HLTEle_pt      );  
   // theTree->Branch("HLTEle_eta"     , &HLTEle_eta     );
   // theTree->Branch("HLTEle_phi"     , &HLTEle_phi     );
   // theTree->Branch("HLTEle_e"       , &HLTEle_e       );
+
+  // theTree->Branch("HLTMu_pt"       , &HLTMu_pt      );  
+  // theTree->Branch("HLTMu_eta"      , &HLTMu_eta     );
+  // theTree->Branch("HLTMu_phi"      , &HLTMu_phi     );
+  // theTree->Branch("HLTMu_e"        , &HLTMu_e       );
+  
+  theTree->Branch("HLTTau_pt"       , &HLTTau_pt      );  
+  theTree->Branch("HLTTau_eta"      , &HLTTau_eta     );
+  theTree->Branch("HLTTau_phi"      , &HLTTau_phi     );
+  theTree->Branch("HLTTau_e"        , &HLTTau_e       );
 
 
   // For-loop: All trigger bits
@@ -244,28 +249,7 @@ bool TriggerDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
 	}
 	
 
-	if(patTriggerObject.id(trigger::TriggerMuon)){
-	  bMu = true;
-	  std::vector<std::string> pathNamesAll  = patTriggerObject.pathNames(false);
-	  bool fired = false;
-
-	  // For-loop: All path names
-	  for(size_t i = 0; i < pathNamesAll.size(); ++i){
-	    // std::cout << "pathNamesAll["<<i<<"] = " << pathNamesAll[i] << std::endl;
-	    if(patTriggerObject.hasPathName( pathNamesAll[i], false, true )) fired = true;
-	  }
-
-	  // Save the HLT muon p4 when fired
-	  if(fired){
-	    HLTMu_pt .push_back( patTriggerObject.p4().Pt()  );
-	    HLTMu_eta.push_back( patTriggerObject.p4().Eta() );
-	    HLTMu_phi.push_back( patTriggerObject.p4().Phi() );
-	    HLTMu_e  .push_back( patTriggerObject.p4().E()   );	   	    
-	  }
-	  
-	}// if(patTriggerObject.id(trigger::TriggerMuon)){
-
-
+	// HLT Electron
 	if(patTriggerObject.id(trigger::TriggerElectron)){
 	  bEle = true;
 	  std::vector<std::string> pathNamesAll  = patTriggerObject.pathNames(false);
@@ -286,6 +270,52 @@ bool TriggerDumper::fill(edm::Event& iEvent, const edm::EventSetup& iSetup){
 	  }
 	  
 	}// if(patTriggerObject.id(trigger::TriggerElectron)){
+
+
+	// HLT Muon
+	if(patTriggerObject.id(trigger::TriggerMuon)){
+	  bMu = true;
+	  std::vector<std::string> pathNamesAll  = patTriggerObject.pathNames(false);
+	  bool fired = false;
+
+	  // For-loop: All path names
+	  for(size_t i = 0; i < pathNamesAll.size(); ++i){
+	    // std::cout << "pathNamesAll["<<i<<"] = " << pathNamesAll[i] << std::endl;
+	    if(patTriggerObject.hasPathName( pathNamesAll[i], false, true )) fired = true;
+	  }
+
+	  // Save the HLT muon p4 when fired
+	  if(fired){
+	    // HLTMu_pt .push_back( patTriggerObject.p4().Pt()  );
+	    // HLTMu_eta.push_back( patTriggerObject.p4().Eta() );
+	    // HLTMu_phi.push_back( patTriggerObject.p4().Phi() );
+	    // HLTMu_e  .push_back( patTriggerObject.p4().E()   );	   	    
+	  }
+	  
+	}// if(patTriggerObject.id(trigger::TriggerMuon)){
+
+	
+	// HLT Tau
+	if(patTriggerObject.id(trigger::TriggerTau)){
+	  bEle = true;
+	  std::vector<std::string> pathNamesAll  = patTriggerObject.pathNames(false);
+	  bool fired = false;
+
+	  // For-loop: All path names
+	  for(size_t i = 0; i < pathNamesAll.size(); ++i){
+	    // std::cout << "pathNamesAll["<<i<<"] = " << pathNamesAll[i] << std::endl;
+	    if(patTriggerObject.hasPathName( pathNamesAll[i], false, true )) fired = true;
+	  }
+
+	  // Save the HLT electron p4 when fired
+	  if(fired){
+	    HLTTau_pt .push_back( patTriggerObject.p4().Pt()  );
+	    HLTTau_eta.push_back( patTriggerObject.p4().Eta() );
+	    HLTTau_phi.push_back( patTriggerObject.p4().Phi() );
+	    HLTTau_e  .push_back( patTriggerObject.p4().E()   );	   	    
+	  }
+	  
+	}// if(patTriggerObject.id(trigger::TriggerTau)){
 	
 	
 	if (cfg_debugMode)
@@ -333,15 +363,20 @@ void TriggerDumper::reset(){
     HLTMET_x = 0;
     HLTMET_y = 0;
 
-    HLTMu_pt .clear();
-    HLTMu_eta.clear();
-    HLTMu_phi.clear();
-    HLTMu_e  .clear();
-
     // HLTEle_pt .clear();
     // HLTEle_eta.clear();
     // HLTEle_phi.clear();
     // HLTEle_e  .clear();
+
+    // HLTMu_pt .clear();
+    // HLTMu_eta.clear();
+    // HLTMu_phi.clear();
+    // HLTMu_e  .clear();
+
+    HLTTau_pt .clear();
+    HLTTau_eta.clear();
+    HLTTau_phi.clear();
+    HLTTau_e  .clear();
 
     // For-loop: All trigger discriminators
     for(int i = 0; i < nTrgDiscriminators; ++i) trgdiscriminators[i].clear();
