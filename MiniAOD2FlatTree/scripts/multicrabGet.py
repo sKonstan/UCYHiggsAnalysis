@@ -23,6 +23,7 @@ import re
 import sys
 import time
 import subprocess
+from optparse import OptionParser
 
 # See: https://twiki.cern.ch/twiki/bin/view/CMSPublic/CRABClientLibraryAPI#The_crabCommand_API
 from CRABAPI.RawCommand import crabCommand
@@ -133,7 +134,6 @@ class Report:
             status = "%s%s%s" % (colors.ORANGE, status, colors.WHITE)
         else:
             print "=== multicrabGet.py:\n\t WARNING! Unexpected task status \"%s\"" % (status)
-            #sys.exit()
 
         return status
 
@@ -187,6 +187,30 @@ def GetTaskDashboardURL(datasetPath, verbose=False):
     return dashboardURL
 
 
+def KillTask(task, verbose=False):
+    ''' 
+    Command to kill submitted tasks. The user must give the crab project 
+    directory for the task he/she wants to kill.
+    
+    CRAB Commands:
+    https://github.com/dmwm/CRABClient/tree/master/src/python/CRABClient/Commands
+    
+    crabCommand definition:
+    https://github.com/dmwm/CRABClient/blob/be9eebfa41268e836fa186259ef3391f998c8fff/src/python/CRABAPI/RawCommand.py    
+
+    kill (crabCommand) definition:
+    https://github.com/dmwm/CRABClient/blob/master/src/python/CRABClient/Commands/kill.py
+    '''
+
+    keystroke = raw_input("\t Press \"q\" to cancel, or any other key kill the CRAB task: ")
+    if (keystroke) == "q":
+        return
+    else:
+        print "\t crab kill %s" % (task)
+        crabCommand('kill', dir = task)
+        return
+
+
 def GetTaskStatus(datasetPath, verbose=False):
     '''
     Call the "grep" command to look for the "Task status" from the crab.log file 
@@ -218,6 +242,7 @@ def GetTaskStatus(datasetPath, verbose=False):
     return status
 
 
+
 def GetTaskReports(datasetPath, status, dashboardURL, verbose=False):
     '''
     '''
@@ -239,15 +264,17 @@ def GetTaskReports(datasetPath, status, dashboardURL, verbose=False):
 
         # Proceed according to the job status
         if retrievedLog < finished:
+            print "=== multicrabGet.py:\n\t Retrieved logs (%s) < finished (%s). Executing CRAB command 'getlog'." % (retrievedLog, finished)
             touch(datasetPath)
             dummy = crabCommand('getlog', dir = datasetPath) #xenios
 
         if retrievedOut < finished:
+            print "=== multicrabGet.py:\n\t Retrieved output (%s) < finished (%s). Executing CRAB command 'getlog'." % (retrievedOut, finished)
             dummy = crabCommand('getoutput', dir = datasetPath) #xenios
             touch(datasetPath)
 
         if failed > 0:
-            print "\t Found \"Failed\" jobs for task \"%s\".\n\t Executing command \"crab resubmit --dir=\"%s\"" % ( os.path.basename(datasetPath), datasetPath )
+            print "=== multicrabGet.py:\n\t Found \"Failed\" jobs for task \"%s\".\n\t Executing CRAB command 'resubmit'" % ( os.path.basename(datasetPath), datasetPath )
             dummy = crabCommand('resubmit', dir = datasetPath)
 
         # Assess JOB success/failure for task (again)
@@ -342,10 +369,10 @@ def GetDatasetAbsolutePaths(datasetdirs):
     return datasets
 
 
-def main():
-    '''
-    Do all steps here
-    '''
+#================================================================================================
+# Main Program
+#================================================================================================
+def main(opts, args):
 
     # Options
     bDebug = False
@@ -379,32 +406,35 @@ def main():
 
     # For-loop: All dataset directories (absolute paths)
     for index, d in enumerate(datasets):
-        #print "=== multicrabGet.py:\n\t %s (%s/%s)" % ( os.path.basename(d), index+1, len(datasets) )
         lastTwoDirs = d.split("/")[-2]+ "/" + d.split("/")[-1]
         print "=== multicrabGet.py:\n\t %s (%s/%s)" % ( lastTwoDirs, index+1, len(datasets) )
 
-        # Check if task is in "DONE" state
-        if GetTaskStatusBool(d, True):
-            continue
+        # Kill Mode
+        if opts.kill:
+            KillTask(lastTwoDirs)
+        else:
+            # Check if task is in "DONE" state
+            if GetTaskStatusBool(d, True):
+                continue
 
-        # Get task dashboard URL
-        taskDashboard = GetTaskDashboardURL(d)
+            # Get task dashboard URL
+            taskDashboard = GetTaskDashboardURL(d)
 
-        # Get task status
-        taskStatus = GetTaskStatus(d) 
+            # Get task status
+            taskStatus = GetTaskStatus(d) 
 
-        # Get the reports
-        reports += GetTaskReports(d, taskStatus, taskDashboard)
+            # Get the reports
+            reports += GetTaskReports(d, taskStatus, taskDashboard)
 
     # For-loop: All CRAB reports
     if bDebug:
         for r in reports:
             r.Print()
-
+        
     return
 
 
-def retrievedFiles(directory, crabResults, verbose=True):
+def retrievedFiles(directory, crabResults, verbose=False):
     '''
     Determines whether the jobs Finished (Success or Failure), and whether 
     the logs and output files have been retrieved. Returns all these in form
@@ -518,4 +548,25 @@ def execute(cmd):
     return ret
 
 if __name__ == "__main__":
-    main()
+    '''
+    https://docs.python.org/3/library/argparse.html
+                                                   
+    name or flags...: Either a name or a list of option strings, e.g. foo or -f, --foo.
+    action..........: The basic type of action to be taken when this argument is encountered at the command line.
+    nargs...........: The number of command-line arguments that should be consumed.
+    const...........: A constant value required by some action and nargs selections.
+    default.........: The value produced if the argument is absent from the command line.
+    type............: The type to which the command-line argument should be converted.
+    choices.........: A container of the allowable values for the argument.
+    required........: Whether or not the command-line option may be omitted (optionals only).
+    help............: A brief description of what the argument does.
+    metavar.........: A name for the argument in usage messages.
+    dest............: The name of the attribute to be added to the object returned by parse_args().
+    '''
+
+    parser = OptionParser(usage="Usage: %prog [options]")
+    parser.add_option("-v", "--verbose", dest="verbose", default=False, action="store_true", help="Verbose mode")
+    parser.add_option("--kill", dest="kill"   , default=False, action="store_true", help="Kill moode")
+    (opts, args) = parser.parse_args()
+    
+    sys.exit( main(opts, args) )
