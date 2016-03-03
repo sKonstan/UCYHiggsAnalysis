@@ -99,8 +99,8 @@ jetSelection = PSet(
     TauMatchDeltaR    =  0.4,         # FIXME: Should i remove this? Is tau-jet included in SelectedJets?
     NJetsCutValue     =  2,
     NJetsCutDirection = ">=",         # [==, !=, <, <=, >, >=]
-    #jetType           = "PFCHSJets", # [PFCHSJets, PuppiJets]
-    jetType           = "Jets",       # obsolete with new NTuples
+    jetType           = "PFCHSJets", # [PFCHSJets, PuppiJets]
+    #jetType           = "Jets",       # obsolete with new NTuples
     jetIDDiscr        = "IDtight",    # [IDloose, IDtight, IDtightLeptonVeto]
     jetPUIDDiscr      = "",           # [does not work at the moment]
 )

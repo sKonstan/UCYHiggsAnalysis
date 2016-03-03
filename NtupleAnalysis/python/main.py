@@ -582,7 +582,7 @@ class Process:
                         if binNumber > 0:
                             NAllEventsTopPt += h.GetBinContent(binNumber)
                     else:
-                        print "Warning: Could not obtain N(AllEvents) for top pt reweighting"
+                        print "=== main.py:\n\tWARNING! Could not obtain N(AllEvents) for top pt reweighting"
                     fIN.Close()
 
             # Write configInfo

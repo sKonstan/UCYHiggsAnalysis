@@ -18,7 +18,7 @@ Event::Event(const ParameterSet& config):
   fL1MET("L1MET"),
   fL1extraMET("L1MET_l1extra"),
   fGenWeight("GenWeight"),
-  fTopPtWeight("topPtWeight"),
+  fTopPtWeight("EventInfo_topPtWeight"),
   fIsMC(config.isMC())
 {
   // Trigger
