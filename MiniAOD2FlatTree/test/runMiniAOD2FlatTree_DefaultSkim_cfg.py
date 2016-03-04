@@ -12,12 +12,12 @@ from UCYHiggsAnalysis.MiniAOD2FlatTree.tools.dataOptions import getOptionsDataVe
 bSummary         = False #Default is "False"
 bDependencies    = False #Default is "False" 
 bDumpCollections = False #Default is "False"
-iMaxEvents       = 5000
+iMaxEvents       = 10000
 iReportEvery     = 10
 skimType         = "DefaultSkim" #"TriggerSkim" #"NoSkim #"DefaultSkim" (all 3 are the same at the moment)
 #dataset          = "/DoubleMuon/Run2015D-PromptReco-v4/MINIAOD"
 #dataset          = "/DoubleEG/Run2015D-PromptReco-v4/MINIAOD"
-#dataset          = "/MuonEG/Run2015D-PromptReco-v4/MINIAOD"
+dataset          = "/MuonEG/Run2015D-PromptReco-v4/MINIAOD"
 #dataset          = "/SingleElectron/Run2015D-PromptReco-v4/MINIAOD"
 #dataset          = "/SingleMuon/Run2015D-PromptReco-v4/MINIAOD"
 #dataset          = "/ttHJetToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8_mWCutfix/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
@@ -28,11 +28,12 @@ skimType         = "DefaultSkim" #"TriggerSkim" #"NoSkim #"DefaultSkim" (all 3 a
 #dataset          = "/ST_t-channel_antitop_4f_leptonDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
 #dataset          = "/ST_s-channel_4f_leptonDecays_13TeV-amcatnlo-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
 #dataset          = "/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
-dataset          = "/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
+#dataset          = "/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
 #dataset          = "/WW_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
 #dataset          = "/WZ_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
 #dataset          = "/ZZ_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
 #dataset          = "/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
+
 
 # For Debugging Purposes:
 bDebug      = False   #Default is "False"
