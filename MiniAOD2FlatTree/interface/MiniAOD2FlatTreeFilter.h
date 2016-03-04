@@ -60,6 +60,7 @@ class MiniAOD2FlatTreeFilter : public edm::EDFilter {
 
 	std::string outputFileName;
         std::string PUInfoInputFileName;
+	std::string TopPtInputFileName;
 	std::string codeVersion;
         std::string dataVersion;
 	int cmEnergy;

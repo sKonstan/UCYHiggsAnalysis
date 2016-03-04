@@ -13,7 +13,6 @@ ROOT.gROOT.SetBatch(True)
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 import UCYHiggsAnalysis.NtupleAnalysis.tools.multicrab as multicrab
-#import HiggsAnalysis.NtupleAnalysis.tools.dataset._histoToDict as histoToDict
 
 re_histos = []
 re_se = re.compile("newPfn =\s*(?P<url>\S+)")
@@ -38,7 +37,6 @@ def getHistogramFile(stdoutFile, opts):
             f = fIN.extractfile(member)
             match = log_re.search(f.name)
             if match:
-                #histoFile = "miniaod2tree_%s.root"%match.group("job")
                 histoFile = "miniAOD2FlatTree_%s.root"%match.group("job")
                 """
                 for line in f:
@@ -243,6 +241,35 @@ def pileup(fname):
 
         fOUT.Close()
 
+
+
+def TopPt(fname):
+
+    if os.path.exists(fname):
+        fOUT = ROOT.TFile.Open(fname,"UPDATE")
+        fOUT.cd()
+
+        hTopPt = None
+
+        dataVersion = fOUT.Get("configInfo/dataVersion")
+        dv_re = re.compile("data")  
+        match = dv_re.search(dataVersion.GetTitle())
+        if match:
+            TopPtFile = os.path.join(os.path.dirname(fname),"TopPt.root")
+            if os.path.exists(puFile):
+                fIN = ROOT.TFile.Open(TopPtFile)
+                hTopPt = fIN.Get("topPtWeightAllEvents")
+            else:
+                print "TopPt not found in",os.path.dirname(fname),", did you run multicrabMergeHistograms.pyOB?"
+
+        if not hTopPt == None:
+            fOUT.cd("configInfo")
+            hPU.Write("",ROOT.TObject.kOverwrite)
+
+        fOUT.Close()
+    return
+
+
 def delFolder(regexp):
     keys = ROOT.gDirectory.GetListOfKeys()
     del_re = re.compile(regexp)
@@ -284,6 +311,7 @@ def main(opts, args):
                         print "Task %s, skipping job %s: input root file not found from stdout" % (d, f)
                 else:
                     histoFile = getHistogramFile(f, opts)
+
                     if histoFile != None:
                         path = os.path.join(os.path.dirname(f), histoFile)
                         if os.path.exists(path):
