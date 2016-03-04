@@ -310,7 +310,7 @@ void MiniAOD2FlatTreeFilter::endJob(){
   }
     
   // copy top pt weight histogram from separate file (makes merging of root files so much easier)
-  if (PUInfoInputFileName.size()) {
+  if (TopPtInputFileName.size()){
     TFile* fTopPt = TFile::Open(TopPtInputFileName.c_str());
     if (fTopPt) {
       // File open is successful                                                                                                                                                   
