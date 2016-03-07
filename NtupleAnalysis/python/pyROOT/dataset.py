@@ -1356,10 +1356,10 @@ class DatasetManager:
         
     def LoadLuminosities(self, fName="lumi.json"):
         '''
-         Load integrated luminosities from a JSON file. The parameter "fName" is the 
+        Load integrated luminosities from a JSON file. The parameter "fName" is the 
         path to the lumi.json file. If the directory part of the path is empty, the file is
         looked from the base directory. The JSON file should be formatted like this:
-
+        
         \verbatim
         '{
            "dataset_name": value_in_pb,
@@ -1373,22 +1373,45 @@ class DatasetManager:
         luminosities must be done before merging the data datasets to
         one.
         '''
-        self.Verbose()
+        self.Print("Reading Integrated Luminosities from %s" % fName)
         import json
+        
+        # Print info
+        txtAlign = "{:<60} {:>10}"
+        header   = txtAlign.format("Dataset", "Int. Lumi. (pb)")
+        hLine    = "="*len(header)
+        print "\t", hLine
+        print "\t", header
+        print "\t", hLine
 
         for d in self.datasets:
+            if d.GetIsMC():
+                continue
+            
+            # Ensure the JSON file exists
             jsonName = os.path.join(d.baseDir, fName)
             if not os.path.exists(jsonName):
-                msg = "=== dataset.py:\n\tLuminosity JSON file '%s' does not exist. Have you run 'hplusLumiCalc.py' in your multicrab directory?" % jsonName
+                msg = "\t Luminosity JSON file '%s' does not exist. Have you run 'hplusLumiCalc.py' in your multicrab directory?" % jsonName
                 raise Exception(msg)
-            else:
-                data = json.load(open(jsonName))
-                for name, value in data.iteritems():
-                    if self.HasDataset(name):
-                        self.GetDataset(name).SetLuminosity(value)
-                        self.intLumi = value
+            
+            # Assign luminosities to correct datasets
+            data      = json.load( open(jsonName) )
 
-        self.Print("Luminosity is %s (1/pb), as read from %s" % (self.intLumi, os.path.join(d.baseDir, fName)) )
+            # For-loop: All items in JSON file
+            for name, value in data.iteritems():
+                if self.HasDataset(name):
+                    if self.GetDataset(name).GetLuminosity()==None:
+                        self.GetDataset(name).SetLuminosity(value)
+                        print "\t", txtAlign.format(name, value)
+                        self.intLumi += value
+                    else:
+                        pass
+                else:
+                    msg = "\t Dataset-Manager has not dataset with name \"%s\"" % (name)
+                    raise Exception(msg)
+                
+        print "\t", txtAlign.format("Total", self.intLumi)
+        print "\t",hLine
         return
 
 
@@ -1467,8 +1490,8 @@ class DatasetManager:
 
         rows   = []
         info   = []
-        align  = "{:^35} {:^10} {:^10} {:^15} {:^15} {:^20} {:>15} {:>15} {:>15}"
-        header = align.format("Dataset", "Version", "E (TeV)", "XSection (pb)", "Lumi (1/pb)", "Norm Factor (sigma/N)", "Events", "Unweighted", "Weighted")
+        align  = "{:^60} {:^10} {:^10} {:^15} {:^15} {:^20} {:>15} {:>15}"
+        header = align.format("Dataset", "Version", "E (TeV)", "XSection (pb)", "Lumi (1/pb)", "Norm Factor (sigma/N)", "Unweighted Evts", "Weighted Evts")
         hLine  = "="*len(header)
         info.append(hLine)
         info.append(header)
@@ -1480,14 +1503,13 @@ class DatasetManager:
             norm             = dataset.GetNormFactor()
             dataVersion      = dataset.GetDataVersion()
             energy           = dataset.GetEnergy()
-            allEvents        = dataset.GetAllEvents()
             unweightedEvents = dataset.GetUnweightedEvents()
             weightedEvents   = dataset.GetWeightedEvents()
-            alldEvents       = dataset.GetAllEvents()
-            #pileupWeight     = dataset.GetPileupWeight()
-            #topPtWeight      = dataset.GetTopPtWeight()
-            align  = "{:<35} {:^10} {:^10} {:>15} {:>15} {:>20} {:>15} {:>15} {:>15}"
-            line = align.format(name, dataVersion, energy, xsec, lumi, norm, allEvents, unweightedEvents, weightedEvents)
+            # alldEvents       = dataset.GetAllEvents()
+            # pileupWeight     = dataset.GetPileupWeight()
+            # topPtWeight      = dataset.GetTopPtWeight()
+            align  = "{:<60} {:^10} {:^10} {:>15} {:>15} {:>20} {:>15} {:>15}"
+            line = align.format(name, dataVersion, energy, xsec, lumi, norm, unweightedEvents, weightedEvents)
             info.append(line)
         info.append(hLine)
         return info

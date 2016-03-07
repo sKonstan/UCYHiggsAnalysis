@@ -35,7 +35,7 @@ verbose       = False
 batchMode     = True
 folder        = "SignalAnalysis_mH125_Run2015D"
 analysis      = folder
-lumiInFb      = -1
+lumiInPb      = -1 #175.515
 saveFormats   = ["png"]
 #savePath      = "/Users/attikis/Desktop/"
 savePath      = "/afs/cern.ch/user/a/attikis/public/html/"
@@ -173,8 +173,8 @@ def main():
     #datasetManager.Remove("DYJetsToLL_M_50")
     # datasetManager.MergeData()
     datasetObjects = datasetManager.GetAllDatasets() # datasetManager.GetMCDatasets() # [datasetManager.GetDataset("TTJets")]
-    datasetManager.SetLuminosityForMC(lumiInFb)
-    # datasetManager.PrintSummary()
+    datasetManager.SetLuminosityForMC(lumiInPb)
+    datasetManager.PrintSummary()
     # datasetManager.PrintDatasets()
     # datasetManager.PrintSelections("DYJetsToLL_M_10to50")
 

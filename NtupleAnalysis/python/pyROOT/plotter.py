@@ -1086,7 +1086,7 @@ class Plotter(object):
             histo  = drawObject.THisto
             label  = self.GetLegLabel(drawObject)
             opts   = drawObject.GetAttribute("legOptions")
-            self.TLegend.AddEntry(histo, label, opts)
+            self.TLegend.AddEntry(histo, label, opts)            
         elif isinstance(drawObject, (ROOT.TH1, ROOT.TH2, ROOT.TH3, ROOT.TLine, ROOT.TBox) ):
             self.TLegend.AddEntry(drawObject, label, opts)            
         else:
@@ -1170,7 +1170,8 @@ class Plotter(object):
                 continue
             else:
                 self.ExtendDrawLists(histo.THisto, False, True)
-                self.ExtendLegend(histo.THisto, "Data", "LP" )
+                #self.ExtendLegend(histo.THisto, "Data", "LP" )
+                self.ExtendLegend(histo.THisto, self.GetLegLabel(histo), "LP" )            
         return
 
 
