@@ -89,78 +89,23 @@ class Datasets:
         
         datasetObjects = []
         datasetNames   = []
-        selectedMcList = [
-            '/ttHJetToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8_mWCutfix/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
-            #'/ttHJetToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8_mWCutfix/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2_ext1-v1/MINIAODSIM',
-            '/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v3/MINIAODSIM'                        ,
-            '/ST_tW_antitop_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'    ,
-            '/ST_tW_top_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v2/MINIAODSIM'        ,
-            '/ST_t-channel_top_4f_leptonDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'    ,
-            '/ST_t-channel_antitop_4f_leptonDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
-            '/ST_s-channel_4f_leptonDecays_13TeV-amcatnlo-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'      ,
-            '/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'       ,
-            '/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'           ,
-            '/WW_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
-            '/WZ_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
-            '/ZZ_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
-            '/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'             ,
-            ]
 
         if miniAODversion=="RunIISpring15MiniAODv2":
             datasetNames.extend(self.DataDatasets_MiniAODv2)
             datasetNames.extend(self.McDatasets_MiniAODv2)
 
-        datasetTypes = ["All", "Signal", "Background", "CollisionData", "MC", "SelectedMC", "DoubleMuon", "DoubleEG", "MuonEG", "SingleMuon", "SingleElectron"]
+        datasetTypes = ["All", "Data", "MC"]
 
         # For-loop: All dataset names
         for dataset in datasetNames:
             if datasetType == "All":
                 datasetObjects.append(self.GetDatasetObject(dataset))
-            elif datasetType == "Signal":
-                if "/ttHJetToNonbb" in dataset:
-                    datasetObjects.append(self.GetDatasetObject(dataset))
-            elif datasetType == "Background":
-                if "/ttHJetToNonbb" not in dataset:
-                    datasetObjects.append(self.GetDatasetObject(dataset))
-            elif datasetType == "CollisionData":
+            elif datasetType == "Data":
                 if self.GetDatasetObject(dataset).isData():
-                    datasetObjects.append(self.GetDatasetObject(dataset))
-            elif datasetType == "SelectedMC":
-                if dataset in selectedMcList:
                     datasetObjects.append(self.GetDatasetObject(dataset))
             elif datasetType == "MC":
                 if not self.GetDatasetObject(dataset).isData():
                     datasetObjects.append(self.GetDatasetObject(dataset))
-            elif datasetType == "SingleMuon":
-                # CMS DAS, Search: dataset=/SingleMuon/Run2015*/MINIAOD
-                datasetObjects.append(self.GetDatasetObject("/SingleMuon/Run2015C_25ns-05Oct2015-v1/MINIAOD"))
-                datasetObjects.append(self.GetDatasetObject("/SingleMuon/Run2015D-05Oct2015-v1/MINIAOD"))
-                datasetObjects.append(self.GetDatasetObject("/SingleMuon/Run2015D-PromptReco-v4/MINIAOD"))
-                break
-            elif datasetType == "SingleElectron":
-                # CMS DAS, Search: dataset=/SingleElectron/Run2015*/MINIAOD
-                datasetObjects.append(self.GetDatasetObject("/SingleElectron/Run2015C_25ns-05Oct2015-v1/MINIAOD"))
-                datasetObjects.append(self.GetDatasetObject("/SingleElectron/Run2015D-05Oct2015-v1/MINIAOD"))
-                datasetObjects.append(self.GetDatasetObject("/SingleElectron/Run2015D-PromptReco-v4/MINIAOD"))
-                break
-            elif datasetType == "DoubleMuon":
-                # CMS DAS, Search: dataset=/DoubleMuon/Run2015*/MINIAOD
-                datasetObjects.append(self.GetDatasetObject("/DoubleMuon/Run2015C_25ns-05Oct2015-v1/MINIAOD"))
-                datasetObjects.append(self.GetDatasetObject("/DoubleMuon/Run2015D-05Oct2015-v1/MINIAOD"))
-                datasetObjects.append(self.GetDatasetObject("/DoubleMuon/Run2015D-PromptReco-v4/MINIAOD"))
-                break
-            elif datasetType == "DoubleEG":
-                # CMS DAS, Search: dataset=/DoubleEG/Run2015*/MINIAOD
-                datasetObjects.append(self.GetDatasetObject("/DoubleEG/Run2015C_25ns-05Oct2015-v1/MINIAOD"))
-                datasetObjects.append(self.GetDatasetObject("/DoubleEG/Run2015D-05Oct2015-v1/MINIAOD"))
-                datasetObjects.append(self.GetDatasetObject("/DoubleEG/Run2015D-PromptReco-v4/MINIAOD"))
-                break
-            elif datasetType == "MuonEG":
-                # CMS DAS, Search: dataset=/MuonEG/Run2015*/MINIAOD
-                datasetObjects.append(self.GetDatasetObject("/MuonEG/Run2015C_25ns-05Oct2015-v1/MINIAOD"))
-                datasetObjects.append(self.GetDatasetObject("/MuonEG/Run2015D-05Oct2015-v2/MINIAOD")) #not v1!?
-                datasetObjects.append(self.GetDatasetObject("/MuonEG/Run2015D-PromptReco-v4/MINIAOD"))
-                break
             else:
                 raise Exception("=== datasets.py:\n\t Could not determine datasets for dataset type '%s'. Available types are:\n\t %s" % (datasetType, "\n\t ".join(datasetTypes)) )
 
@@ -193,7 +138,7 @@ class Datasets:
         
         self.McDatasets_MiniAODv2   = [
             '/ttHJetToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8_mWCutfix/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
-            '/ttHJetToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8_mWCutfix/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2_ext1-v1/MINIAODSIM',
+            #'/ttHJetToNonbb_M125_13TeV_amcatnloFXFX_madspin_pythia8_mWCutfix/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2_ext1-v1/MINIAODSIM',
             '/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v3/MINIAODSIM'                        ,
             '/ST_tW_antitop_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'    ,
             '/ST_tW_top_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v2/MINIAODSIM'        ,
@@ -202,21 +147,21 @@ class Datasets:
             '/ST_s-channel_4f_leptonDecays_13TeV-amcatnlo-pythia8_TuneCUETP8M1/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'      ,
             '/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'       ,
             '/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'           ,
-            '/DYJetsToLL_M-50_HT-100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
-            '/DYJetsToLL_M-50_HT-200to400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
-            '/DYJetsToLL_M-50_HT-400to600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v2/MINIAODSIM',
-            '/DYJetsToLL_M-50_HT-600toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
+            #'/DYJetsToLL_M-50_HT-100to200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
+            #'/DYJetsToLL_M-50_HT-200to400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
+            #'/DYJetsToLL_M-50_HT-400to600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v2/MINIAODSIM',
+            #'/DYJetsToLL_M-50_HT-600toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
             '/WW_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
             '/WZ_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
             '/ZZ_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
             '/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'             ,
-            '/WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'  ,
-            '/WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'  ,
-            '/WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'  ,
-            '/WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'  ,
-            '/WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM' ,
-            '/WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
-            '/WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM' ,
+            #'/WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'  ,
+            #'/WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'  ,
+            #'/WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'  ,
+            #'/WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM'  ,
+            #'/WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM' ,
+            #'/WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM',
+            #'/WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM' ,
             ]
 
         # Merge MC and Data Dataset lists

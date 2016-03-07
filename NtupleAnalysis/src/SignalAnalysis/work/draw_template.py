@@ -137,8 +137,8 @@ def DoCounters(histo, datasetObjects, savePostfix=""):
     p.AddCmsText("fb", prelim=True)
     p.DatasetAsLegend(True)    
     # p.AddTF1("1000*cos(x)", 0, 200.0, False, {"lineColour": ROOT.kBlack})
-    p.DrawRatio("", "AP", "Data") #ttHJetToNonbb_M125
-    # p.Draw("") # "nostack", "stack"
+    # p.DrawRatio("", "AP", "Data") #ttHJetToNonbb_M125
+    p.Draw("") # "nostack", "stack"
     # p.SetHistosFillStyle(3001)
     p.SetHistoLabelsOption("u") #v, u, d
     p.SetHistoLabelsSizeX(0.8)
@@ -165,8 +165,13 @@ def main():
     # Datasets
     datasetManager = dataset.DatasetManager(opts.mcrab, analysis)
     datasetManager.LoadLuminosities("lumi.json")
-    datasetManager.MergeData()
     datasetManager.Remove("ttHJetToNonbb_M125")
+    datasetManager.Remove("MuonEG_Run2015C_25ns_05Oct2015_v1_246908_260426_25ns_Silver")
+    datasetManager.Remove("MuonEG_Run2015D_PromptReco_v4_246908_260426_25ns_Silver")
+    #datasetManager.Remove("MuonEG_Run2015D_05Oct2015_v2_246908_260426_25ns_Silver")
+    #datasetManager.Remove("DYJetsToLL_M_10to50")
+    #datasetManager.Remove("DYJetsToLL_M_50")
+    # datasetManager.MergeData()
     datasetObjects = datasetManager.GetAllDatasets() # datasetManager.GetMCDatasets() # [datasetManager.GetDataset("TTJets")]
     datasetManager.SetLuminosityForMC(lumiInFb)
     # datasetManager.PrintSummary()

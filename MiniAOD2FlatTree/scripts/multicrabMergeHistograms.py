@@ -546,8 +546,8 @@ if __name__ == "__main__":
     parser.add_option("--noJobAssert", dest="noJobAssert", default=False, action="store_true",
                       help="Before merging any files, skip assert that all CRAB jobs succeeded (saves time)")
 
-    parser.add_option("--maxSize", dest="maxSize", default=2000000000, type="int",
-                      help="Define the maximum size of the merged ROOT file. The default value is 2000000000 (2 GB)")
+    parser.add_option("--maxSize", dest="maxSize", default=200000000000, type="int",
+                      help="Define the maximum size of the merged ROOT file. The default value is 200000000000 (200 GB)")
 
     (opts, args) = parser.parse_args()
 

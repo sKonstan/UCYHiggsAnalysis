@@ -15,6 +15,7 @@ import ROOT
 
 from UCYHiggsAnalysis.NtupleAnalysis.pyROOT.crossSection import xSections
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.multicrab as multicrab
+import UCYHiggsAnalysis.NtupleAnalysis.tools.dataset as dataset #xenios
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.aux as aux
 
 
@@ -22,19 +23,22 @@ import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.aux as aux
 # Global variables
 #================================================================================================
 latexNamesDict = {}
-latexNamesDict["ST_s_channel_4f_leptonDecays"]     = "t, s-channel"
-latexNamesDict["ST_t_channel_top_4f_leptonDecays"] = "t, t-channel"
-latexNamesDict["ST_tW_antitop_5f_inclusiveDecays"] = "#bar{t}W"
-latexNamesDict["ST_tW_top_5f_inclusiveDecays"]     = "tW"
-latexNamesDict["ttHJetToNonbb_M125"]               = "ttH"
-latexNamesDict["TTJets"]                           = "t#bar{t}+jets"
-latexNamesDict["DYJetsToLL_M_10to50"]              = "DY"
-latexNamesDict["DYJetsToLL_M_50"]                  = "Z+jets"
-latexNamesDict["WJetsToLNu"]                       = "W+jets" #"W^{#pm} #rightarrow l #nu_{l}"
-latexNamesDict["WW"]                               = "WW"
-latexNamesDict["WZ"]                               = "WZ"
-latexNamesDict["ZZ"]                               = "ZZ"
-latexNamesDict["MuonEG_246908_260426_25ns_Silver"] = "Data"
+latexNamesDict["ST_s_channel_4f_leptonDecays"]         = "t, s-channel"
+latexNamesDict["ST_t_channel_antitop_4f_leptonDecays"] = "#bar{t}, t-channel"
+latexNamesDict["ST_t_channel_top_4f_leptonDecays"]     = "t, t-channel"
+latexNamesDict["ST_tW_antitop_5f_inclusiveDecays"]     = "#bar{t}W"
+latexNamesDict["ST_tW_top_5f_inclusiveDecays"]         = "tW"
+latexNamesDict["ttHJetToNonbb_M125"]                   = "ttH"
+latexNamesDict["TTJets"]                               = "t#bar{t}+jets"
+latexNamesDict["DYJetsToLL_M_10to50"]                  = "DY"
+latexNamesDict["DYJetsToLL_M_50"]                      = "Z+jets"
+latexNamesDict["WJetsToLNu"]                           = "W+jets" #"W^{#pm} #rightarrow l #nu_{l}"
+latexNamesDict["WW"]                                   = "WW"
+latexNamesDict["WZ"]                                   = "WZ"
+latexNamesDict["ZZ"]                                   = "ZZ"
+latexNamesDict["MuonEG_Run2015C_25ns_05Oct2015_v1_246908_260426_25ns_Silver"] = "MuonEG_Run2015C"
+latexNamesDict["MuonEG_Run2015D_PromptReco_v4_246908_260426_25ns_Silver"]     = "MuonEG_Run2015D (PromptReco)"
+latexNamesDict["MuonEG_Run2015D_05Oct2015_v2_246908_260426_25ns_Silver"]      = "MuonEG_Run2015D"
 
 
 #================================================================================================
@@ -465,7 +469,21 @@ class Dataset(object):
         self.Verbose()
         return self.isPseudo
 
-    
+
+    def GetDataType(self):
+        '''
+        Self explanatory
+        '''
+        if self._IsData():
+            return "data"
+        if self._IsMC():
+            return "MC"
+        
+        if self._IsPseudo():
+            return "pseudo"
+        raise Exception("I don't know what I am, sorry.")
+
+
     def SetEnergy(self, energy):
         self.Verbose()
         self.energy   = energy
@@ -1235,6 +1253,7 @@ class DatasetManager:
         \param kwargs  Keyword arguments (forwarded to merge())
         '''
         self.Verbose()
+
         self.Merge("Data", self.GetDataDatasetNames(), *args, **kwargs)
         return
 
@@ -1301,12 +1320,13 @@ class DatasetManager:
         If nameList translates to only one dataset.Dataset, the
         dataset.Daataset object is renamed (i.e. dataset.DatasetMerged object is not created)
         '''
-        # self.Print()
-        print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+        print "=== %s: " % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+        for d in nameList:
+            print "\t ", d
         
         (selected, notSelected, firstIndex) = _MergeStackHelper(self.datasets, nameList, "merge", allowMissingDatasets)
-        if len(selected) == 0:
 
+        if len(selected) == 0:
             message = "\No datasets '" +", ".join(nameList) + "' found, not doing anything"
             if allowMissingDatasets:
                 if not silent:
@@ -1326,10 +1346,11 @@ class DatasetManager:
         if addition:
             newDataset = DatasetAddedMC(newName, selected)
         else:
-            newDataset = DatasetMerged(newName, selected)
+            newDataset = dataset.DatasetMerged(newName, selected)
 
         self.datasets.insert(firstIndex, newDataset)
         self._PopulateMap()
+        self.Print("New (merged) dataset \"%s\" successfully created from \"%s\" datasets" % (newName, len(nameList) ) )
         return
     
         

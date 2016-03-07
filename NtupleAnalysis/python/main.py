@@ -708,18 +708,20 @@ class Process:
         stats = []
         stats.append("%s"      % (dataset)   )
         stats.append("%.2f"    % (realTime)   )
-        stats.append("%.2f"    % (cpuTime)    )
+        # stats.append("%.2f"    % (cpuTime)    )
         stats.append("%.1f"    % (cpuTime/realTime*100) )
         stats.append("%.2f"    % (readMbytes) )
-        stats.append("%s"      % (calls)      )
+        # stats.append("%s"      % (calls)      )
         stats.append("%.2f"    % (readMbytes/realTime)  )
 
         # Save the stats
         self._datasetStats[dataset] = stats
 
-        heading = "{:<40} {:<20} {:<20} {:<20} {:<20} {:<20} {:<20}".format("\t Dataset", "Real Time [s]", "CPU Time [s]", "CPU Time [%]", "Read [MB]", "File Reads [Calls]", "Read Speed [MB/s]")
-        values  = "{:<40} {:<20} {:<20} {:<20} {:<20} {:<20} {:<20}".format("\t " + stats[0], stats[1], stats[2], stats[3], stats[4], stats[5], stats[6])
-        hLine   = len(values)*"="
+        txtAlign = "{:<70} {:<16} {:<16} {:<16} {:<16}"
+        #heading  = txtAlign.format("\t Dataset", "Real Time [s]", "CPU Time [s]", "CPU Time [%]", "Read [MB]", "File Reads [Calls]", "Read Speed [MB/s]")
+        heading  = txtAlign.format("\t Dataset", "Real Time [s]", "CPU Time [%]", "Read [MB]", "Read Speed [MB/s]")
+        values   = txtAlign.format("\t " + stats[0], stats[1], stats[2], stats[3], stats[4])#, stats[5], stats[6])
+        hLine    = len(values)*"="
 
         if bPrintStats:
             print "=== main.py:"
@@ -747,15 +749,17 @@ class Process:
         stats = []
         stats.append("TOTAL") 
         stats.append("%.2f"    % (self._realTimeTotal)   )
-        stats.append("%.2f"    % (self._cpuTimeTotal)    )
+        # stats.append("%.2f"    % (self._cpuTimeTotal)    )
         stats.append("%.1f"    % (self._cpuTimeTotal/self._realTimeTotal*100) )
         stats.append("%.2f"    % (self._readMbytesTotal) )
-        stats.append("%s"      % (self._callsTotal)      )
+        # stats.append("%s"      % (self._callsTotal)      )
         stats.append("%.2f"    % (self._readMbytesTotal/self._realTimeTotal)  )
 
-        heading = "{:<40} {:>20} {:>20} {:>20} {:>20} {:>20} {:>20}".format("\t Dataset", "Real Time [s]", "CPU Time [s]", "CPU Time [%]", "Read [MB]", "File Reads [Calls]", "Read Speed [MB/s]")
-        values  = "{:<40} {:>20} {:>20} {:>20} {:>20} {:>20} {:>20}".format("\t " + stats[0], stats[1], stats[2], stats[3], stats[4], stats[5], stats[6])
-        hLine   = len(values)*"="
+        txtAlign = "{:<70} {:<16} {:<16} {:<16} {:<16}"# {:<16} {:<16}"
+        #heading  = txtAlign.format("\t Dataset", "Real Time [s]", "CPU Time [s]", "CPU Time [%]", "Read [MB]", "File Reads [Calls]", "Read Speed [MB/s]")
+        heading  = txtAlign.format("\t Dataset", "Real Time [s]", "CPU Time [%]", "Read [MB]", "Read Speed [MB/s]")
+        values   = txtAlign.format("\t " + stats[0], stats[1], stats[2], stats[3], stats[4])#, stats[5], stats[6])
+        hLine    = len(values)*"="
 
         print "=== main.py:"
         if bPrintTableLayout:
@@ -765,7 +769,7 @@ class Process:
             print "\t", hLine
         for key, value in self._datasetStats.iteritems():
             dStats = value
-            dVals  = "{:<40} {:>20} {:>20} {:>20} {:>20} {:>20} {:>20}".format("\t " + dStats[0], dStats[1], dStats[2], dStats[3], dStats[4], dStats[5], dStats[6])
+            dVals  = txtAlign.format("\t " + dStats[0], dStats[1], dStats[2], dStats[3], dStats[4])#, dStats[5], dStats[6])
             print dVals
         print values
         return
