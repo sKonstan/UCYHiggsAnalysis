@@ -1346,7 +1346,7 @@ class DatasetManager:
         if addition:
             newDataset = DatasetAddedMC(newName, selected)
         else:
-            newDataset = dataset.DatasetMerged(newName, selected)
+            newDataset = DatasetMerged(newName, selected)
 
         self.datasets.insert(firstIndex, newDataset)
         self._PopulateMap()
