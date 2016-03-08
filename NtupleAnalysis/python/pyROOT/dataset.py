@@ -15,7 +15,7 @@ import ROOT
 
 from UCYHiggsAnalysis.NtupleAnalysis.pyROOT.crossSection import xSections
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.multicrab as multicrab
-import UCYHiggsAnalysis.NtupleAnalysis.tools.dataset as dataset #xenios
+import UCYHiggsAnalysis.NtupleAnalysis.tools.dataset as dataset
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.aux as aux
 
 
@@ -1344,9 +1344,9 @@ class DatasetManager:
         if not keepSources:
             self.datasets = notSelected
         if addition:
-            newDataset = DatasetAddedMC(newName, selected)
+            newDataset = dataset.DatasetAddedMC(newName, selected)
         else:
-            newDataset = DatasetMerged(newName, selected)
+            newDataset = dataset.DatasetMerged(newName, selected)
 
         self.datasets.insert(firstIndex, newDataset)
         self._PopulateMap()

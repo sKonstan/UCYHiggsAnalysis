@@ -22,6 +22,8 @@ import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.text as text
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.aux as aux
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.histos as histos
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.tdrstyle as tdrstyle
+from UCYHiggsAnalysis.NtupleAnalysis.pyROOT.dataset import Dataset
+from UCYHiggsAnalysis.NtupleAnalysis.tools.dataset import DatasetMerged
 
 
 #================================================================================================
@@ -426,8 +428,14 @@ class Plotter(object):
         self.Verbose("Adding '%s' datasets to the plotter object" % (len(datasetObjects) ) )
             
         for d in datasetObjects:
-            self.Verbose("Adding dataset %s from file %s." % (d.name, d.rootFile.GetName()))
-            self.AddDataset(d)
+            if isinstance(d, Dataset):
+                self.Verbose("Adding dataset %s from file %s." % (d.name, d.rootFile.GetName()))
+                self.AddDataset(d)
+            elif isinstance(d, DatasetMerged):
+                self.Print("Adding merged dataset %s from files %s." % (d.name, [d.rootFile.GetName() for d in d.GetDatasets()] ) )
+                self.AddDataset(d)
+            else:
+                raise Exception("Cannot add object of type \"%s\" to the dataset list!" % (type(d)) )
         return
 
 
