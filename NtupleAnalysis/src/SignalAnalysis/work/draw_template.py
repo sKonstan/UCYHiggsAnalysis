@@ -166,18 +166,17 @@ def main():
     datasetManager = dataset.DatasetManager(opts.mcrab, analysis)
     datasetManager.LoadLuminosities("lumi.json")
     datasetManager.Remove("ttHJetToNonbb_M125")
-    #datasetManager.Remove("MuonEG_Run2015C_25ns_05Oct2015_v1_246908_260426_25ns_Silver")
-    #datasetManager.Remove("MuonEG_Run2015D_PromptReco_v4_246908_260426_25ns_Silver")
-    #datasetManager.Remove("MuonEG_Run2015D_05Oct2015_v2_246908_260426_25ns_Silver")
-    #datasetManager.Remove("DYJetsToLL_M_10to50")
-    #datasetManager.Remove("DYJetsToLL_M_50")
-    datasetManager.PrintSummary()
     datasetManager.MergeData()
     datasetManager.SetLuminosityForMC(lumiInPb)
     datasetManager.PrintSummary()
     # datasetManager.PrintDatasets()
-    # datasetManager.PrintSelections("DYJetsToLL_M_10to50")
-    datasetObjects = datasetManager.GetAllDatasets() # datasetManager.GetMCDatasets() # [datasetManager.GetDataset("TTJets")]
+    datasetObjects = datasetManager.GetAllDatasets()
+    # datasetObjects = datasetManager.GetMCDatasets()
+    # datasetObjects = [datasetManager.GetDataset("TTJets")]
+
+    if verbose:
+        datasetManager.PrintSelections("DYJetsToLL_M_10to50")
+
     
     # One Histogram on a given canvas (many datasets)
     auxObject.StartTimer("Histo Loop")

@@ -35,6 +35,7 @@ latexNamesDict["WJetsToLNu"]                           = "W+jets" #"W^{#pm} #rig
 latexNamesDict["WW"]                                   = "WW"
 latexNamesDict["WZ"]                                   = "WZ"
 latexNamesDict["ZZ"]                                   = "ZZ"
+latexNamesDict["Data"]                                 = "Data"
 latexNamesDict["MuonEG_Run2015C_25ns_05Oct2015_v1_246908_260426_25ns_Silver"] = "MuonEG_Run2015C"
 latexNamesDict["MuonEG_Run2015D_PromptReco_v4_246908_260426_25ns_Silver"]     = "MuonEG_Run2015D (PromptReco)"
 latexNamesDict["MuonEG_Run2015D_05Oct2015_v2_246908_260426_25ns_Silver"]      = "MuonEG_Run2015D"
@@ -89,6 +90,7 @@ class Dataset(object):
             return getattr(self, attr)
         else:
             raise Exception("Class object '%s' does not have attribute '%s'" % (self.GetSelfName(), attr))
+        
 
     def Verbose(self, message=""):
         '''
@@ -870,6 +872,7 @@ class DatasetMerged(object):
         self.dataVersion      = self._GetDataVersion()
         self.unweightedEvents = self._GetUnweightedEvents()
         self.weightedEvents   = self._GetWeightedEvents()
+        self.latexname        = latexNamesDict[name]
         return
 
 
@@ -1068,6 +1071,18 @@ class DatasetMerged(object):
     def SetName(self, name):
         self.Verbose()
         self.name = name
+        return
+
+
+    def GetLatexName(self):
+        self.Verbose()
+        return self.latexname
+
+
+    def SetLatexName(self, name):
+        self.Verbose()
+        self.latexname = name
+        return
 
 
     def ForEach(self, function):
@@ -1146,7 +1161,7 @@ class DatasetMerged(object):
         return self.datasets[0].GetIsData()
 
 
-    def isPseudo(self):
+    def GetIsPseudo(self):
         self.Verbose()
         return self.datasets[0].GetIsPseudo()
 
@@ -1275,6 +1290,25 @@ class DatasetMerged(object):
     def GetDataVersion(self):
         self.Verbose()
         return self.dataVersion
+
+
+    def PrintProperties(self):
+        '''
+        Prints the object's most important properties
+        '''
+        self.Verbose()
+        
+        msg  = "{:<20} {:<20}".format("Name "                   , ": " + self.GetName() + " (" + self.GetLatexName() + ")" )
+        msg += "\n\t{:<20} {:<20}".format("Cross-Section (pb)"  , ": " + str(self.GetXSection()) )
+        msg += "\n\t{:<20} {:<20}".format("Energy (TeV)"        , ": " + str(self.GetEnergy()) )
+        msg += "\n\t{:<20} {:<20}".format("Luminosity (1/pb)"   , ": " + str(self.GetLuminosity()) )
+        msg += "\n\t{:<20} {:<20}".format("Data Version"        , ": " + str(self.GetDataVersion()) )
+        msg += "\n\t{:<20} {:<20}".format("Is MC"               , ": " + str(self.GetIsMC()) )
+        msg += "\n\t{:<20} {:<20}".format("Is Data"             , ": " + str(self.GetIsData()) )
+        msg += "\n\t{:<20} {:<20}".format("Is Pseudo"           , ": " + "yes" )
+        self.Print(msg)
+        return
+
 
 
 #================================================================================================ 

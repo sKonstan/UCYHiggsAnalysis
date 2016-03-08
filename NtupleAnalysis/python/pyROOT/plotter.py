@@ -42,6 +42,7 @@ class Plotter(object):
         self.THStack           = ROOT.THStack("THStack", "Stack for TPadPlot Histograms")
         self.THStackRatio      = ROOT.THStack("THStackRatio", "Stack for TPadRatio Histograms")
         self.TMultigraph       = ROOT.TMultiGraph("TMultigraph", "ROOT.TMultiGraph holding various ROOT.TGraphs")
+        self.DatasetsMerged    = []
         self.SetupRoot()
         return
     
@@ -426,16 +427,20 @@ class Plotter(object):
         Add all datasets in the datasetObjects list to the plotter
         '''
         self.Verbose("Adding '%s' datasets to the plotter object" % (len(datasetObjects) ) )
-            
-        for d in datasetObjects:
-            if isinstance(d, Dataset):
-                self.Verbose("Adding dataset %s from file %s." % (d.name, d.rootFile.GetName()))
-                self.AddDataset(d)
-            elif isinstance(d, DatasetMerged):
-                self.Print("Adding merged dataset %s from files %s." % (d.name, [d.rootFile.GetName() for d in d.GetDatasets()] ) )
-                #self.AddDataset(d)
-                #print d.PrintProperties()
-                #sys.exit()
+
+        for dm in datasetObjects:
+            if isinstance(dm, DatasetMerged):
+                self.DatasetsMerged.append(dm)
+
+        for dataset in datasetObjects:
+            if isinstance(dataset, Dataset):
+                self.Verbose("Adding dataset %s from file %s." % ( dataset.name, dataset.GetRootFile().GetName() ) )
+                self.AddDataset(dataset)
+            elif isinstance(dataset, DatasetMerged):
+                # print dataset.PrintProperties()
+                for d in dataset.GetDatasets():
+                    self.Verbose("Adding dataset %s from file %s." % ( d.name, d.GetRootFile().GetName() ) )
+                    self.AddDataset(d)
             else:
                 raise Exception("Cannot add object of typ \"%s\" to dataset list" % (type(d)))
         return
@@ -1175,13 +1180,45 @@ class Plotter(object):
 
     def _AddDataHistoToDrawList(self):    
         self.Verbose()
+
+        mdDict  = {}
+        mdNames = []
+        for dm in self.DatasetsMerged:
+            for d in dm.GetDatasets():
+                mdNames.append(d.GetName())
+            mdDict[dm.GetName()] = mdNames
+
+        # For-loop: All histos
         for histo in self.GetHistos():
             if histo.dataset._IsMC():
                 continue
             else:
-                self.ExtendDrawLists(histo.THisto, False, True)
-                #self.ExtendLegend(histo.THisto, "Data", "LP" )
-                self.ExtendLegend(histo.THisto, self.GetLegLabel(histo), "LP" )            
+                if histo.dataset.GetName() in mdNames:
+                    # print "1)", histo.THisto.Integral()
+                    continue
+                else:
+                    self.ExtendDrawLists(histo.THisto, False, True)
+                    self.ExtendLegend(histo.THisto, self.GetLegLabel(histo), "LP" )            
+
+
+        # For-loop: All merged datasets
+        for mergeName in mdDict:
+            mdNames = mdDict[mergeName]
+            histo   = None
+
+            # For-loop: All histos
+            for h in self.GetHistos():
+                if h.dataset.GetName() in mdNames:
+                    if histo==None:
+                        histo = copy.deepcopy(h.THisto)
+                    else:
+                        histo.Add(h.THisto)
+            #print "2)", histo.Integral() #should agree with sum of 1)
+
+            # Add combined histos to merge drawing list
+            self.ExtendDrawLists(histo, False, True)
+            self.ExtendLegend(histo, mergeName, "LP" )            
+            
         return
 
 
