@@ -15,7 +15,6 @@ import ROOT
 
 from UCYHiggsAnalysis.NtupleAnalysis.pyROOT.crossSection import xSections
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.multicrab as multicrab
-import UCYHiggsAnalysis.NtupleAnalysis.tools.dataset as dataset
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.aux as aux
 
 
@@ -67,8 +66,8 @@ class Dataset(object):
         self.energy             = self._GetEnergy()
         self.xsection           = self._GetXSection()
         self.allEvents          = None
-        self.unweightedEvents   = None #self._GetUnweightedEvents() #xenios
-        self.weightedEvents     = None #self._GetWeightedEvents() #xenios
+        self.unweightedEvents   = None
+        self.weightedEvents     = None
         self.isPileupReweighted = self._IsPileUpReweighted()
         self.isTopPtReweighted  = self._IsTopPtReweighted()
         self.pileupWeight       = self._GetPileupWeight()
@@ -209,7 +208,7 @@ class Dataset(object):
         return xsection
         
 
-    def _GetUnweightedEvents(self): #xenios
+    def _GetUnweightedEvents(self):
         '''
         '''        
         self.Verbose()
@@ -223,7 +222,7 @@ class Dataset(object):
         return self.unweightedEvents
     
 
-    def _GetWeightedEvents(self): #xenios
+    def _GetWeightedEvents(self):
         '''
         '''        
         self.Verbose()    
@@ -843,7 +842,445 @@ class Dataset(object):
 #================================================================================================ 
 # Class Definition
 #================================================================================================ 
-class DatasetManager:
+class DatasetMerged(object):
+    '''
+    Dataset class for histogram access for a dataset merged from Dataset objects.
+    The merged datasets are required to be either MC, data, or pseudo
+    '''
+    def __init__(self, name, datasets, verbose=False):
+        '''
+        Constructor.
+        
+        \param name      Name of the merged dataset
+
+        \param datasets  List of dataset.Dataset objects to merge
+        
+        Calculates the total cross section (luminosity) for MC (data or pseudo)
+        datasets.
+        '''
+        self.verbose  = verbose
+        self.name     = name
+        self.datasets = datasets
+        self._SanityCheck()
+        self.info             = {}
+        self.auxObject        = aux.AuxClass(verbose)
+        self.energy           = self._GetEnergy()
+        self.xsection         = self._GetXSection()
+        self.lumi             = self._GetLuminosity()
+        self.dataVersion      = self._GetDataVersion()
+        self.unweightedEvents = self._GetUnweightedEvents()
+        self.weightedEvents   = self._GetWeightedEvents()
+        return
+
+
+    def Verbose(self, message=""):
+        '''
+        Custome made verbose system. Will print all messages in the messageList
+        only if the verbosity boolean is set to true.
+        '''
+        if self.verbose:
+            print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+            if message!="":
+                print "\t", message
+        return
+
+
+    def Print(self, message=""):
+        '''
+        Custome made print system. Will print the message even if the verbosity boolean is set to false.
+        '''
+        print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+        if message!="":
+            print "\t", message
+        else:
+            return
+        return
+
+
+    def _SanityCheck(self):
+        self.Verbose()
+
+        if len(self.datasets) == 0:
+            raise Exception("=== dataset.py:\n\t Can't create a DatasetMerged from 0 datasets")
+        return
+
+
+    def _GetLuminosity(self):
+        '''
+        If all merged datasets are Data return their luminosity sum. Otherwise return None.
+        '''
+        self.Verbose()
+
+        if self.datasets[0].GetIsMC():
+            return None
+
+        refType = self.datasets[0].GetDataType()
+        lumiSum = 0.0
+        for d in self.datasets:
+            lumiSum += d.GetLuminosity()
+            dType = d.GetDataType()
+            if refType != dType:
+                msg = "Can't merge non-%s datasets %s with %s datasets, it is %s" % (reft, d.GetName(), t)
+                raise Exception("=== dataset.py:\n\t ", msg)
+        self.info["luminosity"] = lumiSum
+        return lumiSum
+
+
+    def _GetXSection(self):
+        '''
+        If all merged datasets are MC return their cross-section sum. Otherwise return None
+        '''
+        self.Verbose()
+
+        if not self.datasets[0].GetIsMC():
+            return None
+
+        xSectionSum = 0.0
+        for d in self.datasets:
+            if not d.GetIsMC():
+                msg =  "Can't merge non-MC dataset %s with MC datasets, it is %s" % (d.getName(), d.getDataType())
+                raise Exception("=== dataset.py:\n\t ", msg)
+            else:
+                xSectionSum += d.GetCrossSection()
+        self.info["crossSection"] = xSectionSum
+        return xSectionSum
+
+
+    def _GetDataVersion(self):
+        '''
+        If all merged datasets are of same type return their dataVersion.
+        '''
+        self.Verbose()
+
+        dataVersion    = self.datasets[0].GetDataVersion()
+        for d in self.datasets:
+            dVer = d.GetDataVersion()
+            if dataVersion != dVer:
+                msg = "Can't merge datasets with different dataVersions (%s: %s, %s: %s)" % (self.datasets[0].GetName(), dataVersion, d.GetName(), dVer)
+                raise Exception("=== dataset.py:\n\t ", msg)
+            else:
+                pass
+
+        #self.info["dataVersion"] = dataVersion
+        return dataVersion
+
+  
+    def GetDataVersion(self):
+        self.Verbose()
+        
+        return self.dataVersion
+
+    
+    def GetDatasets(self):
+        self.Verbose()
+        return self.datasets
+
+
+    def _GetEnergy(self):
+        '''
+        Ensure that all merged datasets have the same energy. Return COM energy.
+        '''
+        self.Verbose()
+
+        energy = self.datasets[0].GetEnergy()
+        for d in self.datasets[1:]:
+            if energy != d.GetEnergy():
+                msg = "Can't merge datasets with different COM energies (%s: %d TeV, %s: %d TeV)" % (self.datasets[0].GetName(), energy, d.GetName(), d.GetEnergy())
+                raise Exception("=== dataset.py:\n\t ", msg)
+        return energy
+
+
+    def _GetUnweightedEvents(self):
+        '''
+        Get sum of all unweighted events from the individual merge datasets
+        '''
+        self.Verbose()
+
+        unweightedEvents = 0
+        for d in self.datasets:
+            unweightedEvents += d.GetUnweightedEvents()
+        return unweightedEvents
+
+
+    def GetUnweightedEvents(self):
+        self.Verbose()
+        return self.unweightedEvents
+
+
+    def _GetWeightedEvents(self):
+        '''
+        Get sum of all weighted events from the individual merge datasets
+        '''
+        self.Verbose()
+
+        weightedEvents = 0
+        for d in self.datasets:
+            weightedEvents += d.GetWeightedEvents()
+        return weightedEvents
+
+
+    def GetWeightedEvents(self):
+        self.Verbose()
+        return self.weightedEvents
+
+
+    def Close(self):
+        ''' 
+        Close TFiles in the contained dataset.Dataset objects
+        '''
+        self.Verbose()
+
+        # For-loop: All datasets
+        for d in self.datasets:
+            print "=== dataset.py:\n\t Closing dataset '%s'" % (d)
+            d.Close()
+        return
+
+            
+    def DeepCopy(self):
+        '''
+        Make a deep copy of a DatasetMerged object.
+        
+        Nothing is shared between the returned copy and this object.
+        
+        \see dataset.Dataset.deepCopy()
+        '''
+        self.Verbose()
+
+        dm = DatasetMerged(self.name, [d.DeepCopy() for d in self.datasets])
+        dm.info.update(self.info)
+        return dm
+
+
+    def SetDirectoryPostfix(self, postfix):
+        self.Verbose()
+
+        for d in self.datasets:
+            d.SetDirectoryPostfix(postfix)
+        return
+
+
+    def GetName(self):
+        self.Verbose()
+        return self.name
+
+
+    def SetName(self, name):
+        self.Verbose()
+        self.name = name
+
+
+    def ForEach(self, function):
+        self.Verbose()
+
+        ret = []
+        for d in self.datasets:
+            ret.extend(d.ForEach(function))
+        return ret
+
+
+    def SetEnergy(self, energy):
+        self.Verbose()
+
+        for d in self.datasets:
+            d.SetEnergy(energy)
+        return
+
+
+    def GetEnergy(self):
+        self.Verbose()
+        return self.datasets[0].GetEnergy()
+
+
+    def SetXSection(self, value):
+        self.Verbose()
+        if not self.GetIsMC():
+            raise Exception("=== dataset.py:\n\t Should not set cross section for non-MC dataset %s (has luminosity)" % self.name)
+        raise Exception("=== dataset.py:\n\t Setting cross section for merged dataset is meaningless (it has no real effect, and hence is misleading")
+
+
+    def GetXSection(self):
+        '''
+        Get cross section of MC dataset (in pb).
+        '''
+        self.Verbose()
+
+        if not self.GetIsMC():
+            #raise Exception("=== dataset.py:\n\t Dataset %s is not MC, no cross section available" % self.name)
+            return None
+        return self.info["crossSection"]
+
+
+    def SetLuminosity(self, value):
+        self.Verbose()
+
+        if self.GetIsMC():
+            raise Exception("=== dataset.py:\n\t Should not set luminosity for MC dataset %s (has crossSection)" % self.name)
+        raise Exception("=== dataset.py:\n\t Setting luminosity for merged dataset is meaningless (it has no real effect, and hence is misleading")
+
+
+    def GetLuminosity(self):
+        '''
+        Get the integrated luminosity of data dataset (in pb^-1).
+        '''
+        self.Verbose()
+
+        if self.GetIsMC():
+            raise Exception("=== dataset.py:\n\t Dataset %s is MC, no luminosity available" % self.name)
+        return self.info["luminosity"]
+
+
+    def SetProperty(self, key, value):
+        self.Verbose()
+        self.info[key] = value
+        return
+
+
+    def GetProperty(self, key):
+        self.Verbose()
+        return self.info[key]
+
+
+    def GetIsData(self):
+        self.Verbose()
+        return self.datasets[0].GetIsData()
+
+
+    def isPseudo(self):
+        self.Verbose()
+        return self.datasets[0].GetIsPseudo()
+
+
+    def GetIsMC(self):
+        self.Verbose()
+        return self.datasets[0].GetIsMC()
+
+
+    def GetCounterDirectory(self):
+        self.Verbose()
+
+        countDir = self.datasets[0].GetCounterDirectory()
+        for d in self.datasets[1:]:
+            if countDir != d.GetCounterDirectory():
+                raise Exception("=== dataset.py:\n\t Error: merged datasets have different counter directories")
+        return countDir
+
+
+    def GetNormFactor(self):
+        self.Verbose()
+        return None
+
+
+    def HasRootHisto(self, name):
+        '''
+        Check if a ROOT histogram exists in this dataset
+        
+        \param name  Name (path) of the ROOT histogram
+        
+        The ROOT histogram is expected to exist in all underlying
+        dataset.Dataset objects.
+        '''
+        self.Verbose()
+
+        has = True
+        for d in self.datasets:
+            has = has and d.hasRootHisto(name)
+        return has
+
+
+    def GetDatasetRootHisto(self, name, **kwargs):
+        '''
+        Get the DatasetRootHistoMergedMC/DatasetRootHistoMergedData object for a named histogram.
+        
+        \param name   Path of the histogram in the ROOT file
+
+        \param kwargs Keyword arguments, forwarder to get
+        getDatasetRootHisto() of the contained Dataset objects
+        
+        DatasetRootHistoMergedData works also for pseudo
+        '''
+        self.Verbose()
+
+        wrappers = [d.GetDatasetRootHisto(name, **kwargs) for d in self.datasets]
+        if self.isMC():
+            return DatasetRootHistoMergedMC(wrappers, self)
+        elif self.isData():
+            return DatasetRootHistoMergedData(wrappers, self)
+        elif self.isPseudo():
+            return DatasetRootHistoMergedPseudo(wrappers, self)
+        else:
+            raise Exception("=== dataset.py:\n\t Internal error (unknown dataset type)")
+        return
+
+
+    def GetFirstRootHisto(self, name, **kwargs):
+        '''
+        Get ROOT histogram
+        
+        \param name    Path of the ROOT histogram relative to the analysis
+        root directory
+
+        \param kwargs  Keyword arguments, forwarded to getRootObjects()
+        
+        \return pair (\a first histogram, \a realName)
+        
+        If name starts with slash ('/'), it is interpreted as a absolute
+        path within the ROOT file.
+        
+        If dataset.TreeDraw object is given (or actually anything with
+        draw() method), the draw() method is called by giving the
+        Dataset object as parameters. The draw() method is expected to
+        return a TH1 which is then returned.
+        '''
+        self.Verbose()
+
+        if hasattr(self.datasets[0], "getFirstRootHisto"):
+            content = self.datasets[0].GetFirstRootHisto(name, **kwargs)
+        else:
+            content = self.datasets[0].GetRootHisto(name, **kwargs)
+        return content
+
+
+    def GetDirectoryContent(self, directory, predicate=lambda x: True):
+        '''
+        Get the directory content of a given directory in the ROOT file.
+        
+        \param directory   Path of the directory in the ROOT file
+
+        \param predicate   Append the directory name to the return list only if
+                           predicate returns true for the name. Predicate
+                           should be a function taking a string as an
+                           argument and returning a boolean.
+        
+        Returns a list of names in the directory. The contents of the
+        directories of the merged datasets are required to be identical.
+        '''
+        content = self.datasets[0].GetDirectoryContent(directory, predicate)
+        for d in self.datasets[1:]:
+            if content != dGgetDirectoryContent(directory, predicate):
+                raise Exception("=== dataset.py:\n\t Error: merged datasets have different contents in directory '%s'" % directory)
+        return content
+
+
+    def FormatDatasetTree(self, indent):
+        self.Verbose()
+
+        ret = '%sDatasetMerged("%s", [\n' % (indent, self.getName())
+        for dataset in self.datasets:
+            ret += dataset.FormatDatasetTree(indent+"  ")
+        ret += "%s]),\n" % indent
+        return ret
+
+
+    def GetDataVersion(self):
+        self.Verbose()
+        return self.dataVersion
+
+
+#================================================================================================ 
+# Class Definition
+#================================================================================================ 
+class DatasetManager(object):
     '''
     Collection of Dataset objects which are managed together.
     
@@ -896,9 +1333,10 @@ class DatasetManager:
         '''
         Custome made print system. Will print all messages in the messageList even if the verbosity boolean is set to false.
         '''
+        print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
         for counter, message in enumerate(messageList):
             if counter == 0:
-                self.Print(message)
+                print "\t", message
             else:
                 print "\t", message
         return
@@ -1320,14 +1758,13 @@ class DatasetManager:
         If nameList translates to only one dataset.Dataset, the
         dataset.Daataset object is renamed (i.e. dataset.DatasetMerged object is not created)
         '''
-        print "=== %s: " % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
-        for d in nameList:
-            print "\t ", d
+        #print "=== %s: " % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
+        self.PrintList([d for d in nameList])
         
         (selected, notSelected, firstIndex) = _MergeStackHelper(self.datasets, nameList, "merge", allowMissingDatasets)
 
         if len(selected) == 0:
-            message = "\No datasets '" +", ".join(nameList) + "' found, not doing anything"
+            message = "\tNo datasets '" + ", ".join(nameList) + "' found, not doing anything"
             if allowMissingDatasets:
                 if not silent:
                     print >> sys.stderr, message
@@ -1345,12 +1782,14 @@ class DatasetManager:
             self.datasets = notSelected
         if addition:
             newDataset = dataset.DatasetAddedMC(newName, selected)
+            print "FIXME! Port DatasetAddedMC from tools.dataset to this file. EXIT"
+            sys.exit()
         else:
-            newDataset = dataset.DatasetMerged(newName, selected)
+            newDataset = DatasetMerged(newName, selected)
 
         self.datasets.insert(firstIndex, newDataset)
         self._PopulateMap()
-        self.Print("New (merged) dataset \"%s\" successfully created from \"%s\" datasets" % (newName, len(nameList) ) )
+        print "\t\"%s\" successfully created by merging %s datasets" % (newName, len(nameList) )
         return
     
         

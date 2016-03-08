@@ -171,13 +171,13 @@ def main():
     #datasetManager.Remove("MuonEG_Run2015D_05Oct2015_v2_246908_260426_25ns_Silver")
     #datasetManager.Remove("DYJetsToLL_M_10to50")
     #datasetManager.Remove("DYJetsToLL_M_50")
+    datasetManager.PrintSummary()
     datasetManager.MergeData()
-    datasetObjects = datasetManager.GetAllDatasets() # datasetManager.GetMCDatasets() # [datasetManager.GetDataset("TTJets")]
     datasetManager.SetLuminosityForMC(lumiInPb)
     datasetManager.PrintSummary()
     # datasetManager.PrintDatasets()
     # datasetManager.PrintSelections("DYJetsToLL_M_10to50")
-
+    datasetObjects = datasetManager.GetAllDatasets() # datasetManager.GetMCDatasets() # [datasetManager.GetDataset("TTJets")]
     
     # One Histogram on a given canvas (many datasets)
     auxObject.StartTimer("Histo Loop")
