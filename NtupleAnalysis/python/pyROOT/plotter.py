@@ -461,8 +461,13 @@ class Plotter(object):
         else:
             self.textObject.AddDefaultText("publication", "")
 
-        energy = self.GetDatasets()[0].GetEnergyString()
-        lumi   = self.GetDatasets()[0].GetLuminosityString(lumiUnits)
+        lumi = -1
+        for d in self.GetDatasets():
+            energy  = d.GetEnergyString()
+            intLumi = d.GetLuminosityString(lumiUnits)
+            if intLumi>lumi:
+                lumi = intLumi
+
         self.textObject.AddDefaultText("lumi"  , lumi  )
         self.textObject.AddDefaultText("energy", energy)
         self.ExtendDrawLists(self.textObject.GetTextList(), addToRatio=False)        
@@ -1184,6 +1189,8 @@ class Plotter(object):
         mdDict  = {}
         mdNames = []
         for dm in self.DatasetsMerged:
+            if dm.GetName() != "Data":
+                continue            
             for d in dm.GetDatasets():
                 mdNames.append(d.GetName())
             mdDict[dm.GetName()] = mdNames
@@ -1229,12 +1236,49 @@ class Plotter(object):
         '''
         self.Verbose()
 
+        mdDict  = {}
+        mdNames = []
+        for dm in self.DatasetsMerged:
+            if dm.GetName() == "Data":
+                continue            
+            for d in dm.GetDatasets():
+                if d.GetIsData():
+                    continue
+                mdNames.append(d.GetName())
+            mdDict[dm.GetName()] = mdNames
+
+        # For-loop: All histos
         for histo in self.GetHistos():
-            if histo.dataset._IsData():
+            if histo.dataset.GetIsData():
                 continue
             else:
-                self.THStack.Add(histo.THisto)
-                self.ExtendLegend(histo)
+                if histo.dataset.GetName() in mdNames:
+                    #print "1)", histo.THisto.Integral()
+                    continue
+                else:
+                    self.THStack.Add(histo.THisto)
+                    self.ExtendLegend(histo)
+
+        # For-loop: All merged datasets
+        for mergeName in mdDict:
+            mdNames = mdDict[mergeName]
+            histo   = None
+            
+            # For-loop: All histos
+            for h in self.GetHistos():
+                if h.dataset.GetIsData():
+                    continue
+
+                if h.dataset.GetName() in mdNames:
+                    if histo==None:
+                        histo = copy.deepcopy(h.THisto)
+                    else:
+                        histo.Add(h.THisto)
+            #print "2)", histo.Integral() #should agree with sum of 1)
+
+            # Add combined histos to merge drawing list
+            self.THStack.Add(histo)
+            self.ExtendLegend(histo, mergeName, "F")
         return
 
     

@@ -24,7 +24,7 @@ import UCYHiggsAnalysis.NtupleAnalysis.tools.histogramsExtras as histogramsExtra
 import UCYHiggsAnalysis.NtupleAnalysis.tools.aux as aux
 import UCYHiggsAnalysis.NtupleAnalysis.tools.pileupReweightedAllEvents as pileupReweightedAllEvents
 import UCYHiggsAnalysis.NtupleAnalysis.tools.crosssection as crosssection
-import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.aux as aux
+import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.aux as myAux
 
 
 #================================================================================================ 
@@ -2747,6 +2747,8 @@ class Dataset:
         which store the era-specific weights to the tree itself, and
         therefore the 
         '''
+        print "=== dataset.py:\n\t HERE MOFO"
+        sys.exit()
         self.rawName = name
         self.name = name
         self.files = tfiles
@@ -3442,7 +3444,7 @@ class DatasetMerged:
         self.datasets = datasets
         self._SanityCheck()
         self.info             = {}
-        self.auxObject        = aux.AuxClass(verbose)
+        self.auxObject        = myAux.AuxClass(verbose)
         self.energy           = self._GetEnergy()
         self.xsection         = self._GetXSection()
         self.lumi             = self._GetLuminosity()

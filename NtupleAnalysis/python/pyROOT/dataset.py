@@ -15,7 +15,7 @@ import ROOT
 
 from UCYHiggsAnalysis.NtupleAnalysis.pyROOT.crossSection import xSections
 import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.multicrab as multicrab
-import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.aux as aux
+import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.aux as myAux
 
 
 #================================================================================================
@@ -35,11 +35,16 @@ latexNamesDict["WJetsToLNu"]                           = "W+jets" #"W^{#pm} #rig
 latexNamesDict["WW"]                                   = "WW"
 latexNamesDict["WZ"]                                   = "WZ"
 latexNamesDict["ZZ"]                                   = "ZZ"
-latexNamesDict["Data"]                                 = "Data"
-latexNamesDict["MuonEG_Run2015C_25ns_05Oct2015_v1_246908_260426_25ns_Silver"] = "MuonEG_Run2015C"
-latexNamesDict["MuonEG_Run2015D_PromptReco_v4_246908_260426_25ns_Silver"]     = "MuonEG_Run2015D (PromptReco)"
-latexNamesDict["MuonEG_Run2015D_05Oct2015_v2_246908_260426_25ns_Silver"]      = "MuonEG_Run2015D"
+latexNamesDict["MuonEG_Run2015C_25ns_05Oct2015_v1_246908_260426_25ns_Silver"] = "MuonEG (2015C)"
+latexNamesDict["MuonEG_Run2015D_PromptReco_v4_246908_260426_25ns_Silver"]     = "MuonEG (2015D-PR))"
+latexNamesDict["MuonEG_Run2015D_05Oct2015_v2_246908_260426_25ns_Silver"]      = "MuonEG (2015D)"
+# merged
+latexNamesDict["Data"]      = "Data"
+latexNamesDict["Single t"]  = "Single top"
 
+
+
+_debugNAllEvents = False
 
 #================================================================================================
 # Class Definition
@@ -47,7 +52,7 @@ latexNamesDict["MuonEG_Run2015D_05Oct2015_v2_246908_260426_25ns_Silver"]      = 
 class Dataset(object):
     def __init__(self, baseDir, name, analysisName, rootFile, verbose = False, **args):
         self.verbose            = verbose
-        self.auxObject          = aux.AuxClass(verbose)
+        self.auxObject          = myAux.AuxClass(verbose)
         self.name               = name
         self.analysisName       = analysisName
         self.baseDir            = baseDir
@@ -74,7 +79,8 @@ class Dataset(object):
         self.pileupWeight       = self._GetPileupWeight()
         self.topPtWeight        = self._GetTopPtWeight()
         self._ReadCounters()
-        self.normFactor         = self._GetNormFactor()
+        self._UpdateWeightedEvents()
+        self.normFactor         = self._GetNormFactor()    
         self.Verbose()
         return
 
@@ -140,8 +146,8 @@ class Dataset(object):
         else:
             return
         return
+    
 
-        
     def ForEach(self, function):
         '''
         '''
@@ -210,13 +216,6 @@ class Dataset(object):
         return xsection
         
 
-    def _GetUnweightedEvents(self):
-        '''
-        '''        
-        self.Verbose()
-        return -1
-
-
     def GetUnweightedEvents(self):
         '''
         '''        
@@ -224,26 +223,42 @@ class Dataset(object):
         return self.unweightedEvents
     
 
-    def _GetWeightedEvents(self):
+    def _UpdateWeightedEvents(self):
         '''
         '''        
-        self.Verbose()    
-        if not self.isMC():
+        self.Verbose()
+        if not self.GetIsMC():
             return
 
-        ratio = 1.0
-    
+        # Variables
+        ratio    = 1.0
+        txtAlign = "{:<50} {:<25} {:<20} {:<20}"
+        header   = txtAlign.format("\t Dataset", "Weight Type", "Weight Value", "%% Change")
+        hLine    = "="*len(header)
+        table    = []
+        table.append("\t " + hLine)
+        table.append(header)
+        table.append("\t " + hLine)
+
         if self.isPileupReweighted:
             delta = (self.pileupWeight - self.unweightedEvents) / self.unweightedEvents
             ratio = ratio * self.pileupWeight / self.unweightedEvents
-            self.Print("Dataset (%s): Updated NAllEvents to pileUpReweighted NAllEvents, change: %0.6f %%" % (self.getName(), delta*100.0) )
-
+            table.append( "\t " + txtAlign.format(self.GetName(),  "Pileup Reweight", str(self.pileupWeight), str(delta*100.0) ) )
+            
         if self.isTopPtReweighted:
-            delta = (self.topPtReweighted - self.unweightedEvents) / self.unweightedEvents
-            self.Print("Dataset (%s): Updated NAllEvents to isTopPtReweighted NAllEvents, change: %0.6f %%"%(self.getName(), delta*100.0) )
+            delta = (self.topPtWeight - self.unweightedEvents) / self.unweightedEvents
             ratio = ratio * self.topPtWeight / self.unweightedEvents
+            table.append( "\t " + txtAlign.format(self.GetName(),  "Top-Pt Weight", str(self.topPtWeight), str(delta*100.0) ) )
+            
         weightedEvents = ratio * self.unweightedEvents
-        return weightedEvents    
+        self.weightedEvents = weightedEvents
+
+        if not self.verbose:
+            return
+        self.Print()
+        for r in table:
+                print r
+        return 
 
 
     def GetWeightedEvents(self):
@@ -251,7 +266,6 @@ class Dataset(object):
         '''        
         self.Verbose()
         return self.weightedEvents
-    
 
     
     def GetAllEvents(self):
@@ -290,7 +304,7 @@ class Dataset(object):
         allEvents = self.GetAllEvents()
         causes    = "\n\t1) Counters are weighted"
         causes   += "\n\t2) Analysis job input was a skim"
-        causes   += "\n\t3) The method updateNAllEventsToPUWeighted() has not been called"
+        causes   += "\n\t3) The method UpdateNAllEventsToPUWeighted() has not been called"
         if allEvents == 0:
             msg = "Number of all events is '%s' for dataset '%s'! Probable causes:" % (allEvents, self.name)
             raise Exception(msg + causes)
@@ -362,7 +376,10 @@ class Dataset(object):
         binNumber = self._GetBinNumberFromBinLabel(self.info, binLabel)
         weight    = self.info.GetBinContent(binNumber)
         if isinstance(weight, float):
-            return True
+            if weight > 0.0:
+                return True
+            else:
+                return False
         else:
             raise Exception("The weight '%s' for dataset '%s' is not an instance of float." % (binLabel, self.name) )
         return False
@@ -733,7 +750,7 @@ class Dataset(object):
         countObject = self.auxObject.ConvertHistoToCounter(counter, self.verbose)
 
         # Second counter (index 1), second element (index 1) of the tuple [NOTE: First counter is usually zero - underflow bin)
-        self.unweightedEvents = countObject[1][1].value()
+        self.unweightedEvents = countObject[1][1].value() # Note: changed the code for ConvertHistoToCounter()  to also get zero bin.
         self.allEvents        = self.unweightedEvents
 
         self.Verbose("Successfully read counters in '%s'. Number of events is '%s'" % (counterPath, self.unweightedEvents))
@@ -754,7 +771,7 @@ class Dataset(object):
         countObject = self.auxObject.ConvertHistoToCounter(counter, self.verbose)
 
         # Second counter (index 1), second element (index 1) of the tuple [NOTE: First counter is usually zero - underflow bin)
-        self.weightedEvents = countObject[1][1].value()
+        self.weightedEvents = countObject[1][1].value() # Note: changed the code for ConvertHistoToCounter()  to also get zero bin.
         self.allEvents      = self.weightedEvents
 
         self.Verbose("Successfully read counters in '%s'. Number of events is '%s'" % (counterPath, self.unweightedEvents))
@@ -765,7 +782,7 @@ class Dataset(object):
         '''
         Check normalization from weighted counters
         '''
-        self.Verbose("Checking couter '%s'" % (counterPath) )
+        self.Verbose("Checking counter '%s'" % (counterPath) )
         
         normalisationIsOk   = True
         (counter, realName) = self.GetRootHisto(counterPath)
@@ -781,7 +798,7 @@ class Dataset(object):
 
         if not normalisationIsOk:
             #raise Exception("Error: dset=%s: Unweighted skimcounter (%s) is smaller than all events counter of analysis (%s)!" % (self.name, allEvts, afterAllEvts) )
-            print "=== dataset.py:\n\t Temporary! FIXME!"
+            print "=== dataset.py:\n\t Normalisation is NOT ok for dataset \"%s\" (%s)"  % (self.GetName(), counterPath)
         return
     
 
@@ -865,7 +882,7 @@ class DatasetMerged(object):
         self.datasets = datasets
         self._SanityCheck()
         self.info             = {}
-        self.auxObject        = aux.AuxClass(verbose)
+        self.auxObject        = myAux.AuxClass(verbose)
         self.energy           = self._GetEnergy()
         self.xsection         = self._GetXSection()
         self.lumi             = self._GetLuminosity()
@@ -944,7 +961,7 @@ class DatasetMerged(object):
                 msg =  "Can't merge non-MC dataset %s with MC datasets, it is %s" % (d.getName(), d.getDataType())
                 raise Exception("=== dataset.py:\n\t ", msg)
             else:
-                xSectionSum += d.GetCrossSection()
+                xSectionSum += d.GetXSection()
         self.info["crossSection"] = xSectionSum
         return xSectionSum
 
@@ -1131,7 +1148,7 @@ class DatasetMerged(object):
 
         if self.GetIsMC():
             raise Exception("=== dataset.py:\n\t Should not set luminosity for MC dataset %s (has crossSection)" % self.name)
-        raise Exception("=== dataset.py:\n\t Setting luminosity for merged dataset is meaningless (it has no real effect, and hence is misleading")
+        raise Exception("=== dataset.py:\n\t Setting luminosity for merged dataset is meaningless (it has no real effect, and hence is misleading)")
 
 
     def GetLuminosity(self):
@@ -1141,7 +1158,8 @@ class DatasetMerged(object):
         self.Verbose()
 
         if self.GetIsMC():
-            raise Exception("=== dataset.py:\n\t Dataset %s is MC, no luminosity available" % self.name)
+            #raise Exception("=== dataset.py:\n\t Dataset %s is MC, no luminosity available" % self.name)
+            return None
         return self.info["luminosity"]
 
 
@@ -1305,7 +1323,7 @@ class DatasetMerged(object):
         msg += "\n\t{:<20} {:<20}".format("Data Version"        , ": " + str(self.GetDataVersion()) )
         msg += "\n\t{:<20} {:<20}".format("Is MC"               , ": " + str(self.GetIsMC()) )
         msg += "\n\t{:<20} {:<20}".format("Is Data"             , ": " + str(self.GetIsData()) )
-        msg += "\n\t{:<20} {:<20}".format("Is Pseudo"           , ": " + "yes" )
+        msg += "\n\t{:<20} {:<20}".format("Is Pseudo"           , ": " + str(self.GetIsPseudo()) )
         self.Print(msg)
         return
 
@@ -1768,11 +1786,11 @@ class DatasetManager(object):
 
         # For-loop
         for newName, nameList in toMerge.iteritems():
-            self.merge(newName, nameList, *args, **kwargs)
+            self.Merge(newName, nameList, *args, **kwargs)
         return
     
             
-    def Merge(self, newName, nameList, keepSources=False, addition=False, silent=False, allowMissingDatasets=False):
+    def Merge(self, newName, nameList, keepSources=False, addition=False, silent=True, allowMissingDatasets=False):
         '''
         Merge dataset.Dataset objects.
         
@@ -1792,8 +1810,7 @@ class DatasetManager(object):
         If nameList translates to only one dataset.Dataset, the
         dataset.Daataset object is renamed (i.e. dataset.DatasetMerged object is not created)
         '''
-        #print "=== %s: " % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
-        self.PrintList([d for d in nameList])
+        print "=== %s: " % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
         
         (selected, notSelected, firstIndex) = _MergeStackHelper(self.datasets, nameList, "merge", allowMissingDatasets)
 
@@ -1810,6 +1827,7 @@ class DatasetManager(object):
             if not silent:
                 print >> sys.stderr, message
             self.Rename(selected[0].GetName(), newName)
+            print "\t\"%s\" successfully created by merging %s datasets:\n\t %s" % (newName, len(nameList), ", ".join(nameList) )
             return
 
         if not keepSources:
@@ -1823,7 +1841,8 @@ class DatasetManager(object):
 
         self.datasets.insert(firstIndex, newDataset)
         self._PopulateMap()
-        print "\t\"%s\" successfully created by merging %s datasets" % (newName, len(nameList) )
+        print "\t\"%s\" successfully created by merging %s datasets:\n\t %s" % (newName, len(nameList), ", ".join(nameList) )
+        # print "\t\"%s\" successfully created by merging %s datasets:\n\t %s" % (newName, len(nameList), "\n\t ".join(nameList) )
         return
     
         
@@ -1932,8 +1951,8 @@ class DatasetManager(object):
         
         # For-loop: All datasets
         for dataset in self.datasets:
-            dataset.UpdateNAllEventsToPUWeighted(**kwargs)
-        #self.printInfo() #xenios
+            dataset.UpdateNAllEventsToPUWeighted(**kwargs) 
+        #self.printInfo()
         return
 
 

@@ -119,12 +119,12 @@ class Datasets:
         self.DebugMode()
 
         self.DataDatasets_MiniAODv2 = [
-            "/SingleMuon/Run2015C_25ns-05Oct2015-v1/MINIAOD",
-            "/SingleMuon/Run2015D-05Oct2015-v1/MINIAOD",
-            "/SingleMuon/Run2015D-PromptReco-v4/MINIAOD",
-            "/SingleElectron/Run2015C_25ns-05Oct2015-v1/MINIAOD",
-            "/SingleElectron/Run2015D-05Oct2015-v1/MINIAOD",
-            "/SingleElectron/Run2015D-PromptReco-v4/MINIAOD",
+            #"/SingleMuon/Run2015C_25ns-05Oct2015-v1/MINIAOD",
+            #"/SingleMuon/Run2015D-05Oct2015-v1/MINIAOD",
+            #"/SingleMuon/Run2015D-PromptReco-v4/MINIAOD",
+            #"/SingleElectron/Run2015C_25ns-05Oct2015-v1/MINIAOD",
+            #"/SingleElectron/Run2015D-05Oct2015-v1/MINIAOD",
+            #"/SingleElectron/Run2015D-PromptReco-v4/MINIAOD",
             "/DoubleMuon/Run2015C_25ns-05Oct2015-v1/MINIAOD",
             "/DoubleMuon/Run2015D-05Oct2015-v1/MINIAOD",
             "/DoubleMuon/Run2015D-PromptReco-v4/MINIAOD",

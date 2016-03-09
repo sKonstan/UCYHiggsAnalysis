@@ -35,7 +35,7 @@ verbose       = False
 batchMode     = True
 folder        = "SignalAnalysis_mH125_Run2015D"
 analysis      = folder
-lumiInPb      = -1 #175.515
+lumiInPb      = 888.357
 saveFormats   = ["png"]
 #savePath      = "/Users/attikis/Desktop/"
 savePath      = "/afs/cern.ch/user/a/attikis/public/html/"
@@ -45,6 +45,13 @@ savePath      = "/afs/cern.ch/user/a/attikis/public/html/"
 # Object Definitions
 #================================================================================================
 auxObject  = aux.AuxClass(verbose)
+
+datasetMapping = {}
+datasetMapping["ST_t_channel_top_4f_leptonDecays"]     = "Single t"
+datasetMapping["ST_tW_antitop_5f_inclusiveDecays"]     = "Single t"
+datasetMapping["ST_t_channel_antitop_4f_leptonDecays"] = "Single t"
+datasetMapping["ST_tW_top_5f_inclusiveDecays"]         = "Single t"
+datasetMapping["ST_s_channel_4f_leptonDecays"]         = "Single t"
 
 
 #================================================================================================
@@ -83,7 +90,8 @@ Eta = {
 
 
 wCounter = {
-    "xMin": 7.0, "xMax": None, "gridX": True, "gridXRatio": True, "logX": False,
+    "xMin": None, "xMax": None, "gridX": True, "gridXRatio": True, "logX": False,
+    #"xMin": 7.0, "xMax": None, "gridX": True, "gridXRatio": True, "logX": False,
     "yLabel": "Events / %0.1f", "yMin": 1.0, "yMax": None, "yUnits": "", "yCutLines": [], "gridY": True,  "gridYRatio": True, "logY": True, "yCutBoxes": [], "xCutBoxes": [],
     "ratioLabel": "Ratio", "yMinRatio": 0.0, "yMaxRatio": 2.15 , "drawOptions": "HIST9", "legOptions": "F", "logYRatio": False, "logXRatio": False,
     "xLegMin": 0.75, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92, 
@@ -140,9 +148,9 @@ def DoCounters(histo, datasetObjects, savePostfix=""):
     # p.DrawRatio("", "AP", "Data") #ttHJetToNonbb_M125
     p.Draw("") # "nostack", "stack"
     # p.SetHistosFillStyle(3001)
-    p.SetHistoLabelsOption("u") #v, u, d
-    p.SetHistoLabelsSizeX(0.8)
-    p.SetHistoAxisOffsetX(0.04)
+    p.SetHistoLabelsOption("d") #v, u, d
+    p.SetHistoLabelsSizeX(0.5)
+    p.SetHistoAxisOffsetX(0.02)
     # p.Save()
     p.Save(savePath, saveFormats)
     # p.SaveAs(savePath, histo.GetName() + "_test", savePostfix, saveFormats)
@@ -162,14 +170,38 @@ def main():
     counterList = [counter]
 
     
-    # Datasets
+    ### Setup Datasets
     datasetManager = dataset.DatasetManager(opts.mcrab, analysis)
     datasetManager.LoadLuminosities("lumi.json")
-    datasetManager.Remove("ttHJetToNonbb_M125")
-    datasetManager.MergeData()
     datasetManager.SetLuminosityForMC(lumiInPb)
+    
+    ### Remove Datasets
+    # datasetManager.Remove("MuonEG_Run2015D_05Oct2015_v2_246908_260426_25ns_Silver")       #  888.357
+    datasetManager.Remove("MuonEG_Run2015C_25ns_05Oct2015_v1_246908_260426_25ns_Silver")  #   16.345
+    datasetManager.Remove("MuonEG_Run2015D_PromptReco_v4_246908_260426_25ns_Silver")      # 1103.813
+    # datasetManager.Remove("ST_s_channel_4f_leptonDecays")
+    # datasetManager.Remove("ST_tW_antitop_5f_inclusiveDecays")
+    # datasetManager.Remove("ST_tW_top_5f_inclusiveDecays")
+    # datasetManager.Remove("ST_t_channel_antitop_4f_leptonDecays")
+    # datasetManager.Remove("ST_t_channel_top_4f_leptonDecays")
+    # datasetManager.Remove("DYJetsToLL_M_10to50")
+    # datasetManager.Remove("DYJetsToLL_M_50")
+    # datasetManager.Remove("TTJets")
+    # datasetManager.Remove("WJetsToLNu")
+    # datasetManager.Remove("WW")
+    # datasetManager.Remove("WZ")
+    # datasetManager.Remove("ZZ")
+    datasetManager.Remove("ttHJetToNonbb_M125")
+
+    ### Merge Datasets
+    # datasetManager.MergeData()
+    datasetManager.MergeMany(datasetMapping)
+
+    ### Print Datasets
     datasetManager.PrintSummary()
     # datasetManager.PrintDatasets()
+
+    ### Get Datasets
     datasetObjects = datasetManager.GetAllDatasets()
     # datasetObjects = datasetManager.GetMCDatasets()
     # datasetObjects = [datasetManager.GetDataset("TTJets")]
