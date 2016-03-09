@@ -94,7 +94,7 @@ tauSelection = PSet(
 # Jet selection
 #================================================================================================  
 jetSelection = PSet(
-    PtCut             = 20.0,
+    PtCut             = 25.0,
     EtaCut            =  2.5, 
     TauMatchDeltaR    =  0.4,         # FIXME: Should i remove this? Is tau-jet included in SelectedJets?
     NJetsCutValue     =  3,
@@ -110,7 +110,7 @@ jetSelection = PSet(
 # B-jet selection (Jets passing the "jetSelection" PSets are checked if they can be b-tagged)
 #================================================================================================  
 bjetSelection = PSet(
-    NJetsCutValue         = 1,
+    NJetsCutValue         = 2,
     NJetsCutDirection     = ">=",  #[==, !=, <, <=, >, >=]
     BjetDiscr             = "pfCombinedInclusiveSecondaryVertexV2BJetTags",
     BjetDiscrWorkingPoint = "Loose",

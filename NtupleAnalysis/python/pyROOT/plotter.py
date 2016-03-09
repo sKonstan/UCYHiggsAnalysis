@@ -389,7 +389,7 @@ class Plotter(object):
         elif normOpt == "toLuminosity":
             if dataset._IsData():
                 return
-            dataset.histo.NormaliseToFactor( dataset.GetNormFactor() * dataset.GetLuminosity() )
+            dataset.histo.NormaliseToFactor( dataset.GetNormFactor() * dataset.GetIntLuminosity() )
         else:
             raise Exception("Unknown histoObject normalisation option '%s'.!" % (dataset.histo.normalise))
         return
@@ -464,7 +464,7 @@ class Plotter(object):
         lumi = -1
         for d in self.GetDatasets():
             energy  = d.GetEnergyString()
-            intLumi = d.GetLuminosityString(lumiUnits)
+            intLumi = d.GetIntLumiString(lumiUnits)
             if intLumi>lumi:
                 lumi = intLumi
 

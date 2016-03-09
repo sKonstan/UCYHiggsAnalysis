@@ -40,9 +40,8 @@ latexNamesDict["MuonEG_Run2015D_PromptReco_v4_246908_260426_25ns_Silver"]     = 
 latexNamesDict["MuonEG_Run2015D_05Oct2015_v2_246908_260426_25ns_Silver"]      = "MuonEG (2015D)"
 # merged
 latexNamesDict["Data"]      = "Data"
+latexNamesDict["Bkg"]       = "Bkg"
 latexNamesDict["Single t"]  = "Single top"
-
-
 
 _debugNAllEvents = False
 
@@ -60,7 +59,6 @@ class Dataset(object):
         self.rootFile           = rootFile
         self.drawObject         = None
         self.lumi               = None
-        self.normFactor         = None
         self.args               = args
         self.dataVersion        = self._GetDataVersion()
         self.codeVersion        = self._GetCodeVersion()
@@ -81,6 +79,8 @@ class Dataset(object):
         self._ReadCounters()
         self._UpdateWeightedEvents()
         self.normFactor         = self._GetNormFactor()    
+        self.lumi               = self._GetLuminosity()
+        self.intLumi            = None # set by dataset manager
         self.Verbose()
         return
 
@@ -308,7 +308,23 @@ class Dataset(object):
         if allEvents == 0:
             msg = "Number of all events is '%s' for dataset '%s'! Probable causes:" % (allEvents, self.name)
             raise Exception(msg + causes)
+
         return self.GetXSection() / allEvents
+
+
+    def _GetLuminosity(self):
+        '''
+        Get the luminosity corresponding to the generated events
+        '''
+        self.Verbose()
+        if not self.isMC:
+            return None
+        return self.allEvents / self.GetXSection()
+
+
+    def GetLuminosity(self):
+        self.Verbose()
+        return self.lumi
 
     
     def _GetEnergy(self):
@@ -346,6 +362,8 @@ class Dataset(object):
         '''
         '''
         self.Verbose()
+        if self.GetIsData():
+            return None
 
         binLabel = "isPileupReweighted"
         if not self.isPileupReweighted:
@@ -389,6 +407,8 @@ class Dataset(object):
         '''
         '''
         self.Verbose()
+        if self.GetIsData():
+            return None
 
         binLabel  = "isTopPtReweighted"
         if not self.isPileupReweighted:
@@ -520,7 +540,7 @@ class Dataset(object):
         return energy
 
 
-    def GetLuminosityString(self, units = "fb"):
+    def GetIntLumiString(self, units = "fb"):
         self.Verbose()
 
         unitsFactor = 0
@@ -534,13 +554,20 @@ class Dataset(object):
             self.Print("Unsupported units options '%s' for luminosity string. Select either 'fb' or 'pb'. EXIT" % (units) )
             sys.exit()
 
-        intLumi = "%0.2f" % (self.lumi * unitsFactor)
+        intLumi = "%0.2f" % (self.intLumi * unitsFactor)
         return intLumi + " " + units
 
     
     def SetLuminosity(self, lumi):
         self.Verbose()
+        if self.GetIsMC():
+            return
         self.lumi = lumi
+        return
+
+    def SetIntegratedLuminosity(self, intLumi):
+        self.Verbose()
+        self.intLumi = intLumi
         return
 
 
@@ -548,8 +575,14 @@ class Dataset(object):
         self.Verbose()
         return self.lumi
         return
-    
-        
+
+
+    def GetIntLuminosity(self):
+        self.Verbose()
+        return self.intLumi
+        return
+
+
     def SetXSection(self, xSection):
         self.Verbose()
         self.xsection = xSection
@@ -819,25 +852,35 @@ class Dataset(object):
         '''
         Prints the object's most important properties
         '''
-        self.Verbose()
-        msg  = "{:<20} {:<20}".format("Name "                   , ": " + self.GetName() + " (" + self.GetLatexName() + ")" )
-        msg += "\n\t{:<20} {:<20}".format("Base Directory"      , ": " + self.GetBaseDir() )
-        msg += "\n\t{:<20} {:<20}".format("ROOT"                , ": " + self.GetRootFile().GetName() )
-        msg += "\n\t{:<20} {:<20}".format("Cross-Section (pb)"  , ": " + str(self.GetXSection()) )
-        msg += "\n\t{:<20} {:<20}".format("Energy (TeV)"        , ": " + str(self.GetEnergy()) )
-        msg += "\n\t{:<20} {:<20}".format("Luminosity (1/pb)"   , ": " + str(self.GetLuminosity()) )
-        msg += "\n\t{:<20} {:<20}".format("Data Version"        , ": " + str(self.GetDataVersion()) )
-        msg += "\n\t{:<20} {:<20}".format("Is MC"               , ": " + str(self.GetIsMC()) )
-        msg += "\n\t{:<20} {:<20}".format("Is Data"             , ": " + str(self.GetIsData()) )
-        msg += "\n\t{:<20} {:<20}".format("Is Pseudo"           , ": " + str(self.GetIsPseudo()) )
-        msg += "\n\t{:<20} {:<20}".format("Is PU Reweighted"    , ": " + str(self.GetIsPileupReweighted()) )
-        msg += "\n\t{:<20} {:<20}".format("Is TopPt Reweighted" , ": " + str(self.GetIsTopPtReweighted()) )
-        msg += "\n\t{:<20} {:<20}".format("Is PU Reweighted"    , ": " + str(self.GetIsPileupReweighted())  + " (" + str(self.GetPileupWeight()) + ")" )
-        msg += "\n\t{:<20} {:<20}".format("Is TopPt Reweighted" , ": " + str(self.GetIsTopPtReweighted())   + " (" + str(self.GetTopPtWeight()) + ")" )
-    
+        self.Print()
+        txtAlign = "{:<30} {:<40}"
+        msgs     = []
+        msgs.append( txtAlign.format("Name "                , ": " + self.GetName() + " (" + self.GetLatexName() + ")" ) )
+        msgs.append( txtAlign.format("Data Version"         , ": " + str(self.GetDataVersion()) ) ) 
+        msgs.append( txtAlign.format("Cross-Section (pb)"   , ": " + str(self.GetXSection()) ) ) 
+        msgs.append( txtAlign.format("Energy (TeV)"         , ": " + str(self.GetEnergy()) ) )
+        msgs.append( txtAlign.format("Luminosity (1/pb)"    , ": " + str(self.GetLuminosity()) ) )
+        # msgs.append( txtAlign.format("Parameter Set"        , ": " + str(self._GetParameterSet()) ) )
+        # msgs.append( txtAlign.format("Info"                 , ": " + str(self._GetInfo()) ) )
+        msgs.append( txtAlign.format("Norm Factor"          , ": " + str(self._GetNormFactor()) ) )
+        msgs.append( txtAlign.format("Lumi (1/pb) "         , ": " + str(self._GetLuminosity()) ) ) 
+        msgs.append( txtAlign.format("MC-Lumi (1/pb)"       , ": " + str(self._GetMCLuminosity()) ) ) 
+        msgs.append( txtAlign.format("Int-Lumi (1/pb)"      , ": " + str(self._GetIntLuminosity()) ) ) 
+        msgs.append( txtAlign.format("Is MC"                , ": " + str(self.GetIsMC()) ) ) 
+        msgs.append( txtAlign.format("Is Data"              , ": " + str(self.GetIsData()) ) ) 
+        msgs.append( txtAlign.format("Is Pseudo"            , ": " + str(self.GetIsPseudo()) ) )
+        msgs.append( txtAlign.format("Is PU Reweighted"     , ": " + str(self.GetIsPileupReweighted()) ) )
+        msgs.append( txtAlign.format("Is TopPt Reweighted"  , ": " + str(self.GetIsTopPtReweighted()) ) )
+        msgs.append( txtAlign.format("Is PU Reweighted"     , ": " + str(self.GetIsPileupReweighted())  + " (" + str(self.GetPileupWeight()) + ")" ) )
+        msgs.append( txtAlign.format("Is TopPt Reweighted"  , ": " + str(self.GetIsTopPtReweighted())   + " (" + str(self.GetTopPtWeight()) + ")" ) )
+        msgs.append( txtAlign.format("Base Directory"       , ": " + self.GetBaseDir() ) )
+        msgs.append( txtAlign.format("ROOT"                 , ": " + self.GetRootFile().GetName() ) ) 
+        msgs.append( txtAlign.format("Code Version"         , ": " + str(self._GetCodeVersion()) ) )
+
         if hasattr(self, 'THisto'):
-            msg += "\n\t {:<20} {:<20}".format("Histo Name"     , ": " + self.THisto.GetName() )
-        self.Print(msg)
+            msgs.append( "\n\t {:<20} {:<20}".format("Histo Name"     , ": " + self.THisto.GetName() ) )
+        for r in msgs:
+            print "\t ", r
         return
 
 
@@ -1869,12 +1912,8 @@ class DatasetManager(object):
         import json
         
         # Print info
-        txtAlign = "{:<60} {:>10}"
-        header   = txtAlign.format("Dataset", "Int. Lumi. (pb)")
-        hLine    = "="*len(header)
-        print "\t", hLine
-        print "\t", header
-        print "\t", hLine
+        txtAlign  = "{:<60} {:>10} {:>6}"
+        lumiUnits = "(1/pb)"
 
         for d in self.datasets:
             if d.GetIsMC():
@@ -1894,7 +1933,7 @@ class DatasetManager(object):
                 if self.HasDataset(name):
                     if self.GetDataset(name).GetLuminosity()==None:
                         self.GetDataset(name).SetLuminosity(value)
-                        print "\t", txtAlign.format(name, value)
+                        print "\t", txtAlign.format(name, value, lumiUnits)
                         self.intLumi += value
                     else:
                         pass
@@ -1902,10 +1941,8 @@ class DatasetManager(object):
                     msg = "\t Dataset-Manager has not dataset with name \"%s\"" % (name)
                     raise Exception(msg)
                 
-        print "\t", txtAlign.format("Total", self.intLumi)
-        print "\t",hLine
+        print "\t", txtAlign.format("Total", self.intLumi, lumiUnits)
         return
-
 
                     
     def GetLuminosity(self):
@@ -1921,7 +1958,7 @@ class DatasetManager(object):
         return energy
 
 
-    def GetLuminosityString(self, units = "fb"):
+    def GetIntLumString(self, units = "fb"):
         self.Verbose()
 
         unitsFactor = 0
@@ -1956,7 +1993,7 @@ class DatasetManager(object):
         return
 
 
-    def SetLuminosityForMC(self, intLumi=-1):
+    def SetIntegratedLuminosity(self, intLumi=-1):
         '''
         Set luminosity to all MC samples
         '''
@@ -1964,13 +2001,11 @@ class DatasetManager(object):
 
         if intLumi<0:
             intLumi = self.intLumi
-        self.Print("Setting Luminosity for all MC samples to %s (1/pb)" % (intLumi) )
+        self.Print("Setting Integrated Luminosity for all MC samples to %s (1/pb)" % (intLumi) )
 
         # For-loop: All datasets
         for dataset in self.datasets:
-            if not dataset.GetIsMC():
-                continue
-            dataset.SetLuminosity(intLumi)
+            dataset.SetIntegratedLuminosity(intLumi)
         return
     
     
@@ -1982,28 +2017,33 @@ class DatasetManager(object):
 
         rows   = []
         info   = []
-        align  = "{:^60} {:^10} {:^10} {:^15} {:^15} {:^20} {:>15} {:>15}"
-        header = align.format("Dataset", "Version", "E (TeV)", "XSection (pb)", "Lumi (1/pb)", "Norm Factor (sigma/N)", "Unweighted Evts", "Weighted Evts")
+        maxCh  = 30
+        align  = "{:<30} {:^10} {:>10} {:>15} {:>15} {:>18} {:>15} {:>15}  {:>15} {:>18}"
+        header = align.format("Dataset", "E (TeV)", "Events", "XSection (pb)", "Lumi (1/pb)", "Norm Factor", "Events (w)", "w (Pileup)", "w (Top-Pt)", "Int-Lumi (1/pb)")
         hLine  = "="*len(header)
         info.append(hLine)
         info.append(header)
         info.append(hLine)
         for dataset in self.datasets:
-            name             = dataset.GetName()
-            xsec             = dataset.GetXSection()
+            fullDatasetName  = dataset.GetName()
+            datasetName      = (fullDatasetName[:maxCh-2] + "..") if len(fullDatasetName) > maxCh else fullDatasetName
+            xsection         = dataset.GetXSection()
+            intLumi          = dataset.GetIntLuminosity()
             lumi             = dataset.GetLuminosity()
-            norm             = dataset.GetNormFactor()
+            normFactor       = dataset.GetNormFactor()
             dataVersion      = dataset.GetDataVersion()
             energy           = dataset.GetEnergy()
+            allEvents        = dataset.GetAllEvents()
             unweightedEvents = dataset.GetUnweightedEvents()
             weightedEvents   = dataset.GetWeightedEvents()
-            # alldEvents       = dataset.GetAllEvents()
-            # pileupWeight     = dataset.GetPileupWeight()
-            # topPtWeight      = dataset.GetTopPtWeight()
-            align  = "{:<60} {:^10} {:^10} {:>15} {:>15} {:>20} {:>15} {:>15}"
-            line = align.format(name, dataVersion, energy, xsec, lumi, norm, unweightedEvents, weightedEvents)
+            pileupWeight     = dataset.GetPileupWeight()
+            topPtWeight      = dataset.GetTopPtWeight()
+            if allEvents != unweightedEvents:
+                raise Exception("The values of allEvents (%s) and unweightedEvents (%s) do not agree. Is this expected? " % (allEvents, unweightedEvents) )
+            line = align.format(datasetName, '%.0f' % (energy), '%.0f' % (allEvents), xsection, lumi, normFactor,'%.1f' % (weightedEvents), pileupWeight, topPtWeight, intLumi )
             info.append(line)
         info.append(hLine)
+        
         return info
 
     
@@ -2012,7 +2052,10 @@ class DatasetManager(object):
         Print dataset information.
         '''
         self.Verbose()
-        self.PrintList(self.FormatSummary())
+        #self.PrintList(self.FormatSummary())
+        self.Print()
+        for row in self.FormatSummary():
+            print row
         return
     
         
