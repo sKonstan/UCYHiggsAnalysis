@@ -74,6 +74,7 @@ class Plotter(object):
 
         self.THDumbie.THisto.Draw(self.THDumbie.drawOptions)
         self.THStack.Draw(stackOpts + "," + self.THDumbie.drawOptions + "," +  "9same") #"PADS"
+        #self.THStack.Draw(stackOpts) #"PADS"
         self.UpdateCanvas()
         return
 

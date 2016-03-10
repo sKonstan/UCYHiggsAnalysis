@@ -145,9 +145,11 @@ void SignalAnalysis::process(Long64_t entry) {
   //====== Apply Cut: Lepton selection
   const ElectronSelection::Data eData = fElectronSelection.analyze(fEvent);
   const MuonSelection::Data muData    = fMuonSelection.analyze(fEvent);
-  const bool bFoundElectron           = eData.hasIdentifiedElectrons();
-  const bool bFoundMuon               = muData.hasIdentifiedMuons();
-  if ( !bFoundElectron && !bFoundMuon ) return;
+  const size_t nElectrons             = eData.getSelectedElectrons().size();
+  const size_t nMuons                 = muData.getSelectedMuons().size();
+  const size_t nLeptons               = nElectrons + nMuons;
+  if ( nLeptons < 2 ) return;
+
   fCommonPlots.fillControlPlotsAfterElectronSelection(fEvent, eData);
   fCommonPlots.fillControlPlotsAfterMuonSelection(fEvent, muData);
   cLeptons.increment();

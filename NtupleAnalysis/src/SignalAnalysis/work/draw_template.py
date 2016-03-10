@@ -176,8 +176,8 @@ def DoCounters(histo, datasetObjects, savePostfix=""):
     p.AddCmsText("fb", prelim=True)
     p.DatasetAsLegend(True)    
     # p.AddTF1("1000*cos(x)", 0, 200.0, False, {"lineColour": ROOT.kBlack})
-    # p.DrawRatio("", "AP", "Data") #ttHJetToNonbb_M125
-    p.Draw("") # "nostack", "stack"
+    p.DrawRatio("HIST9,STACK", "AP", "Data") #ttHJetToNonbb_M125
+    # p.Draw("") # "nostack", "stack"
     # p.SetHistosFillStyle(3001)
     p.SetHistoLabelsOption("d") #v, u, d
     p.SetHistoLabelsSizeX(0.5)
@@ -210,6 +210,7 @@ def main():
     # datasetManager.Remove("MuonEG_Run2015D_05Oct2015_v2_246908_260426_25ns_Silver")     #  888.357
     datasetManager.Remove("MuonEG_Run2015C_25ns_05Oct2015_v1_246908_260426_25ns_Silver")  #   16.345
     datasetManager.Remove("MuonEG_Run2015D_PromptReco_v4_246908_260426_25ns_Silver")      # 1103.813
+    datasetManager.Remove("ttHJetToNonbb_M125")
     datasetManager.Remove("ST_s_channel_4f_leptonDecays")
     datasetManager.Remove("ST_tW_antitop_5f_inclusiveDecays")
     datasetManager.Remove("ST_tW_top_5f_inclusiveDecays")
@@ -218,14 +219,13 @@ def main():
     datasetManager.Remove("DYJetsToLL_M_10to50")
     datasetManager.Remove("DYJetsToLL_M_50")
     # datasetManager.Remove("TTJets")
-    datasetManager.Remove("WJetsToLNu")
+    # datasetManager.Remove("WJetsToLNu")
     datasetManager.Remove("WW")
     datasetManager.Remove("WZ")
     datasetManager.Remove("ZZ")
-    datasetManager.Remove("ttHJetToNonbb_M125")
 
     ### Merge Datasets
-    # datasetManager.MergeData()
+    datasetManager.MergeData()
     # datasetManager.MergeMany(datasetMapping)
 
     ### Print Datasets
