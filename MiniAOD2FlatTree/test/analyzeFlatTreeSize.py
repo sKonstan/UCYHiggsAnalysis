@@ -12,9 +12,10 @@ import math
 ###############################################################
 ### Options here
 ###############################################################
-filePath    = "/afs/cern.ch/work/a/attikis/multicrab/multicrab_CMSSW752_Default_18Feb2016_10h27m20s/"
-datasets    = ["MuonEG_246908_260426_25ns_Silver", "DoubleEG_246908_260426_25ns_Silver", "DoubleMuon_246908_260426_25ns_Silver"]
-
+#filePath    = "/afs/cern.ch/work/a/attikis/multicrab/multicrab_CMSSW752_Default_06Mar2016_20h39m12s/"
+#datasets    = ["MuonEG_Run2015D_05Oct2015_v2_246908_260426_25ns_Silver"]
+filePath    = "/afs/cern.ch/user/a/attikis/scratch0/CMSSW_7_5_2/src/UCYHiggsAnalysis/MiniAOD2FlatTree/test/"
+datasets    = ["test2"]
 outFileName = "treeInfo.log"
 treeName    = "Events"
 

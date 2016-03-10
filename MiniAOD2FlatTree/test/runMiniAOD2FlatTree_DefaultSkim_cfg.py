@@ -130,6 +130,7 @@ if dataVersion.isData():
 if (bDebug):
     print "=== runMiniAOD2FlatTree_cfg.py:\n\t Trigger source has been set to \"%s\"" % (TrgResultsSource)
 
+print "\n=== runMiniAOD2FlatTree_DefaultSkim_cfg.py:\n\t WARNING! PuppiJets disabled\n"
 
 process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
                             OutputFileName      = cms.string("miniAOD2FlatTree.root"),
@@ -244,7 +245,7 @@ process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
                             Taus      = process.Taus,                             
                             Electrons = process.Electrons,
                             Muons     = process.Muons,
-                            Jets      = process.Jets,
+                            Jets      = process.Jets, #NB: PuppiJets disabled
                             METs      = process.METs,
 
                             GenWeights = cms.VPSet(
