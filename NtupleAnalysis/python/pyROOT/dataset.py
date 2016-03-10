@@ -45,6 +45,11 @@ latexNamesDict["Single t"]  = "Single top"
 
 _debugNAllEvents = False
 
+def TruncateString(myString, maxChars):
+    tString = (myString[:maxChars-2] + "..") if len(myString) > maxChars else myString
+    return tString
+
+
 #================================================================================================
 # Class Definition
 #================================================================================================
@@ -72,6 +77,7 @@ class Dataset(object):
         self.allEvents          = None
         self.unweightedEvents   = None
         self.weightedEvents     = None
+        self.weightsApplied     = False
         self.isPileupReweighted = self._IsPileUpReweighted()
         self.isTopPtReweighted  = self._IsTopPtReweighted()
         self.pileupWeight       = self._GetPileupWeight()
@@ -115,10 +121,11 @@ class Dataset(object):
         Custome made print system. Will print the message even if the verbosity boolean is set to false.
         '''
         print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
-        if message!="":
-            print "\t", message
-        else:
+        if message=="":
             return
+        else:
+            print "\t", message
+
         return
 
     
@@ -231,27 +238,36 @@ class Dataset(object):
             return
 
         # Variables
-        ratio    = 1.0
-        txtAlign = "{:<50} {:<25} {:<20} {:<20}"
-        header   = txtAlign.format("\t Dataset", "Weight Type", "Weight Value", "%% Change")
-        hLine    = "="*len(header)
-        table    = []
+        ratio     = 1.0
+        maxChars  = 30
+        txtAlign  = "{:<34} {:<20} {:<20} {:<20} {:<20} {:<20}"
+        header    = txtAlign.format("\t Dataset",  "Pileup Reweight", "Top-Pt Weight", "Events", "w-Events", "% Change")
+        hLine     = "="*len(header)
+        table     = []
+        shortName = "\t " + TruncateString(self.GetName(), maxChars)
+
+        # Create info table 
         table.append("\t " + hLine)
         table.append(header)
         table.append("\t " + hLine)
+        unweightedEvents = self.weightedEvents
 
         if self.isPileupReweighted:
             delta = (self.pileupWeight - self.unweightedEvents) / self.unweightedEvents
             ratio = ratio * self.pileupWeight / self.unweightedEvents
-            table.append( "\t " + txtAlign.format(self.GetName(),  "Pileup Reweight", str(self.pileupWeight), str(delta*100.0) ) )
             
         if self.isTopPtReweighted:
             delta = (self.topPtWeight - self.unweightedEvents) / self.unweightedEvents
             ratio = ratio * self.topPtWeight / self.unweightedEvents
-            table.append( "\t " + txtAlign.format(self.GetName(),  "Top-Pt Weight", str(self.topPtWeight), str(delta*100.0) ) )
-            
-        weightedEvents = ratio * self.unweightedEvents
-        self.weightedEvents = weightedEvents
+
+        # Save weighed events
+        self.weightedEvents = ratio * self.unweightedEvents
+        self.allEvents      = ratio * self.unweightedEvents
+        self.weightsApplied = True
+
+        # Append info to table
+        row = txtAlign.format(shortName , self.pileupWeight, self.topPtWeight, unweightedEvents, self.weightedEvents, str(delta*100.0) )
+        table.append(row)
 
         if not self.verbose:
             return
@@ -301,6 +317,11 @@ class Dataset(object):
         self.Verbose()
         if not self.isMC:
             return None
+        
+        # Sanity checkk
+        if not self.weightsApplied:
+            raise Exception("Trying to get the normalisation factor but the necessary MC weights have not been applied!")
+
         allEvents = self.GetAllEvents()
         causes    = "\n\t1) Counters are weighted"
         causes   += "\n\t2) Analysis job input was a skim"
@@ -779,12 +800,14 @@ class Dataset(object):
         (counter, realName) = self.GetRootHisto(counterPath)
         self._CheckCounter(counterPath)
         
-        # Convert the counter histogram (TH1) to a list of (name, count) pairs
+        # Convert the counter histogram (TH1) to a list of (name, count) pairs. 0 is first bin, NOT underflow bin
         countObject = self.auxObject.ConvertHistoToCounter(counter, self.verbose)
 
-        # Second counter (index 1), second element (index 1) of the tuple [NOTE: First counter is usually zero - underflow bin)
-        self.unweightedEvents = countObject[1][1].value() # Note: changed the code for ConvertHistoToCounter()  to also get zero bin.
+        # First counter (index 0), second element (index 1) of the tuple [NOTE: First counter is the underflow bin)
+        self.unweightedEvents = countObject[0][1].value()
         self.allEvents        = self.unweightedEvents
+
+        allEventsBin = self._GetBinNumberFromBinLabel(histo=counter, binLabel="Base::AllEvents")
 
         self.Verbose("Successfully read counters in '%s'. Number of events is '%s'" % (counterPath, self.unweightedEvents))
         return
@@ -796,18 +819,19 @@ class Dataset(object):
         '''
         self.Verbose()
 
-        counterPath         = self.analysisName + "/counters/weighted/counter"
-        (counter, realName) = self.GetRootHisto(counterPath)
-        self._CheckCounter(counterPath)
+        wCounterPath         = self.analysisName + "/counters/weighted/counter"
+        (wCounter, realName) = self.GetRootHisto(wCounterPath)
+        # self._CheckCounter(counterPath) # not needed & likely to fail because of weights
         
-        # Convert the counter histogram (TH1) to a list of (name, count) pairs
-        countObject = self.auxObject.ConvertHistoToCounter(counter, self.verbose)
+        # Convert the counter histogram (TH1) to a list of (name, count) pairs. 0 is first bin, NOT underflow bin
+        wCountObject = self.auxObject.ConvertHistoToCounter(wCounter, self.verbose)
 
-        # Second counter (index 1), second element (index 1) of the tuple [NOTE: First counter is usually zero - underflow bin)
-        self.weightedEvents = countObject[1][1].value() # Note: changed the code for ConvertHistoToCounter()  to also get zero bin.
+        # First counter (index 0), second element (index 1) of the tuple [NOTE: First counter is the underflow bin)
+        self.weightedEvents = wCountObject[0][1].value()
         self.allEvents      = self.weightedEvents
 
-        self.Verbose("Successfully read counters in '%s'. Number of events is '%s'" % (counterPath, self.unweightedEvents))
+        # NB: At this point self.weightedEvents = self.unweightedEvents, but once weights are applied it changes!
+        self.Verbose("Successfully read counters in '%s'. Number of events is '%s'" % (wCounterPath, self.weightedEvents))
         return
 
 
@@ -831,7 +855,7 @@ class Dataset(object):
 
         if not normalisationIsOk:
             #raise Exception("Error: dset=%s: Unweighted skimcounter (%s) is smaller than all events counter of analysis (%s)!" % (self.name, allEvts, afterAllEvts) )
-            print "=== dataset.py:\n\t Normalisation is NOT ok for dataset \"%s\" (%s)"  % (self.GetName(), counterPath)
+            print "=== dataset.py:\n\t Normalisation is NOT ok for dataset \"%s\" (%s). allEvts = %s, afterAllEvts = %s"  % (self.GetName(), counterPath, allEvts, afterAllEvts)
         return
     
 
@@ -1420,7 +1444,10 @@ class DatasetManager(object):
         Custome made print system. Will print the message even if the verbosity boolean is set to false.
         '''
         print "=== %s:" % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
-        print "\t", message
+        if message=="":
+            return
+        else:
+            print "\t", message
         return
 
     
@@ -2001,7 +2028,7 @@ class DatasetManager(object):
 
         if intLumi<0:
             intLumi = self.intLumi
-        self.Print("Setting Integrated Luminosity for all MC samples to %s (1/pb)" % (intLumi) )
+        self.Verbose("Setting Integrated Luminosity for all MC samples to %s (1/pb)" % (intLumi) )
 
         # For-loop: All datasets
         for dataset in self.datasets:
@@ -2018,44 +2045,67 @@ class DatasetManager(object):
         rows   = []
         info   = []
         maxCh  = 30
-        align  = "{:<30} {:^10} {:>10} {:>15} {:>15} {:>18} {:>15} {:>15}  {:>15} {:>18}"
-        header = align.format("Dataset", "E (TeV)", "Events", "XSection (pb)", "Lumi (1/pb)", "Norm Factor", "Events (w)", "w (Pileup)", "w (Top-Pt)", "Int-Lumi (1/pb)")
+        align  = "{:<30} {:>12} {:>12} {:>15} {:>12} {:>14} {:>12} {:>12} {:>16}"
+        header = align.format("Dataset", "Events", "w-Events", "XSection (pb)", "Lumi (1/pb)", "Norm Factor", "w (Pileup)", "w (Top-Pt)", "Int-Lumi (1/pb)")
         hLine  = "="*len(header)
         info.append(hLine)
         info.append(header)
         info.append(hLine)
         for dataset in self.datasets:
-            fullDatasetName  = dataset.GetName()
-            datasetName      = (fullDatasetName[:maxCh-2] + "..") if len(fullDatasetName) > maxCh else fullDatasetName
+            if dataset.GetIsMC():
+                continue
+            fullName         = dataset.GetName()
+            shortName        = TruncateString(fullName, maxCh)
             xsection         = dataset.GetXSection()
             intLumi          = dataset.GetIntLuminosity()
-            lumi             = dataset.GetLuminosity()
+            lumi             = '%.1f' % ( dataset.GetLuminosity() )
             normFactor       = dataset.GetNormFactor()
             dataVersion      = dataset.GetDataVersion()
-            energy           = dataset.GetEnergy()
-            allEvents        = dataset.GetAllEvents()
-            unweightedEvents = dataset.GetUnweightedEvents()
-            weightedEvents   = dataset.GetWeightedEvents()
-            pileupWeight     = dataset.GetPileupWeight()
-            topPtWeight      = dataset.GetTopPtWeight()
-            if allEvents != unweightedEvents:
-                raise Exception("The values of allEvents (%s) and unweightedEvents (%s) do not agree. Is this expected? " % (allEvents, unweightedEvents) )
-            line = align.format(datasetName, '%.0f' % (energy), '%.0f' % (allEvents), xsection, lumi, normFactor,'%.1f' % (weightedEvents), pileupWeight, topPtWeight, intLumi )
-            info.append(line)
+            energy           = '%.0f' % ( dataset.GetEnergy())
+            allEvents        = '%.1f' % ( dataset.GetAllEvents())
+            unweightedEvents = '%.1f' % ( dataset.GetUnweightedEvents() )
+            weightedEvents   = '%.1f' % ( dataset.GetWeightedEvents() )
+            if dataset.GetPileupWeight()!=None:
+                pileupWeight     = '%.2f' % (dataset.GetPileupWeight() )
+            else:
+                 pileupWeight    = dataset.GetPileupWeight()
+            if dataset.GetTopPtWeight()!=None:
+                topPtWeight      = '%.2f' % (dataset.GetTopPtWeight() ) 
+            else:
+                topPtWeight      = dataset.GetTopPtWeight()
+            info.append(align.format(shortName, unweightedEvents, allEvents, xsection, lumi, normFactor, pileupWeight, topPtWeight, intLumi))
+
+        for dataset in self.datasets:
+            if dataset.GetIsData():
+                continue
+            fullName         = dataset.GetName()
+            shortName        = TruncateString(fullName, maxCh)
+            xsection         = dataset.GetXSection()
+            intLumi          = dataset.GetIntLuminosity()
+            lumi             = '%.1f' % ( dataset.GetLuminosity() )
+            normFactor       = '%.8f' % ( dataset.GetNormFactor() )
+            dataVersion      = dataset.GetDataVersion()
+            energy           = '%.0f' % (dataset.GetEnergy())
+            allEvents        = '%.1f' % (dataset.GetAllEvents())
+            unweightedEvents = '%.1f' % (dataset.GetUnweightedEvents() )
+            weightedEvents   = '%.1f' % (dataset.GetWeightedEvents() )
+            if dataset.GetPileupWeight()!=None:
+                pileupWeight     = '%.2f' % (dataset.GetPileupWeight() )
+            else:
+                 pileupWeight    = dataset.GetPileupWeight()
+            if dataset.GetTopPtWeight()!=None:
+                topPtWeight      = '%.2f' % (dataset.GetTopPtWeight() ) 
+            else:
+                topPtWeight      = dataset.GetTopPtWeight()
+            info.append(align.format(shortName, unweightedEvents, allEvents, xsection, lumi, normFactor, pileupWeight, topPtWeight, intLumi))
         info.append(hLine)
-        
         return info
 
     
     def PrintSummary(self):
-        '''
-        Print dataset information.
-        '''
-        self.Verbose()
-        #self.PrintList(self.FormatSummary())
         self.Print()
         for row in self.FormatSummary():
-            print row
+            print "\t", row
         return
     
         

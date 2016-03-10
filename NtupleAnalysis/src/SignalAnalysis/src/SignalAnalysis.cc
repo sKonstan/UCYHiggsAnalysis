@@ -178,7 +178,7 @@ void SignalAnalysis::process(Long64_t entry) {
 
   //====== Apply Cut: b-Jets selection
   const BJetSelection::Data bjetData = fBJetSelection.analyze(fEvent, jetData);
-  if (!bjetData.passedSelection() ) return;
+  if ( !bjetData.passedSelection() ) return;
   //====== b tag SF
   // if ( fEvent.isMC() ) { fEventWeight.multiplyWeight(bjetData.getBTaggingScaleFactorEventWeight()); }
 

@@ -62,12 +62,16 @@ void BaseSelector::processInternal(Long64_t entry) {
   //====== Top pT weighting
   if (fEvent.isMC() && isttbar()) {
     
-    if (iTopPtVariation == 0)     // For down variation, do not apply weight
+    // std::cout << "Applying top-pt weight!" << std::endl;
+
+    // For down variation, do not apply weight
+    if (iTopPtVariation == 0)
       {
 	fEventWeight.multiplyWeight(std::abs(fEvent.topPtWeight().weight()));
       }	
-    else if (iTopPtVariation == 1) // For up variation, apply weight twice 
+    else if (iTopPtVariation == 1)
       {
+	// For up variation, apply weight twice 
 	fEventWeight.multiplyWeight(fEvent.topPtWeight().weight() * fEvent.topPtWeight().weight());
       }
     

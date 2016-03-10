@@ -463,7 +463,7 @@ class AuxClass(object):
             
         ret    = []
         nBinsX = histo.GetNbinsX()+1;
-        for bin in xrange(0, nBinsX):
+        for bin in xrange(1, nBinsX):
             name        = histo.GetXaxis().GetBinLabel(bin)
             countObject = Count(float(histo.GetBinContent(bin)), float(histo.GetBinError(bin)))
             ret.append( (name, countObject) )
