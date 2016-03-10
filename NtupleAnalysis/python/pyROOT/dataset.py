@@ -953,9 +953,11 @@ class DatasetMerged(object):
         self.energy           = self._GetEnergy()
         self.xsection         = self._GetXSection()
         self.lumi             = self._GetLuminosity()
+        self.intLumi          = self.lumi
         self.dataVersion      = self._GetDataVersion()
         self.unweightedEvents = self._GetUnweightedEvents()
         self.weightedEvents   = self._GetWeightedEvents()
+        self.allEvents        = self._GetAllEvents()
         self.latexname        = latexNamesDict[name]
         return
 
@@ -998,19 +1000,21 @@ class DatasetMerged(object):
         '''
         self.Verbose()
 
-        if self.datasets[0].GetIsMC():
-            return None
-
         refType = self.datasets[0].GetDataType()
         lumiSum = 0.0
         for d in self.datasets:
             lumiSum += d.GetLuminosity()
-            dType = d.GetDataType()
+            dType    = d.GetDataType()
             if refType != dType:
                 msg = "Can't merge non-%s datasets %s with %s datasets, it is %s" % (reft, d.GetName(), t)
                 raise Exception("=== dataset.py:\n\t ", msg)
         self.info["luminosity"] = lumiSum
         return lumiSum
+
+
+    def GetIntLuminosity(self):
+        self.Verbose()
+        return self.intLumi
 
 
     def _GetXSection(self):
@@ -1048,7 +1052,7 @@ class DatasetMerged(object):
             else:
                 pass
 
-        #self.info["dataVersion"] = dataVersion
+        self.info["dataVersion"] = dataVersion
         return dataVersion
 
   
@@ -1105,10 +1109,31 @@ class DatasetMerged(object):
             weightedEvents += d.GetWeightedEvents()
         return weightedEvents
 
-
+    
     def GetWeightedEvents(self):
         self.Verbose()
         return self.weightedEvents
+
+
+    def _GetAllEvents(self):
+        self.Verbose()
+        allEvents = self.weightedEvents
+        return allEvents
+
+    
+    def GetAllEvents(self):
+        self.Verbose()
+        return self.allEvents
+
+    
+    def GetPileupWeight(self):
+        self.Verbose()
+        return None
+
+
+    def GetTopPtWeight(self):
+        self.Verbose()
+        return None
 
 
     def Close(self):
@@ -1220,13 +1245,9 @@ class DatasetMerged(object):
 
     def GetLuminosity(self):
         '''
-        Get the integrated luminosity of data dataset (in pb^-1).
+        Get the luminosity of data dataset (in pb^-1).
         '''
         self.Verbose()
-
-        if self.GetIsMC():
-            #raise Exception("=== dataset.py:\n\t Dataset %s is MC, no luminosity available" % self.name)
-            return None
         return self.info["luminosity"]
 
 
@@ -2083,7 +2104,10 @@ class DatasetManager(object):
             xsection         = dataset.GetXSection()
             intLumi          = dataset.GetIntLuminosity()
             lumi             = '%.1f' % ( dataset.GetLuminosity() )
-            normFactor       = '%.8f' % ( dataset.GetNormFactor() )
+            if dataset.GetNormFactor() !=None:
+                normFactor   = '%.8f' % ( dataset.GetNormFactor() )
+            else:
+                normFactor   = dataset.GetNormFactor()
             dataVersion      = dataset.GetDataVersion()
             energy           = '%.0f' % (dataset.GetEnergy())
             allEvents        = '%.1f' % (dataset.GetAllEvents())

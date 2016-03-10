@@ -39,8 +39,8 @@ class Plotter(object):
         self.drawListRatio     = []
         self.canvasFactor      = 1.25
         self.padDivisionPoint  = 1-1/self.canvasFactor
-        self.THStack           = ROOT.THStack("THStack", "Stack for TPadPlot Histograms")
-        self.THStackRatio      = ROOT.THStack("THStackRatio", "Stack for TPadRatio Histograms")
+        self.THStackMC         = ROOT.THStack("THStackMC"   , "Stack of MC Histos")
+        self.THStackRatio      = ROOT.THStack("THStackRatio", "Stack of Ratio Histos")
         self.TMultigraph       = ROOT.TMultiGraph("TMultigraph", "ROOT.TMultiGraph holding various ROOT.TGraphs")
         self.DatasetsMerged    = []
         self.SetupRoot()
@@ -72,9 +72,14 @@ class Plotter(object):
         if hasattr(self, 'TPadPlot'):
             self.TPadPlot.cd()
 
+        if "nostack" in stackOpts:
+            pass
+        elif "stack" in stackOpts:
+            raise Exception("Unexplained THStack behaviour with options \"stack\". Use \"\" instead to have histograms painted stacked on top of each other")
+            
         self.THDumbie.THisto.Draw(self.THDumbie.drawOptions)
-        self.THStack.Draw(stackOpts + "," + self.THDumbie.drawOptions + "," +  "9same") #"PADS"
-        #self.THStack.Draw(stackOpts) #"PADS"
+        drawOpts = self.THDumbie.drawOptions + " , " + stackOpts + " , " + "same"
+        self.THStackMC.Draw(drawOpts)
         self.UpdateCanvas()
         return
 
@@ -92,7 +97,8 @@ class Plotter(object):
 
         self.TPadRatio.cd()
         self.THRatio.THisto.Draw()
-        self.THStackRatio.Draw(stackOpts + ",9same")
+        drawOpts = self.THDumbie.drawOptions + " , " + stackOpts + " , " + "same"
+        self.THStackRatio.Draw(drawOpts) #stackOpts + ",9same")
         self.UpdateCanvas()
         return
         
@@ -933,7 +939,7 @@ class Plotter(object):
             
         for v in self.THDumbie.xCutBoxes:
             xMin   = v[0]
-            xMax   = v[1] #xenios
+            xMax   = v[1]
             yMin   = self.THDumbie.THisto.GetMinimum()
             yMax   = self.THDumbie.THisto.GetMaximum()
             colour = v[2]
@@ -1196,18 +1202,24 @@ class Plotter(object):
                 mdNames.append(d.GetName())
             mdDict[dm.GetName()] = mdNames
 
+        totalIntegral = 0 #xenios
         # For-loop: All histos
         for histo in self.GetHistos():
             if histo.dataset._IsMC():
                 continue
             else:
                 if histo.dataset.GetName() in mdNames:
-                    # print "1)", histo.THisto.Integral()
                     continue
                 else:
+                    totalIntegral += histo.THisto.GetBinContent(16) #xenios
+                    #binNumber      = self.GetBinNumberFromBinLabel(histo.THisto, "passed MET selection ()")
+                    #print "binNumber(Passed Trigger) = ", binNumber
+                    #sys.exit()
                     self.ExtendDrawLists(histo.THisto, False, True)
                     self.ExtendLegend(histo.THisto, self.GetLegLabel(histo), "LP" )            
 
+                    
+        #print "Data = ", totalIntegral #xenios
 
         # For-loop: All merged datasets
         for mergeName in mdDict:
@@ -1248,18 +1260,21 @@ class Plotter(object):
                 mdNames.append(d.GetName())
             mdDict[dm.GetName()] = mdNames
 
+        totalIntegralMC = 0 #xenios
         # For-loop: All histos
         for histo in self.GetHistos():
             if histo.dataset.GetIsData():
                 continue
             else:
                 if histo.dataset.GetName() in mdNames:
-                    #print "1)", histo.THisto.Integral()
                     continue
                 else:
-                    self.THStack.Add(histo.THisto)
+                    totalIntegralMC += histo.THisto.GetBinContent(16) #xenios
+                    self.THStackMC.Add(histo.THisto)
                     self.ExtendLegend(histo)
-
+                    
+        #print "MC = ", totalIntegralMC #xenios
+        
         # For-loop: All merged datasets
         for mergeName in mdDict:
             mdNames = mdDict[mergeName]
@@ -1278,26 +1293,40 @@ class Plotter(object):
             #print "2)", histo.Integral() #should agree with sum of 1)
 
             # Add combined histos to merge drawing list
-            self.THStack.Add(histo)
+            self.THStackMC.Add(histo)
             self.ExtendLegend(histo, mergeName, "F")
         return
 
     
-    def _AddHistosToRatioStack(self, refDataset):
+    def _AddHistosToRatioStack(self, ratioStackOpts, refDataset):
         self.Verbose()
 
-        (hDenominator, colour) = self._GetRatioReferenceHisto(refDataset)
-
-        for h in self.GetHistos():
-            hNumerator = copy.deepcopy(h.THisto)
-            hRatio     = copy.deepcopy(hNumerator)
+        # The reference histogram is the numerator histogram
+        (hNumerator, colour) = self._GetRatioReferenceHisto(refDataset)
+        
+        if "nostack" in ratioStackOpts:
+            for h in self.GetHistos():
+                if h.dataset.GetName() != refDataset:
+                    hRatio = copy.deepcopy(h.THisto)
+                    hRatio.Reset("ICES")
+                    hDenominator = copy.deepcopy(h.THisto)
+                    hRatio.Divide(hNumerator, hDenominator, 1.0, 1.0, "B")
+                    self.THStackRatio.Add(hRatio)
+        else:
+            hDenominator = copy.deepcopy(hNumerator)
+            hDenominator.Reset("ICES")
+            hRatio = copy.deepcopy(hNumerator)
+            hRatio.Reset("ICES")
+            for h in self.GetHistos():            
+                if h.dataset.name != refDataset:
+                    hDenominator.Add(h.THisto)
             hRatio.Divide(hNumerator, hDenominator, 1.0, 1.0, "B")
-            if h.dataset.name != refDataset:
-                self.THStackRatio.Add(hRatio)
+            self.THStackRatio.Add(hRatio)
 
         # Add a line at y=1
         line = self._GetTLine(self.THDumbie.xMin, self.THDumbie.xMax, 1.0, 1.0, colour, 2, ROOT.kSolid)
         self.ExtendDrawLists(line, addToRatio=True, addToPlot=False)
+            
         return
     
 
@@ -1427,7 +1456,7 @@ class Plotter(object):
         self._CheckHistosBinning()
         self._AddDataHistoToDrawList()
         self._AddHistosToStack()
-        self._AddHistosToRatioStack(refDataset)
+        self._AddHistosToRatioStack(ratioStackOpts, refDataset)
         self._DrawHistos(stackOpts)
         self._DrawHistosRatio(ratioStackOpts)
         self._DrawItemsInDrawList()
@@ -1488,9 +1517,9 @@ class Plotter(object):
         return
 
 
-    def GetTHStack(self):
+    def GetTHStackMC(self):
         self.Verbose()
-        return self.THStack
+        return self.THStackMC
 
 
     def GetTHDumbie(self):
@@ -1504,3 +1533,26 @@ class Plotter(object):
         line.SetLineWidth(width)
         line.SetLineStyle(style)    
         return
+
+
+
+    def GetBinNumberFromBinLabel(self, histo, binLabel):
+        '''
+        Return bin number for bin in histogram "histo" with label "binLabel"
+        '''    
+        self.Verbose()
+
+        if not isinstance(histo, ROOT.TH1):
+            self.Print("ERROR! The histo parameter provided (%s) is not an instance ROOT.TH1. The bin number of bin '%s' cannot be found. EXIT" % (histo, binLabel))
+            sys.exit()
+
+        binNumber = None
+        nBinsX    = histo.GetNbinsX()+1
+        for i in range(nBinsX):
+            label = histo.GetXaxis().GetBinLabel(i)
+            if label == binLabel:
+                binNumber =  i
+                break
+        if binNumber == None:
+            raise Exception("Could not find bin labelled '%s' in histogram with name '%s'" % (binLabel, histo.GetName()) )
+        return binNumber

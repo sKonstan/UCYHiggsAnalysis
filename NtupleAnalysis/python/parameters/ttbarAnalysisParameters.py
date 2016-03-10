@@ -96,8 +96,8 @@ tauSelection = PSet(
 jetSelection = PSet(
     PtCut             = 25.0,
     EtaCut            =  2.5, 
-    TauMatchDeltaR    =  0.4,         # FIXME: Should i remove this? Is tau-jet included in SelectedJets?
-    NJetsCutValue     =  3,
+    TauMatchDeltaR    =  0.4,         # FIXME: Should i remove this? Is tau-jet excluded from SelectedJets?
+    NJetsCutValue     =  2,
     NJetsCutDirection = ">=",         # [==, !=, <, <=, >, >=]
     jetType           = "PFCHSJets", # [PFCHSJets, PuppiJets] 
     #jetType           = "Jets",       # obsolete with new Ntuples
@@ -121,7 +121,7 @@ bjetSelection = PSet(
 # MET selection
 #================================================================================================  
 metSelection = PSet(
-    METCutValue                 = 70.0,
+    METCutValue                 = 50.0,
     METCutDirection             = ">=",        # [==, !=, <, <=, >, >=]
     METSignificanceCutValue     = -1000.0,
     METSignificanceCutDirection = ">",         # [==, !=, <, <=, >, >=]

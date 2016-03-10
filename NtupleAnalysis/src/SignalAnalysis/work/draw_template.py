@@ -102,10 +102,9 @@ Eta = {
 
 
 wCounter = {
-    "xMin": 7.0, "xMax": None, "gridX": True, "gridXRatio": True, "logX": False,
-    "yLabel": "Events / %0.1f", "yMin": 1.0, "yMax": None, "yUnits": "", "yCutLines": [], "gridY": True,  "gridYRatio": True, "logY": True, "yCutBoxes": [], "xCutBoxes": [],
-    #"yLabel": "Events / %0.1f", "yMin": 1.0, "yMax": 5000, "yUnits": "", "yCutLines": [], "gridY": True,  "gridYRatio": True, "logY": False, "yCutBoxes": [], "xCutBoxes": [],
-    "ratioLabel": "Ratio", "yMinRatio": 0.0, "yMaxRatio": 3.75 , "drawOptions": "HIST9", "legOptions": "F", "logYRatio": False, "logXRatio": False,
+    "xMin": 8.0, "xMax": None, "gridX": True, "gridXRatio": True, "logX": False,
+    "yLabel": "Events / %0.1f", "yMin": 1.0, "yMax": 1e+8, "yUnits": "", "yCutLines": [], "gridY": True,  "gridYRatio": True, "logY": True, "yCutBoxes": [], "xCutBoxes": [],
+    "ratioLabel": "Ratio", "yMinRatio": 0.0, "yMaxRatio": 4.75 , "drawOptions": "HIST9", "legOptions": "F", "logYRatio": False, "logXRatio": False,
     "xLegMin": 0.72, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92, 
 }
 
@@ -148,10 +147,10 @@ def DoPlots(histo, datasetObjects, savePostfix=""):
     p = plotter.Plotter(verbose, batchMode)
     p.AddDatasets(datasetObjects)
     p.AddDrawObject(histo)
-    p.NormaliseHistos("toLuminosity") # "toLuminosity", "byXSection", "toOne", ""
+    p.NormaliseHistos("toLuminosity")
     p.AddCmsText("fb", prelim=True)
     p.DatasetAsLegend(True)    
-    p.Draw("") # "nostack", "stack"
+    p.Draw("") # "nostack"
     # p.DrawRatio("", "AP", "Data")
     # p.SetHistosFillStyle(3001)
     # p.Save()
@@ -172,12 +171,12 @@ def DoCounters(histo, datasetObjects, savePostfix=""):
     # p.SetupStatsBox("ksiourmen", xPos=0.90, yPos=0.88, width=0.20, height=0.12)
     p.AddDatasets(datasetObjects)
     p.AddDrawObject(histo)
-    p.NormaliseHistos("toLuminosity") # "toLuminosity", "byXSection", "toOne", ""
+    p.NormaliseHistos("toLuminosity")
     p.AddCmsText("fb", prelim=True)
     p.DatasetAsLegend(True)    
     # p.AddTF1("1000*cos(x)", 0, 200.0, False, {"lineColour": ROOT.kBlack})
-    p.DrawRatio("HIST9,STACK", "AP", "Data") #ttHJetToNonbb_M125
-    # p.Draw("") # "nostack", "stack"
+    p.DrawRatio("", "AP", "Data")  # "AP,nostack"
+    # p.Draw("") # "nostack"
     # p.SetHistosFillStyle(3001)
     p.SetHistoLabelsOption("d") #v, u, d
     p.SetHistoLabelsSizeX(0.5)
@@ -211,22 +210,22 @@ def main():
     datasetManager.Remove("MuonEG_Run2015C_25ns_05Oct2015_v1_246908_260426_25ns_Silver")  #   16.345
     datasetManager.Remove("MuonEG_Run2015D_PromptReco_v4_246908_260426_25ns_Silver")      # 1103.813
     datasetManager.Remove("ttHJetToNonbb_M125")
-    datasetManager.Remove("ST_s_channel_4f_leptonDecays")
-    datasetManager.Remove("ST_tW_antitop_5f_inclusiveDecays")
-    datasetManager.Remove("ST_tW_top_5f_inclusiveDecays")
-    datasetManager.Remove("ST_t_channel_antitop_4f_leptonDecays")
-    datasetManager.Remove("ST_t_channel_top_4f_leptonDecays")
+    # datasetManager.Remove("ST_s_channel_4f_leptonDecays")
+    # datasetManager.Remove("ST_tW_antitop_5f_inclusiveDecays")
+    # datasetManager.Remove("ST_tW_top_5f_inclusiveDecays")
+    # datasetManager.Remove("ST_t_channel_antitop_4f_leptonDecays")
+    # datasetManager.Remove("ST_t_channel_top_4f_leptonDecays")
     datasetManager.Remove("DYJetsToLL_M_10to50")
     datasetManager.Remove("DYJetsToLL_M_50")
     # datasetManager.Remove("TTJets")
     # datasetManager.Remove("WJetsToLNu")
-    datasetManager.Remove("WW")
-    datasetManager.Remove("WZ")
-    datasetManager.Remove("ZZ")
+    # datasetManager.Remove("WW")
+    # datasetManager.Remove("WZ")
+    # datasetManager.Remove("ZZ")
 
     ### Merge Datasets
     datasetManager.MergeData()
-    # datasetManager.MergeMany(datasetMapping)
+    datasetManager.MergeMany(datasetMapping)
 
     ### Print Datasets
     datasetManager.PrintSummary()

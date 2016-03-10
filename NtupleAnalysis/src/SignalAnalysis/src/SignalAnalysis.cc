@@ -148,7 +148,7 @@ void SignalAnalysis::process(Long64_t entry) {
   const size_t nElectrons             = eData.getSelectedElectrons().size();
   const size_t nMuons                 = muData.getSelectedMuons().size();
   const size_t nLeptons               = nElectrons + nMuons;
-  if ( nLeptons < 2 ) return;
+  if ( nLeptons < 1 ) return;
 
   fCommonPlots.fillControlPlotsAfterElectronSelection(fEvent, eData);
   fCommonPlots.fillControlPlotsAfterMuonSelection(fEvent, muData);
