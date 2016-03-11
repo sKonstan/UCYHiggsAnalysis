@@ -42,7 +42,6 @@ class StyleClass(object):
         self.fillStyleCounter       = {}
         self.lineStyleCounter       = {}
         self.colourShade            = {}
-        self.MsgCounter             = 0
         self._SetDefaults("ST_s_channel_4f_leptonDecays"        , colour=ROOT.kYellow-7, mStyle=ROOT.kCircle, lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, mSize = 1.0)            
         self._SetDefaults("ST_t_channel_top_4f_leptonDecays"    , colour=ROOT.kYellow-9, mStyle=ROOT.kCircle, lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, mSize = 1.0)
         self._SetDefaults("ST_t_channel_antitop_4f_leptonDecays", colour=ROOT.kYellow-5, mStyle=ROOT.kCircle, lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, mSize = 1.0)

@@ -46,24 +46,34 @@ savePath      = "/Users/attikis/Desktop/"
 #================================================================================================
 auxObject  = aux.AuxClass(verbose)
 
-datasetMapping = {}
-datasetMapping["ST_t_channel_top_4f_leptonDecays"]     = "Single t"
-datasetMapping["ST_tW_antitop_5f_inclusiveDecays"]     = "Single t"
-datasetMapping["ST_t_channel_antitop_4f_leptonDecays"] = "Single t"
-datasetMapping["ST_tW_top_5f_inclusiveDecays"]         = "Single t"
-datasetMapping["ST_s_channel_4f_leptonDecays"]         = "Single t"
-# datasetMapping["ST_s_channel_4f_leptonDecays"]         = "MC "
-# datasetMapping["ST_tW_antitop_5f_inclusiveDecays"]     = "MC "
-# datasetMapping["ST_tW_top_5f_inclusiveDecays"]         = "MC "
-# datasetMapping["ST_t_channel_antitop_4f_leptonDecays"] = "MC "
-# datasetMapping["ST_t_channel_top_4f_leptonDecays"]     = "MC "
-# datasetMapping["DYJetsToLL_M_10to50"]                  = "MC "
-# datasetMapping["DYJetsToLL_M_50"]                      = "MC "
-# datasetMapping["TTJets"]                               = "MC "
-# datasetMapping["WJetsToLNu"]                           = "MC "
-# datasetMapping["WW"]                                   = "MC "
-# datasetMapping["WZ"]                                   = "MC "
-# datasetMapping["ZZ"]                                   = "MC "
+mergeDict = {}
+mergeDict["ST_t_channel_top_4f_leptonDecays"]     = "Single t"
+mergeDict["ST_tW_antitop_5f_inclusiveDecays"]     = "Single t"
+mergeDict["ST_t_channel_antitop_4f_leptonDecays"] = "Single t"
+mergeDict["ST_tW_top_5f_inclusiveDecays"]         = "Single t"
+mergeDict["ST_s_channel_4f_leptonDecays"]         = "Single t"
+mergeDict["WW"] = "Diboson"
+mergeDict["WZ"] = "Diboson"
+mergeDict["ZZ"] = "Diboson"
+
+
+removeList = []
+# removeList.append("MuonEG_Run2015D_05Oct2015_v2_246908_260426_25ns_Silver")
+# removeList.append("MuonEG_Run2015C_25ns_05Oct2015_v1_246908_260426_25ns_Silver")
+# removeList.append("MuonEG_Run2015D_PromptReco_v4_246908_260426_25ns_Silver")
+removeList.append("ttHJetToNonbb_M125")
+# removeList.append("ST_s_channel_4f_leptonDecays")
+# removeList.append("ST_tW_antitop_5f_inclusiveDecays")
+# removeList.append("ST_tW_top_5f_inclusiveDecays")
+# removeList.append("ST_t_channel_antitop_4f_leptonDecays")
+# removeList.append("ST_t_channel_top_4f_leptonDecays")
+# removeList.append("DYJetsToLL_M_10to50")
+# removeList.append("DYJetsToLL_M_50")
+# removeList.append("TTJets")
+# removeList.append("WJetsToLNu")
+# removeList.append("WW")
+# removeList.append("WZ")
+# removeList.append("ZZ")
 
 
 #================================================================================================
@@ -78,7 +88,6 @@ EtaLines   = [-1.6, -0.8, +0.8, +1.6]
 EtaRange   = [[-etaMax, -1.6, ROOT.kRed+1], [+etaMax, +1.6, ROOT.kRed+1], [-1.6, -0.8, ROOT.kYellow-4], [+0.8, +1.6, ROOT.kYellow-4], [-0.8, +0.8, ROOT.kGreen+1] ]
 PtRange    = [ [40.0, 80.0, ROOT.kRed] ]
 EvtRange   = [ [1E2, 1E4, ROOT.kBlack] ]
-#EvtRange   = [ [0.5, 1.5, ROOT.kBlack] ]
 
 
 #================================================================================================
@@ -97,7 +106,7 @@ Eta = {
     "yLabel": "Entries / %0.2f", "yUnits": "", "yMin": +1e00  , "yMax": None   , "binWidthY": None, "yCutLines": [] , "gridY": True, "gridYRatio": False, "logY": True ,
     "xCutBoxes": [], "yCutBoxes": [],  "ratioLabel": "Ratio"      , "yMinRatio": 0.0, "yMaxRatio": 2.15 ,
     "xCutBoxes": [[-1.0, -1.6, ROOT.kBlue], [+1.0, +1.6, ROOT.kBlue]], "yCutBoxes": [], "logYRatio": False, "logXRatio": False,
-    "xLegMin": 0.72, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
+    "xLegMin": 0.72, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.94
 }
 
 
@@ -105,7 +114,7 @@ NJets = {
     "xLabel": "Jets" , "xUnits":"", "xMin": 0.0, "xMax": 10.0, "xCutLines": [3], "gridX": True, "gridXRatio": False, "logX": False,
     "yLabel": "Events / %0.1f", "yMin": 1.0, "yMax": None, "yUnits": "", "yCutLines": [], "gridY": True,  "gridYRatio": True, "logY": True, "yCutBoxes": [], "xCutBoxes": [],
     "ratioLabel": "Ratio", "yMinRatio": 0.0, "yMaxRatio": 3.75 , "logYRatio": False, "logXRatio": False,
-    "xLegMin": 0.72, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92, 
+    "xLegMin": 0.72, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.94
 }
 
 
@@ -113,15 +122,17 @@ NBjets = {
     "xLabel": "b-tagged Jets" , "xUnits":"", "xMin": 0.0, "xMax": 10.0, "xCutLines": [3], "gridX": True, "gridXRatio": False, "logX": False,
     "yLabel": "Events / %0.1f", "yMin": 1.0, "yMax": None, "yUnits": "", "yCutLines": [], "gridY": True,  "gridYRatio": True, "logY": True, "yCutBoxes": [], "xCutBoxes": [],
     "ratioLabel": "Ratio", "yMinRatio": 0.0, "yMaxRatio": 3.75 , "logYRatio": False, "logXRatio": False,
-    "xLegMin": 0.72, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92, 
+    "xLegMin": 0.72, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.94
 }
 
 
 wCounter = {    
     "xLabel": ""              , "xMin": 8.0, "xMax": None, "xUnits": "", "xCutLines": [], "xCutBoxes": [], "gridX": True,  "gridXRatio": True, "logX": False, 
-    "yLabel": "Events / %0.1f", "yMin": 1.0, "yMax": 1e+9, "yUnits": "", "yCutLines": [], "yCutBoxes": [], "gridY": True,  "gridYRatio": True, "logY": True, 
-    "ratioLabel": "Data/Pred.", "yMinRatio": 0.0, "yMaxRatio": 1.75 , "logXRatio": False, "logYRatio": False, "xLegMin": 0.72, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
+    "yLabel": "Events / %0.1f", "yMin": 1.0, "yMax": None, "yUnits": "", "yCutLines": [], "yCutBoxes": [], "gridY": True,  "gridYRatio": True, "logY": True, 
+    "ratioLabel": "Data/Pred.", "yMinRatio": 0.0, "yMaxRatio": 1.75 , "logXRatio": False, "logYRatio": False,
+    "xLegMin": 0.72, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.94
 }
+
 
 #================================================================================================
 # Create Histos Objects
@@ -192,9 +203,7 @@ def main():
     '''
     '''
     
-    # Variables
-    # histoList    = [AllElectronsEta, PassedElectronsEta]
-    # histoList   = [AllElectronsPt, PassedElectronsPt]
+    ### Define Lists
     histoList   = [Njets_AtJetSelection, Njets_AfterJetSelections, NBjets_AtBtagging]
     counterList = [counter]
 
@@ -203,33 +212,22 @@ def main():
     datasetManager = dataset.DatasetManager(opts.mcrab, analysis)
     datasetManager.LoadLuminosities("lumi.json")
     datasetManager.SetIntegratedLuminosity(intLumiInPb)
+
     
     ### Remove Datasets
-    # datasetManager.Remove("MuonEG_Run2015D_05Oct2015_v2_246908_260426_25ns_Silver")     #  888.357
-    # datasetManager.Remove("MuonEG_Run2015C_25ns_05Oct2015_v1_246908_260426_25ns_Silver")  #   16.345
-    # datasetManager.Remove("MuonEG_Run2015D_PromptReco_v4_246908_260426_25ns_Silver")      # 1103.813
-    datasetManager.Remove("ttHJetToNonbb_M125")
-    # datasetManager.Remove("ST_s_channel_4f_leptonDecays")
-    # datasetManager.Remove("ST_tW_antitop_5f_inclusiveDecays")
-    # datasetManager.Remove("ST_tW_top_5f_inclusiveDecays")
-    # datasetManager.Remove("ST_t_channel_antitop_4f_leptonDecays")
-    # datasetManager.Remove("ST_t_channel_top_4f_leptonDecays")
-    # datasetManager.Remove("DYJetsToLL_M_10to50")
-    # datasetManager.Remove("DYJetsToLL_M_50")
-    # datasetManager.Remove("TTJets")
-    # datasetManager.Remove("WJetsToLNu")
-    # datasetManager.Remove("WW")
-    # datasetManager.Remove("WZ")
-    # datasetManager.Remove("ZZ")
+    datasetManager.Remove(removeList)
 
+    
     ### Merge Datasets
     datasetManager.MergeData()
-    # datasetManager.MergeMany(datasetMapping)
+    datasetManager.MergeMany(mergeDict)
 
+    
     ### Print Datasets
     datasetManager.PrintSummary()
     # datasetManager.PrintDatasets()
 
+    
     ### Get Datasets
     datasetObjects = datasetManager.GetAllDatasets()
     # datasetObjects = datasetManager.GetMCDatasets()

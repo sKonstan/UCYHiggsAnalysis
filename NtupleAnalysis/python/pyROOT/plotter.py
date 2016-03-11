@@ -457,7 +457,6 @@ class Plotter(object):
                 return hObject.GetAttribute("dataset").GetLatexName()
 
 
-
     def GetLegOptions(self):
         self.Verbose()
         
@@ -488,9 +487,7 @@ class Plotter(object):
         self.Verbose("Adding dataset \"%s\" (%s) to dataset list" % (dataset.GetName(), type(dataset).__name__))        
 
         # Append dataset to apppropriate dataset list
-        self.Datasets.append(dataset)    
-
-        # Append dataset to dedicated MC- and Data- dataset lists
+        self.Datasets.append(dataset)
         if dataset.GetIsMC():
             self.McDatasets.append(dataset)
         else:
@@ -1259,13 +1256,32 @@ class Plotter(object):
         '''
         self.Verbose()
 
-        histo = None
-        # For loop: All Dataset / DatasetMerged objects
-        for dm in self.GetDataDatasets():
-            histo = self.GetDatasetObjectHistoCopy(dm)
-            self.Verbose("Adding dataset \"%s\" to Data THStack" % (dm.GetName() ))
-            self.THStackData.Add(histo)
-        self.ExtendLegend(histo, "Data", "AP")
+        histo      = None
+        ignoreList = []
+
+        # For loop: All DatasetMerged objects
+        for dm in self.GetMergedDatasets():
+            if dm.GetIsMC():
+                continue
+            else:
+                histo   = self.GetDatasetObjectHistoCopy(dm)
+                drawObj = self.GetDatasetObjectDrawObject(dm)
+                self.THStackData.Add(histo)
+                self.Verbose("Adding dataset \"%s\" to the MC THStack" % (dm.GetName() ))
+                self.ExtendLegend(histo, dm.GetName(), "LP")
+                for d in dm.GetDatasets():
+                    ignoreList.append( d.GetName() )
+
+        # For loop: All Dataset objects
+        for d in self.GetDataDatasets():
+            if d.GetName() in ignoreList:
+                continue
+            else:
+                histo   = self.GetDatasetObjectHistoCopy(d)
+                drawObj = self.GetDatasetObjectDrawObject(d)
+                self.THStackData.Add(histo)
+                self.Verbose("Adding dataset \"%s\" to the MC THStack" % (d.GetName() ))
+                self.ExtendLegend(histo, self.GetLegLabel(drawObj), "LP")
         return
 
 
@@ -1276,14 +1292,32 @@ class Plotter(object):
         '''
         self.Verbose()
 
-        histo = None
-        # For loop: All Dataset / DatasetMerged objects
-        for dm in self.GetMcDatasets():
-            histo   = self.GetDatasetObjectHistoCopy(dm)
-            drawObj = self.GetDatasetObjectDrawObject(dm)
-            self.THStackMC.Add(histo)
-            self.Verbose("Adding dataset \"%s\" to the MC THStack" % (dm.GetName() ))
-            self.ExtendLegend(histo, self.GetLegLabel(drawObj), self.GetLegOptions())
+        histo      = None
+        ignoreList = []
+        
+        # For loop: All DatasetMerged objects
+        for dm in self.GetMergedDatasets():
+            if dm.GetIsData():
+                continue
+            else:
+                histo   = self.GetDatasetObjectHistoCopy(dm)
+                drawObj = self.GetDatasetObjectDrawObject(dm)
+                self.THStackMC.Add(histo)
+                self.Verbose("Adding dataset \"%s\" to the MC THStack" % (dm.GetName() ))
+                self.ExtendLegend(histo, dm.GetName(), self.GetLegOptions())
+                for d in dm.GetDatasets():
+                    ignoreList.append( d.GetName() )
+
+        # For loop: All Dataset objects
+        for d in self.GetMcDatasets():
+            if d.GetName() in ignoreList:
+                continue
+            else:
+                histo   = self.GetDatasetObjectHistoCopy(d)
+                drawObj = self.GetDatasetObjectDrawObject(d)
+                self.THStackMC.Add(histo)
+                self.Verbose("Adding dataset \"%s\" to the MC THStack" % (d.GetName() ))
+                self.ExtendLegend(histo, self.GetLegLabel(drawObj), self.GetLegOptions())
         return
 
 
