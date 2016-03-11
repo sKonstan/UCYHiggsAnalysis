@@ -47,14 +47,14 @@ savePath      = "/Users/attikis/Desktop/"
 auxObject  = aux.AuxClass(verbose)
 
 mergeDict = {}
-mergeDict["ST_t_channel_top_4f_leptonDecays"]     = "Single t"
-mergeDict["ST_tW_antitop_5f_inclusiveDecays"]     = "Single t"
-mergeDict["ST_t_channel_antitop_4f_leptonDecays"] = "Single t"
-mergeDict["ST_tW_top_5f_inclusiveDecays"]         = "Single t"
-mergeDict["ST_s_channel_4f_leptonDecays"]         = "Single t"
-mergeDict["WW"] = "Diboson"
-mergeDict["WZ"] = "Diboson"
-mergeDict["ZZ"] = "Diboson"
+#mergeDict["ST_t_channel_top_4f_leptonDecays"]     = "Single t"
+#mergeDict["ST_tW_antitop_5f_inclusiveDecays"]     = "Single t"
+#mergeDict["ST_t_channel_antitop_4f_leptonDecays"] = "Single t"
+#mergeDict["ST_tW_top_5f_inclusiveDecays"]         = "Single t"
+#mergeDict["ST_s_channel_4f_leptonDecays"]         = "Single t"
+#mergeDict["WW"] = "Diboson"
+#mergeDict["WZ"] = "Diboson"
+#mergeDict["ZZ"] = "Diboson"
 
 
 removeList = []
@@ -239,6 +239,7 @@ def main():
     
     # One Histogram on a given canvas (many datasets)
     auxObject.StartTimer("Histo Loop")
+
     #for h in histoList:
     #    DoPlots( h, datasetObjects)
 

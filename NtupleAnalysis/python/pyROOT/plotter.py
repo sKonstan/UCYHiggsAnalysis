@@ -84,9 +84,10 @@ class Plotter(object):
 
     def _GetRatioReferenceHisto(self, refDataset):
         self.Verbose()
- 
+
         if refDataset.lower() == "data":
-            histo   = None
+            histo  = None
+            colour = None
             for d in self.GetDataDatasets():
                 if histo == None:
                     histo  = copy.deepcopy(d.histo.THisto)
@@ -566,8 +567,8 @@ class Plotter(object):
     def GetDatasetNames(self):
         self.Verbose()
         dNames = []
-        for d in self.Datasets:
-            dNames.append( d.GetAttribute("name") )
+        for d in self.GetDatasets():
+            dNames.append( d.GetName() )
         return dNames
     
         
@@ -1328,6 +1329,8 @@ class Plotter(object):
         # The reference histogram is the numerator histogram
         (hNumerator, colour) = self._GetRatioReferenceHisto(refDataset)
 
+        if hNumerator==None:
+            raise Exception("Cannot find reference dataset \"%s\". Are you sure it exists? Available datasets are: \n\t %s" % (refDataset, "\n\t ".join(self.GetDatasetNames())))
         
         if "nostack" in ratioStackOpts:
             hRatioList = self._GetRatioHistoList(hNumerator, refDataset)
