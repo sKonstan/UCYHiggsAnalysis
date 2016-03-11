@@ -139,10 +139,11 @@ class Plotter(object):
         if not hasattr(self, 'TPadRatio'):
             raise Exception("Cannot draw ratio histograms. A dedicaded TPad was not created.")
 
+        drawOpts = self.THDumbie.drawOptions + " , " + stackOpts + " , " + "same,e1p"
+        
         self.TPadRatio.cd()
         self.THRatio.THisto.Draw()
-        drawOpts = self.THDumbie.drawOptions + " , " + stackOpts + " , " + "same,e1p"
-        self.THStackRatio.Draw(drawOpts) #stackOpts + ",9same")
+        self.THStackRatio.Draw(drawOpts)
         self.UpdateCanvas()
         return
         
@@ -1433,13 +1434,28 @@ class Plotter(object):
         return
     
 
-    def Draw(self, stackOpts=""):
+    def Draw(self, stackOpts="", ratioStackOpts=None, refDataset=None):
         self.Verbose()
 
-        opts = ["", "stack", "nostack", "nostackb", "pads"]
-        if stackOpts not in opts:
+        if stackOpts not in ["", "stack", "nostack", "nostackb", "pads"]:
             raise Exception( "Invalid THStack drawing option '%s'. Please select one of the following: %s" % (stackOpts, opts))
+
+        if ratioStackOpts not in ["AP", "nostack", "HIST", "9", "e0", "e1", "e2", "e3"]:
+            raise Exception( "Invalid THStack drawing option '%s'. Please select one of the following: %s" % (stackOpts, opts))        
         
+        if ratioStackOpts==None:
+            self._Draw(stackOpts)
+        else:
+            if refDataset == None:
+                raise Exception( "Cannot draw ratio pad without a reference datasets. Please provide the name of a dataset as argument")
+            else:
+                self._DrawRatio(stackOpts, ratioStackOpts, refDataset)
+        return
+
+
+    def _Draw(self, stackOpts="", ratioStackOpts=None, refDataset=None):
+        self.Verbose()
+
         self._CreateCanvas()
         self._CheckHistosBinning()
         self._CreateDataHistoStack()
@@ -1450,7 +1466,7 @@ class Plotter(object):
         return
 
     
-    def DrawRatio(self, stackOpts, ratioStackOpts, refDataset):
+    def _DrawRatio(self, stackOpts, ratioStackOpts, refDataset):
         self.Verbose()
     
         self._CreateCanvas(True)
