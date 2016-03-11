@@ -47,10 +47,13 @@ metFilter = PSet(
 # Electron selection
 #================================================================================================  
 electronSelection = PSet(
-    PtCut         = 7.0,
+    PtCut         = 10.0,
     EtaCut        = 2.5,
     RelIsolString = "loose", # [veto, none, loose, medium, tight]
     electronID    = "mvaEleID_PHYS14_PU20bx25_nonTrig_V1_wp90", # [?]
+    #dxy, dz, SIP3d < 8
+    #mini isolation < 0.4
+    #CSVM veto on the closest jet
 )
 
 
@@ -58,10 +61,13 @@ electronSelection = PSet(
 # Muon selection
 #================================================================================================  
 muonSelection = PSet(
-    PtCut         = 5.0,
+    PtCut         = 10.0,
     EtaCut        = 2.4,
     RelIsolString = "loose",     # [veto, none, loose, medium, tight ]
     muonID        = "muIDTight", # [muIDLoose, muIDMedium, muIDTight ]
+    #dxy, dz, SIP3d < 8
+    #mini isolation < 0.4
+    #CSVM veto on the closest jet
 )
 
 

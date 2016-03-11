@@ -1933,7 +1933,6 @@ class DatasetManager(object):
         self.datasets.insert(firstIndex, newDataset)
         self._PopulateMap()
         print "\t\"%s\" successfully created by merging %s datasets:\n\t %s" % (newName, len(nameList), ", ".join(nameList) )
-        # print "\t\"%s\" successfully created by merging %s datasets:\n\t %s" % (newName, len(nameList), "\n\t ".join(nameList) )
         return
     
         

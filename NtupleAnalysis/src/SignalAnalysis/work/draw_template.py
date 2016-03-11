@@ -103,8 +103,8 @@ Eta = {
 
 wCounter = {
     "xMin": 8.0, "xMax": None, "gridX": True, "gridXRatio": True, "logX": False,
-    "yLabel": "Events / %0.1f", "yMin": 1.0, "yMax": 1e+8, "yUnits": "", "yCutLines": [], "gridY": True,  "gridYRatio": True, "logY": True, "yCutBoxes": [], "xCutBoxes": [],
-    "ratioLabel": "Ratio", "yMinRatio": 0.0, "yMaxRatio": 4.75 , "drawOptions": "HIST9", "legOptions": "F", "logYRatio": False, "logXRatio": False,
+    "yLabel": "Events / %0.1f", "yMin": 1.0, "yMax": 1e+9, "yUnits": "", "yCutLines": [], "gridY": True,  "gridYRatio": True, "logY": True, "yCutBoxes": [], "xCutBoxes": [],
+    "ratioLabel": "Data/Pred.", "yMinRatio": 0.0, "yMaxRatio": 1.75 , "drawOptions": "HIST9", "legOptions": "F", "logYRatio": False, "logXRatio": False,
     "xLegMin": 0.72, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92, 
 }
 
@@ -171,11 +171,11 @@ def DoCounters(histo, datasetObjects, savePostfix=""):
     # p.SetupStatsBox("ksiourmen", xPos=0.90, yPos=0.88, width=0.20, height=0.12)
     p.AddDatasets(datasetObjects)
     p.AddDrawObject(histo)
-    p.NormaliseHistos("toLuminosity")
+    p.NormaliseHistos("toLuminosity") 
     p.AddCmsText("fb", prelim=True)
     p.DatasetAsLegend(True)    
     # p.AddTF1("1000*cos(x)", 0, 200.0, False, {"lineColour": ROOT.kBlack})
-    p.DrawRatio("", "AP", "Data")  # "AP,nostack"
+    p.DrawRatio("", "AP,stack", "Data")
     # p.Draw("") # "nostack"
     # p.SetHistosFillStyle(3001)
     p.SetHistoLabelsOption("d") #v, u, d
@@ -207,16 +207,16 @@ def main():
     
     ### Remove Datasets
     # datasetManager.Remove("MuonEG_Run2015D_05Oct2015_v2_246908_260426_25ns_Silver")     #  888.357
-    datasetManager.Remove("MuonEG_Run2015C_25ns_05Oct2015_v1_246908_260426_25ns_Silver")  #   16.345
-    datasetManager.Remove("MuonEG_Run2015D_PromptReco_v4_246908_260426_25ns_Silver")      # 1103.813
+    # datasetManager.Remove("MuonEG_Run2015C_25ns_05Oct2015_v1_246908_260426_25ns_Silver")  #   16.345
+    # datasetManager.Remove("MuonEG_Run2015D_PromptReco_v4_246908_260426_25ns_Silver")      # 1103.813
     datasetManager.Remove("ttHJetToNonbb_M125")
     # datasetManager.Remove("ST_s_channel_4f_leptonDecays")
     # datasetManager.Remove("ST_tW_antitop_5f_inclusiveDecays")
     # datasetManager.Remove("ST_tW_top_5f_inclusiveDecays")
     # datasetManager.Remove("ST_t_channel_antitop_4f_leptonDecays")
     # datasetManager.Remove("ST_t_channel_top_4f_leptonDecays")
-    datasetManager.Remove("DYJetsToLL_M_10to50")
-    datasetManager.Remove("DYJetsToLL_M_50")
+    # datasetManager.Remove("DYJetsToLL_M_10to50")
+    # datasetManager.Remove("DYJetsToLL_M_50")
     # datasetManager.Remove("TTJets")
     # datasetManager.Remove("WJetsToLNu")
     # datasetManager.Remove("WW")
@@ -225,7 +225,7 @@ def main():
 
     ### Merge Datasets
     datasetManager.MergeData()
-    datasetManager.MergeMany(datasetMapping)
+    # datasetManager.MergeMany(datasetMapping)
 
     ### Print Datasets
     datasetManager.PrintSummary()
