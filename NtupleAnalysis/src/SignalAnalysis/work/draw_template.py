@@ -87,7 +87,7 @@ EvtRange   = [ [1E2, 1E4, ROOT.kBlack] ]
 Pt = {
     "xLabel": "p_{T}"           , "xUnits": "GeVc^{-1}", "xMin": 0.00 , "xMax": ptMax, "binWidthX": None, "xCutLines": [], "xCutBoxes": [], "gridX": True, "logX": False, 
     "yLabel": "Entries / %0.0f" , "yUnits": ""         , "yMin": 1E-01, "yMax": None , "binWidthY": None, "yCutLines": [], "yCutBoxes": [], "gridY": True, "logY": True,
-    "ratioLabel": "Ratio", "yMinRatio": 0.0 , "yMaxRatio": 2.15 , "drawOptions": "HIST9", "legOptions": "F", 
+    "ratioLabel": "Ratio", "yMinRatio": 0.0 , "yMaxRatio": 2.15 ,
     "logYRatio": False, "logXRatio": False, "xLegMin": 0.70, "xLegMax": 0.95, "yLegMin": 0.78, "yLegMax": 0.93, "gridXRatio": True, "gridYRatio": True,
 }
 
@@ -95,24 +95,16 @@ Pt = {
 Eta = {
     "xLabel": "#eta"           , "xUnits": "", "xMin": -etaMax, "xMax": +etaMax, "binWidthX": None, "xCutLines": [0], "gridX": True, "gridXRatio": False, "logX": False,
     "yLabel": "Entries / %0.2f", "yUnits": "", "yMin": +1e00  , "yMax": None   , "binWidthY": None, "yCutLines": [] , "gridY": True, "gridYRatio": False, "logY": True ,
-    "xCutBoxes": [], "yCutBoxes": [],  "ratioLabel": "Ratio"      , "yMinRatio": 0.0, "yMaxRatio": 2.15 , "drawOptions": "P", "legOptions": "LP", 
+    "xCutBoxes": [], "yCutBoxes": [],  "ratioLabel": "Ratio"      , "yMinRatio": 0.0, "yMaxRatio": 2.15 ,
     "xCutBoxes": [[-1.0, -1.6, ROOT.kBlue], [+1.0, +1.6, ROOT.kBlue]], "yCutBoxes": [], "logYRatio": False, "logXRatio": False,
     "xLegMin": 0.72, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
-}
-
-
-wCounter = {
-    "xMin": 8.0, "xMax": None, "gridX": True, "gridXRatio": True, "logX": False,
-    "yLabel": "Events / %0.1f", "yMin": 1.0, "yMax": 1e+9, "yUnits": "", "yCutLines": [], "gridY": True,  "gridYRatio": True, "logY": True, "yCutBoxes": [], "xCutBoxes": [],
-    "ratioLabel": "Data/Pred.", "yMinRatio": 0.0, "yMaxRatio": 1.75 , "drawOptions": "HIST9", "legOptions": "F", "logYRatio": False, "logXRatio": False,
-    "xLegMin": 0.72, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92, 
 }
 
 
 NJets = {
     "xLabel": "Jets" , "xUnits":"", "xMin": 0.0, "xMax": 10.0, "xCutLines": [3], "gridX": True, "gridXRatio": False, "logX": False,
     "yLabel": "Events / %0.1f", "yMin": 1.0, "yMax": None, "yUnits": "", "yCutLines": [], "gridY": True,  "gridYRatio": True, "logY": True, "yCutBoxes": [], "xCutBoxes": [],
-    "ratioLabel": "Ratio", "yMinRatio": 0.0, "yMaxRatio": 3.75 , "drawOptions": "HIST9", "legOptions": "F", "logYRatio": False, "logXRatio": False,
+    "ratioLabel": "Ratio", "yMinRatio": 0.0, "yMaxRatio": 3.75 , "logYRatio": False, "logXRatio": False,
     "xLegMin": 0.72, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92, 
 }
 
@@ -120,10 +112,16 @@ NJets = {
 NBjets = {
     "xLabel": "b-tagged Jets" , "xUnits":"", "xMin": 0.0, "xMax": 10.0, "xCutLines": [3], "gridX": True, "gridXRatio": False, "logX": False,
     "yLabel": "Events / %0.1f", "yMin": 1.0, "yMax": None, "yUnits": "", "yCutLines": [], "gridY": True,  "gridYRatio": True, "logY": True, "yCutBoxes": [], "xCutBoxes": [],
-    "ratioLabel": "Ratio", "yMinRatio": 0.0, "yMaxRatio": 3.75 , "drawOptions": "HIST9", "legOptions": "F", "logYRatio": False, "logXRatio": False,
+    "ratioLabel": "Ratio", "yMinRatio": 0.0, "yMaxRatio": 3.75 , "logYRatio": False, "logXRatio": False,
     "xLegMin": 0.72, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92, 
 }
 
+
+wCounter = {    
+    "xLabel": ""              , "xMin": 8.0, "xMax": None, "xUnits": "", "xCutLines": [], "xCutBoxes": [], "gridX": True,  "gridXRatio": True, "logX": False, 
+    "yLabel": "Events / %0.1f", "yMin": 1.0, "yMax": 1e+9, "yUnits": "", "yCutLines": [], "yCutBoxes": [], "gridY": True,  "gridYRatio": True, "logY": True, 
+    "ratioLabel": "Data/Pred.", "yMinRatio": 0.0, "yMaxRatio": 1.75 , "logXRatio": False, "logYRatio": False, "xLegMin": 0.72, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.92
+}
 
 #================================================================================================
 # Create Histos Objects
@@ -150,8 +148,7 @@ def DoPlots(histo, datasetObjects, savePostfix=""):
     p.NormaliseHistos("toLuminosity")
     p.AddCmsText("fb", prelim=True)
     p.DatasetAsLegend(True)    
-    p.Draw("") # "nostack"
-    # p.DrawRatio("", "AP", "Data")
+    p.Draw("HIST,9")
     # p.SetHistosFillStyle(3001)
     # p.Save()
     p.Save(savePath, saveFormats)
@@ -174,12 +171,15 @@ def DoCounters(histo, datasetObjects, savePostfix=""):
     p.NormaliseHistos("toLuminosity") 
     p.AddCmsText("fb", prelim=True)
     p.DatasetAsLegend(True)    
+
     # p.AddTF1("1000*cos(x)", 0, 200.0, False, {"lineColour": ROOT.kBlack})
-    p.Draw("", "AP,stack,e1", "Data")
+    # p.Draw("HIST,9")
+    p.Draw("HIST,9", "A,P,stack", "Data")
     # p.SetHistosFillStyle(3001)
     p.SetHistoLabelsOption("d") #v, u, d
     p.SetHistoLabelsSizeX(0.5)
-    p.SetHistoAxisOffsetX(0.02)
+    # p.SetHistoAxisOffsetX(0.03)
+
     # p.Save()
     p.Save(savePath, saveFormats)
     # p.SaveAs(savePath, histo.GetName() + "_test", savePostfix, saveFormats)

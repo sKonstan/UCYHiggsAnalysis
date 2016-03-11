@@ -57,8 +57,6 @@ class DrawObject:
         self.binWidthX       = kwargs.get("binWidthX", None)
         self.binWidthY       = kwargs.get("binWidthY", None)
         self.ratioLabel      = kwargs.get("ratioLabel", None)
-        self.drawOptions     = kwargs.get("drawOptions", None)
-        self.legOptions      = kwargs.get("legOptions", None)
         self.styleType       = kwargs.get("styleType", None)
         self.kwargs          = kwargs
         self.Verbose()
@@ -341,9 +339,9 @@ class DrawObject:
         s = styles.StyleClass(self.verbose)
         
         if isinstance(self.THisto, ROOT.TH1):
-            (fillColour, lineColour, markerStyle, markerSize, lineWidth, lineStyle, fillStyle, drawOptions, legOptions) = s.GetTH1Styles(self)
+            (fillColour, lineColour, markerStyle, markerSize, lineWidth, lineStyle, fillStyle) = s.GetTH1Styles(self)
         elif isinstance(self.THisto, ROOT.TH2):
-            (fillColour, lineColour, markerStyle, markerSize, lineWidth, lineStyle, fillStyle, drawOptions, legOptions) = s.GetTH2Styles(self)
+            (fillColour, lineColour, markerStyle, markerSize, lineWidth, lineStyle, fillStyle) = s.GetTH2Styles(self)
         elif isinstance(self.THisto, ROOT.TH3):
             raise Exception("Usupported histogram object '%s'" % (self.THisto))
         else:
@@ -360,10 +358,6 @@ class DrawObject:
         self.THisto.SetMarkerColor(fillColour)
         self.THisto.SetMarkerStyle(markerStyle)
         self.THisto.SetMarkerSize(markerSize)
-        if self.drawOptions == None:
-            self.drawOptions = drawOptions
-        if self.legOptions == None:
-            self.legOptions  = legOptions
         return
 
 

@@ -119,10 +119,8 @@ class Plotter(object):
         elif "stack" in stackOpts:
             raise Exception("Unexplained THStack behaviour with options \"stack\". Use \"\" instead to have histograms painted stacked on top of each other")
             
-        drawOpts = self.THDumbie.drawOptions + " , " + stackOpts + " , " + "same"
-        
-        self.THDumbie.THisto.Draw(self.THDumbie.drawOptions)
-        self.THStackMC.Draw(drawOpts)
+        self.THDumbie.THisto.Draw(self.GetDrawOpts() + ", same")
+        self.THStackMC.Draw(self.GetDrawOpts() + ", same")
         self.THStackData.Draw("AP9,same,e1")
         self.UpdateCanvas()
         return
@@ -139,11 +137,9 @@ class Plotter(object):
         if not hasattr(self, 'TPadRatio'):
             raise Exception("Cannot draw ratio histograms. A dedicaded TPad was not created.")
 
-        drawOpts = self.THDumbie.drawOptions + " , " + stackOpts + " , " + "same,e1p"
-        
         self.TPadRatio.cd()
         self.THRatio.THisto.Draw()
-        self.THStackRatio.Draw(drawOpts)
+        self.THStackRatio.Draw(self.GetDrawOptsRatio() + ", same")
         self.UpdateCanvas()
         return
         
@@ -279,8 +275,8 @@ class Plotter(object):
             self._CreateTPads()
             self.TPadPlot.cd()
 
-        self._SetLogAxes(twoPads)
         self._SetGridAxes(twoPads)
+        self._SetLogAxes(twoPads)
         self._CreateLegend()
         self.UpdateCanvas()
         return
@@ -460,6 +456,25 @@ class Plotter(object):
             if self.DatasetInLegend:
                 return hObject.GetAttribute("dataset").GetLatexName()
 
+
+
+    def GetLegOptions(self):
+        self.Verbose()
+        
+        if "HIST" in self.GetDrawOpts():
+            return "F"
+        else:
+            return "LP"
+
+
+    def GetLegOptionsRatio(self):
+        self.Verbose()
+        
+        if "HIST" in self.GetDrawOptsRatio():
+            return "F"
+        else:
+            return "LP"
+        
 
     def AddDataset(self, dataset):
         '''
@@ -1124,7 +1139,6 @@ class Plotter(object):
         if isinstance(drawObject, histos.DrawObject):
             histo  = drawObject.THisto
             label  = self.GetLegLabel(drawObject)
-            opts   = drawObject.GetAttribute("legOptions")
             self.TLegend.AddEntry(histo, label, opts)            
         elif isinstance(drawObject, (ROOT.TH1, ROOT.TH2, ROOT.TH3, ROOT.TLine, ROOT.TBox) ):
             self.TLegend.AddEntry(drawObject, label, opts)            
@@ -1269,7 +1283,7 @@ class Plotter(object):
             drawObj = self.GetDatasetObjectDrawObject(dm)
             self.THStackMC.Add(histo)
             self.Verbose("Adding dataset \"%s\" to the MC THStack" % (dm.GetName() ))
-            self.ExtendLegend(histo, self.GetLegLabel(drawObj), "F")
+            self.ExtendLegend(histo, self.GetLegLabel(drawObj), self.GetLegOptions())
         return
 
 
@@ -1434,22 +1448,51 @@ class Plotter(object):
         return
     
 
-    def Draw(self, stackOpts="", ratioStackOpts=None, refDataset=None):
+    def _SaveDrawOpts(self, drawOpts):
         self.Verbose()
 
-        if stackOpts not in ["", "stack", "nostack", "nostackb", "pads"]:
-            raise Exception( "Invalid THStack drawing option '%s'. Please select one of the following: %s" % (stackOpts, opts))
+        myOpts = ["", "A", "P", "L", "HIST", "9", "nostack", "stack", "nostackb"]
+        for o in drawOpts.split(","):
+            if o not in myOpts:
+                raise Exception( "Invalid drawing option '%s'. Please select one of the following: %s" % (o, myOpts) )
 
-        if ratioStackOpts not in ["AP", "nostack", "HIST", "9", "e0", "e1", "e2", "e3"]:
-            raise Exception( "Invalid THStack drawing option '%s'. Please select one of the following: %s" % (stackOpts, opts))        
-        
-        if ratioStackOpts==None:
-            self._Draw(stackOpts)
+        self.drawOpts = drawOpts
+        return
+
+
+    def _SaveRatioDrawOpts(self, drawOpts):
+        self.Verbose()
+
+        myOpts = ["", "A", "P", "L", "HIST", "9", "nostack", "stack"]
+        for o in drawOpts.split(","):
+            if o not in myOpts:
+                raise Exception( "Invalid THStackRatio drawing option '%s'. Please select one of the following: %s" % (o, myOpts) )
+
+        self.drawOptsRatio = drawOpts
+        return
+
+
+    def GetDrawOpts(self):
+        return self.drawOpts
+
+
+    def GetDrawOptsRatio(self):
+        return self.drawOptsRatio
+
+    
+    def Draw(self, drawOpts="", ratioDrawOpts=None, refDataset=None):
+        self.Verbose()
+            
+        if ratioDrawOpts==None:
+            self._SaveDrawOpts(drawOpts)
+            self._Draw(drawOpts)
         else:
             if refDataset == None:
                 raise Exception( "Cannot draw ratio pad without a reference datasets. Please provide the name of a dataset as argument")
             else:
-                self._DrawRatio(stackOpts, ratioStackOpts, refDataset)
+                self._SaveDrawOpts(drawOpts)
+                self._SaveRatioDrawOpts(ratioDrawOpts)
+                self._DrawRatio(drawOpts, ratioDrawOpts, refDataset)
         return
 
 
