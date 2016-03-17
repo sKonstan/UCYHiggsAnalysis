@@ -69,6 +69,11 @@ pu_re          = re.compile("\|\s+\S+\s+\|\s+\S+\s+\|\s+.*\s+\|\s+.*\s+\|\s+\S+\
 #================================================================================================ 
 # Function Definitions
 #================================================================================================
+def TruncateString(myString, maxChars):
+    tString = (myString[:maxChars-2] + "..") if len(myString) > maxChars else myString
+    return tString
+
+
 def isMCTask(taskdir):
     crabCfg = "crabConfig_"+taskdir+".py"
     if not os.path.exists(crabCfg):
@@ -164,7 +169,8 @@ def main(opts, args):
             if os.path.exists(lumiSummary):
                 files.append( (d, lumiSummary) )
             elif os.path.exists( processedLumis):
-                print "=== multicrabLumiCalc.py:\n\t WARNING! Could not find %s. Will use %s instead. This works but needs a thorough check!"
+                print "=== multicrabLumiCalc.py:\n\t WARNING! Could not find %s" % (lumiSummary)
+                print "\t Will use %s instead (Apparently works but results NOT validated yet)" % (processedLumis)
                 files.append( (d, processedLumis) )
             else:
                 raise Exception("The file containing the processed runs and luminosity sections (\"%s\" and \"%s\") do not exist! Have you called \"crab report\"?" % (lumiSummary, processedLumis))
@@ -214,8 +220,8 @@ def main(opts, args):
         if unit == None:
             raise Exception("Didn't find unit information from lumiCalc output, command was %s" % " ".join(cmd))
         lumi = convertLumi(lumi, unit)
-        data = doPileUp(task, jsonFile, lumi)
-
+        data.update( doPileUp(task, jsonFile, lumi) )
+        
     if len(data) > 0:
         f = open(opts.output, "wb")
         json.dump(data, f, sort_keys=True, indent=2)
@@ -242,7 +248,10 @@ def doPileUp(task, jsonFile, lumi):
     if task == None:
         print "File %s recorded luminosity %f pb^-1" % (jsonFile, lumi)
     else:
-        print "Task %s recorded luminosity %f pb^-1" % (task, lumi)
+        txtAlign = "{:<70} {:<12} {:<6}"
+        info     = txtAlign.format( TruncateString(task, 48), lumi, "pb^-1")
+        print info
+        # print "Task %s recorded luminosity %f pb^-1" % (task, lumi)
         data[task] = lumi
         
     # Save the json file after each data task in case of future errors
@@ -273,6 +282,6 @@ if __name__ == "__main__":
     if opts.lumicalc == None:
         opts.lumicalc = "brilcalc"
     print "=== multicrabLumiCalc.py:\n\t Calculating luminosity with %s" % opts.lumicalc
-    print "=== multicrabLumiCalc.py:\n\t Calculating pileup with pileupCalc"
+    print "\t Calculating pileup with pileupCalc"
 
     sys.exit( main(opts, args) )
