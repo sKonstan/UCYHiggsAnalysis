@@ -16,9 +16,29 @@ http://cms-service-lumi.web.cern.ch/cms-service-lumi/brilwsdoc.html
 lumiCalc.py usage taken from:
 https://twiki.cern.ch/twiki/bin/viewauth/CMS/LumiCalc
 
-
 PileUp calc according to:
 https://indico.cern.ch/event/459797/contribution/3/attachments/1181542/1711291/PPD_PileUp.pdf
+
+=======================
+Important Information
+=======================
+Getting the task report (crab report -d <crab_task>) is relevant when running on real data, because of the files we get containing the
+analyzed and the non-analyzed luminosity sections. Remember that the report includes only successfully done jobs.
+
+For exampe, the content of our "lumiSummary.json" file is:
+{"193834": [[1, 35]], "193835": [[1, 20], [22, 26]], "193836": [[1, 2]], "193999": [[1, 50]], "193998": [[66, 113], [115, 278]]}
+
+... and the content of our "missingLumiSummary.json" file is:
+{"193336": [[1, 264], [267, 492], [495, 684], [687, 729], [732, 951]], "193334": [[29, 172]]}
+
+The "processedLumis.json" Contains the lumis that have been processed by jobs in status finished.
+[See https://twiki.cern.ch/twiki/bin/view/CMSPublic/CRAB3Commands]
+
+The "missingLumiSummary.json" file is just the difference between the input lumi-mask file and the lumiSummary.json file. This 
+means that the "missingLumiSummary.json" file does not have to be necessarily an empty file even if all jobs have completed successfully. 
+And this is simply because the input dataset and the input lumi-mask file may not span the same overall range of runs and luminosity sections. 
+
+See https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookCRAB3Tutorial#Running_CMSSW_analysis_with_AN1
 '''
 
 #================================================================================================ 
@@ -93,6 +113,7 @@ def convertLumi(lumi, unit):
 
 
 def main(opts, args):
+
     cell    = "\|\s+(?P<%s>\S+)\s+"
     lumi_re = re.compile("\|\s+(?P<recorded>\d+\.*\d*)\s+\|\s*$")
     unit_re = re.compile("totrecorded\(/(?P<unit>.*)\)")
@@ -123,7 +144,7 @@ def main(opts, args):
                 print "=== multicrabLumiCalc.py:\n\t Ignoring task directory '%s', it looks empty" % d
                 continue
     
-            if opts.report:
+            if opts.report:                
                 multicrab.checkCrabInPath()
                 cmd = ["crab", "report", d]
                 if opts.verbose:
@@ -132,17 +153,21 @@ def main(opts, args):
                 output = p.communicate()[0]
                 ret = p.returncode
                 if ret != 0:
-                    print "=== multicrabLumiCalc.py:\n\t Call to 'crab -report -d %s' failed with return value %d" % (d, ret)
+                    print "=== multicrabLumiCalc.py:\n\t Call to 'crab report -d %s' failed with return value %d" % (d, ret)
                     print output
                     return 1
                 if opts.verbose:
                     print output
-            
-            lumiSummary = os.path.join(d, "results", "lumiSummary.json")            
-            if not os.path.exists(lumiSummary):
-                raise Exception("The file containing the processed runs and luminosity sections \"%s\" does not exist! This is normally created by \"crab report\" command." % lumiSummary)
-            else:
+                                
+            lumiSummary    = os.path.join(d, "results", "lumiSummary.json")
+            processedLumis = os.path.join(d, "results", "processedLumis.json")
+            if os.path.exists(lumiSummary):
                 files.append( (d, lumiSummary) )
+            elif os.path.exists( processedLumis):
+                print "=== multicrabLumiCalc.py:\n\t WARNING! Could not find %s. Will use %s instead. This works but needs a thorough check!"
+                files.append( (d, processedLumis) )
+            else:
+                raise Exception("The file containing the processed runs and luminosity sections (\"%s\" and \"%s\") do not exist! Have you called \"crab report\"?" % (lumiSummary, processedLumis))
 
     files.extend([(None, f) for f in opts.files])
 
@@ -189,8 +214,6 @@ def main(opts, args):
         if unit == None:
             raise Exception("Didn't find unit information from lumiCalc output, command was %s" % " ".join(cmd))
         lumi = convertLumi(lumi, unit)
-
-        
         data = doPileUp(task, jsonFile, lumi)
 
     if len(data) > 0:

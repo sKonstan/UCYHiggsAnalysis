@@ -35,7 +35,7 @@ verbose       = False
 batchMode     = True
 folder        = "SignalAnalysis_mH125_Run2015D"
 analysis      = folder
-intLumiInPb   = 250.00 #-1 #888.357
+intLumiInPb   = -1 #350.00 #-1 #888.357
 saveFormats   = ["png"]
 # savePath      = "/Users/attikis/Desktop/"
 savePath      = "/afs/cern.ch/user/a/attikis/public/html/"
@@ -229,7 +229,8 @@ def main():
 
     
     ### Get Datasets
-    datasetObjects = datasetManager.GetAllDatasets()
+    # datasetObjects = datasetManager.GetAllDatasets()
+    datasetObjects = datasetManager.GetDataDatasets()
     # datasetObjects = datasetManager.GetMCDatasets()
     # datasetObjects = [datasetManager.GetDataset("TTJets")]
 

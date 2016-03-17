@@ -96,7 +96,7 @@ def GetDatasetList(skimType, verbose=False):
     datasetList = []
     myDatasets  = Datasets(False)
 
-    if skimType == "Default":        
+    if skimType == "Default" or skimType == "No":
         datasetList  = myDatasets.GetDatasetObjects(miniAODversion="RunIISpring15MiniAODv2", datasetType = opts.datasetType)
     else:
         print "=== multicrabCreate.py:\n\t Unknown skim type '%s'." % (skimType), ". EXIT"

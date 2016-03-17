@@ -12,9 +12,9 @@ from UCYHiggsAnalysis.MiniAOD2FlatTree.tools.dataOptions import getOptionsDataVe
 bSummary         = False #Default is "False"
 bDependencies    = False #Default is "False" 
 bDumpCollections = False #Default is "False"
-iMaxEvents       = 10000
+iMaxEvents       = 1000
 iReportEvery     = 10
-skimType         = "DefaultSkim" #"TriggerSkim" #"NoSkim #"DefaultSkim" (all 3 are the same at the moment)
+skimType         = "NoSkim" #"TriggerSkim" #"NoSkim #"DefaultSkim" (all 3 are the same at the moment)
 # dataset          = "/SingleMuon/Run2015C_25ns-05Oct2015-v1/MINIAOD"
 # dataset          = "/SingleMuon/Run2015D-05Oct2015-v1/MINIAOD"
 # dataset          = "/SingleMuon/Run2015D-PromptReco-v4/MINIAOD"
