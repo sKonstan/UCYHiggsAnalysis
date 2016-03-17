@@ -120,9 +120,9 @@ class Plotter(object):
         elif "stack" in stackOpts:
             raise Exception("Unexplained THStack behaviour with options \"stack\". Use \"\" instead to have histograms painted stacked on top of each other")
             
-        self.THDumbie.THisto.Draw(self.GetDrawOpts() + ", same")
+        self.THDumbie.THisto.Draw(stackOpts)
         self.THStackMC.Draw(self.GetDrawOpts() + ", same")
-        self.THStackData.Draw("AP9,same,e1")
+        self.THStackData.Draw("AP,same,e1")
         self.UpdateCanvas()
         return
 

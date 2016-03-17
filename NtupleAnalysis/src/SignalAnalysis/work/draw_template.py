@@ -185,7 +185,8 @@ def DoCounters(histo, datasetObjects, savePostfix=""):
 
     # p.AddTF1("1000*cos(x)", 0, 200.0, False, {"lineColour": ROOT.kBlack})
     # p.Draw("HIST,9")
-    p.Draw("HIST,9", "A,P,stack", "Data")
+    # p.Draw("HIST,9", "A,P,stack", "Data")
+    p.Draw("A,P,9", "A,P,stack", "Data")
     # p.SetHistosFillStyle(3001)
     p.SetHistoLabelsOption("d") #v, u, d
     p.SetHistoLabelsSizeX(0.5)

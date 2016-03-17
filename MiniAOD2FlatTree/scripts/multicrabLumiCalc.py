@@ -177,7 +177,8 @@ def main(opts, args):
 
     files.extend([(None, f) for f in opts.files])
 
-    data = {}
+    print "=== multicrabLumiCalc.py:"
+    data = {}    
     for task, jsonFile in files:
         lumicalc = opts.lumicalc
 
@@ -221,7 +222,11 @@ def main(opts, args):
             raise Exception("Didn't find unit information from lumiCalc output, command was %s" % " ".join(cmd))
         lumi = convertLumi(lumi, unit)
         data.update( doPileUp(task, jsonFile, lumi) )
-        
+
+
+    intLumi = GetIntLumi(data)
+    print "{:<80} {:<12} {:<6}".format( "\t ", intLumi, "pb^-1")
+
     if len(data) > 0:
         f = open(opts.output, "wb")
         json.dump(data, f, sort_keys=True, indent=2)
@@ -248,10 +253,9 @@ def doPileUp(task, jsonFile, lumi):
     if task == None:
         print "File %s recorded luminosity %f pb^-1" % (jsonFile, lumi)
     else:
-        txtAlign = "{:<70} {:<12} {:<6}"
-        info     = txtAlign.format( TruncateString(task, 68), lumi, "pb^-1")
-        print info
         # print "Task %s recorded luminosity %f pb^-1" % (task, lumi)
+         
+        print "{:<80} {:<12} {:<6}".format( "\t " + TruncateString(task, 68), lumi, "pb^-1")    
         data[task] = lumi
         
     # Save the json file after each data task in case of future errors
@@ -259,8 +263,14 @@ def doPileUp(task, jsonFile, lumi):
         f = open(opts.output, "wb")
         json.dump(data, f, sort_keys=True, indent=2)
         f.close()
-
     return data
+
+
+def GetIntLumi(data):
+    intLumi = 0.0
+    for key in data:
+        intLumi += data[key]
+    return intLumi
 
 
 if __name__ == "__main__":
