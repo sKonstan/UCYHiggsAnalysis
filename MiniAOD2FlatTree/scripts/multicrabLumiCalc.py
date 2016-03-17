@@ -169,7 +169,7 @@ def main(opts, args):
             if os.path.exists(lumiSummary):
                 files.append( (d, lumiSummary) )
             elif os.path.exists( processedLumis):
-                print "=== multicrabLumiCalc.py:\n\t WARNING! Could not find %s" % (lumiSummary)
+                print "=== multicrabLumiCalc.py:\n\t Could not find %s" % (lumiSummary)
                 print "\t Will use %s instead (Apparently works but results NOT validated yet)" % (processedLumis)
                 files.append( (d, processedLumis) )
             else:
@@ -249,7 +249,7 @@ def doPileUp(task, jsonFile, lumi):
         print "File %s recorded luminosity %f pb^-1" % (jsonFile, lumi)
     else:
         txtAlign = "{:<70} {:<12} {:<6}"
-        info     = txtAlign.format( TruncateString(task, 48), lumi, "pb^-1")
+        info     = txtAlign.format( TruncateString(task, 68), lumi, "pb^-1")
         print info
         # print "Task %s recorded luminosity %f pb^-1" % (task, lumi)
         data[task] = lumi
