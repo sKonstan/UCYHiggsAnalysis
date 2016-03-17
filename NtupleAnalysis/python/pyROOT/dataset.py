@@ -339,16 +339,18 @@ class Dataset(object):
         Get the luminosity corresponding to the generated events
         '''
         self.Verbose()
-        if not self.isMC:
+        if not self.GetIsMC():
             return None
+
+        if not isinstance(self.allEvents, float):
+            raise Exception("The variable allEvents (=%s) for dataset '%s' is not an instance of float." % (self.allEvents, self.GetName()) )
+
+        if not isinstance(self.GetXSection(), float):
+            raise Exception("The variable XSection (=%s) for dataset '%s' is not an instance of float." % (self.GetXSection(), self.GetName()) )
+
         return self.allEvents / self.GetXSection()
 
 
-    def GetLuminosity(self):
-        self.Verbose()
-        return self.lumi
-
-    
     def _GetEnergy(self):
         '''
         '''

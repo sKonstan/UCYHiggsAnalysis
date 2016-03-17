@@ -1336,9 +1336,11 @@ class Plotter(object):
             hRatioList = self._GetRatioHistoList(hNumerator, refDataset)
             for hRatio in hRatioList:
                 self.THStackRatio.Add(hRatio)
-        else:
+        elif "stack" in ratioStackOpts:
             hRatio = self._GetRatioHisto(hNumerator, refDataset)
             self.THStackRatio.Add(hRatio)
+        else: 
+            raise Exception("Missing option \"stack\" or \"nostack\". Make sure of of them exists.")
 
         # Add a line at y=1
         line = self._GetTLine(self.THDumbie.xMin, self.THDumbie.xMax, 1.0, 1.0, colour, 2, ROOT.kSolid)
@@ -1351,8 +1353,15 @@ class Plotter(object):
         '''
         self.Verbose()
 
-        hList = []
-        for dm in self.GetDatasets():
+        hList    = []
+        datasets = []
+            
+        if refDataset.lower() == "data":
+            datasets = self.GetMcDatasets()
+        else:
+            datasets = self.GetDatasets()
+
+        for dm in datasets:
             if dm.GetName() == refDataset:
                 continue
             else:
@@ -1369,11 +1378,17 @@ class Plotter(object):
         '''
         self.Verbose()
 
+
+        if refDataset.lower() == "data":
+            datasets = self.GetMcDatasets()
+        else:
+            datasets = self.GetDatasets()
+
         hDenominator = copy.deepcopy(hNumerator)
         hRatio       = copy.deepcopy(hNumerator)
         hRatio.Reset()
         hDenominator.Reset()
-        for dm in self.GetDatasets():
+        for dm in datasets:
             if dm.GetName() == refDataset:
                 continue
             else:
