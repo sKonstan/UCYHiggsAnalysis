@@ -39,26 +39,69 @@ class Plotter(object):
         self.drawListRatio     = []
         self.canvasFactor      = 1.25
         self.padDivisionPoint  = 1-1/self.canvasFactor
-        self.THStackMC         = ROOT.THStack("THStackMC"   , "Stack of MC Histos")
-        self.THStackRatio      = ROOT.THStack("THStackRatio", "Stack of Ratio Histos")
+        self.THStackData       = ROOT.THStack("THStackData"    , "Stack of Data Histos")
+        self.THStackMC         = ROOT.THStack("THStackMC"      , "Stack of MC Histos")
+        self.THStackRatio      = ROOT.THStack("THStackRatio"   , "Stack of Ratio Histos")
         self.TMultigraph       = ROOT.TMultiGraph("TMultigraph", "ROOT.TMultiGraph holding various ROOT.TGraphs")
-        self.DatasetsMerged    = []
+        self.MergedDatasets    = []
+        self.McDatasets        = []
+        self.DataDatasets      = []
         self.SetupRoot()
         return
     
     
+    def GetDataDatasets(self):
+        '''
+        Return a list with all "Data"-type Dataset objects 
+        '''
+        self.Verbose()
+        return self.DataDatasets
+
+    
+    def GetMergedDatasets(self):
+        '''
+        Return a list with all "Data"-type Dataset objects 
+        '''
+        self.Verbose()
+        return self.MergedDatasets
+    
+
+    def GetMcDatasets(self):
+        '''
+        Return a list with all "MC"-type Dataset objects 
+        '''
+        self.Verbose()
+        return self.McDatasets
+
+    
+    def GetDatasets(self):
+        '''
+        Return a list with all "MC"-type Dataset objects 
+        '''
+        self.Verbose()
+        return self.Datasets
+        
+
     def _GetRatioReferenceHisto(self, refDataset):
         self.Verbose()
- 
-        if refDataset not in self.GetDatasetNames():
-            raise Exception("Cannot call DrawRatio(). The reference dataset '%s' cannot be found!" % (refDataset) )
 
-        for h in self.GetHistos():
-            if h.dataset.name == refDataset:
-                histo  = copy.deepcopy(h.THisto)
-                colour = h.THisto.GetLineColor()
-                return (histo, colour)
-        raise Exception("This should never be printed! What happened?")
+        if refDataset.lower() == "data":
+            histo  = None
+            colour = None
+            for d in self.GetDataDatasets():
+                if histo == None:
+                    histo  = copy.deepcopy(d.histo.THisto)
+                    colour = d.histo.THisto.GetLineColor()
+                else:
+                    histo.Add(d.histo.THisto)
+            return (histo, colour)
+        else:
+            for h in self.GetHistos():
+                if h.dataset.name == refDataset:
+                    histo  = copy.deepcopy(h.THisto)
+                    colour = h.THisto.GetLineColor()
+                    return (histo, colour)
+        raise Exception("Cannot call DrawRatio(). The reference dataset '%s' cannot be found!" % (refDataset) )
 
 
     def _DrawHistos(self, stackOpts):
@@ -77,9 +120,9 @@ class Plotter(object):
         elif "stack" in stackOpts:
             raise Exception("Unexplained THStack behaviour with options \"stack\". Use \"\" instead to have histograms painted stacked on top of each other")
             
-        self.THDumbie.THisto.Draw(self.THDumbie.drawOptions)
-        drawOpts = self.THDumbie.drawOptions + " , " + stackOpts + " , " + "same"
-        self.THStackMC.Draw(drawOpts)
+        self.THDumbie.THisto.Draw(self.GetDrawOpts() + ", same")
+        self.THStackMC.Draw(self.GetDrawOpts() + ", same")
+        self.THStackData.Draw("AP9,same,e1")
         self.UpdateCanvas()
         return
 
@@ -97,8 +140,7 @@ class Plotter(object):
 
         self.TPadRatio.cd()
         self.THRatio.THisto.Draw()
-        drawOpts = self.THDumbie.drawOptions + " , " + stackOpts + " , " + "same"
-        self.THStackRatio.Draw(drawOpts) #stackOpts + ",9same")
+        self.THStackRatio.Draw(self.GetDrawOptsRatio() + ", same")
         self.UpdateCanvas()
         return
         
@@ -110,41 +152,6 @@ class Plotter(object):
 
     
     #================================================================================================
-    def SetAttribute(self, attr, value):
-        '''
-        I should avoid using this function and instead write functions dedicated to Setting or Getting 
-        a specific class variable value. The reason? Well, in principle there are no private variables in python, 
-        so you can access all variables directly without getters and set them via setattr or directly if they are already initialized.
-
-        But there are 2 good reasons for writing specific functions:
-        1) Documentation in terms of user interface. Writing explicit getters and setters keeps your code clean 
-        and contained and discourages wild editing of values
-        
-        2) speed of code (setattr looks through a list of strings to find the variable)
-        ''' 
-        self.Verbose()
-        return setattr(self, attr, value)
-
-    
-    def GetAttribute(self, attr):
-        '''
-        I should avoid using this function and instead write functions dedicated to Setting or Getting 
-        a specific class variable value. The reason? Well, in principle there are no private variables in python, 
-        so you can access all variables directly without getters and set them via setattr or directly if they are already initialized.
-
-        But there are 2 good reasons for writing specific functions:
-        1) Documentation in terms of user interface. Writing explicit getters and setters keeps your code clean 
-        and contained and discourages wild editing of values
-        
-        2) speed of code (setattr looks through a list of strings to find the variable)
-        ''' 
-        self.Verbose()
-        if hasattr(self, attr):
-            return getattr(self, attr)
-        else:
-            raise Exception("Class object does not have attribute '%s'" % (attr))
-
-        
     def Verbose(self, message=""):
         '''
         Custome made verbose system. Will print all messages in the messageList
@@ -200,6 +207,41 @@ class Plotter(object):
         self.Print("Attributes: %s" % (self.__dict__))
         return
 
+
+    def SetAttribute(self, attr, value):
+        '''
+        I should avoid using this function and instead write functions dedicated to Setting or Getting 
+        a specific class variable value. The reason? Well, in principle there are no private variables in python, 
+        so you can access all variables directly without getters and set them via setattr or directly if they are already initialized.
+
+        But there are 2 good reasons for writing specific functions:
+        1) Documentation in terms of user interface. Writing explicit getters and setters keeps your code clean 
+        and contained and discourages wild editing of values
+        
+        2) speed of code (setattr looks through a list of strings to find the variable)
+        ''' 
+        self.Verbose()
+        return setattr(self, attr, value)
+
+    
+    def GetAttribute(self, attr):
+        '''
+        I should avoid using this function and instead write functions dedicated to Setting or Getting 
+        a specific class variable value. The reason? Well, in principle there are no private variables in python, 
+        so you can access all variables directly without getters and set them via setattr or directly if they are already initialized.
+
+        But there are 2 good reasons for writing specific functions:
+        1) Documentation in terms of user interface. Writing explicit getters and setters keeps your code clean 
+        and contained and discourages wild editing of values
+        
+        2) speed of code (setattr looks through a list of strings to find the variable)
+        ''' 
+        self.Verbose()
+        if hasattr(self, attr):
+            return getattr(self, attr)
+        else:
+            raise Exception("Class object does not have attribute '%s'" % (attr))
+    
     
     def _CreateCanvas(self, twoPads=False):
         '''
@@ -234,8 +276,8 @@ class Plotter(object):
             self._CreateTPads()
             self.TPadPlot.cd()
 
-        self._SetLogAxes(twoPads)
         self._SetGridAxes(twoPads)
+        self._SetLogAxes(twoPads)
         self._CreateLegend()
         self.UpdateCanvas()
         return
@@ -392,9 +434,11 @@ class Plotter(object):
             dataset.histo.NormaliseToOne()
             return
         elif normOpt == "byXSection":
+            if dataset.GetIsData():
+                return
             dataset.histo.NormaliseToFactor( dataset.GetNormFactor() )
         elif normOpt == "toLuminosity":
-            if dataset._IsData():
+            if dataset.GetIsData():
                 return
             dataset.histo.NormaliseToFactor( dataset.GetNormFactor() * dataset.GetIntLuminosity() )
         else:
@@ -414,18 +458,41 @@ class Plotter(object):
                 return hObject.GetAttribute("dataset").GetLatexName()
 
 
+    def GetLegOptions(self):
+        self.Verbose()
+        
+        if "HIST" in self.GetDrawOpts():
+            return "F"
+        else:
+            return "LP"
+
+
+    def GetLegOptionsRatio(self):
+        self.Verbose()
+        
+        if "HIST" in self.GetDrawOptsRatio():
+            return "F"
+        else:
+            return "LP"
+        
+
     def AddDataset(self, dataset):
         '''
         Add a new dataset and associate it to a root file.
         '''
         self.Verbose()
-
+        
         if not hasattr(self, 'Datasets'):
             self.Datasets = []
         
-        if self.verbose:
-            dataset.PrintProperties()
+        self.Verbose("Adding dataset \"%s\" (%s) to dataset list" % (dataset.GetName(), type(dataset).__name__))        
+
+        # Append dataset to apppropriate dataset list
         self.Datasets.append(dataset)
+        if dataset.GetIsMC():
+            self.McDatasets.append(dataset)
+        else:
+            self.DataDatasets.append(dataset)
         return
 
 
@@ -433,23 +500,17 @@ class Plotter(object):
         '''
         Add all datasets in the datasetObjects list to the plotter
         '''
-        self.Verbose("Adding '%s' datasets to the plotter object" % (len(datasetObjects) ) )
+        self.Verbose("Adding '%s' Datasets (or DatasetMerged) objects to the plotter object" % (len(datasetObjects) ) )
 
         for dm in datasetObjects:
-            if isinstance(dm, DatasetMerged):
-                self.DatasetsMerged.append(dm)
-
-        for dataset in datasetObjects:
-            if isinstance(dataset, Dataset):
-                self.Verbose("Adding dataset %s from file %s." % ( dataset.name, dataset.GetRootFile().GetName() ) )
-                self.AddDataset(dataset)
-            elif isinstance(dataset, DatasetMerged):
-                # print dataset.PrintProperties()
-                for d in dataset.GetDatasets():
-                    self.Verbose("Adding dataset %s from file %s." % ( d.name, d.GetRootFile().GetName() ) )
+            if isinstance(dm, Dataset):
+                self.AddDataset(dm)
+            elif isinstance(dm, DatasetMerged):
+                self.MergedDatasets.append(dm)
+                for d in dm.GetDatasets():
                     self.AddDataset(d)
             else:
-                raise Exception("Cannot add object of typ \"%s\" to dataset list" % (type(d)))
+                raise Exception("Cannot add object of type \"%s\" to dataset list" % (type(dm)))
         return
 
 
@@ -506,8 +567,8 @@ class Plotter(object):
     def GetDatasetNames(self):
         self.Verbose()
         dNames = []
-        for d in self.Datasets:
-            dNames.append( d.GetAttribute("name") )
+        for d in self.GetDatasets():
+            dNames.append( d.GetName() )
         return dNames
     
         
@@ -775,42 +836,6 @@ class Plotter(object):
         self.ExtendDrawLists(self.TLegend, addToRatio=False)
         return
 
-
-    def _DrawLegendDumbie(self):
-        '''
-        Why create a TLegend dumbie? It is a beautification trick. On top of the first legend 
-        we superimpose a second TLegend with exactly the same histograms (legend entries).
-        Only this time we change the line colour of all histograms and set it to black. The effect
-        is that each histogram legend entry box now has a black border line.
-
-        NOTE: I could not use copy.deepcopy in the Histos loop because it crashes (don't know why)
-        As a result, inside the loop I get REFERENCES to the hitograms. So changing the line colour 
-        affects all drawn histograms. For this reason this method must be called AFTER drawing all 
-        Pad and Ratio plots, otherwise they will show up with black lines
-        '''
-        self.Verbose()
-
-        if hasattr(self, 'TLegendDumbie'):
-            return
-
-        if "F" not in self.THDumbie.legOptions:
-            return
-        
-        self.TLegendDumbie = ROOT.TLegend(self.THDumbie.xLegMin, self.THDumbie.yLegMin, self.THDumbie.xLegMax, self.THDumbie.yLegMax, "", "brNDC")
-        self._CustomiseLegend(self.TLegendDumbie)
-
-        for h in self.GetHistos():
-            h.THisto.SetLineColor(ROOT.kBlack)
-            h.THisto.SetLineStyle(ROOT.kSolid)
-            self.TLegendDumbie.AddEntry(h.THisto, "", "F")
-
-        self.TLegendDumbie.SetY1(self.TLegend.GetY1())
-        self.TLegendDumbie.SetY2(self.TLegend.GetY2())
-        self.TLegendDumbie.SetX1(self.TLegend.GetX1())
-        self.TLegendDumbie.SetX2(self.TLegend.GetX2())
-        self.TLegendDumbie.Draw("same")
-        return
-    
 
     def _CustomiseLegend(self, legend):
         self.Verbose()
@@ -1112,7 +1137,6 @@ class Plotter(object):
         if isinstance(drawObject, histos.DrawObject):
             histo  = drawObject.THisto
             label  = self.GetLegLabel(drawObject)
-            opts   = drawObject.GetAttribute("legOptions")
             self.TLegend.AddEntry(histo, label, opts)            
         elif isinstance(drawObject, (ROOT.TH1, ROOT.TH2, ROOT.TH3, ROOT.TLine, ROOT.TBox) ):
             self.TLegend.AddEntry(drawObject, label, opts)            
@@ -1189,145 +1213,174 @@ class Plotter(object):
             self._CheckHistoBinning(dataset.histo)
         return 
     
-
-    def _AddDataHistoToDrawList(self):    
+    
+    def GetDatasetObjectHistoCopy(self, datasetObject):
+        '''
+        Takes as input a Dataset (or DatasetMerged) object. Return a deep-copy 
+        of the associated histogram (histograms).
+        '''
         self.Verbose()
 
-        mdDict  = {}
-        mdNames = []
-        for dm in self.DatasetsMerged:
-            if dm.GetName() != "Data":
-                continue            
-            for d in dm.GetDatasets():
-                mdNames.append(d.GetName())
-            mdDict[dm.GetName()] = mdNames
-
-        totalIntegral = 0 #xenios
-        # For-loop: All histos
-        for histo in self.GetHistos():
-            if histo.dataset._IsMC():
-                continue
-            else:
-                if histo.dataset.GetName() in mdNames:
-                    continue
+        if isinstance(datasetObject, Dataset):
+            histo = copy.deepcopy(datasetObject.histo.THisto)
+            return histo
+        elif isinstance(datasetObject, DatasetMerged):
+            histo = None
+            for d in datasetObject.GetDatasets():
+                if histo == None:
+                    histo = copy.deepcopy(d.histo.THisto)
                 else:
-                    totalIntegral += histo.THisto.GetBinContent(16) #xenios
-                    #binNumber      = self.GetBinNumberFromBinLabel(histo.THisto, "passed MET selection ()")
-                    #print "binNumber(Passed Trigger) = ", binNumber
-                    #sys.exit()
-                    self.ExtendDrawLists(histo.THisto, False, True)
-                    self.ExtendLegend(histo.THisto, self.GetLegLabel(histo), "LP" )            
-
-                    
-        #print "Data = ", totalIntegral #xenios
-
-        # For-loop: All merged datasets
-        for mergeName in mdDict:
-            mdNames = mdDict[mergeName]
-            histo   = None
-
-            # For-loop: All histos
-            for h in self.GetHistos():
-                if h.dataset.GetName() in mdNames:
-                    if histo==None:
-                        histo = copy.deepcopy(h.THisto)
-                    else:
-                        histo.Add(h.THisto)
-            #print "2)", histo.Integral() #should agree with sum of 1)
-
-            # Add combined histos to merge drawing list
-            self.ExtendDrawLists(histo, False, True)
-            self.ExtendLegend(histo, mergeName, "LP" )            
-            
-        return
+                    histo.Add(d.histo.THisto)
+            return histo
 
 
-    def _AddHistosToStack(self):
+    def GetDatasetObjectDrawObject(self, datasetObject):
         '''
-        Add all histograms (except Dumbie) to a THStack. For each histogram add a TLegend entry
+        Takes as input a Dataset (or DatasetMerged) object. Return the 
+        drawObject of (one of) the datsets.
+        '''
+        self.Verbose()
+
+        if isinstance(datasetObject, Dataset):
+            drawObject = copy.deepcopy(datasetObject.histo)
+            return drawObject
+        elif isinstance(datasetObject, DatasetMerged):
+            for d in datasetObject.GetDatasets():
+                drawObject = copy.deepcopy(d.histo)
+                return drawObject
+        
+
+    def _CreateDataHistoStack(self):
+        '''
+        Add all Data histograms to a THStack. For each histogram add a TLegend entry
         and automatically extend the size of the TLegend to accomodate the next entry.
         '''
         self.Verbose()
 
-        mdDict  = {}
-        mdNames = []
-        for dm in self.DatasetsMerged:
-            if dm.GetName() == "Data":
-                continue            
-            for d in dm.GetDatasets():
-                if d.GetIsData():
-                    continue
-                mdNames.append(d.GetName())
-            mdDict[dm.GetName()] = mdNames
+        histo      = None
+        ignoreList = []
 
-        totalIntegralMC = 0 #xenios
-        # For-loop: All histos
-        for histo in self.GetHistos():
-            if histo.dataset.GetIsData():
+        # For loop: All DatasetMerged objects
+        for dm in self.GetMergedDatasets():
+            if dm.GetIsMC():
                 continue
             else:
-                if histo.dataset.GetName() in mdNames:
-                    continue
-                else:
-                    totalIntegralMC += histo.THisto.GetBinContent(16) #xenios
-                    self.THStackMC.Add(histo.THisto)
-                    self.ExtendLegend(histo)
-                    
-        #print "MC = ", totalIntegralMC #xenios
-        
-        # For-loop: All merged datasets
-        for mergeName in mdDict:
-            mdNames = mdDict[mergeName]
-            histo   = None
-            
-            # For-loop: All histos
-            for h in self.GetHistos():
-                if h.dataset.GetIsData():
-                    continue
+                histo   = self.GetDatasetObjectHistoCopy(dm)
+                drawObj = self.GetDatasetObjectDrawObject(dm)
+                self.THStackData.Add(histo)
+                self.Verbose("Adding dataset \"%s\" to the MC THStack" % (dm.GetName() ))
+                self.ExtendLegend(histo, dm.GetName(), "LP")
+                for d in dm.GetDatasets():
+                    ignoreList.append( d.GetName() )
 
-                if h.dataset.GetName() in mdNames:
-                    if histo==None:
-                        histo = copy.deepcopy(h.THisto)
-                    else:
-                        histo.Add(h.THisto)
-            #print "2)", histo.Integral() #should agree with sum of 1)
-
-            # Add combined histos to merge drawing list
-            self.THStackMC.Add(histo)
-            self.ExtendLegend(histo, mergeName, "F")
+        # For loop: All Dataset objects
+        for d in self.GetDataDatasets():
+            if d.GetName() in ignoreList:
+                continue
+            else:
+                histo   = self.GetDatasetObjectHistoCopy(d)
+                drawObj = self.GetDatasetObjectDrawObject(d)
+                self.THStackData.Add(histo)
+                self.Verbose("Adding dataset \"%s\" to the MC THStack" % (d.GetName() ))
+                self.ExtendLegend(histo, self.GetLegLabel(drawObj), "LP")
         return
 
+
+    def _CreateMcHistoStack(self):
+        '''
+        Add all MC histograms to a THStack. For each histogram add a TLegend entry
+        and automatically extend the size of the TLegend to accomodate the next entry.
+        '''
+        self.Verbose()
+
+        histo      = None
+        ignoreList = []
+        
+        # For loop: All DatasetMerged objects
+        for dm in self.GetMergedDatasets():
+            if dm.GetIsData():
+                continue
+            else:
+                histo   = self.GetDatasetObjectHistoCopy(dm)
+                drawObj = self.GetDatasetObjectDrawObject(dm)
+                self.THStackMC.Add(histo)
+                self.Verbose("Adding dataset \"%s\" to the MC THStack" % (dm.GetName() ))
+                self.ExtendLegend(histo, dm.GetName(), self.GetLegOptions())
+                for d in dm.GetDatasets():
+                    ignoreList.append( d.GetName() )
+
+        # For loop: All Dataset objects
+        for d in self.GetMcDatasets():
+            if d.GetName() in ignoreList:
+                continue
+            else:
+                histo   = self.GetDatasetObjectHistoCopy(d)
+                drawObj = self.GetDatasetObjectDrawObject(d)
+                self.THStackMC.Add(histo)
+                self.Verbose("Adding dataset \"%s\" to the MC THStack" % (d.GetName() ))
+                self.ExtendLegend(histo, self.GetLegLabel(drawObj), self.GetLegOptions())
+        return
+
+
     
-    def _AddHistosToRatioStack(self, ratioStackOpts, refDataset):
+    def _CreateRatioHistoStack(self, ratioStackOpts, refDataset):
         self.Verbose()
 
         # The reference histogram is the numerator histogram
         (hNumerator, colour) = self._GetRatioReferenceHisto(refDataset)
+
+        if hNumerator==None:
+            raise Exception("Cannot find reference dataset \"%s\". Are you sure it exists? Available datasets are: \n\t %s" % (refDataset, "\n\t ".join(self.GetDatasetNames())))
         
         if "nostack" in ratioStackOpts:
-            for h in self.GetHistos():
-                if h.dataset.GetName() != refDataset:
-                    hRatio = copy.deepcopy(h.THisto)
-                    hRatio.Reset("ICES")
-                    hDenominator = copy.deepcopy(h.THisto)
-                    hRatio.Divide(hNumerator, hDenominator, 1.0, 1.0, "B")
-                    self.THStackRatio.Add(hRatio)
+            hRatioList = self._GetRatioHistoList(hNumerator, refDataset)
+            for hRatio in hRatioList:
+                self.THStackRatio.Add(hRatio)
         else:
-            hDenominator = copy.deepcopy(hNumerator)
-            hDenominator.Reset("ICES")
-            hRatio = copy.deepcopy(hNumerator)
-            hRatio.Reset("ICES")
-            for h in self.GetHistos():            
-                if h.dataset.name != refDataset:
-                    hDenominator.Add(h.THisto)
-            hRatio.Divide(hNumerator, hDenominator, 1.0, 1.0, "B")
+            hRatio = self._GetRatioHisto(hNumerator, refDataset)
             self.THStackRatio.Add(hRatio)
 
         # Add a line at y=1
         line = self._GetTLine(self.THDumbie.xMin, self.THDumbie.xMax, 1.0, 1.0, colour, 2, ROOT.kSolid)
-        self.ExtendDrawLists(line, addToRatio=True, addToPlot=False)
-            
+        self.ExtendDrawLists(line, addToRatio=True, addToPlot=False)            
         return
+
+
+    def _GetRatioHistoList(self, hNumerator, refDataset):
+        '''
+        '''
+        self.Verbose()
+
+        hList = []
+        for dm in self.GetDatasets():
+            if dm.GetName() == refDataset:
+                continue
+            else:
+                hDenominator = self.GetDatasetObjectHistoCopy(dm)
+                hRatio       = self.GetDatasetObjectHistoCopy(dm)
+                hRatio.Reset("ICES")            
+                hRatio.Divide(hNumerator, hDenominator, 1.0, 1.0, "B")
+                hList.append(hRatio)
+        return hList
+
+
+    def _GetRatioHisto(self, hNumerator, refDataset):
+        '''
+        '''
+        self.Verbose()
+
+        hDenominator = copy.deepcopy(hNumerator)
+        hRatio       = copy.deepcopy(hNumerator)
+        hRatio.Reset()
+        hDenominator.Reset()
+        for dm in self.GetDatasets():
+            if dm.GetName() == refDataset:
+                continue
+            else:
+                h = self.GetDatasetObjectHistoCopy(dm)
+                hDenominator.Add(h)
+        hRatio.Divide(hNumerator, hDenominator, 1.0, 1.0, "B")
+        return hRatio
     
 
     def SetHistosFillStyle(self, style):
@@ -1432,31 +1485,75 @@ class Plotter(object):
         return
     
 
-    def Draw(self, stackOpts=""):
+    def _SaveDrawOpts(self, drawOpts):
         self.Verbose()
 
-        opts = ["", "stack", "nostack", "nostackb", "pads"]
-        if stackOpts not in opts:
-            raise Exception( "Invalid THStack drawing option '%s'. Please select one of the following: %s" % (stackOpts, opts))
-        
+        myOpts = ["", "A", "P", "L", "HIST", "9", "nostack", "stack", "nostackb"]
+        for o in drawOpts.split(","):
+            if o not in myOpts:
+                raise Exception( "Invalid drawing option '%s'. Please select one of the following: %s" % (o, myOpts) )
+
+        self.drawOpts = drawOpts
+        return
+
+
+    def _SaveRatioDrawOpts(self, drawOpts):
+        self.Verbose()
+
+        myOpts = ["", "A", "P", "L", "HIST", "9", "nostack", "stack"]
+        for o in drawOpts.split(","):
+            if o not in myOpts:
+                raise Exception( "Invalid THStackRatio drawing option '%s'. Please select one of the following: %s" % (o, myOpts) )
+
+        self.drawOptsRatio = drawOpts
+        return
+
+
+    def GetDrawOpts(self):
+        return self.drawOpts
+
+
+    def GetDrawOptsRatio(self):
+        return self.drawOptsRatio
+
+    
+    def Draw(self, drawOpts="", ratioDrawOpts=None, refDataset=None):
+        self.Verbose()
+            
+        if ratioDrawOpts==None:
+            self._SaveDrawOpts(drawOpts)
+            self._Draw(drawOpts)
+        else:
+            if refDataset == None:
+                raise Exception( "Cannot draw ratio pad without a reference datasets. Please provide the name of a dataset as argument")
+            else:
+                self._SaveDrawOpts(drawOpts)
+                self._SaveRatioDrawOpts(ratioDrawOpts)
+                self._DrawRatio(drawOpts, ratioDrawOpts, refDataset)
+        return
+
+
+    def _Draw(self, stackOpts="", ratioStackOpts=None, refDataset=None):
+        self.Verbose()
+
         self._CreateCanvas()
         self._CheckHistosBinning()
-        self._AddDataHistoToDrawList()
-        self._AddHistosToStack()
+        self._CreateDataHistoStack()
+        self._CreateMcHistoStack()
         self._DrawHistos(stackOpts)
         self._DrawItemsInDrawList()
         self._RedrawSelectedObjects()
         return
 
     
-    def DrawRatio(self, stackOpts, ratioStackOpts, refDataset):
+    def _DrawRatio(self, stackOpts, ratioStackOpts, refDataset):
         self.Verbose()
     
         self._CreateCanvas(True)
         self._CheckHistosBinning()
-        self._AddDataHistoToDrawList()
-        self._AddHistosToStack()
-        self._AddHistosToRatioStack(ratioStackOpts, refDataset)
+        self._CreateDataHistoStack()
+        self._CreateMcHistoStack()
+        self._CreateRatioHistoStack(ratioStackOpts, refDataset)
         self._DrawHistos(stackOpts)
         self._DrawHistosRatio(ratioStackOpts)
         self._DrawItemsInDrawList()
@@ -1473,7 +1570,6 @@ class Plotter(object):
             self.TPadPlot.cd()
             
         self.TLegend.Draw("same")
-        self._DrawLegendDumbie()
         self.THDumbie.THisto.Draw("same")
         self.UpdateCanvas()
         return
@@ -1520,6 +1616,16 @@ class Plotter(object):
     def GetTHStackMC(self):
         self.Verbose()
         return self.THStackMC
+
+
+    def GetTHStackData(self):
+        self.Verbose()
+        return self.THStackData
+
+    
+    def GetTHStackRatio(self):
+        self.Verbose()
+        return self.THStackRatio
 
 
     def GetTHDumbie(self):

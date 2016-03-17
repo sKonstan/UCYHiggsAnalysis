@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 '''
 Usage: 
-multicrabcreate.py [multicrab-dir-to-be-resubmitted]
+multicrabCreate.py [multicrab-dir-to-be-resubmitted]
 
 Description:
 This script is used to launch multicrab jobs, with certain customisable options.

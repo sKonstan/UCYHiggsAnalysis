@@ -33,27 +33,26 @@ Jets = cms.VPSet(
             ),
         ),
 
-    #ms.PSet(
-    #   branchName     = cms.untracked.string("PuppiJets"),
-    #   debugMode      = cms.untracked.bool(False),
-    #   src            = cms.InputTag("slimmedJetsPuppi"), #patJetsReapplyJECPuppi # made from ak4PFJets
-    #   jecPayload     = JECpayloadAK4PFPuppi.payload,
-    #   discriminators = cms.vstring(
-    #       "combinedSecondaryVertexBJetTags",
-    #       "pfJetBProbabilityBJetTags",
-    #       "pfJetProbabilityBJetTags", 
-    #       "pfTrackCountingHighPurBJetTags",
-    #       "pfTrackCountingHighEffBJetTags",
-    #       "pfSimpleSecondaryVertexHighEffBJetTags", 
-    #       "pfSimpleSecondaryVertexHighPurBJetTags", 
-    #       "pfCombinedSecondaryVertexV2BJetTags",
-    #       "pfCombinedInclusiveSecondaryVertexV2BJetTags",
-    #       "pfCombinedSecondaryVertexSoftLeptonBJetTags", #empty?
-    #       "pfCombinedMVABJetTags",
-    #       ),
-    #   userFloats = cms.vstring(
-    #       "pileupJetId:fullDiscriminant"
-    #       ),
-    #   )
-
+    cms.PSet(
+        branchName     = cms.untracked.string("PuppiJets"),
+        debugMode      = cms.untracked.bool(False),
+        src            = cms.InputTag("slimmedJetsPuppi"), #patJetsReapplyJECPuppi # made from ak4PFJets
+        jecPayload     = JECpayloadAK4PFPuppi.payload,
+        discriminators = cms.vstring(
+            "combinedSecondaryVertexBJetTags",
+            "pfJetBProbabilityBJetTags",
+            "pfJetProbabilityBJetTags", 
+            "pfTrackCountingHighPurBJetTags",
+            "pfTrackCountingHighEffBJetTags",
+            "pfSimpleSecondaryVertexHighEffBJetTags", 
+            "pfSimpleSecondaryVertexHighPurBJetTags", 
+            "pfCombinedSecondaryVertexV2BJetTags",
+            "pfCombinedInclusiveSecondaryVertexV2BJetTags",
+            "pfCombinedSecondaryVertexSoftLeptonBJetTags", #empty?
+            "pfCombinedMVABJetTags",
+            ),
+        userFloats = cms.vstring(
+            "pileupJetId:fullDiscriminant"
+            ),
+        )    
     )

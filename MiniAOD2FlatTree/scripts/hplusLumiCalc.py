@@ -23,10 +23,9 @@ pu_re = re.compile("\|\s+\S+\s+\|\s+\S+\s+\|\s+.*\s+\|\s+.*\s+\|\s+\S+\s+\|\s+\S
 
 def isMCTask(taskdir):
     crabCfg = "crabConfig_"+taskdir+".py"
-    #if not os.path.exists(crabCfg):
-    #    print "crab.cfg at %s doesn't exist, assuming task is MC" % crabCfg
-    #    return True
-    #crabCfg = "crabConfig_"+taskdir+".py"
+    if not os.path.exists(crabCfg):
+        print "crab.cfg at %s doesn't exist, assuming task is MC" % crabCfg
+        return True
 
     f = open(crabCfg)
     isData = False
@@ -117,18 +116,6 @@ def main(opts, args):
     for task, jsonfile in files:
         lumicalc = opts.lumicalc
 
-        #print
-        #print "================================================================================"
-        #print "Dataset %s:" % d
-#        if lumicalc == "lumiCalc1":
-#            cmd = ["lumiCalc.py", "-i", jsonfile, "--with-correction", "--nowarning", "overview", "-b", "stable"]
-#        if lumicalc == "lumiCalc2":
-#            cmd = ["lumiCalc2.py", "-i", jsonfile, "--nowarning", "overview", "-b", "stable"]
-#        if lumicalc == "pixelLumiCalc":
-#            cmd = ["pixelLumiCalc.py", "-i", jsonfile, "--nowarning", "overview"]
-        #cmd = ["lumiCalc.py", "-c", "frontier://LumiCalc/CMS_LUMI_PROD", "-r", "132440", "--nowarning", "overview"]
-        #ret = subprocess.call(cmd)
-
 	# brilcalc lumi -u /pb -i JSON-file
         home = os.environ['HOME']
         path = os.path.join(home,".local/bin")
@@ -166,7 +153,7 @@ def main(opts, args):
             m = lumi_re.search(line)
             if m:
                 lumi = float(m.group("recorded")) # lumiCalc2.py returns pb^-1
-
+                
         if unit == None:
             raise Exception("Didn't find unit information from lumiCalc output, command was %s" % " ".join(cmd))
         lumi = convertLumi(lumi, unit)

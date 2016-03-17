@@ -42,22 +42,21 @@ class StyleClass(object):
         self.fillStyleCounter       = {}
         self.lineStyleCounter       = {}
         self.colourShade            = {}
-        self.MsgCounter             = 0
-        self._SetDefaults("ST_s_channel_4f_leptonDecays", colour=ROOT.kYellow-7, mStyle=ROOT.kCircle, lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, mSize = 1.0, drawOpts="HIST", legOpts="F")            
-        self._SetDefaults("ST_t_channel_top_4f_leptonDecays", colour=ROOT.kYellow-9, mStyle=ROOT.kCircle, lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, mSize = 1.0, drawOpts="HIST", legOpts="F")
-        self._SetDefaults("ST_t_channel_antitop_4f_leptonDecays", colour=ROOT.kYellow-5, mStyle=ROOT.kCircle, lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, mSize = 1.0, drawOpts="HIST", legOpts="F")
-        self._SetDefaults("ST_tW_antitop_5f_inclusiveDecays", colour=ROOT.kGray+1, mStyle=ROOT.kCircle, lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, mSize = 1.0, drawOpts="HIST", legOpts="F")
-        self._SetDefaults("ST_tW_top_5f_inclusiveDecays", colour=ROOT.kGray+2, mStyle=ROOT.kCircle, lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, mSize = 1.0, drawOpts="HIST", legOpts="F")
-        self._SetDefaults("ttHJetToNonbb_M125" , colour=ROOT.kOrange+10, mStyle=ROOT.kOpenCircle      , lWidth=2, lStyle=ROOT.kSolid, fStyle=1001, mSize = 1.0, drawOpts="HIST", legOpts="F")
-        self._SetDefaults("TTJets"             , colour=ROOT.kGray     , mStyle=ROOT.kCircle          , lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, mSize = 1.0, drawOpts="HIST", legOpts="F")
-        self._SetDefaults("DYJetsToLL_M_10to50", colour=ROOT.kGreen-9  , mStyle=ROOT.kOpenTriangleUp  , lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, mSize = 1.0, drawOpts="HIST", legOpts="F")
-        self._SetDefaults("DYJetsToLL_M_50", colour=ROOT.kGreen+3  , mStyle=ROOT.kOpenTriangleUp  , lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, mSize = 1.0, drawOpts="HIST", legOpts="F")
-        self._SetDefaults("WJetsToLNu"         , colour=ROOT.kMagenta-7, mStyle=ROOT.kOpenTriangleDown, lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, mSize = 1.0, drawOpts="HIST", legOpts="F")
-        self._SetDefaults("WW"                 , colour=ROOT.kBlue-4   , mStyle=ROOT.kMultiply        , lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, mSize = 1.0, drawOpts="HIST", legOpts="F")
-        self._SetDefaults("WZ"                 , colour=ROOT.kCyan-7   , mStyle=ROOT.kOpenSquare      , lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, mSize = 1.0, drawOpts="HIST", legOpts="F")
-        self._SetDefaults("ZZ"                 , colour=ROOT.kAzure+5, mStyle=ROOT.kOpenTriangleUp  , lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, mSize = 1.0, drawOpts="HIST", legOpts="F")
-        self._SetDefaults("Data"               , colour=ROOT.kBlack    , mStyle=ROOT.kFullCircle      , lWidth=2, lStyle=ROOT.kSolid, fStyle=1001, mSize = 1.0, drawOpts="P", legOpts="LP")
-        self._SetSpecials("random", colour = cycle(self.colourPaletteList).next(), mStyle=ROOT.kFullCircle, lWidth=3, lStyle=0, fStyle=3001, drawOpts="HIST", legOpts="F")
+        self._SetDefaults("ST_s_channel_4f_leptonDecays"        , colour=ROOT.kYellow-7, mStyle=ROOT.kCircle, lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, mSize = 1.0)            
+        self._SetDefaults("ST_t_channel_top_4f_leptonDecays"    , colour=ROOT.kYellow-9, mStyle=ROOT.kCircle, lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, mSize = 1.0)
+        self._SetDefaults("ST_t_channel_antitop_4f_leptonDecays", colour=ROOT.kYellow-5, mStyle=ROOT.kCircle, lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, mSize = 1.0)
+        self._SetDefaults("ST_tW_antitop_5f_inclusiveDecays"    , colour=ROOT.kGray+1  , mStyle=ROOT.kCircle, lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, mSize = 1.0)
+        self._SetDefaults("ST_tW_top_5f_inclusiveDecays"        , colour=ROOT.kGray+2  , mStyle=ROOT.kCircle, lWidth=2, lStyle=ROOT.kSolid , fStyle=1001, mSize = 1.0)
+        self._SetDefaults("ttHJetToNonbb_M125" , colour=ROOT.kOrange+10, mStyle=ROOT.kOpenCircle      , lWidth=2, lStyle=ROOT.kSolid, fStyle=1001, mSize = 1.0)
+        self._SetDefaults("DYJetsToLL_M_10to50", colour=ROOT.kGreen-9  , mStyle=ROOT.kOpenTriangleUp  , lWidth=2, lStyle=ROOT.kSolid, fStyle=1001, mSize = 1.0)
+        self._SetDefaults("DYJetsToLL_M_50"    , colour=ROOT.kGreen+3  , mStyle=ROOT.kOpenTriangleUp  , lWidth=2, lStyle=ROOT.kSolid, fStyle=1001, mSize = 1.0)
+        self._SetDefaults("WJetsToLNu"         , colour=ROOT.kMagenta-7, mStyle=ROOT.kOpenTriangleDown, lWidth=2, lStyle=ROOT.kSolid, fStyle=1001, mSize = 1.0)
+        self._SetDefaults("TTJets", colour=ROOT.kGray   , mStyle=ROOT.kCircle          , lWidth=2, lStyle=ROOT.kSolid, fStyle=1001, mSize = 1.0)
+        self._SetDefaults("WW"    , colour=ROOT.kBlue-4 , mStyle=ROOT.kMultiply        , lWidth=2, lStyle=ROOT.kSolid, fStyle=1001, mSize = 1.0)
+        self._SetDefaults("WZ"    , colour=ROOT.kCyan-7 , mStyle=ROOT.kOpenSquare      , lWidth=2, lStyle=ROOT.kSolid, fStyle=1001, mSize = 1.0)
+        self._SetDefaults("ZZ"    , colour=ROOT.kAzure+5, mStyle=ROOT.kOpenTriangleUp  , lWidth=2, lStyle=ROOT.kSolid, fStyle=1001, mSize = 1.0)
+        self._SetDefaults("Data"  , colour=ROOT.kBlack  , mStyle=ROOT.kFullCircle      , lWidth=2, lStyle=ROOT.kSolid, fStyle=1001, mSize = 1.0)
+        self._SetSpecials("random", colour = cycle(self.colourPaletteList).next(), mStyle=ROOT.kFullCircle, lWidth=3, lStyle=0, fStyle=3001)
         self.Verbose()
         return
 
@@ -189,9 +188,7 @@ class StyleClass(object):
         lineWidth   = getattr(self, styleType + "_lWidth"   )
         lineStyle   = getattr(self, styleType + "_lStyle"   )
         fillStyle   = getattr(self, styleType + "_fStyle"   )
-        drawOptions = getattr(self, styleType + "_drawOpts" )
-        legOptions  = getattr(self, styleType + "_legOpts"  )
-        return (fillColour, lineColour, markerStyle, markerSize, lineWidth, lineStyle, fillStyle, drawOptions, legOptions)
+        return (fillColour, lineColour, markerStyle, markerSize, lineWidth, lineStyle, fillStyle)
 
 
     def _GetTGraphValues(self, styleType):
@@ -206,9 +203,7 @@ class StyleClass(object):
         lineWidth   = getattr(self, styleType + "_lineWidth" )
         lineStyle   = getattr(self, styleType + "_lineStyle" )
         fillStyle   = 3002 #self.fillStyleCounter[styleType].next()
-        drawOptions = getattr(self, styleType + "_drawOptions" )
-        legOptions  = getattr(self, styleType + "_legOptions" )
-        return (fillColour, lineColour, markerStyle, markerSize, lineWidth, lineStyle, fillStyle, drawOptions, legOptions)
+        return (fillColour, lineColour, markerStyle, markerSize, lineWidth, lineStyle, fillStyle)
 
 
     def _GetTH1SpecialValues(self, styleType):
@@ -223,9 +218,7 @@ class StyleClass(object):
         lineWidth   = getattr(self, styleType + "_lineWidth" )
         lineStyle   = getattr(self, styleType + "_lineStyle" )
         fillStyle   = getattr(self, styleType + "_fillStyle" )
-        drawOptions = getattr(self, styleType + "_drawOptions" )
-        legOptions  = getattr(self, styleType + "_legOptions" )
-        return (fillColour, lineColour, markerStyle, markerSize, lineWidth, lineStyle, fillStyle, drawOptions, legOptions)
+        return (fillColour, lineColour, markerStyle, markerSize, lineWidth, lineStyle, fillStyle)
 
 
     def _GetTH2Values(self, styleType):
@@ -239,12 +232,8 @@ class StyleClass(object):
         markerSize  = getattr(self, styleType + "_mSize"    )
         lineWidth   = getattr(self, styleType + "_lineWidth" )
         lineStyle   = getattr(self, styleType + "_lineStyle" ) # + self.lineStyleCounter[styleType].next()
-
         fillStyle   = getattr(self, styleType + "_fillStyle" ) # + self.fillStyleCounter[styleType].next()
-
-        drawOptions = "COL"
-        legOptions  = getattr(self, styleType + "_legOptions" )
-        return (fillColour, lineColour, markerStyle, markerSize, lineWidth, lineStyle, fillStyle, drawOptions, legOptions)
+        return (fillColour, lineColour, markerStyle, markerSize, lineWidth, lineStyle, fillStyle)
 
 
     def PrintAttributes(self):

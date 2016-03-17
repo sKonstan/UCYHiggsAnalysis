@@ -42,6 +42,7 @@ latexNamesDict["MuonEG_Run2015D_05Oct2015_v2_246908_260426_25ns_Silver"]      = 
 latexNamesDict["Data"]      = "Data"
 latexNamesDict["Bkg"]       = "Bkg"
 latexNamesDict["Single t"]  = "Single top"
+latexNamesDict["Diboson"]   = "Diboson"
 
 _debugNAllEvents = False
 
@@ -586,6 +587,7 @@ class Dataset(object):
         self.lumi = lumi
         return
 
+    
     def SetIntegratedLuminosity(self, intLumi):
         self.Verbose()
         self.intLumi = intLumi
@@ -595,13 +597,11 @@ class Dataset(object):
     def GetLuminosity(self):
         self.Verbose()
         return self.lumi
-        return
 
 
     def GetIntLuminosity(self):
         self.Verbose()
         return self.intLumi
-        return
 
 
     def SetXSection(self, xSection):
@@ -953,7 +953,7 @@ class DatasetMerged(object):
         self.energy           = self._GetEnergy()
         self.xsection         = self._GetXSection()
         self.lumi             = self._GetLuminosity()
-        self.intLumi          = self.lumi
+        self.intLumi          = self._GetIntLuminosity()
         self.dataVersion      = self._GetDataVersion()
         self.unweightedEvents = self._GetUnweightedEvents()
         self.weightedEvents   = self._GetWeightedEvents()
@@ -1010,6 +1010,23 @@ class DatasetMerged(object):
                 raise Exception("=== dataset.py:\n\t ", msg)
         self.info["luminosity"] = lumiSum
         return lumiSum
+
+
+
+    def _GetIntLuminosity(self):
+        self.Verbose()
+
+        intLumi = self.datasets[0].GetIntLuminosity()
+
+        for d in self.GetDatasets():
+            lumi = d.GetIntLuminosity()
+            if lumi != intLumi :
+                msg = "Merged dataset \"%s\" (\"\%s\") contains dataset with different intLumi (\"%s\")" % (self.GetName(), intLumi, d.GetName(), lumi)
+                raise Exception(msg)
+            else:
+                pass
+        self.info["intLumi"] = intLumi
+        return intLumi
 
 
     def GetIntLuminosity(self):
@@ -1933,7 +1950,6 @@ class DatasetManager(object):
         self.datasets.insert(firstIndex, newDataset)
         self._PopulateMap()
         print "\t\"%s\" successfully created by merging %s datasets:\n\t %s" % (newName, len(nameList), ", ".join(nameList) )
-        # print "\t\"%s\" successfully created by merging %s datasets:\n\t %s" % (newName, len(nameList), "\n\t ".join(nameList) )
         return
     
         
@@ -2066,8 +2082,8 @@ class DatasetManager(object):
         rows   = []
         info   = []
         maxCh  = 30
-        align  = "{:<30} {:>12} {:>12} {:>15} {:>12} {:>14} {:>12} {:>12} {:>16}"
-        header = align.format("Dataset", "Events", "w-Events", "XSection (pb)", "Lumi (1/pb)", "Norm Factor", "w (Pileup)", "w (Top-Pt)", "Int-Lumi (1/pb)")
+        align  = "{:<30} {:>16} {:>12} {:>12} {:>15} {:>12} {:>14} {:>12} {:>12} {:>16}"
+        header = align.format("Dataset", "Type", "Events", "w-Events", "XSection (pb)", "Lumi (1/pb)", "Norm Factor", "w (Pileup)", "w (Top-Pt)", "Int-Lumi (1/pb)")
         hLine  = "="*len(header)
         info.append(hLine)
         info.append(header)
@@ -2086,6 +2102,7 @@ class DatasetManager(object):
             allEvents        = '%.1f' % ( dataset.GetAllEvents())
             unweightedEvents = '%.1f' % ( dataset.GetUnweightedEvents() )
             weightedEvents   = '%.1f' % ( dataset.GetWeightedEvents() )
+            dType            = type(dataset).__name__
             if dataset.GetPileupWeight()!=None:
                 pileupWeight     = '%.2f' % (dataset.GetPileupWeight() )
             else:
@@ -2094,7 +2111,7 @@ class DatasetManager(object):
                 topPtWeight      = '%.2f' % (dataset.GetTopPtWeight() ) 
             else:
                 topPtWeight      = dataset.GetTopPtWeight()
-            info.append(align.format(shortName, unweightedEvents, allEvents, xsection, lumi, normFactor, pileupWeight, topPtWeight, intLumi))
+            info.append(align.format(shortName, dType, unweightedEvents, allEvents, xsection, lumi, normFactor, pileupWeight, topPtWeight, intLumi))
 
         for dataset in self.datasets:
             if dataset.GetIsData():
@@ -2113,6 +2130,7 @@ class DatasetManager(object):
             allEvents        = '%.1f' % (dataset.GetAllEvents())
             unweightedEvents = '%.1f' % (dataset.GetUnweightedEvents() )
             weightedEvents   = '%.1f' % (dataset.GetWeightedEvents() )
+            dType            = type(dataset).__name__
             if dataset.GetPileupWeight()!=None:
                 pileupWeight     = '%.2f' % (dataset.GetPileupWeight() )
             else:
@@ -2121,7 +2139,7 @@ class DatasetManager(object):
                 topPtWeight      = '%.2f' % (dataset.GetTopPtWeight() ) 
             else:
                 topPtWeight      = dataset.GetTopPtWeight()
-            info.append(align.format(shortName, unweightedEvents, allEvents, xsection, lumi, normFactor, pileupWeight, topPtWeight, intLumi))
+            info.append(align.format(shortName, dType, unweightedEvents, allEvents, xsection, lumi, normFactor, pileupWeight, topPtWeight, intLumi))
         info.append(hLine)
         return info
 

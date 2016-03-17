@@ -45,7 +45,6 @@ dataset          = "/MuonEG/Run2015C_25ns-05Oct2015-v1/MINIAOD"
 #dataset          = "/ZZ_TuneCUETP8M1_13TeV-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
 #dataset          = "/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM"
 
-
 # For Debugging Purposes:
 bDebug      = False   #Default is "False"
 RunNum_1    = 1       #Default is "None"
@@ -245,7 +244,7 @@ process.dump = cms.EDFilter('MiniAOD2FlatTreeFilter',
                             Taus      = process.Taus,                             
                             Electrons = process.Electrons,
                             Muons     = process.Muons,
-                            Jets      = process.Jets, #NB: PuppiJets disabled
+                            Jets      = process.Jets,
                             METs      = process.METs,
 
                             GenWeights = cms.VPSet(

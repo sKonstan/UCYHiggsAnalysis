@@ -17,67 +17,53 @@ import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.styles as styles
 #================================================================================================
 class DrawObject:
     def __init__(self, path, name, legLabel, **kwargs):
-        self.verbose         = kwargs.get("verbose", False)
-        self.path            = path
-        self.name            = name
-        self.fullPath        = self._GetFullPath()
-        self.THisto          = None
-        self.legLabel        = self._GetLegendLabel(legLabel)
-        self.xUnits          = kwargs.get("xUnits", "")
-        self.yUnits          = kwargs.get("yUnits", "")
-        self.zUnits          = kwargs.get("zUnits", "")
-        self.xLabel          = self._GetLabelX(**kwargs)
-        self.yLabel          = self._GetLabelY(**kwargs)
-        self.zLabel          = self._GetLabelZ(**kwargs)
-        self.xMin            = kwargs.get("xMin", None)
-        self.xMax            = kwargs.get("xMax", None)
-        self.yMin            = kwargs.get("yMin", None)
-        self.yMax            = kwargs.get("yMax", None)
-        self.yMinRatio       = kwargs.get("yMinRatio", 0.0)
-        self.yMaxRatio       = kwargs.get("yMaxRatio", 2.2)
-        self.zMin            = kwargs.get("zMin", None)
-        self.zMax            = kwargs.get("zMax", None)
-        self.xLegMin         = kwargs.get("xLegMin", 0.70)
-        self.xLegMax         = kwargs.get("xLegMax", 0.95)
-        self.yLegMin         = kwargs.get("yLegMin", 0.78)
-        self.yLegMax         = kwargs.get("yLegMax", 0.93)
-        self.xCutLines       = kwargs.get("xCutLines", [])
-        self.xCutBoxes       = kwargs.get("xCutBoxes", [])
-        self.yCutLines       = kwargs.get("yCutLines", [])
-        self.yCutBoxes       = kwargs.get("yCutBoxes", [])
-        self.logX            = kwargs.get("logX", False)
-        self.logY            = kwargs.get("logY", False)
-        self.logZ            = kwargs.get("logZ", False)
-        self.logXRatio       = kwargs.get("logXRatio", False)
-        self.logYRatio       = kwargs.get("logYRatio", False)
-        self.gridX           = kwargs.get("gridX", False)
-        self.gridY           = kwargs.get("gridY", False)
-        self.gridXRatio      = kwargs.get("gridXRatio", False)
-        self.gridYRatio      = kwargs.get("gridYRatio", False)
-        self.binWidthX       = kwargs.get("binWidthX", None)
-        self.binWidthY       = kwargs.get("binWidthY", None)
-        self.ratioLabel      = kwargs.get("ratioLabel", None)
-        self.drawOptions     = kwargs.get("drawOptions", None)
-        self.legOptions      = kwargs.get("legOptions", None)
-        self.styleType       = kwargs.get("styleType", None)
-        self.kwargs          = kwargs
+        self.verbose    = kwargs.get("verbose", False)
+        self.path       = path
+        self.name       = name
+        self.fullPath   = self._GetFullPath()
+        self.THisto     = None
+        self.legLabel   = self._GetLegendLabel(legLabel)
+        self.xUnits     = kwargs.get("xUnits", "")
+        self.yUnits     = kwargs.get("yUnits", "")
+        self.zUnits     = kwargs.get("zUnits", "")
+        self.xLabel     = self._GetLabelX(**kwargs)
+        self.yLabel     = self._GetLabelY(**kwargs)
+        self.zLabel     = self._GetLabelZ(**kwargs)
+        self.xMin       = kwargs.get("xMin", None)
+        self.xMax       = kwargs.get("xMax", None)
+        self.yMin       = kwargs.get("yMin", None)
+        self.yMax       = kwargs.get("yMax", None)
+        self.yMinRatio  = kwargs.get("yMinRatio", 0.0)
+        self.yMaxRatio  = kwargs.get("yMaxRatio", 2.2)
+        self.zMin       = kwargs.get("zMin", None)
+        self.zMax       = kwargs.get("zMax", None)
+        self.xLegMin    = kwargs.get("xLegMin", 0.70)
+        self.xLegMax    = kwargs.get("xLegMax", 0.95)
+        self.yLegMin    = kwargs.get("yLegMin", 0.78)
+        self.yLegMax    = kwargs.get("yLegMax", 0.93)
+        self.xCutLines  = kwargs.get("xCutLines", [])
+        self.xCutBoxes  = kwargs.get("xCutBoxes", [])
+        self.yCutLines  = kwargs.get("yCutLines", [])
+        self.yCutBoxes  = kwargs.get("yCutBoxes", [])
+        self.logX       = kwargs.get("logX", False)
+        self.logY       = kwargs.get("logY", False)
+        self.logZ       = kwargs.get("logZ", False)
+        self.logXRatio  = kwargs.get("logXRatio", False)
+        self.logYRatio  = kwargs.get("logYRatio", False)
+        self.gridX      = kwargs.get("gridX", False)
+        self.gridY      = kwargs.get("gridY", False)
+        self.gridXRatio = kwargs.get("gridXRatio", False)
+        self.gridYRatio = kwargs.get("gridYRatio", False)
+        self.binWidthX  = kwargs.get("binWidthX", None)
+        self.binWidthY  = kwargs.get("binWidthY", None)
+        self.ratioLabel = kwargs.get("ratioLabel", None)
+        self.styleType  = kwargs.get("styleType", None)
+        self.kwargs     = kwargs
         self.Verbose()
         #self.PrintAttributes()
         return            
 
     
-    def SetAttribute(self, attr, value):
-        self.Verbose()
-        return setattr(self, attr, value)
-
-    
-    def GetAttribute(self, attr):
-        self.Verbose()
-        if hasattr(self, attr):
-            return getattr(self, attr)
-        else:
-            raise Exception("Class object '%s' does not have attribute '%s'" % (self.GetSelfName(), attr))
-
     def Verbose(self, message=""):
         '''
         Custome made verbose system. Will print all messages in the messageList
@@ -137,6 +123,19 @@ class DrawObject:
         # print ', '.join("%s: %s" % item for item in attrs.items())
         return
 
+
+    def SetAttribute(self, attr, value):
+        self.Verbose()
+        return setattr(self, attr, value)
+
+    
+    def GetAttribute(self, attr):
+        self.Verbose()
+        if hasattr(self, attr):
+            return getattr(self, attr)
+        else:
+            raise Exception("Class object '%s' does not have attribute '%s'" % (self.GetSelfName(), attr))
+        
 
     def _GetLegendLabel(self, legLabel):    
         self.Verbose()
@@ -341,9 +340,9 @@ class DrawObject:
         s = styles.StyleClass(self.verbose)
         
         if isinstance(self.THisto, ROOT.TH1):
-            (fillColour, lineColour, markerStyle, markerSize, lineWidth, lineStyle, fillStyle, drawOptions, legOptions) = s.GetTH1Styles(self)
+            (fillColour, lineColour, markerStyle, markerSize, lineWidth, lineStyle, fillStyle) = s.GetTH1Styles(self)
         elif isinstance(self.THisto, ROOT.TH2):
-            (fillColour, lineColour, markerStyle, markerSize, lineWidth, lineStyle, fillStyle, drawOptions, legOptions) = s.GetTH2Styles(self)
+            (fillColour, lineColour, markerStyle, markerSize, lineWidth, lineStyle, fillStyle) = s.GetTH2Styles(self)
         elif isinstance(self.THisto, ROOT.TH3):
             raise Exception("Usupported histogram object '%s'" % (self.THisto))
         else:
@@ -360,10 +359,6 @@ class DrawObject:
         self.THisto.SetMarkerColor(fillColour)
         self.THisto.SetMarkerStyle(markerStyle)
         self.THisto.SetMarkerSize(markerSize)
-        if self.drawOptions == None:
-            self.drawOptions = drawOptions
-        if self.legOptions == None:
-            self.legOptions  = legOptions
         return
 
 
