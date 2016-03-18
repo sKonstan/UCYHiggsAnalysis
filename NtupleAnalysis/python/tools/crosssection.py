@@ -70,6 +70,8 @@ class CrossSectionList:
 # [13] https://twiki.cern.ch/twiki/bin/viewauth/CMS/StandardModelCrossSectionsat13TeV
 # [14] https://twiki.cern.ch/twiki/bin/viewauth/CMS/StandardModelCrossSectionsat13TeV / GenXSecAnalyzer
 # [15] McM
+# [16] http://cms.cern.ch/iCMS/jsp/db_notes/noteInfo.jsp?cmsnoteid=CMS%20AN-2015/321
+# [17] https://twiki.cern.ch/twiki/bin/viewauth/CMS/SingleTopSigma
 
 backgroundCrossSections = CrossSectionList(
     CrossSection("QCD_Pt_30to50", {
@@ -146,19 +148,13 @@ backgroundCrossSections = CrossSectionList(
             "13": 7.967e+02, # 7.967e+02 +- 3.845e-0 [14]
     }),
     CrossSection("WW", {
-            "7": 43.0, # [3]
-            "8": 54.838, # [9], took value for CTEQ PDF since CTEQ6L1 was used in pythia simulation
-            "13": 118.7, # [13] NNLO QCD
+            "13": 118.7, # [13] #xenios
             }),
     CrossSection("WZ", {
-            "7": 18.2, # [3]
-            "8": 33.21, # [9], took value for CTEQ PDF since CTEQ6L1 was used in pythia simulation
-            "13": 29.8 + 18.6, # [13] W+ Z/a* + W- Z/a*, MCFM 6.6 m(l+l-) > 40 GeV
+            "13": 29.8 + 18.6, # [13] W+ Z/a* + W- Z/a*, MCFM 6.6 m(l+l-) > 40 GeV #xenios
             }),
     CrossSection("ZZ", {
-            "7": 5.9, # [3]
-            "8": 17.654, # [9], took value for CTEQ PDF since CTEQ6L1 was used in pythia simulation, this is slightly questionmark, since the computed value is for m(ll) > 12
-            "13": 15.4, # [13]
+            "13": 15.4, # [13] #xenios
             }),
     CrossSection("TTJets_FullLept", {
             "8": 245.8* 26.1975/249.50, # [10], BR from [11]
@@ -186,12 +182,8 @@ backgroundCrossSections = CrossSectionList(
     CrossSection("TTJets_HT2500toInf", {
             "13": 0.0, 
             }),
-    #CrossSection("WJets", {
-            #"7": 31314.0, # [2], NNLO
-            #"8": 36703.2, # [9], NNLO
-            #}),
     CrossSection("WJetsToLNu", {
-            "13": 20508.9*3, # [13] 20508.9*3, McM for the MLM dataset: 5.069e4
+            "13": 61526.7, # [16] ((see also [13])
             }),
     CrossSection("WJetsToLNu_HT_100To200", {
             "13": 1.293e+03*1.2138, # McM times NNLO/LO ratio of inclusive sample
@@ -240,9 +232,7 @@ backgroundCrossSections = CrossSectionList(
             }),
     # end W+Njets 
     CrossSection("DYJetsToLL_M_50", {
-            "7": 3048.0, # [4], NNLO
-            "8": 3531.9, # [9], NNLO
-            "13": 2008.4*3.0 # [14]
+            "13": 6025.2  # [16] (see also [14])
             }),
     CrossSection("DYJetsToLL_M_50_TauHLT", {
             "7": 3048.0, # [4], NNLO
@@ -250,9 +240,7 @@ backgroundCrossSections = CrossSectionList(
             "13": 2008.4*3.0 # [14]
             }),
     CrossSection("DYJetsToLL_M_10to50", {
-            "7": 9611.0, # [1]
-            "8": 11050.0, # [1]
-            "13" :3205.6*3.0, # [14]
+            "13": 18610.0, # [16]
             }),
     CrossSection("DYJetsToLL_M_50_HT_100to200", {
             "13": 139.4*1.231, # McM times NNLO/LO ratio of inclusive sample
@@ -355,19 +343,19 @@ backgroundCrossSections = CrossSectionList(
             "8": 1.76, # [8]
             }),
     CrossSection("ST_tW_antitop_5f_inclusiveDecays", {
-            "13": 35.85, # [13] https://twiki.cern.ch/twiki/bin/viewauth/CMS/SingleTopSigma
+            "13": 35.6, # [16] (see also [17])
             }),
     CrossSection("ST_tW_top_5f_inclusiveDecays", {
-            "13": 35.85, # [13] https://twiki.cern.ch/twiki/bin/viewauth/CMS/SingleTopSigma
+            "13": 35.6, # [16] (see also [17])
             }),
     CrossSection("ST_t_channel_antitop_4f_leptonDecays", {
-            "13": 80.95, # [13] https://twiki.cern.ch/twiki/bin/viewauth/CMS/SingleTopSigma
+            "13": 26.71, # [16] (see also [17])
             }),
     CrossSection("ST_t_channel_top_4f_leptonDecays", {
-            "13": 136.02, # [13] https://twiki.cern.ch/twiki/bin/viewauth/CMS/SingleTopSigma
+            "13": 70.69, # [16] (see also [17])
             }),
     CrossSection("ST_s_channel_4f_leptonDecays", {
-            "13": 10.32, # [13] https://twiki.cern.ch/twiki/bin/viewauth/CMS/SingleTopSigma
+            "13": 3.75, # [16] (see also [17])
             }),
 )
 

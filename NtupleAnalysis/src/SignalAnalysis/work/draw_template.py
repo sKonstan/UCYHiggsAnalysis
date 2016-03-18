@@ -35,7 +35,7 @@ verbose       = False
 batchMode     = True
 folder        = "SignalAnalysis_mH125_Run2015D"
 analysis      = folder
-intLumiInPb   = -1 #350.00 #-1 #888.357
+intLumiInPb   = -1#888.357 #350.00 #-1 #888.357
 saveFormats   = ["png"]
 # savePath      = "/Users/attikis/Desktop/"
 savePath      = "/afs/cern.ch/user/a/attikis/public/html/"
@@ -128,7 +128,7 @@ NBjets = {
 
 wCounter = {    
     "xLabel": ""              , "xMin": 8.0, "xMax": None, "xUnits": "", "xCutLines": [], "xCutBoxes": [], "gridX": True,  "gridXRatio": True, "logX": False, 
-    "yLabel": "Events / %0.1f", "yMin": 1.0, "yMax": None, "yUnits": "", "yCutLines": [], "yCutBoxes": [], "gridY": True,  "gridYRatio": True, "logY": True, 
+    "yLabel": "Events / %0.1f", "yMin": 1.0, "yMax": 1e10, "yUnits": "", "yCutLines": [], "yCutBoxes": [], "gridY": True,  "gridYRatio": True, "logY": True, 
     "ratioLabel": "Data/Pred.", "yMinRatio": 0.0, "yMaxRatio": 1.75 , "logXRatio": False, "logYRatio": False,
     "xLegMin": 0.72, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.94
 }

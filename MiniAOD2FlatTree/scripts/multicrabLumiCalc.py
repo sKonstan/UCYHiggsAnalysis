@@ -38,7 +38,20 @@ The "missingLumiSummary.json" file is just the difference between the input lumi
 means that the "missingLumiSummary.json" file does not have to be necessarily an empty file even if all jobs have completed successfully. 
 And this is simply because the input dataset and the input lumi-mask file may not span the same overall range of runs and luminosity sections. 
 
-See https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookCRAB3Tutorial#Running_CMSSW_analysis_with_AN1
+Links: https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookCRAB3Tutorial#Running_CMSSW_analysis_with_AN1
+
+=======================
+Update, 18 Mar 2016
+=======================
+The command "crab report -d <crab_task> has been revisited in last CRAB version and
+the file names have changed to be (hopefully) more clear.
+Content is better defined as well, please see
+https://twiki.cern.ch/twiki/bin/view/CMSPublic/CRAB3Commands#crab_report
+
+In particular I think you want to feed processedLumis.json to
+the lumi-calc tool.
+
+Links: https://twiki.cern.ch/twiki/bin/view/CMSPublic/CRAB3Commands#crab_report
 '''
 
 #================================================================================================ 
@@ -164,16 +177,16 @@ def main(opts, args):
                 if opts.verbose:
                     print output
                                 
-            lumiSummary    = os.path.join(d, "results", "lumiSummary.json")
+            lumiSummary    = os.path.join(d, "results", "lumiSummary.json")     
             processedLumis = os.path.join(d, "results", "processedLumis.json")
-            if os.path.exists(lumiSummary):
+            
+            if os.path.exists(lumiSummary):         # CRAB3 [before March 2016 update]
                 files.append( (d, lumiSummary) )
-            elif os.path.exists( processedLumis):
-                print "=== multicrabLumiCalc.py:\n\t Could not find %s" % (lumiSummary)
-                print "\t Will use %s instead (Apparently works but results NOT validated yet)" % (processedLumis)
+            elif os.path.exists( processedLumis):   # CRAB3 [after March 2016 update]
                 files.append( (d, processedLumis) )
             else:
-                raise Exception("The file containing the processed runs and luminosity sections (\"%s\" and \"%s\") do not exist! Have you called \"crab report\"?" % (lumiSummary, processedLumis))
+                msg = "Neither \"%s\" nor \"%s\" exists! Have you called \"crab report\"?" % (lumiSummary, processedLumis)
+                raise Exception(msg)
 
     files.extend([(None, f) for f in opts.files])
 
