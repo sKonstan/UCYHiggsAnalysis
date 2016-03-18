@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 '''
 Usage:
-./removeEOSFiles.py  --promptUser --verbose 
+./removeEOSFiles.py --quota --promptUser --verbose 
 
 Description:
 This script is used to delete files and directories from EOS, most likely created
@@ -104,9 +104,10 @@ def main(opts, args):
             p = subprocess.Popen(['/bin/csh', '-c', csh_cmd], stdout=subprocess.PIPE)
 
 
-    quota_out, quota_err = GetEosQuota(opts)
-    print 
-    print quota_out
+    if opts.quota:
+        quota_out, quota_err = GetEosQuota(opts)
+        print 
+        print quota_out
 
     return
 
@@ -131,6 +132,7 @@ if __name__ == "__main__":
     parser = OptionParser(usage="Usage: %prog [options]")
     parser.add_option("-v", "--verbose"   , dest="verbose"   , default=False, action="store_true", help="Verbose mode")
     parser.add_option("-p", "--promptUser", dest="promptUser", default=False, action="store_true", help="Prompt user to delete specific file/dir or not")
+    parser.add_option("-q", "--quota"     , dest="quota"     , default=False, action="store_true", help="Print EOS Quota after file/dir deletion")
     (opts, args) = parser.parse_args()
     
     sys.exit( main(opts, args) )
