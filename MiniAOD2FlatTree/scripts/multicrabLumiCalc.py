@@ -238,7 +238,7 @@ def main(opts, args):
 
 
     intLumi = GetIntLumi(data)
-    print "{:<80} {:<12} {:<6}".format( "\t ", intLumi, "pb^-1")
+    print "{:<80} {:<12} {:<6}".format( "\t Total", intLumi, "(1/pb)")
 
     if len(data) > 0:
         f = open(opts.output, "wb")
@@ -268,7 +268,7 @@ def doPileUp(task, jsonFile, lumi):
     else:
         # print "Task %s recorded luminosity %f pb^-1" % (task, lumi)
          
-        print "{:<80} {:<12} {:<6}".format( "\t " + TruncateString(task, 68), lumi, "pb^-1")    
+        print "{:<80} {:<12} {:<6}".format( "\t " + TruncateString(task, 68), lumi, "(1/pb)")
         data[task] = lumi
         
     # Save the json file after each data task in case of future errors
