@@ -31,11 +31,11 @@ import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.aux as aux
 #================================================================================================
 # Settings
 #================================================================================================
-verbose       = False
+verbose       = True
 batchMode     = True
 folder        = "SignalAnalysis_mH125_Run2015D"
 analysis      = folder
-intLumiInPb   = 350.00 # -1
+intLumiInPb   = -1 #1103.813 #350.00 # -1
 saveFormats   = ["png"]
 # savePath      = "/Users/attikis/Desktop/"
 savePath      = "/afs/cern.ch/user/a/attikis/public/html/"
@@ -58,9 +58,9 @@ mergeDict = {}
 
 
 removeList = []
-# removeList.append("MuonEG_Run2015D_05Oct2015_v2_246908_260426_25ns_Silver")
-# removeList.append("MuonEG_Run2015C_25ns_05Oct2015_v1_246908_260426_25ns_Silver")
-# removeList.append("MuonEG_Run2015D_PromptReco_v4_246908_260426_25ns_Silver")
+# removeList.append("MuonEG_Run2015D_05Oct2015_v2_246908_260426_25ns_Silver")      # 888.357
+# removeList.append("MuonEG_Run2015C_25ns_05Oct2015_v1_246908_260426_25ns_Silver") # 16.345
+# removeList.append("MuonEG_Run2015D_PromptReco_v4_246908_260426_25ns_Silver")     # 1103.813 
 removeList.append("ttHJetToNonbb_M125")
 # removeList.append("ST_s_channel_4f_leptonDecays")
 # removeList.append("ST_tW_antitop_5f_inclusiveDecays")

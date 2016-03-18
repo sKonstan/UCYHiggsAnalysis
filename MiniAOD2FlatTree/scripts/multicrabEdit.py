@@ -1,4 +1,10 @@
 #!/usr/bin/env python
+'''
+This script was used ONCE to change the dataVersion of collision-data ROOT files,
+which has accidentally found to be 74Xmc instead of 74Xdata.
+
+Kept in repo for potential future use, but has no frequent-use value.
+'''
 
 #================================================================================================
 # Import modules
@@ -105,7 +111,6 @@ def delete(fname,regexp):
 
 def pileup(fname, verbose=False):
     '''
-    Xenios
     '''
 
     if not os.path.exists(fname):
