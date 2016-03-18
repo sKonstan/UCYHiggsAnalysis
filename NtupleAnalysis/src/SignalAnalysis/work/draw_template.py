@@ -52,27 +52,27 @@ mergeDict["ST_tW_antitop_5f_inclusiveDecays"]     = "Single t"
 mergeDict["ST_t_channel_antitop_4f_leptonDecays"] = "Single t"
 mergeDict["ST_tW_top_5f_inclusiveDecays"]         = "Single t"
 mergeDict["ST_s_channel_4f_leptonDecays"]         = "Single t"
-# mergeDict["WW"] = "Diboson"
-# mergeDict["WZ"] = "Diboson"
-# mergeDict["ZZ"] = "Diboson"
+mergeDict["WW"] = "Diboson"
+mergeDict["WZ"] = "Diboson"
+mergeDict["ZZ"] = "Diboson"
 
 
 removeList = []
 # removeList.append("MuonEG_Run2015D_05Oct2015_v2_246908_260426_25ns_Silver")      # 888.357
 # removeList.append("MuonEG_Run2015C_25ns_05Oct2015_v1_246908_260426_25ns_Silver") # 16.345
 # removeList.append("MuonEG_Run2015D_PromptReco_v4_246908_260426_25ns_Silver")     # 1103.813 
-removeList.append("ST_s_channel_4f_leptonDecays")
-removeList.append("ST_tW_antitop_5f_inclusiveDecays")
-removeList.append("ST_tW_top_5f_inclusiveDecays")
-removeList.append("ST_t_channel_antitop_4f_leptonDecays")
-removeList.append("ST_t_channel_top_4f_leptonDecays")
-removeList.append("DYJetsToLL_M_10to50")
-removeList.append("DYJetsToLL_M_50")
+# removeList.append("ST_s_channel_4f_leptonDecays")
+# removeList.append("ST_tW_antitop_5f_inclusiveDecays")
+# removeList.append("ST_tW_top_5f_inclusiveDecays")
+# removeList.append("ST_t_channel_antitop_4f_leptonDecays")
+# removeList.append("ST_t_channel_top_4f_leptonDecays")
+# removeList.append("DYJetsToLL_M_10to50")
+# removeList.append("DYJetsToLL_M_50")
 # removeList.append("TTJets")
-removeList.append("WJetsToLNu")
-removeList.append("WW")
-removeList.append("WZ")
-removeList.append("ZZ")
+# removeList.append("WJetsToLNu")
+# removeList.append("WW")
+# removeList.append("WZ")
+# removeList.append("ZZ")
 removeList.append("ttHJetToNonbb_M125")
 
 
@@ -126,6 +126,14 @@ NBjets = {
 }
 
 
+MET = {
+    "xLabel": "E_{T}^{miss}" , "xUnits":"GeV", "xMin": 0.0, "xMax": 200.0, "xCutLines": [60], "gridX": True, "gridXRatio": False, "logX": False,
+    "yLabel": "Events / %0.1f", "yMin": 1.0, "yMax": None, "yUnits": "", "yCutLines": [], "gridY": True,  "gridYRatio": True, "logY": True, "yCutBoxes": [], "xCutBoxes": [],
+    "ratioLabel": "Ratio", "yMinRatio": 0.0, "yMaxRatio": 1.75 , "logYRatio": False, "logXRatio": False,
+    "xLegMin": 0.72, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.94
+}
+
+
 wCounter = {    
     "xLabel": ""              , "xMin": 7.0, "xMax": None, "xUnits": "", "xCutLines": [], "xCutBoxes": [], "gridX": True,  "gridXRatio": True, "logX": False, 
     "yLabel": "Events / %0.1f", "yMin": 1.0, "yMax": 1e10, "yUnits": "", "yCutLines": [], "yCutBoxes": [], "gridY": True,  "gridYRatio": True, "logY": True,
@@ -141,6 +149,7 @@ wCounter = {
 Njets_AtJetSelection     = histos.DrawObject( folder + "/CommonPlots", "Njets_AtJetSelection"    , "" , **NJets )
 Njets_AfterJetSelections = histos.DrawObject( folder + "/CommonPlots", "Njets_AfterJetSelections", "" , **NJets )
 NBjets_AtBtagging        = histos.DrawObject( folder + "/CommonPlots", "NBjets_AtBtagging"       , "" , **NBjets )
+MET_AtMETSelection       = histos.DrawObject( folder + "/CommonPlots", "MET_AtMETSelection"      , "" , **MET )
 
 
 #================================================================================================
@@ -161,7 +170,8 @@ def DoPlots(histo, datasetObjects, savePostfix=""):
 
     p.AddCmsText("fb", prelim=True)
     p.DatasetAsLegend(True)    
-    p.Draw("HIST,9")
+    # p.Draw("HIST,9")
+    p.Draw("HIST,9", "A,P,stack", "Data")
     # p.SetHistosFillStyle(3001)
 
     # p.Save()
@@ -206,7 +216,9 @@ def main():
     '''
     
     ### Define Lists
-    histoList   = [Njets_AtJetSelection, Njets_AfterJetSelections, NBjets_AtBtagging]
+    #histoList   = [Njets_AtJetSelection, Njets_AfterJetSelections, NBjets_AtBtagging, MET_AtMETSelection]
+    # histoList   = [Njets_AtJetSelection, NBjets_AtBtagging, MET_AtMETSelection]
+    histoList   = [MET_AtMETSelection]
     counterList = [counter]
 
     
@@ -233,8 +245,8 @@ def main():
     # One Histogram on a given canvas (many datasets)
     auxObject.StartTimer("Histo Loop")
 
-    #for h in histoList:
-    #    DoPlots( h, datasetObjects)
+    for h in histoList:
+        DoPlots( h, datasetObjects)
 
     for c in counterList:
         DoCounters( c, datasetObjects)
