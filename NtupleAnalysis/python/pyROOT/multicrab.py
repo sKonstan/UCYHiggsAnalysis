@@ -137,8 +137,7 @@ class Multicrab(object):
         for d in dirsList:
             datasets.append(d.split("/")[-1])
 
-        self.Print("Found %s task directories under %s" % (len(datasets), mcrab) )
-        #self.Print("Found the following task directories under %s:\n\t%s" % (mcrab, datasets))
+        self.Print("Found %s task directories under %s:\n\t%s" % (len(datasets), mcrab, "\n\t".join(datasets)))
         return datasets
 
 

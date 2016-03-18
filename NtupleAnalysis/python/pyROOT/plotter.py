@@ -533,9 +533,11 @@ class Plotter(object):
         for d in self.GetDatasets():
             energy  = d.GetEnergyString()
             intLumi = d.GetIntLumiString(lumiUnits)
-            if intLumi>lumi:
+            if lumi < 0:
                 lumi = intLumi
-
+            elif lumi != intLumi:
+                print d.GetName()
+            
         self.textObject.AddDefaultText("lumi"  , lumi  )
         self.textObject.AddDefaultText("energy", energy)
         self.ExtendDrawLists(self.textObject.GetTextList(), addToRatio=False)        
@@ -862,7 +864,10 @@ class Plotter(object):
         self.Verbose()
 
         hPath = hObject.GetAttribute("fullPath")
-        h     = rootFile.Get(hPath)
+        if not isinstance(rootFile, ROOT.TFile):
+            return False
+
+        h = rootFile.Get(hPath)
         if isinstance(h, ROOT.TH1) or isinstance(h, ROOT.TH2) or isinstance(h, ROOT.TH3):
             return True
         else:
@@ -1399,7 +1404,8 @@ class Plotter(object):
     
 
     def SetHistosFillStyle(self, style):
-        self.Verbose()
+        self.Print("FIXME")
+        sys.exit()
         for dataset in self.Datasets:
             dataset.histo.THisto.SetFillStyle(style)
         return

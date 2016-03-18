@@ -31,14 +31,14 @@ import UCYHiggsAnalysis.NtupleAnalysis.pyROOT.aux as aux
 #================================================================================================
 # Settings
 #================================================================================================
-verbose       = True
+verbose       = False
 batchMode     = True
 folder        = "SignalAnalysis_mH125_Run2015D"
 analysis      = folder
-intLumiInPb   = -1 #1103.813 #350.00 # -1
+intLumiInPb   = 300.0 #1103.813 #350.00 # -1
 saveFormats   = ["png"]
-# savePath      = "/Users/attikis/Desktop/"
-savePath      = "/afs/cern.ch/user/a/attikis/public/html/"
+savePath      = "/Users/attikis/Desktop/"
+# savePath      = "/afs/cern.ch/user/a/attikis/public/html/"
 
 
 #================================================================================================
@@ -47,33 +47,33 @@ savePath      = "/afs/cern.ch/user/a/attikis/public/html/"
 auxObject  = aux.AuxClass(verbose)
 
 mergeDict = {}
-#mergeDict["ST_t_channel_top_4f_leptonDecays"]     = "Single t"
-#mergeDict["ST_tW_antitop_5f_inclusiveDecays"]     = "Single t"
-#mergeDict["ST_t_channel_antitop_4f_leptonDecays"] = "Single t"
-#mergeDict["ST_tW_top_5f_inclusiveDecays"]         = "Single t"
-#mergeDict["ST_s_channel_4f_leptonDecays"]         = "Single t"
-#mergeDict["WW"] = "Diboson"
-#mergeDict["WZ"] = "Diboson"
-#mergeDict["ZZ"] = "Diboson"
+mergeDict["ST_t_channel_top_4f_leptonDecays"]     = "Single t"
+mergeDict["ST_tW_antitop_5f_inclusiveDecays"]     = "Single t"
+mergeDict["ST_t_channel_antitop_4f_leptonDecays"] = "Single t"
+mergeDict["ST_tW_top_5f_inclusiveDecays"]         = "Single t"
+mergeDict["ST_s_channel_4f_leptonDecays"]         = "Single t"
+# mergeDict["WW"] = "Diboson"
+# mergeDict["WZ"] = "Diboson"
+# mergeDict["ZZ"] = "Diboson"
 
 
 removeList = []
 # removeList.append("MuonEG_Run2015D_05Oct2015_v2_246908_260426_25ns_Silver")      # 888.357
 # removeList.append("MuonEG_Run2015C_25ns_05Oct2015_v1_246908_260426_25ns_Silver") # 16.345
 # removeList.append("MuonEG_Run2015D_PromptReco_v4_246908_260426_25ns_Silver")     # 1103.813 
-removeList.append("ttHJetToNonbb_M125")
-# removeList.append("ST_s_channel_4f_leptonDecays")
-# removeList.append("ST_tW_antitop_5f_inclusiveDecays")
-# removeList.append("ST_tW_top_5f_inclusiveDecays")
-# removeList.append("ST_t_channel_antitop_4f_leptonDecays")
-# removeList.append("ST_t_channel_top_4f_leptonDecays")
-# removeList.append("DYJetsToLL_M_10to50")
-# removeList.append("DYJetsToLL_M_50")
+removeList.append("ST_s_channel_4f_leptonDecays")
+removeList.append("ST_tW_antitop_5f_inclusiveDecays")
+removeList.append("ST_tW_top_5f_inclusiveDecays")
+removeList.append("ST_t_channel_antitop_4f_leptonDecays")
+removeList.append("ST_t_channel_top_4f_leptonDecays")
+removeList.append("DYJetsToLL_M_10to50")
+removeList.append("DYJetsToLL_M_50")
 # removeList.append("TTJets")
-# removeList.append("WJetsToLNu")
-# removeList.append("WW")
-# removeList.append("WZ")
-# removeList.append("ZZ")
+removeList.append("WJetsToLNu")
+removeList.append("WW")
+removeList.append("WZ")
+removeList.append("ZZ")
+removeList.append("ttHJetToNonbb_M125")
 
 
 #================================================================================================
@@ -127,8 +127,9 @@ NBjets = {
 
 
 wCounter = {    
-    "xLabel": ""              , "xMin": 8.0, "xMax": None, "xUnits": "", "xCutLines": [], "xCutBoxes": [], "gridX": True,  "gridXRatio": True, "logX": False, 
-    "yLabel": "Events / %0.1f", "yMin": 1.0, "yMax": 1e10, "yUnits": "", "yCutLines": [], "yCutBoxes": [], "gridY": True,  "gridYRatio": True, "logY": True, 
+    "xLabel": ""              , "xMin": 7.0, "xMax": None, "xUnits": "", "xCutLines": [], "xCutBoxes": [], "gridX": True,  "gridXRatio": True, "logX": False, 
+    "yLabel": "Events / %0.1f", "yMin": 1.0, "yMax": 1e10, "yUnits": "", "yCutLines": [], "yCutBoxes": [], "gridY": True,  "gridYRatio": True, "logY": True,
+    # "yLabel": "Events / %0.1f", "yMin": 1.0, "yMax": 2e7, "yUnits": "", "yCutLines": [], "yCutBoxes": [], "gridY": True,  "gridYRatio": True, "logY": False, 
     "ratioLabel": "Data/Pred.", "yMinRatio": 0.0, "yMaxRatio": 1.75 , "logXRatio": False, "logYRatio": False,
     "xLegMin": 0.72, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.94
 }
@@ -157,10 +158,12 @@ def DoPlots(histo, datasetObjects, savePostfix=""):
     p.AddDatasets(datasetObjects)
     p.AddDrawObject(histo)
     p.NormaliseHistos("toLuminosity")
+
     p.AddCmsText("fb", prelim=True)
     p.DatasetAsLegend(True)    
     p.Draw("HIST,9")
     # p.SetHistosFillStyle(3001)
+
     # p.Save()
     p.Save(savePath, saveFormats)
     # p.SaveAs(savePath, histo.GetName() + "_test", savePostfix, saveFormats)
@@ -179,14 +182,12 @@ def DoCounters(histo, datasetObjects, savePostfix=""):
     # p.SetupStatsBox("ksiourmen", xPos=0.90, yPos=0.88, width=0.20, height=0.12)
     p.AddDatasets(datasetObjects)
     p.AddDrawObject(histo)
-    p.NormaliseHistos("toLuminosity") 
+    p.NormaliseHistos("toLuminosity")
+
     p.AddCmsText("fb", prelim=True)
     p.DatasetAsLegend(True)    
-
     # p.AddTF1("1000*cos(x)", 0, 200.0, False, {"lineColour": ROOT.kBlack})
-    # p.Draw("HIST,9")
     p.Draw("HIST,9", "A,P,stack", "Data")
-    # p.Draw("A,P,9,nostack", "A,P,nostack", "Data")
     # p.SetHistosFillStyle(3001)
     p.SetHistoLabelsOption("d") #v, u, d
     p.SetHistoLabelsSizeX(0.5)
@@ -212,22 +213,12 @@ def main():
     ### Setup Datasets
     datasetManager = dataset.DatasetManager(opts.mcrab, analysis)
     datasetManager.LoadLuminosities("lumi.json")
-    datasetManager.SetIntegratedLuminosity(intLumiInPb)
-
-    
-    ### Remove Datasets
     datasetManager.Remove(removeList)
-
-    
-    ### Merge Datasets
     datasetManager.MergeData()
     datasetManager.MergeMany(mergeDict)
-
-    
-    ### Print Datasets
+    # datasetManager.SetIntLuminosity(intLumiInPb)
     datasetManager.PrintSummary()
     # datasetManager.PrintDatasets()
-
     
     ### Get Datasets
     datasetObjects = datasetManager.GetAllDatasets()

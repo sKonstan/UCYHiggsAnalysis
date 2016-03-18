@@ -242,15 +242,15 @@ class Dataset(object):
         ratio     = 1.0
         maxChars  = 30
         txtAlign  = "{:<34} {:<20} {:<20} {:<20} {:<20} {:<20}"
-        header    = txtAlign.format("\t Dataset",  "Pileup Reweight", "Top-Pt Weight", "Events", "w-Events", "% Change")
+        header    = txtAlign.format("\tDataset",  "Pileup Reweight", "Top-Pt Weight", "Events", "w-Events", "% Change")
         hLine     = "="*len(header)
         table     = []
-        shortName = "\t " + TruncateString(self.GetName(), maxChars)
+        shortName = "\t" + TruncateString(self.GetName(), maxChars)
 
         # Create info table 
-        table.append("\t " + hLine)
+        table.append("\t" + hLine)
         table.append(header)
-        table.append("\t " + hLine)
+        table.append("\t" + hLine)
         unweightedEvents = self.weightedEvents
 
         if self.isPileupReweighted:
@@ -590,7 +590,7 @@ class Dataset(object):
         return
 
     
-    def SetIntegratedLuminosity(self, intLumi):
+    def SetIntLuminosity(self, intLumi):
         self.Verbose()
         self.intLumi = intLumi
         return
@@ -857,7 +857,7 @@ class Dataset(object):
 
         if not normalisationIsOk:
             #raise Exception("Error: dset=%s: Unweighted skimcounter (%s) is smaller than all events counter of analysis (%s)!" % (self.name, allEvts, afterAllEvts) )
-            print "=== dataset.py:\n\t Normalisation is NOT ok for dataset \"%s\" (%s). allEvts = %s, afterAllEvts = %s"  % (self.GetName(), counterPath, allEvts, afterAllEvts)
+            print "=== dataset.py:\n\tNormalisation is NOT ok for dataset \"%s\" (%s). allEvts = %s, afterAllEvts = %s"  % (self.GetName(), counterPath, allEvts, afterAllEvts)
         return
     
 
@@ -890,8 +890,7 @@ class Dataset(object):
         # msgs.append( txtAlign.format("Info"                 , ": " + str(self._GetInfo()) ) )
         msgs.append( txtAlign.format("Norm Factor"          , ": " + str(self._GetNormFactor()) ) )
         msgs.append( txtAlign.format("Lumi (1/pb) "         , ": " + str(self._GetLuminosity()) ) ) 
-        msgs.append( txtAlign.format("MC-Lumi (1/pb)"       , ": " + str(self._GetMCLuminosity()) ) ) 
-        msgs.append( txtAlign.format("Int-Lumi (1/pb)"      , ": " + str(self._GetIntLuminosity()) ) ) 
+        msgs.append( txtAlign.format("Int-Lumi (1/pb)"      , ": " + str(self.GetIntLuminosity()) ) ) 
         msgs.append( txtAlign.format("Is MC"                , ": " + str(self.GetIsMC()) ) ) 
         msgs.append( txtAlign.format("Is Data"              , ": " + str(self.GetIsData()) ) ) 
         msgs.append( txtAlign.format("Is Pseudo"            , ": " + str(self.GetIsPseudo()) ) )
@@ -904,9 +903,9 @@ class Dataset(object):
         msgs.append( txtAlign.format("Code Version"         , ": " + str(self._GetCodeVersion()) ) )
 
         if hasattr(self, 'THisto'):
-            msgs.append( "\n\t {:<20} {:<20}".format("Histo Name"     , ": " + self.THisto.GetName() ) )
+            msgs.append( "\n\t{:<20} {:<20}".format("Histo Name"     , ": " + self.THisto.GetName() ) )
         for r in msgs:
-            print "\t ", r
+            print "\t", r
         return
 
 
@@ -992,7 +991,7 @@ class DatasetMerged(object):
         self.Verbose()
 
         if len(self.datasets) == 0:
-            raise Exception("=== dataset.py:\n\t Can't create a DatasetMerged from 0 datasets")
+            raise Exception("=== dataset.py:\n\tCan't create a DatasetMerged from 0 datasets")
         return
 
 
@@ -1009,7 +1008,7 @@ class DatasetMerged(object):
             dType    = d.GetDataType()
             if refType != dType:
                 msg = "Can't merge non-%s datasets %s with %s datasets, it is %s" % (reft, d.GetName(), t)
-                raise Exception("=== dataset.py:\n\t ", msg)
+                raise Exception("=== dataset.py:\n\t", msg)
         self.info["luminosity"] = lumiSum
         return lumiSum
 
@@ -1035,6 +1034,12 @@ class DatasetMerged(object):
         self.Verbose()
         return self.intLumi
 
+    
+    def SetIntLuminosity(self, intLumi):
+        self.Verbose()
+        self.intLumi = intLumi
+        return
+    
 
     def _GetXSection(self):
         '''
@@ -1049,7 +1054,7 @@ class DatasetMerged(object):
         for d in self.datasets:
             if not d.GetIsMC():
                 msg =  "Can't merge non-MC dataset %s with MC datasets, it is %s" % (d.getName(), d.getDataType())
-                raise Exception("=== dataset.py:\n\t ", msg)
+                raise Exception("=== dataset.py:\n\t", msg)
             else:
                 xSectionSum += d.GetXSection()
         self.info["crossSection"] = xSectionSum
@@ -1067,7 +1072,7 @@ class DatasetMerged(object):
             dVer = d.GetDataVersion()
             if dataVersion != dVer:
                 msg = "Can't merge datasets with different dataVersions (%s: %s, %s: %s)" % (self.datasets[0].GetName(), dataVersion, d.GetName(), dVer)
-                raise Exception("=== dataset.py:\n\t ", msg)
+                raise Exception("=== dataset.py:\n\t", msg)
             else:
                 pass
 
@@ -1096,7 +1101,7 @@ class DatasetMerged(object):
         for d in self.datasets[1:]:
             if energy != d.GetEnergy():
                 msg = "Can't merge datasets with different COM energies (%s: %d TeV, %s: %d TeV)" % (self.datasets[0].GetName(), energy, d.GetName(), d.GetEnergy())
-                raise Exception("=== dataset.py:\n\t ", msg)
+                raise Exception("=== dataset.py:\n\t", msg)
         return energy
 
 
@@ -1163,7 +1168,7 @@ class DatasetMerged(object):
 
         # For-loop: All datasets
         for d in self.datasets:
-            print "=== dataset.py:\n\t Closing dataset '%s'" % (d)
+            print "=== dataset.py:\n\tClosing dataset '%s'" % (d)
             d.Close()
         return
 
@@ -1238,8 +1243,8 @@ class DatasetMerged(object):
     def SetXSection(self, value):
         self.Verbose()
         if not self.GetIsMC():
-            raise Exception("=== dataset.py:\n\t Should not set cross section for non-MC dataset %s (has luminosity)" % self.name)
-        raise Exception("=== dataset.py:\n\t Setting cross section for merged dataset is meaningless (it has no real effect, and hence is misleading")
+            raise Exception("=== dataset.py:\n\tShould not set cross section for non-MC dataset %s (has luminosity)" % self.name)
+        raise Exception("=== dataset.py:\n\tSetting cross section for merged dataset is meaningless (it has no real effect, and hence is misleading")
 
 
     def GetXSection(self):
@@ -1249,7 +1254,6 @@ class DatasetMerged(object):
         self.Verbose()
 
         if not self.GetIsMC():
-            #raise Exception("=== dataset.py:\n\t Dataset %s is not MC, no cross section available" % self.name)
             return None
         return self.info["crossSection"]
 
@@ -1258,8 +1262,8 @@ class DatasetMerged(object):
         self.Verbose()
 
         if self.GetIsMC():
-            raise Exception("=== dataset.py:\n\t Should not set luminosity for MC dataset %s (has crossSection)" % self.name)
-        raise Exception("=== dataset.py:\n\t Setting luminosity for merged dataset is meaningless (it has no real effect, and hence is misleading)")
+            raise Exception("=== dataset.py:\n\tShould not set luminosity for MC dataset %s (has crossSection)" % self.name)
+        raise Exception("=== dataset.py:\n\tSetting luminosity for merged dataset is meaningless (it has no real effect, and hence is misleading)")
 
 
     def GetLuminosity(self):
@@ -1302,7 +1306,7 @@ class DatasetMerged(object):
         countDir = self.datasets[0].GetCounterDirectory()
         for d in self.datasets[1:]:
             if countDir != d.GetCounterDirectory():
-                raise Exception("=== dataset.py:\n\t Error: merged datasets have different counter directories")
+                raise Exception("Merged datasets have different counter directories")
         return countDir
 
 
@@ -1349,7 +1353,7 @@ class DatasetMerged(object):
         elif self.isPseudo():
             return DatasetRootHistoMergedPseudo(wrappers, self)
         else:
-            raise Exception("=== dataset.py:\n\t Internal error (unknown dataset type)")
+            raise Exception("Internal error (unknown dataset type)")
         return
 
 
@@ -1398,7 +1402,7 @@ class DatasetMerged(object):
         content = self.datasets[0].GetDirectoryContent(directory, predicate)
         for d in self.datasets[1:]:
             if content != dGgetDirectoryContent(directory, predicate):
-                raise Exception("=== dataset.py:\n\t Error: merged datasets have different contents in directory '%s'" % directory)
+                raise Exception("Merged datasets have different contents in directory '%s'" % directory)
         return content
 
 
@@ -1777,24 +1781,62 @@ class DatasetManager(object):
         Remove dataset.Dataset objects
         
         \param nameList    List of dataset.Dataset names to remove
-
         \param close       If true, close the removed dataset.Dataset objects
         '''
         self.Verbose()
         if isinstance(nameList, basestring):
             nameList = [nameList]
 
+        self.Print("Removing %s dataset(s):\n\t%s" % (len(nameList), "\n\t".join(nameList)))
+                   
         selected = []
         for d in self.datasets:
             if not d.GetName() in nameList:
                 selected.append(d)
-            elif close:
-                d.Close()
+            else:
+                self._SubtractDatasetFromIntLumi(d, nameList)
+                if close:
+                    d.Close()
+                
         self.datasets = selected
+        self.UpdateIntLuminosity()
         self._PopulateMap()
         return
 
-    
+
+    def UpdateIntLuminosity(self):        
+        self.Print()
+        
+        for dm in self.datasets:
+            if isinstance(dm, Dataset):
+                dm.SetIntLuminosity(self.intLumi)
+            elif isinstance(dm, DatasetMerged):
+                for d in dm.GetDatasets():
+                    d.SetIntLuminosity(self.intLumi)
+            else:
+                raise Exception("This should never be printed")
+        print "\tUpdated intLumi to %s (1/pb) for all samples" % (self.intLumi)
+        return
+
+                    
+    def _SubtractDatasetFromIntLumi(self, dataset, nameList):
+        if dataset.GetIsMC():
+            return
+
+        if isinstance(dataset, Dataset):
+            if dataset.GetName() in nameList:
+                self.intLumi -= dataset.GetLuminosity()
+        elif isinstance(dataset, DatasetMerged):
+            for d in dataset.GetDatasets():
+                if d.GetName() in nameList:
+                    self.intLumi -= d.GetLuminosity()
+        else:
+            raise Exception("This should never be printed")
+        
+        #self.UpdateIntLuminosity()
+        return
+
+                        
     def Rename(self, oldName, newName):
         '''
         Rename a Dataset.
@@ -1883,8 +1925,12 @@ class DatasetManager(object):
         \param kwargs  Keyword arguments (forwarded to merge())
         '''
         self.Verbose()
-        toMerge = {}
 
+        if len(mapping) < 1:
+            self.Print("Mapping dictionary is empty. Will do nothing." )
+            return
+
+        toMerge = {}
         # For-loop: All datasets
         for d in self.datasets:
             if d.GetName() in mapping:
@@ -1893,6 +1939,9 @@ class DatasetManager(object):
                     toMerge[newName].append(d.GetName())
                 else:
                     toMerge[newName] = [d.GetName()]
+            else:
+                pass
+            
 
         # For-loop
         for newName, nameList in toMerge.iteritems():
@@ -1921,11 +1970,11 @@ class DatasetManager(object):
         dataset.Daataset object is renamed (i.e. dataset.DatasetMerged object is not created)
         '''
         print "=== %s: " % (self.__class__.__name__ + "." + sys._getframe(1).f_code.co_name + "()")
-        
+
         (selected, notSelected, firstIndex) = _MergeStackHelper(self.datasets, nameList, "merge", allowMissingDatasets)
 
         if len(selected) == 0:
-            message = "\tNo datasets '" + ", ".join(nameList) + "' found, not doing anything"
+            message = "No datasets '" + ", ".join(nameList) + "' found to merge!"
             if allowMissingDatasets:
                 if not silent:
                     print >> sys.stderr, message
@@ -1937,7 +1986,7 @@ class DatasetManager(object):
             if not silent:
                 print >> sys.stderr, message
             self.Rename(selected[0].GetName(), newName)
-            print "\t\"%s\" successfully created by merging %s datasets:\n\t %s" % (newName, len(nameList), ", ".join(nameList) )
+            print "\tMerging %s dataset(s) to get DatasetMerged \"%s\":\n\t%s" % (len(nameList), newName, "\n\t".join(nameList) )
             return
 
         if not keepSources:
@@ -1951,7 +2000,7 @@ class DatasetManager(object):
 
         self.datasets.insert(firstIndex, newDataset)
         self._PopulateMap()
-        print "\t\"%s\" successfully created by merging %s datasets:\n\t %s" % (newName, len(nameList), ", ".join(nameList) )
+        print "\tMerging %s dataset(s) to get DatasetMerged \"%s\":\n\t%s" % (len(nameList), newName, "\n\t".join(nameList) )
         return
     
         
@@ -1988,7 +2037,7 @@ class DatasetManager(object):
             # Ensure the JSON file exists
             jsonName = os.path.join(d.baseDir, fName)
             if not os.path.exists(jsonName):
-                msg = "\t Luminosity JSON file '%s' does not exist. Have you run 'hplusLumiCalc.py' in your multicrab directory?" % jsonName
+                msg = "\tLuminosity JSON file '%s' does not exist. Have you run 'hplusLumiCalc.py' in your multicrab directory?" % jsonName
                 raise Exception(msg)
             
             # Assign luminosities to correct datasets
@@ -2004,9 +2053,10 @@ class DatasetManager(object):
                     else:
                         pass
                 else:
-                    msg = "\t Dataset-Manager has not dataset with name \"%s\"" % (name)
+                    msg = "\tDataset-Manager has not dataset with name \"%s\"" % (name)
                     raise Exception(msg)
-                
+
+        self.SetIntLuminosity(self.intLumi)
         print "\t", txtAlign.format("Total", self.intLumi, lumiUnits)
         return
 
@@ -2059,7 +2109,7 @@ class DatasetManager(object):
         return
 
 
-    def SetIntegratedLuminosity(self, intLumi=-1):
+    def SetIntLuminosity(self, intLumi=-1):
         '''
         Set luminosity to all MC samples
         '''
@@ -2071,7 +2121,7 @@ class DatasetManager(object):
 
         # For-loop: All datasets
         for dataset in self.datasets:
-            dataset.SetIntegratedLuminosity(intLumi)
+            dataset.SetIntLuminosity(intLumi)
         return
     
     
