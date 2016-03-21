@@ -81,6 +81,12 @@ def main(opts, args):
 
     if len(fileList) < 1:
         print "=== removeEOSFiles.py:\n\t Nothing to delete!"
+
+        if opts.quota:
+            quota_out, quota_err = GetEosQuota(opts)
+            print 
+            print quota_out
+
         return 
 
 

@@ -148,7 +148,7 @@ void SignalAnalysis::process(Long64_t entry) {
   const size_t nElectrons             = eData.getSelectedElectrons().size();
   const size_t nMuons                 = muData.getSelectedMuons().size();
   const size_t nLeptons               = nElectrons + nMuons;
-  if ( nLeptons < 1 ) return;
+  if ( nLeptons < 2 ) return;
 
   fCommonPlots.fillControlPlotsAfterElectronSelection(fEvent, eData);
   fCommonPlots.fillControlPlotsAfterMuonSelection(fEvent, muData);
@@ -157,12 +157,15 @@ void SignalAnalysis::process(Long64_t entry) {
 
   //====== Apply Cut: Tau selection
   const TauSelection::Data tauData = fTauSelection.analyze(fEvent);
-  if ( !tauData.hasIdentifiedTaus() ) return;
+  if ( !tauData.hasIdentifiedTaus() ) return; // FIXME: TEMPORARY
+  std::cout << "--> REMOVE taudata!" << std::endl;
+
   //====== Fake tau SF
   // if ( fEvent.isMC() ){ fEventWeight.multiplyWeight(tauData.getTauMisIDSF()); }}
   //====== Tau trigger SF
   // if ( fEvent.isMC() ){ fEventWeight.multiplyWeight(tauData.getTauTriggerSF()); }
-  fCommonPlots.fillControlPlotsAfterTauSelection(fEvent, tauData);
+
+  // fCommonPlots.fillControlPlotsAfterTauSelection(fEvent, tauData); // FIXME: TEMPORARY
 
 
   //====== MET trigger SF
@@ -173,7 +176,9 @@ void SignalAnalysis::process(Long64_t entry) {
 
 
   //====== Apply Cut: Jets selection
-  const JetSelection::Data jetData = fJetSelection.analyze(fEvent, tauData.getSelectedTau());
+  // const JetSelection::Data jetData = fJetSelection.analyze(fEvent, tauData.getSelectedTau());  // FIXME: TEMPORARY
+  const JetSelection::Data jetData = fJetSelection.analyzeWithoutTau(fEvent);  // FIXME: TEMPORARY
+
   if ( !jetData.passedSelection() ) return;
   fCommonPlots.fillControlPlotsAfterJetSelections(fEvent);
 

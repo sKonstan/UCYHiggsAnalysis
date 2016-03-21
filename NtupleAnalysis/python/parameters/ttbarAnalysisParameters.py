@@ -47,7 +47,7 @@ metFilter = PSet(
 # Electron selection
 #================================================================================================  
 electronSelection = PSet(
-    PtCut         = 7.0,
+    PtCut         = 15.0, #7.0
     EtaCut        = 2.5,
     RelIsolString = "loose", # [veto, none, loose, medium, tight]
     electronID    = "mvaEleID_PHYS14_PU20bx25_nonTrig_V1_wp90", # [?]
@@ -58,7 +58,7 @@ electronSelection = PSet(
 # Muon selection
 #================================================================================================  
 muonSelection = PSet(
-    PtCut         = 5.0,
+    PtCut         = 10.0,
     EtaCut        = 2.4,
     RelIsolString = "loose",      # [veto, none, loose, medium, tight ]
     muonID        = "muIDMedium", # [muIDLoose, muIDMedium, muIDTight ]
@@ -110,7 +110,7 @@ jetSelection = PSet(
 # B-jet selection (Jets passing the "jetSelection" PSets are checked if they can be b-tagged)
 #================================================================================================  
 bjetSelection = PSet(
-    NJetsCutValue         = 2,
+    NJetsCutValue         = 1,
     NJetsCutDirection     = ">=",  #[==, !=, <, <=, >, >=]
     BjetDiscr             = "pfCombinedInclusiveSecondaryVertexV2BJetTags",
     BjetDiscrWorkingPoint = "Loose",
@@ -121,7 +121,7 @@ bjetSelection = PSet(
 # MET selection
 #================================================================================================  
 metSelection = PSet(
-    METCutValue                 = 50.0,
+    METCutValue                 = 60.0,
     METCutDirection             = ">=",        # [==, !=, <, <=, >, >=]
     METSignificanceCutValue     = -1000.0,
     METSignificanceCutDirection = ">",         # [==, !=, <, <=, >, >=]
