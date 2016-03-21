@@ -36,8 +36,9 @@ def Verbose(msg, printHeader=False):
 
 
 def GetEosQuota(opts):
+
     csh_cmd = "eos quota | grep ^user -A1 -B2"
-    Verbose(csh_cmd)
+    Verbose(csh_cmd, True)
 
     p = subprocess.Popen(['/bin/csh', '-c', csh_cmd], stdout=subprocess.PIPE)
 
@@ -61,8 +62,9 @@ def GetEosContentsList(path, opts):
 
     # Convert string result to a list (of strings)
     fileList = cmd_out.split("\n")
+    fileList.remove('')
 
-    Verbose("Found the following files/dirs:\n\t%s" % ("\n\t".join(fileList)), True)
+    Verbose("Found %s files/dirs under %s:\n\t%s" % (len(fileList), path+"/","\n\t".join(fileList)), True)
     return fileList
 
 
@@ -70,11 +72,15 @@ def UserConfirm(fileOrDir):
     '''
     Prompts user for keystroke. Returns True if keystroke is "y", False otherwise
     '''
-    keystroke = raw_input("\t  Delete \"%s\" ? " % (fileOrDir) )
-    if ( keystroke.lower() ) == "y":
+    keystroke = raw_input("\tDelete \"%s\" ? " % (fileOrDir) )
+    if (keystroke) == "y":
         return True
-    else:
+    elif (keystroke) == "n":
         return False
+    else:
+        UserConfirm(fileOrDir)
+    return
+
 
 #================================================================================================
 # Main Program
@@ -85,7 +91,6 @@ def main(opts, args):
     userName   = os.getenv("USER")
     eosPath    = os.path.join(pathPrefix, userName)
     fileList   = GetEosContentsList(eosPath, opts)
-    fileList.remove('')
 
     if len(fileList) < 1:
         print "\tNothing to delete!"
@@ -99,7 +104,6 @@ def main(opts, args):
         path    = os.path.join(eosPath,l)
         csh_cmd = cmd + " " + path
         Verbose(csh_cmd, True)
-        sys.exit()
 
         # Execute command
         if opts.promptUser:
@@ -110,11 +114,10 @@ def main(opts, args):
         else:
             p = subprocess.Popen(['/bin/csh', '-c', csh_cmd], stdout=subprocess.PIPE)
 
-
-    if opts.quota:
-        quota_out, quota_err = GetEosQuota(opts)
-        print 
-        print quota_out
+    # Get EOS quota & print it
+    quota_out, quota_err = GetEosQuota(opts)
+    print 
+    print quota_out
 
     return
 
@@ -139,7 +142,6 @@ if __name__ == "__main__":
     parser = OptionParser(usage="Usage: %prog [options]")
     parser.add_option("-v", "--verbose"   , dest="verbose"   , default=False, action="store_true", help="Verbose mode")
     parser.add_option("-p", "--promptUser", dest="promptUser", default=False, action="store_true", help="Prompt user to delete specific file/dir or not")
-    parser.add_option("-q", "--quota"     , dest="quota"     , default=False, action="store_true", help="Print EOS Quota after file/dir deletion")
     (opts, args) = parser.parse_args()
     
     sys.exit( main(opts, args) )
