@@ -33,14 +33,22 @@ from UCYHiggsAnalysis.MiniAOD2FlatTree.tools.datasets import *
 #================================================================================================
 # Function Definitions
 #================================================================================================
-def GetCmsswVersion(verbose=False):
+def Verbose(msg, printHeader=False):
+        if not opts.verbose:
+            return
+
+        if printHeader:
+            print "=== multicrabCreate.py:"
+        print "\t", msg
+        return
+
+def GetCmsswVersion():
     '''
     Get a command-line-friendly format of the CMSSW version currently use.
     https://docs.python.org/2/howto/regex.html
     '''
     
-    if verbose:
-        print "=== multicrabCreate.py:\n\t GetCmsswVersion()"
+    Verbose("GetCmsswVersion()")
 
     # Get the current working directory
     pwd = os.getcwd()
@@ -65,9 +73,10 @@ def GetSkimType(PSet, verbose=False):
     '''
     Get the skim type according to the name of the PSET file used.
     This will be used to setup the multicrab job accordingly.
+
+    OBSOLETE
     '''
-    if verbose:
-        print "=== multicrabCreate.py:\n\t GetSkimType()"
+    Verbose("GetSkimType()")
 
     # Create a compiled regular expression object 
     skim_re = re.compile("runMiniAOD2FlatTree_(?P<skimType>\S+)Skim_cfg.py")
@@ -79,45 +88,34 @@ def GetSkimType(PSet, verbose=False):
     if match:
         skimType = match.group("skimType")
     else:
-        print "=== multicrabCreate.py:\n\t Could not determine the skim type for PSet \"%s\". EXIT." % (PSet)
+        print "=== multicrabCreate.py:\n\tCould not determine the skim type for PSet \"%s\". EXIT." % (PSet)
         sys.exit()
 
     return skimType
 
 
-def GetDatasetList(skimType, verbose=False):
+def GetDatasetList():
     '''
-    Get the list of datasets to be processed according to the skim type (and hance PSET file used).
-    This will be used to setup the multicrab job accordingly.
+    Get the list of datasets to be processed. This will be used to setup the multicrab job accordingly.
     '''
-    if verbose:
-        print "=== multicrabCreate.py:\n\t GetDatasetList()"
+    Verbose("GetDatasetList()")
 
-    datasetList = []
     myDatasets  = Datasets(False)
-
-    if skimType == "Default" or skimType == "No":
-        datasetList  = myDatasets.GetDatasetObjects(miniAODversion="RunIISpring15MiniAODv2", datasetType = opts.datasetType)
-    else:
-        print "=== multicrabCreate.py:\n\t Unknown skim type '%s'." % (skimType), ". EXIT"
-        sys.exit()
-
+    datasetList = myDatasets.GetDatasetObjects(miniAODversion="RunIISpring15MiniAODv2", datasetType = opts.datasetType)
     return datasetList
 
     
-def GetTaskDirName(datasetList, skimType, version, verbose=False):
+def GetTaskDirName(datasetList, version):
     '''
     Get the name of the CRAB task directory to be created. For the user's benefit this
-    will include the CMSSW uversion, the skim type and possibly important information from
+    will include the CMSSW version and possibly important information from
     the dataset used, such as the bunch-crossing time.
     '''
-    if verbose:
-        print "=== multicrabCreate.py:\n\t GetTaskDirName()"
+    Verbose("GetTaskDirName()")
 
     # Constuct basic task directory name
-    taskDirName  = "multicrab"
+    taskDirName  = "multicrab" #flatTree
     taskDirName += "_CMSSW" + version
-    taskDirName += "_"  + skimType
 
     # Add dataset-specific info, like bunch-crossing 
     bx_re = re.compile("\S+(?P<bx>\d\dns)_\S+")
@@ -129,35 +127,27 @@ def GetTaskDirName(datasetList, skimType, version, verbose=False):
     taskDirName+= "_" + time.strftime("%d%b%Y_%Hh%Mm%Ss")
 
     # Overwrite task dir name by user input? Check script execution command
-    if len(sys.argv) == 2 and os.path.exists(sys.argv[1]) and os.path.isdir(sys.argv[1]):
+    if opts.taskDirName != "":
         taskDirName = sys.argv[1]
-    else:
-        taskDirName = taskDirName
     
     return taskDirName
 
 
-def CreateCrabTask(taskDirName, verbose=False):
+def CreateCrabTask(taskDirName):
     '''
     Creates a directory which will be used as the CRAB task directory.
     Also copies all available information from git regarding the current status of the code, 
     including the unique "commit id", "git diff" and "git status".   
     '''
-    if verbose:
-        print "=== multicrabCreate.py:\n\t CreateCrabTask()"
+    Verbose("CreateCrabTask()")
 
     # If the task directory does not exist create it
     if not os.path.exists(taskDirName):
         os.mkdir(taskDirName)
     else:
-        if verbose:
-            print "=== multicrabCreate.py:\n\t Created CRAB task directory \"%s\"" % (taskDirName)
-
-    if verbose:
-        print "=== multicrabCreate.py:\n\t Created CRAB task directory \"%s\"" % (taskDirName)
-    else:
-        return
+        Verbose("Created CRAB task directory \"%s\"" % (taskDirName) )
         
+    #Verbose("Created CRAB task directory \"%s\"" % (taskDirName) )
         
     # Copy file to be used (and others to be tracked) to the task directory
     cmd = "cp %s %s" %(PSET, taskDirName)
@@ -166,8 +156,7 @@ def CreateCrabTask(taskDirName, verbose=False):
     # Write the commit id, "git status", "git diff" command output the directory created for the multicrab task.
     gitFileList = git.writeCodeGitInfo(taskDirName, False)
 
-    if verbose:
-        print "=== multicrabCreate.py:\n\t Copied %s to '%s'." % ("'" + "', '".join(gitFileList) + "'", taskDirName)
+    Verbose("Copied %s to '%s'." % ("'" + "', '".join(gitFileList) + "'", taskDirName) )
     return
 
 
@@ -221,7 +210,7 @@ def GetRequestName(dataset):
                 if Ag == "_Silver":
                     requestName += Ag
     else:
-        raise Exception("=== multicrabCreate.py:\n\t Unexpected error for dataset '%s'. It must either be data or MC" %dataset)
+        raise Exception("Unexpected error for dataset '%s'. It must either be data or MC" %dataset)
 
     # Finally, replace dashes with underscores 
     requestName = requestName.replace("-","_")
@@ -237,19 +226,18 @@ def EnsurePathDoesNotExit(taskDirName, requestName):
     if not os.path.exists(filePath):
         return
     else:
-        raise Exception("=== multicrabCreate.py:\n\t File '%s' already exists!" % (filePath) )
+        raise Exception("File '%s' already exists!" % (filePath) )
 
     return
 
 
-def CreateCfgFile(dataset, taskDirName, requestName, infilePath = "crabConfig.py", verbose=False):
+def CreateCfgFile(dataset, taskDirName, requestName, infilePath = "crabConfig.py"):
     '''
     Creates a CRAB-specific configuration file which will be used in the submission
     of a job. The function uses as input a generic cfg file which is then customised
     based on the dataset type used.
     '''
-    if verbose:
-        print "=== multicrabCreate.py:\n\t CreateCfgFile()"
+    Verbose("CreateCfgFile()")
 
     outfilePath = os.path.join(taskDirName, "crabConfig_" + requestName + ".py")
 
@@ -330,37 +318,33 @@ def CreateCfgFile(dataset, taskDirName, requestName, infilePath = "crabConfig.py
     fileOUT.close()
     fileIN.close()
 
-    if verbose:
-        print "=== multicrabCreate.py:\n\t Created CRAB cfg file \"%s\"" % (fileOUT.name)
+    Verbose("Created CRAB cfg file \"%s\"" % (fileOUT.name) )
     return
 
 
-def SubmitCrabTask(taskDirName, requestName, verbose=False):
+def SubmitCrabTask(taskDirName, requestName):
     '''
     Submit a given CRAB task using the specific cfg file.
     '''
-    if verbose:
-        print "=== multicrabCreate.py:\n\t SubmitCrabTask()"
+    Verbose("SubmitCrabTask()")
 
     outfilePath = os.path.join(taskDirName, "crabConfig_" + requestName + ".py")
 
     # Submit the CRAB task
     cmd_submit = "crab submit " + outfilePath
-    if verbose:
-        print "=== multicrabCreate.py:\n\t ", cmd_submit
+    Verbose(cmd_submit)
     os.system(cmd_submit)
 
     # Rename the CRAB task directory (remove "crab_" from its name)
     cmd_mv = "mv " + os.path.join(taskDirName, "crab_" + requestName) + " " + os.path.join(taskDirName, requestName)
-    if verbose:
-        print "=== multicrabCreate.py:\n\t ", cmd_mv
+    Verbose(cmd_mv)
     os.system(cmd_mv)
 
     # Call 'crab status' command for taskDirNme/requestName 
     #import time
     #time.sleep(1)
     #cmd_status = "crab status --dir=" + os.path.join(taskDirName, requestName)
-    #print "=== multicrabCreate.py:\n\t ", cmd_status
+    #print "=== multicrabCreate.py:\n\t", cmd_status
     #os.system(cmd_status)
     return
 
@@ -369,26 +353,25 @@ def AbortCrabTask(keystroke):
     '''
     Give user last chance to abort CRAB task creation.
     '''
-    message  =  "=== multicrabCreate.py:\n\t Press \"%s\" to abort, any other key to proceed: " % (keystroke)
+    message = "=== multicrabCreate.py:\n\tPress \"%s\" to abort, any other key to proceed: " % (keystroke)
 
     response = raw_input(message)
     if (response!= keystroke):
         return
     else:
-        print "=== multicrabCreate.py:\n\t EXIT"
+        print "=== multicrabCreate.py:\n\tEXIT"
         sys.exit()
     return
 
 
-def AskToContinue(datasetList, verbose=False):
+def AskToContinue(datasetList):
     '''
     '''
-    if verbose:
-        print "=== multicrabCreate.py:\n\t AskToContinue()"
+    Verbose("AskToContinue()")
 
-    msg  = "\n\t Creating CRAB task with PSet:\n\t\t %s" % (PSET)
-    msg += "\n\t The following datasets will be used:\n\t\t%s" % ("\n\t\t".join(str(d.DAS) for d in datasetList))
-    print "=== multicrabCreate.py:%s" % (msg)
+    print "=== multicrabCreate.py:"
+    print "\tCreating CRAB task with PSet \"%s\" and the following datasets:\n\t%s" % (PSET, "\n\t".join(str(d.DAS) for d in datasetList) )
+
     AbortCrabTask(keystroke="q")
     return
 
@@ -396,7 +379,7 @@ def AskToContinue(datasetList, verbose=False):
 #================================================================================================
 # Options & Declaration
 #================================================================================================
-PSET     = "runMiniAOD2FlatTree_DefaultSkim_cfg.py"
+PSET = "runMiniAOD2FlatTree_cfg.py"
 
 
 #================================================================================================
@@ -405,20 +388,17 @@ PSET     = "runMiniAOD2FlatTree_DefaultSkim_cfg.py"
 def main(opts, args):
     
     # Get the CMSSW version
-    version = GetCmsswVersion(opts.verbose)
+    version = GetCmsswVersion()
     
-    # Get the Skim type
-    skimType = GetSkimType(PSET, opts.verbose)
-
     # Get the datasets
-    datasetList = GetDatasetList(skimType, opts.verbose)
+    datasetList = GetDatasetList()
 
     # Give user last chance to abort
-    AskToContinue(datasetList, opts.verbose)
+    AskToContinue(datasetList)
 
     # Get the task directory name
     if opts.taskDirName=="":
-        taskDirName = GetTaskDirName(datasetList, skimType, version, opts.verbose)
+        taskDirName = GetTaskDirName(datasetList, version)
     else:
         taskDirName = opts.taskDirName
 
@@ -428,17 +408,16 @@ def main(opts, args):
     # For-loop: All datasets
     for dataset in datasetList:
 
-        if opts.verbose:
-            print "=== multicrabCreate.py:\n\t Getting request name, creating cfg file && submitting CRAB task for dataset \"%s\"" % (dataset)
+        Verbose("Getting request name, creating cfg file && submitting CRAB task for dataset \"%s\"" % (dataset) )
 
         # Create CRAB configuration file for each dataset
         requestName = GetRequestName(dataset)
     
         # Create a CRAB cfg file for each dataset
-        CreateCfgFile(dataset, taskDirName, requestName, "crabConfig.py", opts.verbose)
+        CreateCfgFile(dataset, taskDirName, requestName, "crabConfig.py")
 
         # Sumbit job for CRAB cfg file            
-        SubmitCrabTask(taskDirName, requestName, opts.verbose)
+        SubmitCrabTask(taskDirName, requestName)
 
     return 0
 
@@ -461,19 +440,16 @@ if __name__ == "__main__":
     '''
 
     parser = OptionParser(usage="Usage: %prog [options]")
-    parser.add_option("-v", "--verbose", dest="verbose"    , default=False, action="store_true", help="Verbose mode")
-
-    parser.add_option("-d", "--dir", dest="taskDirName", type="string", default="", help="Custom name for multiCRAB directory name")
-
-    parser.add_option("-t", "--datasetType", dest="datasetType", type="string", default="", help="The type/group of datasets to run on. Currently the available types/groups are: \"All\", \"Data\", \"MC\".")
-
+    parser.add_option("-v", "--verbose"    , dest="verbose"    , default=False, action="store_true", help="Verbose mode")
+    parser.add_option("-d", "--dir"        , dest="taskDirName", default=""   , type="string"      , help="Custom name for multiCRAB directory name")
+    parser.add_option("-t", "--datasetType", dest="datasetType", default=""   , type="string"      , help="Datasets group to run on. Options: \"All\", \"Data\", \"MC\".")
+ 
     (opts, args) = parser.parse_args()
 
     if opts.datasetType == "":
-        print "=== multicrabCreate.py:\n\t ERROR! The script was executed without definining the dataset type/group to use. Retry using the following syntax:"
-        print "\t\t multicrabCreate.py --datasetType=\"SelectedMC\" [or any other supported datasetType]" 
-        print "\t For help execute the script with the \"help\" option:"
-        print "\t\t multicrabCreate.py --help"
+        opts.verbose=True
+        Verbose("The script was executed without definining the dataset type/group to use. Retry using the following syntax:", True)
+        Verbose("multicrabCreate.py -t <DatasetType>")
         sys.exit()
 
     sys.exit( main(opts, args) )

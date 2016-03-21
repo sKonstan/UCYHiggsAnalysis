@@ -25,10 +25,20 @@ from optparse import OptionParser
 #================================================================================================
 # Function Definitions
 #================================================================================================
+def Verbose(msg, printHeader=False):
+    if not opts.verbose:
+        return
+
+    if printHeader:
+        print "=== removeEOSFiles.py:"
+    print "\t", msg
+    return
+
+
 def GetEosQuota(opts):
     csh_cmd = "eos quota | grep ^user -A1 -B2"
-    if opts.verbose:
-        print "=== removeEOSFiles.py:\n\t ", csh_cmd
+    Verbose(csh_cmd)
+
     p = subprocess.Popen(['/bin/csh', '-c', csh_cmd], stdout=subprocess.PIPE)
 
     # Use Popen with the communicate() method when you need pipes
@@ -41,9 +51,9 @@ def GetEosContentsList(path, opts):
     # Construct & Execute command
     cmd     = "eos ls"
     csh_cmd = cmd + " " + path
+    Verbose(csh_cmd, True)
 
-    if opts.verbose:
-        print "=== removeEOSFiles.py:\n\t ", csh_cmd
+    # Execute shell command
     p = subprocess.Popen(['/bin/csh', '-c', csh_cmd], stdout=subprocess.PIPE)
 
     # Use Popen with the communicate() method when you need pipes
@@ -52,9 +62,7 @@ def GetEosContentsList(path, opts):
     # Convert string result to a list (of strings)
     fileList = cmd_out.split("\n")
 
-    if opts.verbose:
-        print "=== removeEOSFiles.py:\n\t ", ", ".join(fileList)
-
+    Verbose("Found the following files/dirs:\n\t%s" % ("\n\t".join(fileList)), True)
     return fileList
 
 
@@ -80,25 +88,18 @@ def main(opts, args):
     fileList.remove('')
 
     if len(fileList) < 1:
-        print "=== removeEOSFiles.py:\n\t Nothing to delete!"
+        print "\tNothing to delete!"
+        quota_out, quota_err = GetEosQuota(opts)
+        print "\n", quota_out
+        return     
 
-        if opts.quota:
-            quota_out, quota_err = GetEosQuota(opts)
-            print 
-            print quota_out
-
-        return 
-
-
-    print "=== removeEOSFiles.py:"
     for l in fileList:
         # Construct command
         cmd     = "eos rm -r"
         path    = os.path.join(eosPath,l)
         csh_cmd = cmd + " " + path
-        
-        if opts.verbose:
-            print "\t ", csh_cmd
+        Verbose(csh_cmd, True)
+        sys.exit()
 
         # Execute command
         if opts.promptUser:
