@@ -66,12 +66,12 @@ def main():
 
     # Require at least two arguments (script-name, path to multicrab)
     if len(sys.argv) < 2:
-        print "=== runKinematics:\n\t Not enough arguments passed to script execution. Printing docstring & EXIT."
+        print "=== runSignalAnalysis:\n\t Not enough arguments passed to script execution. Printing docstring & EXIT."
         print __doc__
         sys.exit(0)
 
     if bVerbose:
-        print "=== runKinematics.py:\n\t Adding all datasets from multiCRAB directory \"%s\"" % (opts.mcrab)
+        print "=== runSignalAnalysis.py:\n\t Adding all datasets from multiCRAB directory \"%s\"" % (opts.mcrab)
 
     if (opts.includeOnlyTasks):
         process.addDatasetsFromMulticrab(opts.mcrab, includeOnlyTasks=opts.includeOnlyTasks)
@@ -128,10 +128,10 @@ def main():
     # ================================================================================================
     # Run the analysis with PROOF? By default it uses all cores, but you can give proofWorkers=<N> as a parameter
     if opts.jCores:
-        print "=== runKinematics:\n\t Running process with PROOF (proofWorkes=%s)" % ( str(opts.jCores) )
+        print "=== runSignalAnalysis:\n\t Running process with PROOF (proofWorkes=%s)" % ( str(opts.jCores) )
         process.run(proof=True, proofWorkers=opts.jCores)
     else:
-        print "=== runKinematics:\n\t Running process (no PROOF)"
+        print "=== runSignalAnalysis:\n\t Running process (no PROOF)"
         process.run()
 
 

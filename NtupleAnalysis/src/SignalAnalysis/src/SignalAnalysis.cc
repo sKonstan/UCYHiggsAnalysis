@@ -35,7 +35,7 @@ private:
   ElectronSelection fElectronSelection;
   MuonSelection fMuonSelection;
   Count cLeptons;
-  TauSelection fTauSelection;
+  // TauSelection fTauSelection;
   JetSelection fJetSelection;
   BJetSelection fBJetSelection;
   // Count cBTaggingSFCounter;
@@ -62,7 +62,7 @@ SignalAnalysis::SignalAnalysis(const ParameterSet& config)
     fElectronSelection( config.getParameter<ParameterSet>("ElectronSelection"), ""),
     fMuonSelection( config.getParameter<ParameterSet>("MuonSelection"), ""),
     cLeptons( fEventCounter.addCounter("Passed leptons") ),
-    fTauSelection( config.getParameter<ParameterSet>("TauSelection"), fEventCounter, fHistoWrapper, &fCommonPlots, ""), 
+    // fTauSelection( config.getParameter<ParameterSet>("TauSelection"), fEventCounter, fHistoWrapper, &fCommonPlots, ""), 
     fJetSelection( config.getParameter<ParameterSet>("JetSelection"), fEventCounter, fHistoWrapper, &fCommonPlots, ""),
     fBJetSelection( config.getParameter<ParameterSet>("BJetSelection"), fEventCounter, fHistoWrapper, &fCommonPlots, ""),
     fMETSelection( config.getParameter<ParameterSet>("METSelection"), fEventCounter, fHistoWrapper, &fCommonPlots, ""),
@@ -76,7 +76,7 @@ void SignalAnalysis::book(TDirectory *dir) {
   fMETFilterSelection.bookHistograms(dir);
   fElectronSelection.bookHistograms(dir);
   fMuonSelection.bookHistograms(dir);
-  fTauSelection.bookHistograms(dir);
+  // fTauSelection.bookHistograms(dir);
   fJetSelection.bookHistograms(dir);
   fBJetSelection.bookHistograms(dir);
   fMETSelection.bookHistograms(dir);
@@ -156,9 +156,8 @@ void SignalAnalysis::process(Long64_t entry) {
 
 
   //====== Apply Cut: Tau selection
-  const TauSelection::Data tauData = fTauSelection.analyze(fEvent);
-  if ( !tauData.hasIdentifiedTaus() ) return; // FIXME: TEMPORARY
-  std::cout << "--> REMOVE taudata!" << std::endl;
+  // const TauSelection::Data tauData = fTauSelection.analyze(fEvent);
+  // if ( !tauData.hasIdentifiedTaus() && tauData.hasIdentifiedTaus() ) return;
 
   //====== Fake tau SF
   // if ( fEvent.isMC() ){ fEventWeight.multiplyWeight(tauData.getTauMisIDSF()); }}
@@ -178,9 +177,9 @@ void SignalAnalysis::process(Long64_t entry) {
   //====== Apply Cut: Jets selection
   // const JetSelection::Data jetData = fJetSelection.analyze(fEvent, tauData.getSelectedTau());  // FIXME: TEMPORARY
   const JetSelection::Data jetData = fJetSelection.analyzeWithoutTau(fEvent);  // FIXME: TEMPORARY
-
   if ( !jetData.passedSelection() ) return;
-  fCommonPlots.fillControlPlotsAfterJetSelections(fEvent);
+
+  //fCommonPlots.fillControlPlotsAfterJetSelections(fEvent); // Pre-requisite: if (!tauData.hasIdentifiedTaus()) return;
 
 
   //====== Apply Cut: b-Jets selection
@@ -200,7 +199,7 @@ void SignalAnalysis::process(Long64_t entry) {
 
 
   // Fill final plots
-  fCommonPlots.fillControlPlotsAfterAllSelections(fEvent);
+  // fCommonPlots.fillControlPlotsAfterAllSelections(fEvent); // Pre-requisite: if (!tauData.hasIdentifiedTaus()) return;
 
   
   //====== Finalize
