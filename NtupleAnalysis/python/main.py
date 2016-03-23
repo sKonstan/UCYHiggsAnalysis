@@ -31,6 +31,36 @@ import UCYHiggsAnalysis.NtupleAnalysis.tools.git as git
 ROOT.gROOT.SetBatch(True)
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 
+
+#================================================================================================
+# Global Definitions
+#================================================================================================
+Verbsose = True
+
+#================================================================================================
+# Function Definition
+#================================================================================================
+def Verbose(msg, printHeader=False):
+    if not Verbose:
+        return
+
+    if printHeader:
+        print "=== main.py:"
+
+    if msg !="":
+        print "\t", msg
+    return
+
+
+def Print(msg, printHeader=True):
+    if printHeader:
+        print "=== main.py:"
+
+    if msg !="":
+        print "\t", msg
+    return
+
+
 #================================================================================================
 # Class Definition
 #================================================================================================
@@ -87,7 +117,7 @@ class PSet:
 def File(fileName):
     fullpath = os.path.join(aux.higgsAnalysisPath(), fileName)
     if not os.path.exists(fullpath):
-        raise Exception("=== main.py:\n\t The file '%s' does not exist" % self._fullpath)
+        raise Exception("The file '%s' does not exist" % self._fullpath)
     return fullpath
 
 #================================================================================================
@@ -106,13 +136,13 @@ class Analyzer:
             if isinstance(kwargs["config"], PSet):
                 self.__dict__["_pset"] = kwargs["config"]
             else:
-                raise Exception("=== main.py:\n\t The keyword config should be used only for providing the parameters as a PSet!")
+                raise Exception("The keyword config should be used only for providing the parameters as a PSet!")
         else:
             self.__dict__["_pset"] = PSet(**kwargs)
 
         if not silentStatus:
-            print "=== main.py:\n\t Configuration parameters:"
-            print self.__dict__["_pset"]
+            Print("Configuration parameters: ", self.__dict__["_pset"])
+        return
 
     def __getattr__(self, name):
         return getattr(self._pset, name)
@@ -143,6 +173,7 @@ class AnalyzerWithIncludeExclude:
             raise Exception("AnalyzerWithIncludeExclude expects exactly 1 keyword argument, which is 'includeOnlyTasks' or 'excludeTasks'")
         self._includeExclude = {}
         self._includeExclude.update(kwargs)
+        return
 
     def getAnalyzer(self):
         return self._analyzer
@@ -268,8 +299,7 @@ class Process:
         No explicit files possible here
         '''       
         for name in names:
-            if self._verbose:
-                print "=== main.py:\n\t Adding dataset '%s'" % (name)
+            Verbose("Adding dataset '%s'" % (name))
             self.addDataset(name)
         return
 
@@ -287,11 +317,15 @@ class Process:
             fileNames   = dset.getFileNames()
             dataVer     = dset.getDataVersion()
             lumi        = dsetMgrCreator.getLumiFile()
-
-            if self._verbose:
-                print "=== main.py:\n\t Adding dataset to self with following properties:"
-                attr = '{:<15} {:<40}\n {:<15} {:<40}\n {:<15} {:<40}\n {:<15} {:<40}'.format("\t dataset", ": " + name, "\t files", ": " + ",".join(fileNames), "\t data-version", ": "+dataVer, "\t lumi-file", ": " + lumi)
-                print attr
+            tableRows   = []
+            txtAlign    = "{:<12} {:^3} {:<55}"        
+            tableRows.append( txtAlign.format("dataset"      , ":", name) )
+            tableRows.append( txtAlign.format("files"        , ":", ", ".join(fileNames) ) )
+            tableRows.append( txtAlign.format("data-version" , ":",  dataVer) )
+            tableRows.append( txtAlign.format("lumi-file"    , ":", lumi) )
+            Verbose("Adding dataset to self with following properties:", True)
+            for r in tableRows:
+                Verbose(r)            
             self.addDataset(name, fileNames, dataVersion=dataVer, lumiFile=lumi)
         return
 
@@ -300,8 +334,7 @@ class Process:
         if self.hasAnalyzer(name):
             raise Exception("Analyzer '%s' already exists" % name)
 
-        if self._verbose:
-            print "=== main.py:\n\t Added Analyzer with name '%s'" % (name)
+        Verbose("Added Analyzer with name '%s'" % (name))
         self._analyzers[name] = AnalyzerWithIncludeExclude(analyzer, **kwargs)
         return
 
@@ -331,8 +364,7 @@ class Process:
             outputDir += "_"+self._outputPostfix
 
         # Create output directory
-        if self._verbose:
-            print "=== main.py:\n\t Creating directory '%s'" % (outputDir) 
+        Verbose( "Creating directory '%s'" % (outputDir) )
 
         os.mkdir(outputDir)
         multicrabCfg = os.path.join(outputDir, "multicrab.cfg")
@@ -425,9 +457,9 @@ class Process:
                     if hasattr(analyzer, "__call__"):
                         analyzer = analyzer(dset.getDataVersion())
                         if analyzer is None:
-                            raise Exception("=== main.py:\n\t Analyzer '%s' was specified as a function, but returned None" % aname)
+                            raise Exception("Analyzer '%s' was specified as a function, but returned None" % aname)
                         if not isinstance(analyzer, Analyzer):
-                            raise Exception("=== main.py:\n\t Analyzer '%s' was specified as a function, but returned object of '%s' instead of Analyzer" % (aname, analyzer.__class__.__name__))
+                            raise Exception("Analyzer '%s' was specified as a function, but returned object of '%s' instead of Analyzer" % (aname, analyzer.__class__.__name__))
                     inputList.Add(ROOT.TNamed("analyzer_"+aname, analyzer.className_()+":"+analyzer.config_()))
 
                     # ttbar status for top pt corrections
@@ -444,7 +476,7 @@ class Process:
                         if aname in hPUs.keys():
                             if self._verbose:
                                 for k in range(hPUs[aname].GetNbinsX()):
-                                    print "=== main.py:\n\t DEBUG(PUreweighting): dataPU:%d:%f"%(k+1, hPUs[aname].GetBinContent(k+1))
+                                    Print("DEBUG(PUreweighting): dataPU:%d:%f"%(k+1, hPUs[aname].GetBinContent(k+1)) )
                             inputList.Add(hPUs[aname])
                         else:
                             n = 50
@@ -454,22 +486,22 @@ class Process:
                                 hFlat.Fill(k+1, 1.0/n)
                             inputList.Add(hFlat)
                             hPUs[aname] = hFlat
-                            print "=== main.py:\n\t WARNING! Using a flat PU spectrum for data (which is missing). The MC PU spectrum is unchanged."
+                            Print("WARNING! Using a flat PU spectrum for data (which is missing). The MC PU spectrum is unchanged.")
 
                         if dset.getPileUp() == None:
-                            raise Exception("=== main.py:\n\t Error: PU spectrum is missing from dataset! Please switch to using newest multicrab!")
+                            raise Exception("ERROR! PU spectrum is missing from dataset! Please switch to using newest multicrab!")
                         hPUMC = dset.getPileUp().Clone()
 
                         if aname not in hPUs.keys():
-                            print "===main.py:\n\t The key '%s' does not exist in dictionary variable 'hPUs'. Continue" % (aname)
+                            Print("The key '%s' does not exist in dictionary variable 'hPUs'. Continue" % (aname))
                             continue
 
                         if hPUMC.GetNbinsX() != hPUs[aname].GetNbinsX():
-                            raise Exception("=== main.py:\n\t Pileup histogram dimension mismatch! data nPU has %d bins and MC nPU has %d bins"%(hPUs[aname].GetNbinsX(), hPUMC.GetNbinsX()))
+                            raise Exception("Pileup histogram dimension mismatch! data nPU has %d bins and MC nPU has %d bins"%(hPUs[aname].GetNbinsX(), hPUMC.GetNbinsX()))
                         hPUMC.SetName("PileUpMC")
                         if self._verbose:
                             for k in range(hPUMC.GetNbinsX()):
-                                print "=== main.py:\n\t Debug(PUreweighting): MCPU:%d:%f"%(k+1, hPUMC.GetBinContent(k+1))
+                                Print("Debug(PUreweighting): MCPU:%d:%f"%(k+1, hPUMC.GetBinContent(k+1)) )
                         inputList.Add(hPUMC)
                         if analyzer.exists("usePileupWeights"):
                             usePUweights = analyzer.__getattr__("usePileupWeights")
@@ -481,29 +513,32 @@ class Process:
                                         nAllEventsPUWeighted += w * hPUMC.GetBinContent(k)
                     anames.append(aname)
             if nanalyzers == 0:
-                print "=== main.py:\n\t Skipping %s, no analyzers" % dset.getName()
+                Print("Skipping %s, no analyzers" % dset.getName())
                 continue
 
-            print "=== main.py:\n\t Processing dataset (%d/%d): " % (ndset, len(self._datasets))
-            info  = '{:<20} {:<40}'.format("\t Dataset", ": " + dset.getName())
-            info += '\n{:<20} {:<40}'.format("\t Is Data", ": " + str(dset.getDataVersion().isData()) )
+            Print("Processing dataset (%d/%d): " % (ndset, len(self._datasets)))
+            align = '{:<20} {:^3} {:<40}'
+            info  = []
+            info.append( align.format("Dataset", ":", dset.getName()) )
+            info.append( align.format("Is Data", ":", str(dset.getDataVersion().isData()) ) )
 
             if dset.getDataVersion().isData():
                 lumivalue = "--- not available in lumi.json (or lumi.json not available) ---"
                 if dset.getName() in lumidata.keys():
                     lumivalue = lumidata[dset.getName()]
-                info  += '\n{:<20} {:<40}'.format("\t Luminosity", ": " + str(lumivalue) + " [pb-1]")
+                info.append( align.format("Luminosity", ":", str(lumivalue) + " [pb-1]") )
             else:
-                info += '\n{:<20} {:<40}'.format("\t Luminosity", ": -")
+                info.append( align.format("Luminosity", ": ", "-") )
 
             # PileUp Weights
-            info  += '\n{:<20} {:<40}'.format("\t Pile-Up Weights", ": " + str(usePUweights))
+            info.append( align.format("Pile-Up Weights", ":", str(usePUweights)) )
 
             # Top pT Corrections
-            info  += '\n{:<20} {:<40}'.format("\t Top-pT Weights", ": " + str(useTopPtCorrection))
+            info.append( align.format("Top-pT Weights", ":", str(useTopPtCorrection)) )
 
             # Print combined information
-            print info
+            for i in info:
+                print "\t", i
             
             resDir      = os.path.join(outputDir, dset.getName(), "res")
             resFileName = os.path.join(resDir, "histograms-%s.root" % dset.getName())

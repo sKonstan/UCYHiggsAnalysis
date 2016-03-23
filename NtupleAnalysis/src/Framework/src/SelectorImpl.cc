@@ -360,7 +360,7 @@ void SelectorImpl::printStatus() {
       int myMinutes   = static_cast<int>(myTimeEstimate / 60);
       myTimeEstimate -= static_cast<double>(myMinutes * 60);
       int mySeconds   = static_cast<int>(myTimeEstimate);
-      std::cout << "\r\t Estimated Time: ";
+      std::cout << "\r\tEstimated Time: ";
 
       if (myHours) {
         std::cout << std::setw(2) << std::setfill('0') << myHours << ":";
@@ -369,7 +369,7 @@ void SelectorImpl::printStatus() {
                 << std::setw(2) << std::setfill('0') << mySeconds << " ";
     }
 
-    std::cout << "\r\t Processed " << std::setprecision(4) << myFraction * 100.0 << "% ["
+    std::cout << "\r\tProcessed " << std::setprecision(4) << myFraction * 100.0 << "% ["
               << std::setprecision(3) << (bytes/timeDiff/1024/1024) << " MB/s]"
               << "       " // to clear
               << std::flush;
@@ -380,7 +380,7 @@ void SelectorImpl::resetStatus() {
   if(!fPrintStatus) return;
 
   fStopwatch.Stop();
-  std::cout << "\n\r\t Processed " << fProcessed << " entries" << std::endl;
+  std::cout << "\n\r\tProcessed " << fProcessed << " entries" << std::endl;
   //fStopwatch.Print();
   fPrintStep = 20000;
 }

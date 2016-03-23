@@ -128,10 +128,10 @@ def main():
     # ================================================================================================
     # Run the analysis with PROOF? By default it uses all cores, but you can give proofWorkers=<N> as a parameter
     if opts.jCores:
-        print "=== runSignalAnalysis:\n\t Running process with PROOF (proofWorkes=%s)" % ( str(opts.jCores) )
+        print "=== runSignalAnalysis:\n\tRunning process with PROOF (proofWorkes=%s)" % ( str(opts.jCores) )
         process.run(proof=True, proofWorkers=opts.jCores)
     else:
-        print "=== runSignalAnalysis:\n\t Running process (no PROOF)"
+        print "=== runSignalAnalysis:\n\tRunning process (no PROOF)"
         process.run()
 
 
