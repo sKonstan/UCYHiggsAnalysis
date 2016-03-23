@@ -389,23 +389,25 @@ def getProperAdditivesForVariationUncertainties(diffPlus, diffMinus):
     raise Exception("Error: Unknown situation diffPlus=%f, diffMinus=%f!"%(diffPlus, diffMinus))
 
 
-## Helper function to choose tasks with includeOnlyTasks/excludeTasks
-#
-# \param tasks  List of strings for task names
-# \param kwargs Keyword arguments (see below)
-#
-# <b>Keyword arguments</b>
-# \li \a excludeTasks      String, or list of strings, to specify regexps.
-#                          If a dataset name matches to any of the
-#                          regexps, Dataset object is not constructed for
-#                          that. Conflicts with \a includeOnlyTasks
-# \li \a includeOnlyTasks  String, or list of strings, to specify
-#                          regexps. Only datasets whose name matches
-#                          to any of the regexps are kept. Conflicts
-#                          with \a excludeTasks.
-#
-# \return List of selected tasks (all tasks if neither excludeTasks or includeOnlyTasks is given)
 def includeExcludeTasks(tasks, **kwargs):
+    '''
+    Helper function to choose tasks with includeOnlyTasks/excludeTasks
+    
+    \param tasks  List of strings for task names
+    \param kwargs Keyword arguments (see below)
+    
+    <b>Keyword arguments</b>
+    \li \a excludeTasks      String, or list of strings, to specify regexps.
+                             If a dataset name matches to any of the
+                             regexps, Dataset object is not constructed for
+                             that. Conflicts with \a includeOnlyTasks
+    \li \a includeOnlyTasks  String, or list of strings, to specify
+                             regexps. Only datasets whose name matches
+                             to any of the regexps are kept. Conflicts
+                             with \a excludeTasks.
+    
+    \return List of selected tasks (all tasks if neither excludeTasks or includeOnlyTasks is given)
+    '''
     if "excludeTasks" in kwargs and "includeOnlyTasks" in kwargs:
         raise Exception("Only one of 'excludeTasks' or 'includeOnlyTasks' is allowed")
 
@@ -416,7 +418,7 @@ def includeExcludeTasks(tasks, **kwargs):
 
     if "excludeTasks" in kwargs:
         exclude = getRe(kwargs["excludeTasks"])
-        tmp = []
+        tmp     = []
         for task in tasks:
             found = False
             for e_re in exclude:
@@ -430,7 +432,7 @@ def includeExcludeTasks(tasks, **kwargs):
 
     if "includeOnlyTasks" in kwargs:
         include = getRe(kwargs["includeOnlyTasks"])
-        tmp = []
+        tmp     = []
         for task in tasks:
             found = False
             for i_re in include:

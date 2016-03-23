@@ -35,13 +35,13 @@ ROOT.PyConfig.IgnoreCommandLineOptions = True
 #================================================================================================
 # Global Definitions
 #================================================================================================
-Verbsose = True
+bVerbose = False
 
 #================================================================================================
 # Function Definition
 #================================================================================================
 def Verbose(msg, printHeader=False):
-    if not Verbose:
+    if not bVerbose:
         return
 
     if printHeader:
@@ -166,7 +166,6 @@ class Analyzer:
 # Class Definition
 #================================================================================================
 class AnalyzerWithIncludeExclude:
-
     def __init__(self, analyzer, **kwargs):
         self._analyzer = analyzer
         if len(kwargs) > 0 and (len(kwargs) != 1 or not ("includeOnlyTasks" in kwargs or "excludeTasks" in kwargs)):
@@ -294,6 +293,7 @@ class Process:
         self._datasets.append( Dataset(name, files, dataVersion, lumiFile, pileUp, nAllEvents) )
         return
 
+
     def addDatasets(self, names):
         '''
         No explicit files possible here
@@ -303,12 +303,13 @@ class Process:
             self.addDataset(name)
         return
 
+
     def addDatasetsFromMulticrab(self, directory, *args, **kwargs):
         '''
         '''
         dataset._optionDefaults["input"] = "miniAOD2FlatTree*.root"
         dsetMgrCreator = dataset.readFromMulticrabCfg(directory=directory, *args, **kwargs)
-        datasets = dsetMgrCreator.getDatasetPrecursors()
+        datasets       = dsetMgrCreator.getDatasetPrecursors()
         dsetMgrCreator.close()
 
         # For-loop: All datasets
@@ -516,25 +517,20 @@ class Process:
                 Print("Skipping %s, no analyzers" % dset.getName())
                 continue
 
-            Print("Processing dataset (%d/%d): " % (ndset, len(self._datasets)))
-            align = '{:<20} {:^3} {:<40}'
+            Print("Processing ... (%d/%d)" % (ndset, len(self._datasets)))
+            align = "{:<23} {:^3} {:<40}"
             info  = []
             info.append( align.format("Dataset", ":", dset.getName()) )
             info.append( align.format("Is Data", ":", str(dset.getDataVersion().isData()) ) )
-
             if dset.getDataVersion().isData():
                 lumivalue = "--- not available in lumi.json (or lumi.json not available) ---"
                 if dset.getName() in lumidata.keys():
                     lumivalue = lumidata[dset.getName()]
                 info.append( align.format("Luminosity", ":", str(lumivalue) + " [pb-1]") )
             else:
-                info.append( align.format("Luminosity", ": ", "-") )
-
-            # PileUp Weights
+                info.append( align.format("Luminosity", ":", "-") )
             info.append( align.format("Pile-Up Weights", ":", str(usePUweights)) )
-
-            # Top pT Corrections
-            info.append( align.format("Top-pT Weights", ":", str(useTopPtCorrection)) )
+            info.append( align.format("Top-pT Weights" , ":", str(useTopPtCorrection)) )
 
             # Print combined information
             for i in info:
@@ -945,8 +941,9 @@ if __name__ == "__main__":
             self.assertEqual(a.runForDataset_("Foobar"), False)
 
     class TestProcess(unittest.TestCase):
-
+        
         def testAnalyzer(self):
+            Print("TestProcess::testAnalyzer")
             p = Process()
             p.addAnalyzer("Test1", Analyzer("FooClass", foo=1))
             p.addAnalyzer("Test2", Analyzer("FooClass", foo=2))
@@ -965,6 +962,7 @@ if __name__ == "__main__":
             self.assertFalse(p.hasAnalyzer("Test2"))
 
         def testOptions(self):
+            Print("TestProcess::testOptions")
             p = Process()
             p.addOptions(Foo = "bar", Bar = PSet(x=1, y=2.0))
 
@@ -979,6 +977,7 @@ if __name__ == "__main__":
             self.assertEqual(p._options.Plop.b, 3)
 
         def testSelectorImpl(self):
+            Print("TestProcess::testSelectorImpl")
             t = ROOT.SelectorImpl()
 
             # dummy test
