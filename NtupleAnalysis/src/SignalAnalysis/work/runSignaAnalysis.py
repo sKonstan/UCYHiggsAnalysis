@@ -25,7 +25,7 @@ The available ROOT options for the Error-Ignore-Level are (const Int_t):
         kInfo     =   1000
         kWarning  =   2000
         kError    =   3000
-        kBreak    =   4000 #suppresses "Error in <TCling::RegisterModule>: cannot find dictionary module FrameworkDict_rdict.pcm"  
+        kBreak    =   4000
 '''
 
 #================================================================================================
@@ -49,11 +49,34 @@ bVerbose  = False       # Default is "False"
 bSilent   = True        # Default is "True"
 prefix    = "analysis"  # Default is "analysis"
 postfix   = ""          # Default is ""
-ROOT.gErrorIgnoreLevel = 4000
-
+ROOT.gErrorIgnoreLevel = 0
 
 dataEras    = ["2015D"]
 searchModes = ["mH125"]
+
+#================================================================================================
+# Function Definition
+#================================================================================================
+def Verbose(msg, printHeader=False):
+    if not bVerbose:
+        return
+
+    if printHeader:
+        print "=== runSignalAnalysis.py:"
+
+    if msg !="":
+        print "\t", msg
+    return
+
+
+def Print(msg, printHeader=True):
+    if printHeader:
+        print "=== runSignalAnalysis.py:"
+
+    if msg !="":
+        print "\t", msg
+    return
+
 
 #================================================================================================
 # Setup the main function 
@@ -66,18 +89,18 @@ def main():
 
     # Require at least two arguments (script-name, path to multicrab)
     if len(sys.argv) < 2:
-        print "=== runSignalAnalysis:\n\t Not enough arguments passed to script execution. Printing docstring & EXIT."
+        Print("Not enough arguments passed to script execution. Printing docstring & EXIT.")
         print __doc__
         sys.exit(0)
 
-    if bVerbose:
-        print "=== runSignalAnalysis.py:\n\t Adding all datasets from multiCRAB directory \"%s\"" % (opts.mcrab)
-
     if (opts.includeOnlyTasks):
+        Print("Adding only dataset %s from multiCRAB directory %s" % (opts.includeOnlyTasks, opts.mcrab) )
         process.addDatasetsFromMulticrab(opts.mcrab, includeOnlyTasks=opts.includeOnlyTasks)
     elif (opts.excludeTasks):
+        Print("Adding all datasets except %s from multiCRAB directory %s" % (opts.excludeTasks, opts.mcrab) )
         process.addDatasetsFromMulticrab(opts.mcrab, excludeTasks=opts.excludeTasks)
-    else: #all datasets
+    else:
+        Print("Adding all datasets from multiCRAB directory %s" % (opts.mcrab) )
         process.addDatasetsFromMulticrab(opts.mcrab)
 
     # ================================================================================================
@@ -128,10 +151,10 @@ def main():
     # ================================================================================================
     # Run the analysis with PROOF? By default it uses all cores, but you can give proofWorkers=<N> as a parameter
     if opts.jCores:
-        print "=== runSignalAnalysis:\n\tRunning process with PROOF (proofWorkes=%s)" % ( str(opts.jCores) )
+        Print("Running process with PROOF (proofWorkes=%s)" % ( str(opts.jCores) ) )
         process.run(proof=True, proofWorkers=opts.jCores)
     else:
-        print "=== runSignalAnalysis:\n\tRunning process (no PROOF)"
+        Print("Running process (no PROOF)")
         process.run()
 
 

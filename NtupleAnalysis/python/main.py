@@ -37,6 +37,7 @@ ROOT.PyConfig.IgnoreCommandLineOptions = True
 #================================================================================================
 bVerbose = False
 
+
 #================================================================================================
 # Function Definition
 #================================================================================================
@@ -60,6 +61,12 @@ def Print(msg, printHeader=True):
         print "\t", msg
     return
 
+
+def File(fileName):
+    fullpath = os.path.join(aux.higgsAnalysisPath(), fileName)
+    if not os.path.exists(fullpath):
+        raise Exception("The file '%s' does not exist" % self._fullpath)
+    return fullpath
 
 #================================================================================================
 # Class Definition
@@ -112,13 +119,6 @@ class PSet:
 
     def serialize_(self):
         return json.dumps(self._asDict(), sort_keys=True, indent=2)
-
-
-def File(fileName):
-    fullpath = os.path.join(aux.higgsAnalysisPath(), fileName)
-    if not os.path.exists(fullpath):
-        raise Exception("The file '%s' does not exist" % self._fullpath)
-    return fullpath
 
 #================================================================================================
 # Class Definition
@@ -248,9 +248,9 @@ class Dataset:
 # Class Definition
 #================================================================================================
 class Process:
-
     def __init__(self, outputPrefix="analysis", outputPostfix="", maxEvents=-1, verbose=False):
-        ROOT.gSystem.Load("libHPlusAnalysis.so") #attikis xenios
+        Print("Loading \"libHPlusAnalysis.so\" in ROOT system")
+        ROOT.gSystem.Load("libHPlusAnalysis.so")
         self._outputPrefix    = outputPrefix
         self._outputPostfix   = outputPostfix
         self._datasets        = []
@@ -263,7 +263,6 @@ class Process:
         self._cpuTimeTotal    = 0
         self._readMbytesTotal = 0
         self._callsTotal      = 0
-
         return
 
     def addDataset(self, name, files=None, dataVersion=None, lumiFile=None):
@@ -365,7 +364,7 @@ class Process:
             outputDir += "_"+self._outputPostfix
 
         # Create output directory
-        Verbose( "Creating directory '%s'" % (outputDir) )
+        Verbose("Creating directory '%s'" % (outputDir) )
 
         os.mkdir(outputDir)
         multicrabCfg = os.path.join(outputDir, "multicrab.cfg")
@@ -416,8 +415,11 @@ class Process:
             opt = ""
             if proofWorkers is not None:
                 opt = "workers=%d"%proofWorkers
+            Print("Opening TProof with options: \"%s\"" % (opt) )
             _proof = ROOT.TProof.Open(opt)
-            _proof.Exec("gSystem->Load('libHPlusAnalysis.so');")
+
+            Print("Loading \"libHPlusAnalysis.so\"")
+            _proof.Exec("gSystem->Load(\"libHPlusAnalysis.so\");")
         
         # Sum data PU distributions
         hPUs = {}

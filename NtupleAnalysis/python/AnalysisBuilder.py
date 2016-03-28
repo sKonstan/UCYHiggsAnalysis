@@ -1,16 +1,57 @@
-## Package: AnalysisConfig
-# Analysis configuration, with ability to create the main analyzer 
-# and the analyzers for the N systematic uncertainty variations and other variations based on the config
+'''
+Package: AnalysisConfig
 
+Analysis configuration, with ability to create the main analyzer 
+and the analyzers for the N systematic uncertainty variations and other variations based on the config
+'''
+
+#================================================================================================ 
+# Imports
+#================================================================================================ 
 from UCYHiggsAnalysis.NtupleAnalysis.main import Analyzer
 import UCYHiggsAnalysis.NtupleAnalysis.parameters.scaleFactors as scaleFactors
+import sys
 
-## Container class for analysis configuration
+#================================================================================================ 
+# Function Definition  
+#================================================================================================ 
+bVerbose = False
+
+#================================================================================================ 
+# Function Definition  
+#================================================================================================ 
+def Verbose(msg, printHeader=False):
+    if not bVerbose:
+        return
+
+    if printHeader:
+        print "=== AnalysisBuilder.py:"
+
+    if msg !="":
+        print "\t", msg
+    return
+
+
+def Print(msg, printHeader=True):
+    if printHeader:
+        print "=== AnalysisBuilder.py:"
+
+    if msg !="":
+        print "\t", msg
+    return
+
+
+#================================================================================================ 
+# Class
+#================================================================================================ 
 class AnalysisConfig:
+    '''
+    Container class for analysis configuration
+    '''
     def __init__(self, selectorName, moduleName, config, **kwargs):
         self._selectorName = selectorName
-        self._moduleName = moduleName
-        self._config = config.clone()
+        self._moduleName   = moduleName
+        self._config       = config.clone()
         #self.__dict__.update(kwargs)
 	#print kwargs
         #===== Process all keyword arguments to make changes to the config
@@ -98,7 +139,7 @@ class AnalysisBuilder:
                  useTopPtReweighting   = True,  # enable/disable top pt reweighting for ttbar
                  doSystematicVariations= False, # Enable/disable adding modules for systematic uncertainty variation
                 ):
-          self._name = name
+          self._name     = name
           self._dataEras = []
           if isinstance(dataEras, list):
               self._dataEras = dataEras[:]
@@ -110,8 +151,20 @@ class AnalysisBuilder:
           else:
               self._searchModes.append(searchModes)
           
-          self._usePUreweighting = usePUreweighting
+          self._usePUreweighting    = usePUreweighting
           self._useTopPtReweighting = useTopPtReweighting
+          
+          Print("Initializing analysis with following properties ...")
+          table    = []
+          txtAlign = "{:<25} {:^3} {:<55}"
+          table.append( txtAlign.format("name"                  , ":", name) )
+          table.append( txtAlign.format("dataEras"              , ":", ", ".join(dataEras)) )
+          table.append( txtAlign.format("searchModes"           , ":", ", ".join(searchModes)) )
+          table.append( txtAlign.format("usePUreweighting"      , ":", usePUreweighting ) )
+          table.append( txtAlign.format("useTopPtReweighting"   , ":", useTopPtReweighting ) )
+          table.append( txtAlign.format("doSystematicVariations", ":", doSystematicVariations ) )
+          for r in table:
+              Print(r, False)
           
           self._variations={}
           # Process systematic uncertainty variations
@@ -121,68 +174,77 @@ class AnalysisBuilder:
               items.extend(["TauTrgEffData", "TauTrgEffMC"]) 
               #items.extend(["L1ETMDataEff", "L1ETMMCEff"])
               items.extend(["METTrgEffData", "METTrgEffMC"])
+
               # Tau ID variation systematics
               items.extend(["FakeTauElectron", "FakeTauMuon", "FakeTauJet"])
+
               # Energy scales and JER systematics
               items.extend(["tauES", "JES"]), # "JER", "UES"])
+
               # b and top quarks systematics
               #items.extend("BTagSF", "BMistagSF")
               if self._useTopPtReweighting:
                   items.append("TopPt") 
+
               # PU weight systematics
               #items.extend(["PUWeight"])
+
               # Create configs
               self._variations["systematics"] = []
               for item in items:
                   self._variations["systematics"].append("%sPlus"%item)
                   self._variations["systematics"].append("%sMinus"%item)
-	  #self.addVariation("TauSelection.tauPtCut", [50,60])
-	  #self.addVariation("TauSelection.tauEtaCut", [0.5,1.5])
-	  
-              
-    
+
+
     def addVariation(self, configItemString, listOfValues):
         self._variations[configItemString] = listOfValues
+        return
     
+
     def build(self, process, config):
         # Add here options to the config
         config.__setattr__("usePileupWeights", self._usePUreweighting)
-        config.__setattr__("useTopPtWeights", self._useTopPtReweighting)
+        config.__setattr__("useTopPtWeights" , self._useTopPtReweighting)
+
         # Add nominal modules
         if len(self._variations.keys()) > 1 and "systematics" in self._variations.keys():
             self._variations["systematics"].insert(0, "nominal")
+
         # Create list of configs for the modules
         configs = []
         for searchMode in self._searchModes:
+
             for dataEra in self._dataEras:
+                Verbose("searchMode = %s, dataEra = %s" % (searchMode, dataEra), True)
+
                 modStr = "%s_%s_Run%s"%(self._name, searchMode, dataEra)
                 # Create nominal module without any variation
                 if "systematics" in self._variations.keys():
                     if len(self._variations.keys()) == 1:
                         configs.append(AnalysisConfig(self._name, modStr, config))
-                        print "Created nominal module: %s"%modStr
+                        Print("Created nominal module %s" % modStr)
                 else:
                     if len(self._variations.keys()) == 0:
                         configs.append(AnalysisConfig(self._name, modStr, config))
-                        print "Created nominal module: %s"%modStr
+                        Print("Created nominal module %s" % modStr)
                 # Create modules for optimization and systematics variations
                 configs.extend(self._buildVariation(config, modStr))
+
         # Register the modules
         for module in configs:
             module.registerAnalysis(process)
-        print "=== AnalysisBuilder.py:\n\t AnalysisBuilder created %d modules:" % (len(configs))
 
+        Verbose("Created %d module(s)" % (len(configs)) )
         if (0):
             print configs[0]._config
-            message  =  "=== AnalysisBuilder.py:\n\t Press \"q\" to abort, any other key to proceed: "
+            message  =  "Press \"q\" to abort, any other key to proceed: "
             response = raw_input(message)
             if (response!= "q"):
                 return
             else:
-                print "=== AnalysisBuilder.py:\n\t EXIT"
+                Print("EXIT")
                 sys.exit()
         return
-
 
 
     def _buildVariation(self, config, moduleName, optName="", systName="", level=0, **kwargs):
@@ -193,13 +255,13 @@ class AnalysisBuilder:
         For variations key=config entry, value=value; multiple simultaneous variations per module are allowed
         '''
         configs = []
-        keys = self._variations.keys()
+        keys    = self._variations.keys()
         if len(keys) == 0:
             return configs
 
         for item in self._variations[keys[level]]:
             newSystName = systName
-            newOptName = optName
+            newOptName  = optName
             if keys[level] == "systematics":
                 if newSystName != "":
                     raise Exception("Error: there can only be one syst. name (asking for %s and already registered %s)"%(item, systName))
@@ -207,8 +269,9 @@ class AnalysisBuilder:
                     newSystName = item
             else:
 		split = keys[level].split(".")
-		name = split[len(split)-1]
+		name  = split[len(split)-1]
                 newOptName += "%s%s"%(name[0].upper()+name[1:], str(item).replace("-","m").replace(".","p"))
+
             # Move to next level or build variation
             if level < len(keys)-1:
                 kwargs[keys[level]] = item
@@ -223,7 +286,5 @@ class AnalysisBuilder:
 		kwargs[keys[level]]=item
                 configs.append(AnalysisConfig(self._name, modStr, config, **kwargs))
                 del kwargs[keys[level]]
-                print "Created variation module %s"%modStr
+                Print("Created variation module %s" %modStr)
         return configs
-# TODO:
-# need to figure out how to set scale factors
