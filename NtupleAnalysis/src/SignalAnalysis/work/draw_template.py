@@ -35,7 +35,8 @@ verbose       = False
 batchMode     = True
 folder        = "SignalAnalysis_mH125_Run2015D"
 analysis      = folder
-intLumiInPb   = 300.0 #1103.813 #350.00 # -1
+intLumiInPb   = 2008.515 #-1 #300.0 #1103.813 #350.00 # -1
+myNorm        = "" #  "", "toOne", "byXSection", "toLuminosity"
 saveFormats   = ["png"]
 savePath      = "/Users/attikis/Desktop/"
 # savePath      = "/afs/cern.ch/user/a/attikis/public/html/"
@@ -167,7 +168,7 @@ def DoPlots(histo, datasetObjects, savePostfix=""):
     p = plotter.Plotter(verbose, batchMode)
     p.AddDatasets(datasetObjects)
     p.AddDrawObject(histo)
-    p.NormaliseHistos("toLuminosity")
+    p.NormaliseHistos(myNorm)
 
     p.AddCmsText("fb", prelim=True)
     p.DatasetAsLegend(True)    
@@ -194,7 +195,7 @@ def DoCounters(histo, datasetObjects, savePostfix=""):
     # p.SetupStatsBox("ksiourmen", xPos=0.90, yPos=0.88, width=0.20, height=0.12)
     p.AddDatasets(datasetObjects)
     p.AddDrawObject(histo)
-    p.NormaliseHistos("toLuminosity")
+    p.NormaliseHistos(myNorm)
 
     p.AddCmsText("fb", prelim=True)
     p.DatasetAsLegend(True)    

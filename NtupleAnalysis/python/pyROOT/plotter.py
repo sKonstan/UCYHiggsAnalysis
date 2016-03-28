@@ -538,7 +538,8 @@ class Plotter(object):
             elif lumi != intLumi:
                 print d.GetName()
             
-        self.textObject.AddDefaultText("lumi"  , lumi  )
+        if self.normOption == "toLuminosity":
+            self.textObject.AddDefaultText("lumi"  , lumi  )
         self.textObject.AddDefaultText("energy", energy)
         self.ExtendDrawLists(self.textObject.GetTextList(), addToRatio=False)        
         return
