@@ -249,8 +249,9 @@ class Dataset:
 #================================================================================================
 class Process:
     def __init__(self, outputPrefix="analysis", outputPostfix="", maxEvents=-1, verbose=False):
-        Print("Loading \"libHPlusAnalysis.so\" in ROOT system")
-        ROOT.gSystem.Load("libHPlusAnalysis.so")
+        Print("Loading \"libUCYHiggsAnalysis.so\" in ROOT system")
+        #ROOT.gSystem.Load("libHPlusAnalysis.so")
+        ROOT.gSystem.Load("libUCYHiggsAnalysis.so")
         self._outputPrefix    = outputPrefix
         self._outputPostfix   = outputPostfix
         self._datasets        = []
@@ -357,8 +358,6 @@ class Process:
             setattr(self._options, key, value)
 
     def run(self, proof=False, proofWorkers=None):
-        '''
-        '''
         outputDir = self._outputPrefix + "_" + time.strftime("%d%b%Y_%Hh%Mm%Ss") #time.strftime("%y%m%d_%H%M%S")
         if self._outputPostfix != "":
             outputDir += "_"+self._outputPostfix
@@ -415,11 +414,12 @@ class Process:
             opt = ""
             if proofWorkers is not None:
                 opt = "workers=%d"%proofWorkers
-            Print("Opening TProof with options: \"%s\"" % (opt) )
+            Verbose("Opening TProof with options: \"%s\"" % (opt) )
             _proof = ROOT.TProof.Open(opt)
 
-            Print("Loading \"libHPlusAnalysis.so\"")
-            _proof.Exec("gSystem->Load(\"libHPlusAnalysis.so\");")
+            Print("Loading \"libUCYHiggsAnalysis.so\"")
+            #_proof.Exec("gSystem->Load(\"libHPlusAnalysis.so\");")
+            _proof.Exec("gSystem->Load(\"libUCYHiggsAnalysis.so\");")
         
         # Sum data PU distributions
         hPUs = {}

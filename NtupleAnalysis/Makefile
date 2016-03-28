@@ -29,7 +29,7 @@ ROOTINC := $(shell root-config --cflags)
 #ROOTLIBDIR := $(shell root-config --libdir)
 ROOTLIBS := $(shell root-config --glibs)
 
-# Compile flags
+# Compile flags (https://root.cern.ch/phpBB3/viewtopic.php?t=18843)
 CXXFLAGS := -O2 -Wall -Wno-unused-local-typedefs -fPIC -D_REENTRANT $(ROOTINC) $(INC)
 CXXEXTRAFLAGS := 
 
@@ -75,7 +75,7 @@ ALL_DEPENDS :=
 
 FILES_SRC := $(wildcard $(SRCDIR)/*/src/*.cc)
 #FILES_HEADER := $(wildcard $(SRCDIR)/*/interface/*.h)
-LIBNAMESHORT := HPlusAnalysis
+OBLIBNAMESHORT := UCYHiggsAnalysis #HPlusAnalysis
 LIBNAME := lib$(LIBNAMESHORT).so
 
 ##########################
@@ -88,6 +88,10 @@ FILES_LINKDEF := $(wildcard $(SRCDIR)/*/src/*Linkdef.h)
 FILES_DICT := $(patsubst $(SRCDIR)%,$(OBJDIR)%,$(subst Linkdef.h,Dict.cc,$(FILES_LINKDEF)))
 FILES_DICTHEAD := $(FILES_DICT:.cc=.h)
 FILES_SRC += $(FILES_DICT)
+### Print this variables for debugging reasons
+$(info $$FILES_DICT is [${FILES_DICT}]) 
+#$(info $$FILES_DICTHEAD is [${FILES_DICTHEAD}]) 
+#$(info $$OBJDIR is [${OBJDIR}])
 
 ##########################
 #
@@ -114,6 +118,8 @@ FILES_OBJ := $(patsubst $(SRCDIR)%,$(OBJDIR)%,$(FILES_SRC:.cc=.o))
 FILES_DEP := $(FILES_OBJ:.o=.d)
 ALL_DEPENDS += $(FILES_DEP)
 LIBPATH := $(LIBDIR)/$(LIBNAME)
+### Print this variables for debugging reasons
+$(info $$LIBDIR is [${LIBDIR}])
 
 build: $(LIBPATH)
 
@@ -161,6 +167,7 @@ $(1)/%.o: $(2)/%.cc
 	  sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$$$//' \
 	      -e '/^$$$$/ d' -e 's/$$$$/ :/' -e 's/ *//' < $(1)/$$*.d.tmp >> $(1)/$$*.d; \
 	  rm $(1)/$$*.d.tmp
+	 @cp $(OBJDIR)/Framework/src/*.pcm $(LIBDIR)/.
 endef
 $(eval $(call BUILD_template,$(OBJDIR),$(SRCDIR)))
 $(eval $(call BUILD_template,$(OBJDIR)/test,$(TESTDIR)))
