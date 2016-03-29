@@ -250,13 +250,12 @@ class Process:
     def Verbose(self, msg, printHeader=False):
         if not self._verbose:
             return
-
         if printHeader:
             print "=== main.py:"
-
         if msg !="":
             print "\t", msg
         return
+
 
     def addDataset(self, name, files=None, dataVersion=None, lumiFile=None):
         '''
@@ -317,7 +316,9 @@ class Process:
             tableRows.append( txtAlign.format("data-version" , ":",  dataVer) )
             tableRows.append( txtAlign.format("lumi-file"    , ":", lumi) )
             for r in tableRows:
-                self.Verbose(r)
+                self.Print(r)
+                import sys
+                sys.exit()
             self.addDataset(name, fileNames, dataVersion=dataVer, lumiFile=lumi)
         return
 
