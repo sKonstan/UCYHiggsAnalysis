@@ -33,30 +33,12 @@ ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 
 #================================================================================================
-# Global Definitions
-#================================================================================================
-bVerbose = False
-
-
-#================================================================================================
 # Function Definition
 #================================================================================================
-def Verbose(msg, printHeader=False):
-    if not bVerbose:
-        return
-
-    if printHeader:
-        print "=== main.py:"
-
-    if msg !="":
-        print "\t", msg
-    return
-
-
 def Print(msg, printHeader=True):
     if printHeader:
         print "=== main.py:"
-
+        
     if msg !="":
         print "\t", msg
     return
@@ -249,9 +231,8 @@ class Dataset:
 #================================================================================================
 class Process:
     def __init__(self, outputPrefix="analysis", outputPostfix="", maxEvents=-1, verbose=False):
-        Print("Loading \"libUCYHiggsAnalysis.so\" in ROOT system")
-        #ROOT.gSystem.Load("libHPlusAnalysis.so")
-        ROOT.gSystem.Load("libUCYHiggsAnalysis.so")
+        print "=== main.py:\n\tLoading \"libUCYHiggsAnalysis.so\" in ROOT system"
+        ROOT.gSystem.Load("libUCYHiggsAnalysis.so") #ROOT.gSystem.Load("libHPlusAnalysis.so")
         self._outputPrefix    = outputPrefix
         self._outputPostfix   = outputPostfix
         self._datasets        = []
@@ -264,6 +245,17 @@ class Process:
         self._cpuTimeTotal    = 0
         self._readMbytesTotal = 0
         self._callsTotal      = 0
+        return
+
+    def Verbose(self, msg, printHeader=False):
+        if not self._verbose:
+            return
+
+        if printHeader:
+            print "=== main.py:"
+
+        if msg !="":
+            print "\t", msg
         return
 
     def addDataset(self, name, files=None, dataVersion=None, lumiFile=None):
@@ -324,47 +316,57 @@ class Process:
             tableRows.append( txtAlign.format("files"        , ":", ", ".join(fileNames) ) )
             tableRows.append( txtAlign.format("data-version" , ":",  dataVer) )
             tableRows.append( txtAlign.format("lumi-file"    , ":", lumi) )
-            Verbose("Adding dataset to self with following properties:", True)
             for r in tableRows:
-                Verbose(r)            
+                self.Verbose(r)
             self.addDataset(name, fileNames, dataVersion=dataVer, lumiFile=lumi)
         return
 
-    # kwargs for 'includeOnlyTasks' or 'excludeTasks' to set the datasets over which this analyzer is processed, default is all datasets
+
     def addAnalyzer(self, name, analyzer, **kwargs):
+        '''
+        kwargs for 'includeOnlyTasks' or 'excludeTasks' to set the datasets over 
+        which this analyzer is processed, default is all datasets
+        '''
         if self.hasAnalyzer(name):
             raise Exception("Analyzer '%s' already exists" % name)
-
-        Verbose("Added Analyzer with name '%s'" % (name))
-        self._analyzers[name] = AnalyzerWithIncludeExclude(analyzer, **kwargs)
+        else:
+            self.Verbose("Added Analyzer with name '%s'" % (name), True)
+            self._analyzers[name] = AnalyzerWithIncludeExclude(analyzer, **kwargs)
         return
 
-    # FIXME: not sure if these two actually make sense
+
     def getAnalyzer(self, name):
+        '''
+        FIXME: not sure if these two actually make sense
+        '''
         if not self.hasAnalyzer(name):
             raise Exception("Analyzer '%s' does not exist" % name)
         return self._analyzers[name].getAnalyzer()
+
 
     def removeAnalyzer(self, name):
         if not self.hasAnalyzer(name):
             raise Exception("Analyzer '%s' does not exist" % name)
         del self._analyzers[name]
+        return
+
 
     def hasAnalyzer(self, name):
         return name in self._analyzers
 
+
     def addOptions(self, **kwargs):
         for key, value in kwargs.iteritems():
             setattr(self._options, key, value)
+        return
+
 
     def run(self, proof=False, proofWorkers=None):
         outputDir = self._outputPrefix + "_" + time.strftime("%d%b%Y_%Hh%Mm%Ss") #time.strftime("%y%m%d_%H%M%S")
         if self._outputPostfix != "":
             outputDir += "_"+self._outputPostfix
 
-        # Create output directory
-        Verbose("Creating directory '%s'" % (outputDir) )
-
+        self.Verbose("Creating directory %s" % (outputDir), True)
         os.mkdir(outputDir)
         multicrabCfg = os.path.join(outputDir, "multicrab.cfg")
         f = open(multicrabCfg, "w")
@@ -376,17 +378,20 @@ class Process:
 
         # Copy/merge lumi files
         lumifiles = set([d.getLumiFile() for d in self._datasets])
-        lumidata = {}
+        lumidata  = {}
         for fname in lumifiles:
             if not os.path.exists(fname):
                 continue
-            f = open(fname)
+
+            f    = open(fname)
             data = json.load(f)
             f.close()
             for k in data.keys():
                 if k in lumidata:
-                    raise Exception("Luminosity JSON file %s has a dataset for which the luminosity has already been loaded; please check the luminosity JSON files\n%s" % (fname, k, "\n".join(lumifiles)))
+                    msg = "Luminosity JSON file %s has a dataset for which the luminosity has already been loaded; Check the JSON files\n%s" % (fname, k, "\n".join(lumifiles))
+                    raise Exception(msg)
             lumidata.update(data)
+
         if len(lumidata) > 0:
             f = open(os.path.join(outputDir, "lumi.json"), "w")
             json.dump(lumidata, f, sort_keys=True, indent=2)
@@ -414,11 +419,10 @@ class Process:
             opt = ""
             if proofWorkers is not None:
                 opt = "workers=%d"%proofWorkers
-            Verbose("Opening TProof with options: \"%s\"" % (opt) )
+            self.Verbose("Opening TProof with options: \"%s\"" % (opt) )
             _proof = ROOT.TProof.Open(opt)
 
             Print("Loading \"libUCYHiggsAnalysis.so\"")
-            #_proof.Exec("gSystem->Load(\"libHPlusAnalysis.so\");")
             _proof.Exec("gSystem->Load(\"libUCYHiggsAnalysis.so\");")
         
         # Sum data PU distributions
@@ -437,8 +441,6 @@ class Process:
             if hPU != None:
                 hPU.SetName("PileUpData")
                 hPUs[aname] = hPU
-            #else:
-            #    raise Exception("Cannot determine PU spectrum for data!")
  
         # Process over datasets
         ndset = 0
@@ -477,12 +479,9 @@ class Process:
                     if dset.getDataVersion().isMC():
 
                         if aname in hPUs.keys():
-                            if self._verbose:
-                                for k in range(hPUs[aname].GetNbinsX()):
-                                    Print("DEBUG(PUreweighting): dataPU:%d:%f"%(k+1, hPUs[aname].GetBinContent(k+1)) )
                             inputList.Add(hPUs[aname])
                         else:
-                            n = 50
+                            n     = 50
                             hFlat = ROOT.TH1F("dummyPU" + aname,"dummyPU" + aname, n, 0, n)
                             hFlat.SetName("PileUpData")
                             for k in range(n):
@@ -492,7 +491,7 @@ class Process:
                             Print("WARNING! Using a flat PU spectrum for data (which is missing). The MC PU spectrum is unchanged.")
 
                         if dset.getPileUp() == None:
-                            raise Exception("ERROR! PU spectrum is missing from dataset! Please switch to using newest multicrab!")
+                            raise Exception("Pileup spectrum is missing from dataset! Please switch to using newest multicrab!")
                         hPUMC = dset.getPileUp().Clone()
 
                         if aname not in hPUs.keys():
@@ -502,19 +501,40 @@ class Process:
                         if hPUMC.GetNbinsX() != hPUs[aname].GetNbinsX():
                             raise Exception("Pileup histogram dimension mismatch! data nPU has %d bins and MC nPU has %d bins"%(hPUs[aname].GetNbinsX(), hPUMC.GetNbinsX()))
                         hPUMC.SetName("PileUpMC")
-                        if self._verbose:
-                            for k in range(hPUMC.GetNbinsX()):
-                                Print("Debug(PUreweighting): MCPU:%d:%f"%(k+1, hPUMC.GetBinContent(k+1)) )
                         inputList.Add(hPUMC)
+
                         if analyzer.exists("usePileupWeights"):
                             usePUweights = analyzer.__getattr__("usePileupWeights")
+
+                            # info table
+                            align  = "{:<5} {:<20} {:<20} {:<20} {:<22} {:<20} {:<20}"
+                            info   = []
+                            hLine  = (130)*"="
+                            info.append(hLine)
+                            info.append( align.format("Bin", "Data", "MC", "Factor", "w = (Data/MC)*Factor", "wEvents = MC*w", "MC.Integral()") )
+                            info.append(hLine)
+
                             if hPUs[aname].Integral() > 0.0:
                                 factor = hPUMC.Integral() / hPUs[aname].Integral()
+                                self.Verbose("Calculating factor = ( MC.Integral() / Data.Integral() ) = %f / %f = %f " % (hPUMC.Integral(), hPUs[aname].Integral(), factor), True)
+                                
                                 for k in range(0, hPUMC.GetNbinsX()+2):
                                     if hPUMC.GetBinContent(k) > 0.0:
-                                        w = hPUs[aname].GetBinContent(k) / hPUMC.GetBinContent(k) * factor
+                                        data = hPUs[aname].GetBinContent(k)
+                                        mc   = hPUMC.GetBinContent(k)
+                                        w    = data / mc * factor
                                         nAllEventsPUWeighted += w * hPUMC.GetBinContent(k)
+                                        info.append( align.format(k, data, mc, factor, w, nAllEventsPUWeighted,  hPUMC.Integral() ) )
+                                    else:
+                                        data = hPUs[aname].GetBinContent(k)
+                                        mc   = hPUMC.GetBinContent(k)
+                                        info.append( align.format(k, data, mc, factor, "N/A", nAllEventsPUWeighted, hPUMC.Integral() ) )
+
+                            for i in info:
+                                Print(i, False)
+
                     anames.append(aname)
+
             if nanalyzers == 0:
                 Print("Skipping %s, no analyzers" % dset.getName())
                 continue
@@ -534,25 +554,28 @@ class Process:
             info.append( align.format("Pile-Up Weights", ":", str(usePUweights)) )
             info.append( align.format("Top-pT Weights" , ":", str(useTopPtCorrection)) )
 
-            # Print combined information
+            # Print combined information    
             for i in info:
-                print "\t", i
-            
+                Print(i, False)
+
             resDir      = os.path.join(outputDir, dset.getName(), "res")
             resFileName = os.path.join(resDir, "histograms-%s.root" % dset.getName())
             os.makedirs(resDir)
             tchain = ROOT.TChain("Events")
 
-            if self._verbose:
-                print "=== main.py:"
+
+            self.Verbose("", True)
             # For-loop: All dataset files
             for f in dset.getFileNames():
-                if self._verbose:
-                    print "\t Adding file '%s' to TChain" % (f)
+                self.Verbose("Adding file '%s' to TChain" % (f) )
                 tchain.Add(f)
             tchain.SetCacheLearnEntries(100);
-
             tselector = ROOT.SelectorImpl()
+
+            Print("sys.exit()")
+            import sys
+            sys.exit()
+            
 
             # FIXME: TChain.GetEntries() is needed only to give a time estimate for the analysis. 
             # If this turns out to be slow, we could store the number of events along the file names    
@@ -571,17 +594,15 @@ class Process:
             else:
                 inputList.Add(ROOT.TNamed("OUTPUTFILE_LOCATION", resFileName))
 
-            if self._verbose:
-                print "=== main.py:"
+            self.Verbose("")
             for counter, i in enumerate(inputList):
-                if self._verbose:
-                    print "\t inputList[%s] = %s" % (counter, i.GetName())
+                self.Verbose("inputList[%s] = %s" % (counter, i.GetName()) )
             tselector.SetInputList(inputList)
 
             readBytesStart = ROOT.TFile.GetFileBytesRead()
             readCallsStart = ROOT.TFile.GetFileReadCalls()
-            timeStart = time.time()
-            clockStart = time.clock()
+            timeStart      = time.time()
+            clockStart     = time.clock()
 
             if self._maxEvents > 0:
                 tchain.SetCacheEntryRange(0, self._maxEvents)
@@ -618,9 +639,9 @@ class Process:
                     fIN.Close()
 
             # Write configInfo
-            fIN = ROOT.TFile.Open(dset.getFileNames()[0])
+            fIN   = ROOT.TFile.Open(dset.getFileNames()[0])
             cinfo = fIN.Get("configInfo/configinfo")
-            tf = ROOT.TFile.Open(resFileName, "UPDATE")
+            tf    = ROOT.TFile.Open(resFileName, "UPDATE")
             configInfo = tf.Get("configInfo")
             if configInfo == None:
                 configInfo = tf.mkdir("configInfo")
@@ -629,6 +650,7 @@ class Process:
             dv.Write()
             cv = ROOT.TNamed("codeVersionAnalysis", git.getCommitId())
             cv.Write()
+
             if not cinfo == None:
                 # Add more information to configInfo
                 n = cinfo.GetNbinsX()
@@ -648,6 +670,7 @@ class Process:
                 # Add "isTopPtReweighted" column
                 if useTopPtCorrection:
                     cinfo.SetBinContent(n+3, NAllEventsTopPt / nanalyzers)
+
                 # Write
                 cinfo.Write()
                 fIN.Close()
@@ -726,8 +749,7 @@ class Process:
             self.CalculateStatistics(dset.getName(), timeStart, timeStop, cpuTime, readMbytes, calls)
         
         self.PrintStatisticsTotal()
-        if self._verbose:
-            print "=== main.py:\n\t Results are in '%s'" % (outputDir)
+        self.Verbose("Results are in '%s'" % (outputDir) )
         return outputDir
 
 

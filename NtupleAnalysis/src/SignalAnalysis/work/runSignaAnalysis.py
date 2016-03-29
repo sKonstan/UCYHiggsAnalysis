@@ -45,20 +45,18 @@ import ROOT
 #================================================================================================
 # Options
 #================================================================================================
-bVerbose  = False       # Default is "False"
-bSilent   = True        # Default is "True"
-prefix    = "analysis"  # Default is "analysis"
-postfix   = ""          # Default is ""
-ROOT.gErrorIgnoreLevel = 0
-
+prefix      = "SignalAnalysis"
+postfix     = ""
 dataEras    = ["2015D"]
 searchModes = ["mH125"]
+ROOT.gErrorIgnoreLevel = 0
+
 
 #================================================================================================
 # Function Definition
 #================================================================================================
 def Verbose(msg, printHeader=False):
-    if not bVerbose:
+    if not opts.verbose:
         return
 
     if printHeader:
@@ -85,7 +83,7 @@ def main():
 
 
     # Setup the process
-    process = Process("SignalAnalysis")
+    process = Process(prefix, postfix, opts.maxEvts, opts.verbose)
 
     # Require at least two arguments (script-name, path to multicrab)
     if len(sys.argv) < 2:
@@ -95,12 +93,15 @@ def main():
 
     if (opts.includeOnlyTasks):
         Print("Adding only dataset %s from multiCRAB directory %s" % (opts.includeOnlyTasks, opts.mcrab) )
+        Print("No vertex reweighting will be done!", False)
         process.addDatasetsFromMulticrab(opts.mcrab, includeOnlyTasks=opts.includeOnlyTasks)
     elif (opts.excludeTasks):
         Print("Adding all datasets except %s from multiCRAB directory %s" % (opts.excludeTasks, opts.mcrab) )
+        Print("If collision data are present, then vertex reweighting is done according to the chosen data era (era=2015C, 2015D, 2015) etc...")
         process.addDatasetsFromMulticrab(opts.mcrab, excludeTasks=opts.excludeTasks)
     else:
         Print("Adding all datasets from multiCRAB directory %s" % (opts.mcrab) )
+        Print("If collision data are present, then vertex reweighting is done according to the chosen data era (era=2015C, 2015D, 2015) etc...")
         process.addDatasetsFromMulticrab(opts.mcrab)
 
     # ================================================================================================
@@ -164,7 +165,8 @@ if __name__ == "__main__":
     parser.add_option("-m", "--mcrab"   , dest="mcrab"   , action="store", help="Path to the multicrab directory for input")
     parser.add_option("-j", "--jCores"  , dest="jCores"  , action="store", type=int, help="Number of CPU cores (PROOF workes) to use. Default is all available.")
     parser.add_option("-i", "--includeOnlyTasks", dest="includeOnlyTasks", action="store", help="List of datasets in mcrab to include")
-    parser.add_option("-e", "--excludeTasks", dest="excludeTasks", action="store", help="List of datasets in mcrab to exclude")
+    parser.add_option("-e", "--excludeTasks"    , dest="excludeTasks"    , action="store", help="List of datasets in mcrab to exclude")
+    parser.add_option("-v", "--verbose"         , dest="verbose"         , action="store_true", default = False , help="Enable verbosity (for debugging reasons)")
     parser.add_option("--maxEvts", dest="maxEvts", type=int, default = -1, action="store", help="Maximum number of events to run on") 
     (opts, args) = parser.parse_args()                                                                                                                                              
 
