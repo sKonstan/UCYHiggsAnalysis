@@ -35,6 +35,16 @@ ROOT.PyConfig.IgnoreCommandLineOptions = True
 #================================================================================================
 # Function Definition
 #================================================================================================
+def GetLastNDirs(fullPath, N):
+    lastNDirs = ""
+    for i in range(N+1, 0, -1):
+        lastNDirs += fullPath.split("/")[-i] + "/"
+
+    if lastNDirs.endswith("/"):
+        lastNDirs = lastNDirs[:-1]
+    return lastNDirs
+
+
 def Print(msg, printHeader=True):
     if printHeader:
         print "=== main.py:"
@@ -297,6 +307,7 @@ class Process:
 
     def addDatasetsFromMulticrab(self, directory, *args, **kwargs):
         '''
+        Self explanatory
         '''
         dataset._optionDefaults["input"] = "miniAOD2FlatTree*.root"
         dsetMgrCreator = dataset.readFromMulticrabCfg(directory=directory, *args, **kwargs)
@@ -315,10 +326,9 @@ class Process:
             tableRows.append( txtAlign.format("files"        , ":", ", ".join(fileNames) ) )
             tableRows.append( txtAlign.format("data-version" , ":",  dataVer) )
             tableRows.append( txtAlign.format("lumi-file"    , ":", lumi) )
+            self.Verbose("", True)
             for r in tableRows:
-                self.Print(r)
-                import sys
-                sys.exit()
+                self.Verbose(r, False)
             self.addDataset(name, fileNames, dataVersion=dataVer, lumiFile=lumi)
         return
 
@@ -362,13 +372,18 @@ class Process:
         return
 
 
-    def run(self, proof=False, proofWorkers=None):
+    def CreateOutputDir(self):
         outputDir = self._outputPrefix + "_" + time.strftime("%d%b%Y_%Hh%Mm%Ss") #time.strftime("%y%m%d_%H%M%S")
         if self._outputPostfix != "":
             outputDir += "_"+self._outputPostfix
 
         self.Verbose("Creating directory %s" % (outputDir), True)
         os.mkdir(outputDir)
+        return outputDir
+
+
+    def CreateMulticrabCfg(self, outputDir):
+        self.Verbose("Creating file multicrab.cfg", True)
         multicrabCfg = os.path.join(outputDir, "multicrab.cfg")
         f = open(multicrabCfg, "w")
 
@@ -376,8 +391,46 @@ class Process:
         for dset in self._datasets:
             f.write("[%s]\n\n" % dset.getName())
         f.close()
+        return
 
-        # Copy/merge lumi files
+
+    def CreateLumiJson(self, lumidata, outputDir, fName = "lumi.json"):        
+        if len(lumidata) < 1:
+            return
+
+        self.Verbose("Creating \"%s\" file" % (fName), True)
+        f = open(os.path.join(outputDir, fName), "w")
+        json.dump(lumidata, f, sort_keys=True, indent=2)
+        f.close()
+        return
+
+
+    def CreateRunRangeJson(self, lumidata, outputDir, fName = "runrange.json"):
+        if len(lumidata) < 1:
+            return
+
+        self.Verbose("Creating \"%s\" file (if needed)" % (fName), True)
+        # Add run range in a json file, if runMin and runMax in pset
+        rrdata = {}
+        for aname, analyzerIE in self._analyzers.iteritems():
+            ana = analyzerIE.getAnalyzer()
+            if hasattr(ana, "__call__"):
+                for dset in self._datasets:
+                    if dset.getDataVersion().isData():
+                        ana = ana(dset.getDataVersion())
+                        if ana.__getattr__("runMax") > 0:
+                            rrdata[aname] = "%s-%s"%(ana.__getattr__("runMin"),ana.__getattr__("runMax"))
+                            break
+
+        if len(rrdata) > 0:
+            f = open(os.path.join(outputDir, fName), "w")
+            json.dump(rrdata, f, sort_keys=True, indent=2)
+            f.close()
+        return
+
+
+    def GetLumiDataDict(self):
+        self.Verbose("Copy/merge lumi files", True)
         lumifiles = set([d.getLumiFile() for d in self._datasets])
         lumidata  = {}
         for fname in lumifiles:
@@ -387,51 +440,40 @@ class Process:
             f    = open(fname)
             data = json.load(f)
             f.close()
+
             for k in data.keys():
                 if k in lumidata:
                     msg = "Luminosity JSON file %s has a dataset for which the luminosity has already been loaded; Check the JSON files\n%s" % (fname, k, "\n".join(lumifiles))
                     raise Exception(msg)
             lumidata.update(data)
+        return lumidata
 
-        if len(lumidata) > 0:
-            f = open(os.path.join(outputDir, "lumi.json"), "w")
-            json.dump(lumidata, f, sort_keys=True, indent=2)
-            f.close()
 
-            # Add run range in a json file, if runMin and runMax in pset
-            rrdata = {}
-            for aname, analyzerIE in self._analyzers.iteritems():
-                ana = analyzerIE.getAnalyzer()
-                if hasattr(ana, "__call__"):
-                    for dset in self._datasets:
-                        if dset.getDataVersion().isData():
-                            ana = ana(dset.getDataVersion())
-                            if ana.__getattr__("runMax") > 0:
-                                rrdata[aname] = "%s-%s"%(ana.__getattr__("runMin"),ana.__getattr__("runMax"))
-                                break
-            if len(rrdata) > 0:
-                f = open(os.path.join(outputDir, "runrange.json"), "w")
-                json.dump(rrdata, f, sort_keys=True, indent=2)
-                f.close()
-
-        # Setup proof if asked
+    def SetupPROOF(self, proof, proofWorkers):
         _proof = None
-        if proof:
-            opt = ""
-            if proofWorkers is not None:
-                opt = "workers=%d"%proofWorkers
-            self.Verbose("Opening TProof with options: \"%s\"" % (opt) )
-            _proof = ROOT.TProof.Open(opt)
+        if not proof:
+            return _proof
 
-            Print("Loading \"libUCYHiggsAnalysis.so\"")
-            _proof.Exec("gSystem->Load(\"libUCYHiggsAnalysis.so\");")
-        
-        # Sum data PU distributions
-        hPUs = {}
+        opt = ""
+        if proofWorkers is not None:
+            opt = "workers=%d"%proofWorkers
 
+        self.Verbose("Opening TProof with options \"%s\"" % (opt), True)
+        _proof = ROOT.TProof.Open(opt)
+
+        Print("Loading \"libUCYHiggsAnalysis.so\"", True)
+        _proof.Exec("gSystem->Load(\"libUCYHiggsAnalysis.so\");")
+        return _proof
+
+
+    def CreateDataPileupDict(self):
+        self.Verbose("Creating Pileup distribution dictionary for data")
+
+        hDataPUs = {}
         # For-loop: All analyzers
         for aname, analyzerIE in self._analyzers.iteritems():
             hPU = None
+
             # For-loop: All datasets
             for dset in self._datasets:
                 if dset.getDataVersion().isData() and analyzerIE.runForDataset_(dset.getName()):
@@ -441,8 +483,277 @@ class Process:
                         hPU.Add(dset.getPileUp())
             if hPU != None:
                 hPU.SetName("PileUpData")
-                hPUs[aname] = hPU
- 
+                hDataPUs[aname] = hPU
+        return hDataPUs
+
+
+    def UseTopPtCorrection(self, analyzer, dataset):
+        self.Verbose("Determining whether to apply Top-Pt correction")
+
+        ttbarStatus = "0"
+        useTopPtCorrection = analyzer.exists("useTopPtWeights") and analyzer.__getattr__("useTopPtWeights")
+        useTopPtCorrection = useTopPtCorrection and dataset.getName().lower().startswith("tt")
+        if useTopPtCorrection:
+            ttbarStatus = "1"
+        return useTopPtCorrection, ttbarStatus
+
+
+    def CreateFlatHisto(self, n=50, hName="PileUpData"):
+        Print("WARNING! Using a flat PU spectrum for data (which is missing). The MC PU spectrum is unchanged.")
+
+        hFlat = ROOT.TH1F("dummyPU" + aname,"dummyPU" + aname, n, 0, n)
+        hFlat.SetName("PileUpData")
+        for k in range(n):
+            hFlat.Fill(k+1, 1.0/n)
+        return hFlat
+
+
+    def GetMcPileupHisto(self, dataset, analyzerName, hDataPUs):
+        self.Verbose("Getting the MC Pileup histogram")
+                        
+        if dataset.getPileUp() == None:
+            raise Exception("Pileup spectrum is missing from dataset! Please switch to using newest multicrab!")
+        hPileupMC = dataset.getPileUp().Clone()
+        
+        if hPileupMC.GetNbinsX() != hDataPUs[analyzerName].GetNbinsX():
+            raise Exception("Pileup histogram dimension mismatch! data nPU has %d bins and MC nPU has %d bins"%(hDataPUs[analyzerName].GetNbinsX(), hPileupMC.GetNbinsX()) )
+
+        hPileupMC.SetName("PileUpMC")
+        return hPileupMC
+
+
+    def GetPileupWeightedEvents(self, dataset, analyzer, aname, hDataPUs, hPUMC):
+        '''
+        Obtains Pileup histogram for MC datasets.
+        Returns tuple of N(all events PU weighted) and status of enabling PU weights
+        '''
+        self.Verbose("Getting the Pileup weighted events")
+
+        nAllEventsPUWeighted = 0.0
+        if analyzer.exists("usePileupWeights"):
+            usePUweights = analyzer.__getattr__("usePileupWeights")
+        else:
+            return (nAllEventsPUWeighted, False)
+            
+        # info table
+        align  = "{:<5} {:<20} {:<20} {:<20} {:<22} {:<20} {:<20}"
+        info   = []
+        hLine  = (130)*"="
+        info.append(hLine)
+        info.append(align.format("Bin", "Data", "MC", "Factor", "w = (Data/MC)*Factor", "wEvents = MC*w", "MC.Integral()"))
+        info.append(hLine)
+        
+        if hDataPUs[aname].Integral() > 0.0:
+            factor = hPUMC.Integral() / hDataPUs[aname].Integral()
+            self.Verbose("Calculating factor = ( MC.Integral() / Data.Integral() ) = %f / %f = %f " % (hPUMC.Integral(), hDataPUs[aname].Integral(), factor), True)
+                
+            for k in range(0, hPUMC.GetNbinsX()+2):
+                if hPUMC.GetBinContent(k) > 0.0:
+                    data = hDataPUs[aname].GetBinContent(k)
+                    mc   = hPUMC.GetBinContent(k)
+                    w    = data / mc * factor
+                    nAllEventsPUWeighted += w * hPUMC.GetBinContent(k)
+                    info.append( align.format(k, data, mc, factor, w, nAllEventsPUWeighted,  hPUMC.Integral() ) )
+                else:
+                    data = hDataPUs[aname].GetBinContent(k)
+                    mc   = hPUMC.GetBinContent(k)
+                    info.append( align.format(k, data, mc, factor, "N/A", nAllEventsPUWeighted, hPUMC.Integral() ) )
+                    
+        for i in info:
+            Print(i, False)
+
+        return nAllEventsPUWeighted, usePUweights
+
+
+    def PrintProcessInfo(self, ndset, dset, lumidata, usePUweights, useTopPtCorrection):
+        Print("Processing ... (%d/%d)" % (ndset, len(self._datasets)))
+
+        align = "{:<23} {:^3} {:<40}"
+        info  = []
+        info.append( align.format("Dataset", ":", dset.getName()) )
+        info.append( align.format("Is Data", ":", str(dset.getDataVersion().isData()) ) )
+
+        if dset.getDataVersion().isData():
+            lumivalue = "--- not available in lumi.json (or lumi.json not available) ---"
+            if dset.getName() in lumidata.keys():
+                lumivalue = lumidata[dset.getName()]
+            info.append( align.format("Luminosity", ":", str(lumivalue) + " [pb-1]") )
+        else:
+            info.append( align.format("Luminosity", ":", "-") )
+
+        info.append( align.format("Pile-Up Weights", ":", str(usePUweights)) )
+        info.append( align.format("Top-pT Weights" , ":", str(useTopPtCorrection)) )
+                
+        # Print combined information    
+        for i in info:
+            Print(i, False)
+        return
+
+
+    def GetIsMcString(self, dset):
+        if dset.getDataVersion().isMC():
+            return "1"
+        else:
+            return "0"
+
+
+    def PrintInputList(self, inputList):
+        if not self._verbose:
+            return
+
+        for counter, i in enumerate(inputList):
+            if counter == 0:
+                self.Verbose("inputList[%s] = %s" % (counter, i.GetName()), True)
+            else:
+                self.Verbose("inputList[%s] = %s" % (counter, i.GetName()), False)
+        return
+
+    
+    def GetTopPtWeightedEvents(self, dset, analyzer, useTopPtCorrection, nAllEventsPUWeighted, nAllEventsUnweighted):
+        self.Verbose("Getting the Top-Pt weighted events")
+
+        NAllEventsTopPt = 0
+        if not useTopPtCorrection:
+            return NAllEventsTopPt
+
+        # Prepare information for user
+        info   = []
+        align  = "{:<26} {:<3} {:<30}"
+
+        for inname in dset.getFileNames():
+            fIN = ROOT.TFile.Open(inname)
+            h   = fIN.Get("configInfo/topPtWeightAllEvents")
+            info.append( align.format("File     "    , ":", GetLastNDirs(fIN.GetName(), 3)) )
+            info.append( align.format("Histogram"    , ":", h.GetName()) )
+            if h != None:
+                binNumber = 2 # nominal
+                variation = "N/A"
+                if hasattr(analyzer, "topPtSystematicVariation"):
+                    variation = getattr(analyzer, "topPtSystematicVariation")
+                    if variation == "minus":
+                        binNumber = 0
+                    # FIXME: The bin is to be added to the ttrees
+                            #elif variation == "plus":
+                                #binNumber = 3
+                                #if not h.GetXaxis().GetBinLabel().endsWith("Plus"):
+                                    #raise Exception("This should not happen")
+                if binNumber > 0:
+                    NAllEventsTopPt += h.GetBinContent(binNumber)
+                # Update info
+                info.append( align.format("Bin"                    , ":", binNumber) )
+                info.append( align.format("Variation"              , ":", variation) )
+                info.append( align.format("Unweighted Events"      , ":", nAllEventsUnweighted) )
+                info.append( align.format("Pileup Weighted Events" , ":", nAllEventsPUWeighted) )
+                info.append( align.format("TopPt Weighted Events"  , ":", NAllEventsTopPt) )
+                
+            else:
+               Print("WARNING! Could not obtain N(AllEvents) for top pt reweighting")
+
+            fIN.Close()
+        
+        for counter, i in enumerate(info):
+            if counter==0:
+                Print(i, True)
+            else:
+                Print(i, False)
+
+        return NAllEventsTopPt
+
+
+    def WriteConfigInfo(self, dataset, resFileName):
+        fName = dataset.getFileNames()[0]    
+        Print("Writing \"confinginfo\" to %s" % (GetLastNDirs(fName, 3)) )
+
+        fIN   = ROOT.TFile.Open(fName)
+        cinfo = fIN.Get("configInfo/configinfo")
+        tf    = ROOT.TFile.Open(resFileName, "UPDATE")
+        configInfo = tf.Get("configInfo")
+        if configInfo == None:
+            configInfo = tf.mkdir("configInfo")
+        configInfo.cd()
+        fIN.Close()
+        return
+
+
+    def WriteDataVersion(self, dataset, resFileName, git):
+        fName = dataset.getFileNames()[0]    
+        Print("Writing \"dataVersion\" to %s" % (GetLastNDirs(fName, 3)) )
+
+        tf  = ROOT.TFile.Open(resFileName, "UPDATE")
+        dv  = ROOT.TNamed("dataVersion", str(dataset.getDataVersion()) )
+        dv.Write()
+        return
+
+
+    def WriteCodeVersion(self, dataset, resFileName, git):
+        fName = dataset.getFileNames()[0]
+        Print("Writing \"codeVersionAnalsysis\" to %s" % (GetLastNDirs(fName, 3)) )
+
+        tf  = ROOT.TFile.Open(resFileName, "UPDATE")
+        cv  = ROOT.TNamed("codeVersionAnalysis", git.getCommitId() )
+        cv.Write()
+        return
+
+
+    def WriteMoreConfigInfo(self, dataset, resFileName, usePUweights, nAllEventsPUWeighted, useTopPtCorrection, NAllEventsTopPt, nanalyzers):
+        fName = dataset.getFileNames()[0]
+        Print("Writing more to \"confinginfo\" to %s" % (GetLastNDirs(fName, 3)) )
+
+        fIN   = ROOT.TFile.Open(fName)
+        cinfo = fIN.Get("configInfo/configinfo")
+
+        if cinfo == None:
+            return
+
+        tf = ROOT.TFile.Open(resFileName, "UPDATE")
+        # Add more information to configInfo
+        n = cinfo.GetNbinsX()
+        cinfo.SetBins(n+3, 0, n+3)
+        cinfo.GetXaxis().SetBinLabel(n+1, "isData")
+        cinfo.GetXaxis().SetBinLabel(n+2, "isPileupReweighted")
+        cinfo.GetXaxis().SetBinLabel(n+3, "isTopPtReweighted")
+        
+        # Add "isData" column
+        if not dataset.getDataVersion().isMC():
+            cinfo.SetBinContent(n+1, cinfo.GetBinContent(1))
+            
+        # Add "isPileupReweighted" column
+        if usePUweights:
+            cinfo.SetBinContent(n+2, nAllEventsPUWeighted / nanalyzers)
+
+        # Add "isTopPtReweighted" column
+        if useTopPtCorrection:
+            cinfo.SetBinContent(n+3, NAllEventsTopPt / nanalyzers)
+
+        # Write
+        cinfo.Write()
+        fIN.Close()
+        return
+
+
+    def run(self, proof=False, proofWorkers=None):
+
+        # Get/Create (pseudo-CRAB) output dir name
+        outputDir = self.CreateOutputDir()
+
+        # Create a pseudo multicrab.cfg file
+        self.CreateMulticrabCfg(outputDir)
+
+        # Copy/merge lumi files 
+        lumidata = self.GetLumiDataDict()
+
+        # Create lumi.json file
+        self.CreateLumiJson(lumidata, outputDir)
+
+        # Create runrange.json file (if needed)
+        self.CreateRunRangeJson(lumidata, outputDir)
+
+        # Setup proof (if asked)
+        _proof = self.SetupPROOF(proof, proofWorkers)
+        
+        # Sum data PU distributions
+        hDataPUs = self.CreateDataPileupDict()
+
         # Process over datasets
         ndset = 0
         # For-loop: All datsets
@@ -454,6 +765,7 @@ class Process:
             usePUweights         = False
             useTopPtCorrection   = False
             nAllEventsPUWeighted = 0.0
+            nAllEventsUnweighted = 0.0 #MC
             
             # For-loop: All analyzers
             for aname, analyzerIE in self._analyzers.iteritems():
@@ -469,135 +781,71 @@ class Process:
                     inputList.Add(ROOT.TNamed("analyzer_"+aname, analyzer.className_()+":"+analyzer.config_()))
 
                     # ttbar status for top pt corrections
-                    ttbarStatus = "0"
-                    useTopPtCorrection = analyzer.exists("useTopPtWeights") and analyzer.__getattr__("useTopPtWeights")
-                    useTopPtCorrection = useTopPtCorrection and dset.getName().lower().startswith("tt")
-                    if useTopPtCorrection:
-                        ttbarStatus = "1"
-                    inputList.Add(ROOT.TNamed("isttbar", ttbarStatus))
+                    useTopPtCorrection, ttbarStatus = self.UseTopPtCorrection(analyzer, dset)
+                    inputList.Add( ROOT.TNamed("isttbar", ttbarStatus) )
 
                     # Pileup reweighting
                     if dset.getDataVersion().isMC():
 
-                        if aname in hPUs.keys():
-                            inputList.Add(hPUs[aname])
+                        if aname in hDataPUs.keys():
+                            inputList.Add(hDataPUs[aname])
                         else:
-                            n     = 50
-                            hFlat = ROOT.TH1F("dummyPU" + aname,"dummyPU" + aname, n, 0, n)
-                            hFlat.SetName("PileUpData")
-                            for k in range(n):
-                                hFlat.Fill(k+1, 1.0/n)
+                            hFlat = self.CreateFlatHisto(50, "PileUpData")
                             inputList.Add(hFlat)
-                            hPUs[aname] = hFlat
-                            Print("WARNING! Using a flat PU spectrum for data (which is missing). The MC PU spectrum is unchanged.")
+                            hDataPUs[aname] = hFlat
 
-                        if dset.getPileUp() == None:
-                            raise Exception("Pileup spectrum is missing from dataset! Please switch to using newest multicrab!")
-                        hPUMC = dset.getPileUp().Clone()
-
-                        if aname not in hPUs.keys():
-                            Print("The key '%s' does not exist in dictionary variable 'hPUs'. Continue" % (aname))
+                        if aname not in hDataPUs.keys():
+                            Print("The key '%s' does not exist in dictionary variable 'hDataPUs'. Continue" % (aname))
                             continue
 
-                        if hPUMC.GetNbinsX() != hPUs[aname].GetNbinsX():
-                            raise Exception("Pileup histogram dimension mismatch! data nPU has %d bins and MC nPU has %d bins"%(hPUs[aname].GetNbinsX(), hPUMC.GetNbinsX()))
-                        hPUMC.SetName("PileUpMC")
+                        # Get the MC Pileup histogram
+                        hPUMC = self.GetMcPileupHisto(dset, aname, hDataPUs)
                         inputList.Add(hPUMC)
 
-                        if analyzer.exists("usePileupWeights"):
-                            usePUweights = analyzer.__getattr__("usePileupWeights")
+                        # Get all unweighted events
+                        nAllEventsUnweighted = hPUMC.Integral()
 
-                            # info table
-                            align  = "{:<5} {:<20} {:<20} {:<20} {:<22} {:<20} {:<20}"
-                            info   = []
-                            hLine  = (130)*"="
-                            info.append(hLine)
-                            info.append( align.format("Bin", "Data", "MC", "Factor", "w = (Data/MC)*Factor", "wEvents = MC*w", "MC.Integral()") )
-                            info.append(hLine)
-
-                            if hPUs[aname].Integral() > 0.0:
-                                factor = hPUMC.Integral() / hPUs[aname].Integral()
-                                self.Verbose("Calculating factor = ( MC.Integral() / Data.Integral() ) = %f / %f = %f " % (hPUMC.Integral(), hPUs[aname].Integral(), factor), True)
-                                
-                                for k in range(0, hPUMC.GetNbinsX()+2):
-                                    if hPUMC.GetBinContent(k) > 0.0:
-                                        data = hPUs[aname].GetBinContent(k)
-                                        mc   = hPUMC.GetBinContent(k)
-                                        w    = data / mc * factor
-                                        nAllEventsPUWeighted += w * hPUMC.GetBinContent(k)
-                                        info.append( align.format(k, data, mc, factor, w, nAllEventsPUWeighted,  hPUMC.Integral() ) )
-                                    else:
-                                        data = hPUs[aname].GetBinContent(k)
-                                        mc   = hPUMC.GetBinContent(k)
-                                        info.append( align.format(k, data, mc, factor, "N/A", nAllEventsPUWeighted, hPUMC.Integral() ) )
-
-                            for i in info:
-                                Print(i, False)
+                        # Parse Pileup weighting
+                        nAllEventsPUWeighted, usePUweights = self.GetPileupWeightedEvents(dset, analyzer, aname, hDataPUs, hPUMC)
 
                     anames.append(aname)
 
             if nanalyzers == 0:
                 Print("Skipping %s, no analyzers" % dset.getName())
                 continue
+            
+            self.PrintProcessInfo(ndset, dset, lumidata, usePUweights, useTopPtCorrection)
+        
 
-            Print("Processing ... (%d/%d)" % (ndset, len(self._datasets)))
-            align = "{:<23} {:^3} {:<40}"
-            info  = []
-            info.append( align.format("Dataset", ":", dset.getName()) )
-            info.append( align.format("Is Data", ":", str(dset.getDataVersion().isData()) ) )
-            if dset.getDataVersion().isData():
-                lumivalue = "--- not available in lumi.json (or lumi.json not available) ---"
-                if dset.getName() in lumidata.keys():
-                    lumivalue = lumidata[dset.getName()]
-                info.append( align.format("Luminosity", ":", str(lumivalue) + " [pb-1]") )
-            else:
-                info.append( align.format("Luminosity", ":", "-") )
-            info.append( align.format("Pile-Up Weights", ":", str(usePUweights)) )
-            info.append( align.format("Top-pT Weights" , ":", str(useTopPtCorrection)) )
-
-            # Print combined information    
-            for i in info:
-                Print(i, False)
-
+            # Create results directory and output file names
             resDir      = os.path.join(outputDir, dset.getName(), "res")
             resFileName = os.path.join(resDir, "histograms-%s.root" % dset.getName())
             os.makedirs(resDir)
+
+            # Create TChain with ROOT files
             tchain = ROOT.TChain("Events")
-
-
-            self.Verbose("", True)
-            # For-loop: All dataset files
             for f in dset.getFileNames():
-                self.Verbose("Adding file '%s' to TChain" % (f) )
+                self.Verbose("Adding file '%s' to TChain" % (f), True)
                 tchain.Add(f)
             tchain.SetCacheLearnEntries(100);
             tselector = ROOT.SelectorImpl()
-
-            Print("sys.exit()")
-            import sys
-            sys.exit()
             
-
             # FIXME: TChain.GetEntries() is needed only to give a time estimate for the analysis. 
             # If this turns out to be slow, we could store the number of events along the file names    
             # inputList.Add(ROOT.SelectorImplParams(tchain.GetEntries(), dset.getDataVersion().isMC(), self._options.serialize_(), True))
-            inputList.Add(ROOT.TNamed("entries", str(tchain.GetEntries())))
-            if dset.getDataVersion().isMC():
-                inputList.Add(ROOT.TNamed("isMC", "1"))
-            else:
-                inputList.Add(ROOT.TNamed("isMC", "0"))
-            inputList.Add(ROOT.TNamed("options", self._options.serialize_()))
-            inputList.Add(ROOT.TNamed("printStatus", "1"))
+            IsMcStr = self.GetIsMcString(dset)
+            inputList.Add( ROOT.TNamed("entries", str(tchain.GetEntries())) )
+            inputList.Add( ROOT.TNamed("isMC", IsMcStr) )
+            inputList.Add( ROOT.TNamed("options", self._options.serialize_()) )
+            inputList.Add( ROOT.TNamed("printStatus", "1") )
 
             if _proof is not None:
                 tchain.SetProof(True)
-                inputList.Add(ROOT.TNamed("PROOF_OUTPUTFILE_LOCATION", resFileName))
+                inputList.Add( ROOT.TNamed("PROOF_OUTPUTFILE_LOCATION", resFileName) )
             else:
-                inputList.Add(ROOT.TNamed("OUTPUTFILE_LOCATION", resFileName))
+                inputList.Add( ROOT.TNamed("OUTPUTFILE_LOCATION", resFileName) )
 
-            self.Verbose("")
-            for counter, i in enumerate(inputList):
-                self.Verbose("inputList[%s] = %s" % (counter, i.GetName()) )
+            self.PrintInputList(inputList)
             tselector.SetInputList(inputList)
 
             readBytesStart = ROOT.TFile.GetFileBytesRead()
@@ -617,64 +865,53 @@ class Process:
             readBytesStop = ROOT.TFile.GetFileBytesRead()
 
             # Obtain Nall events for top pt corrections
-            NAllEventsTopPt = 0
-            if useTopPtCorrection:
-                for inname in dset.getFileNames():
-                    fIN = ROOT.TFile.Open(inname)
-                    h = fIN.Get("configInfo/topPtWeightAllEvents")
-                    if h != None:
-                        binNumber = 2 # nominal
-                        if hasattr(analyzer, "topPtSystematicVariation"):
-                            variation = getattr(analyzer, "topPtSystematicVariation")
-                            if variation == "minus":
-                                binNumber = 0
-                            # FIXME: The bin is to be added to the ttrees
-                            #elif variation == "plus":
-                                #binNumber = 3
-                                #if not h.GetXaxis().GetBinLabel().endsWith("Plus"):
-                                    #raise Exception("This should not happen")
-                        if binNumber > 0:
-                            NAllEventsTopPt += h.GetBinContent(binNumber)
-                    else:
-                        print "=== main.py:\n\tWARNING! Could not obtain N(AllEvents) for top pt reweighting"
-                    fIN.Close()
+            NAllEventsTopPt = self.GetTopPtWeightedEvents(dset, analyzer, useTopPtCorrection, nAllEventsPUWeighted, nAllEventsUnweighted)
 
             # Write configInfo
-            fIN   = ROOT.TFile.Open(dset.getFileNames()[0])
-            cinfo = fIN.Get("configInfo/configinfo")
-            tf    = ROOT.TFile.Open(resFileName, "UPDATE")
-            configInfo = tf.Get("configInfo")
-            if configInfo == None:
-                configInfo = tf.mkdir("configInfo")
-            configInfo.cd()
-            dv = ROOT.TNamed("dataVersion", str(dset.getDataVersion()))
-            dv.Write()
-            cv = ROOT.TNamed("codeVersionAnalysis", git.getCommitId())
-            cv.Write()
+            self.WriteConfigInfo(dset, resFileName)
+            self.WriteDataVersion(dset, resFileName, git)
+            self.WriteCodeVersion(dset, resFileName, git)
+            self.WriteMoreConfigInfo(dset, resFileName, usePUweights, nAllEventsPUWeighted, useTopPtCorrection, NAllEventsTopPt, nanalyzers)
 
-            if not cinfo == None:
-                # Add more information to configInfo
-                n = cinfo.GetNbinsX()
-                cinfo.SetBins(n+3, 0, n+3)
-                cinfo.GetXaxis().SetBinLabel(n+1, "isData")
-                cinfo.GetXaxis().SetBinLabel(n+2, "isPileupReweighted")
-                cinfo.GetXaxis().SetBinLabel(n+3, "isTopPtReweighted")
 
-                # Add "isData" column
-                if not dset.getDataVersion().isMC():
-                    cinfo.SetBinContent(n+1, cinfo.GetBinContent(1))
+#            fIN   = ROOT.TFile.Open(dset.getFileNames()[0])
+#            cinfo = fIN.Get("configInfo/configinfo")
+#            tf    = ROOT.TFile.Open(resFileName, "UPDATE")
+#            configInfo = tf.Get("configInfo")
+#            if configInfo == None:
+#                configInfo = tf.mkdir("configInfo")
+#            configInfo.cd()
+#            dv = ROOT.TNamed("dataVersion", str(dset.getDataVersion()))
+#            dv.Write()
+#            cv = ROOT.TNamed("codeVersionAnalysis", git.getCommitId())
+#            cv.Write()
 
-                # Add "isPileupReweighted" column
-                if usePUweights:
-                    cinfo.SetBinContent(n+2, nAllEventsPUWeighted / nanalyzers)
 
-                # Add "isTopPtReweighted" column
-                if useTopPtCorrection:
-                    cinfo.SetBinContent(n+3, NAllEventsTopPt / nanalyzers)
+#            if not cinfo == None:
+#                # Add more information to configInfo
+#                n = cinfo.GetNbinsX()
+#                cinfo.SetBins(n+3, 0, n+3)
+#                cinfo.GetXaxis().SetBinLabel(n+1, "isData")
+#                cinfo.GetXaxis().SetBinLabel(n+2, "isPileupReweighted")
+#                cinfo.GetXaxis().SetBinLabel(n+3, "isTopPtReweighted")
+#
+#                # Add "isData" column
+#                if not dset.getDataVersion().isMC():
+#                    cinfo.SetBinContent(n+1, cinfo.GetBinContent(1))
+#
+#                # Add "isPileupReweighted" column
+#                if usePUweights:
+#                    cinfo.SetBinContent(n+2, nAllEventsPUWeighted / nanalyzers)
+#
+#                # Add "isTopPtReweighted" column
+#                if useTopPtCorrection:
+#                    cinfo.SetBinContent(n+3, NAllEventsTopPt / nanalyzers)
+#
+#                # Write
+#                cinfo.Write()
+#                fIN.Close()
 
-                # Write
-                cinfo.Write()
-                fIN.Close()
+            tf = ROOT.TFile.Open(resFileName, "UPDATE") # xenios #new
 
             # Sum skim counters counters (from ttree)
             hSkimCounterSum = None
