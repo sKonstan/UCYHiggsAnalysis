@@ -680,8 +680,12 @@ class Process:
     def WriteDataVersion(self, dataset, resFileName, git):
         fName = dataset.getFileNames()[0]    
         self.Verbose("Writing \"dataVersion\" to %s" % (GetLastNDirs(fName, 3)) )
-        
-        tf  = ROOT.TFile.Open(resFileName, "UPDATE")
+
+        # Step into the configInfo folder
+        tf = ROOT.TFile.Open(resFileName, "UPDATE")
+        configInfo = tf.Get("configInfo")
+        configInfo.cd()
+
         dv  = ROOT.TNamed("dataVersion", str(dataset.getDataVersion()) )
         dv.Write()
         return
@@ -691,7 +695,11 @@ class Process:
         fName = dataset.getFileNames()[0]
         self.Verbose("Writing \"codeVersionAnalsysis\" to %s" % (GetLastNDirs(fName, 3)) )
 
-        tf  = ROOT.TFile.Open(resFileName, "UPDATE")
+        # Step into the configInfo folder
+        tf = ROOT.TFile.Open(resFileName, "UPDATE")
+        configInfo = tf.Get("configInfo")
+        configInfo.cd()
+
         cv  = ROOT.TNamed("codeVersionAnalysis", git.getCommitId() )
         cv.Write()
         return
@@ -705,24 +713,33 @@ class Process:
         cinfo = fIN.Get("configInfo/configinfo")
 
         if cinfo == None:
+            Print("cinfo is None. Returning...")
             return
 
+        # Step into the configInfo folder
         tf = ROOT.TFile.Open(resFileName, "UPDATE")
+        configInfo = tf.Get("configInfo")
+        configInfo.cd()
+
         # Add more information to configInfo
         n = cinfo.GetNbinsX()
         cinfo.SetBins(n+3, 0, n+3)
         cinfo.GetXaxis().SetBinLabel(n+1, "isData")
         cinfo.GetXaxis().SetBinLabel(n+2, "isPileupReweighted")
         cinfo.GetXaxis().SetBinLabel(n+3, "isTopPtReweighted")        
+
         # Add "isData" column
         if not dataset.getDataVersion().isMC():
             cinfo.SetBinContent(n+1, cinfo.GetBinContent(1))
+
         # Add "isPileupReweighted" column
         if usePUweights:
             cinfo.SetBinContent(n+2, nAllEventsPUWeighted / nanalyzers)
+
         # Add "isTopPtReweighted" column
         if useTopPtCorrection:
             cinfo.SetBinContent(n+3, NAllEventsTopPt / nanalyzers)
+
         # Write to file
         cinfo.Write()
         fIN.Close()
