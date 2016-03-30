@@ -65,8 +65,8 @@ config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
 
 ### MC: How many files (when Data.splitting='FileBased'), lumi sections (when Data.splitting='LumiBased') or events (when Data.splitting='EventAwareLumiBased') to analyze
 config.Data.splitting     = "EventAwareLumiBased"  # Used with "config.Data.totalUnits"
-config.Data.totalUnits    = 1000000                 # Used with "config.Data.splitting"
-config.Data.unitsPerJob   = 5000
+config.Data.totalUnits    = 1000000                # Used with "config.Data.splitting"
+config.Data.unitsPerJob   = 10000                  # 5k-10k
 
 # config.Data.allowNonValidInputDatase
 # config.Data.outputPrimaryDataset

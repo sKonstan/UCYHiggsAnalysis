@@ -322,10 +322,10 @@ class Process:
             lumi        = dsetMgrCreator.getLumiFile()
             tableRows   = []
             txtAlign    = "{:<12} {:^3} {:<55}"        
-            tableRows.append( txtAlign.format("dataset"      , ":", name) )
-            tableRows.append( txtAlign.format("files"        , ":", ", ".join(fileNames) ) )
-            tableRows.append( txtAlign.format("data-version" , ":",  dataVer) )
-            tableRows.append( txtAlign.format("lumi-file"    , ":", lumi) )
+            tableRows.append( txtAlign.format("Dataset"      , ":", name) )
+            tableRows.append( txtAlign.format("Files"        , ":", ", ".join(fileNames) ) )
+            tableRows.append( txtAlign.format("Data Version" , ":",  dataVer) )
+            tableRows.append( txtAlign.format("Lumi File"    , ":", lumi) )
             self.Verbose("", True)
             for r in tableRows:
                 self.Verbose(r, False)
@@ -558,7 +558,9 @@ class Process:
                     data = hDataPUs[aname].GetBinContent(k)
                     mc   = hPUMC.GetBinContent(k)
                     info.append( align.format(k, data, mc, factor, "N/A", nAllEventsPUWeighted, hPUMC.Integral() ) )
-                    
+
+        # Close table with hLine and print it
+        info.append(hLine)
         for i in info:
             Print(i, False)
 
@@ -568,7 +570,7 @@ class Process:
     def PrintProcessInfo(self, ndset, dset, lumidata, usePUweights, useTopPtCorrection):
         Print("Processing ... (%d/%d)" % (ndset, len(self._datasets)))
 
-        align = "{:<23} {:^3} {:<40}"
+        align = "{:<22} {:^3} {:<40}"
         info  = []
         info.append( align.format("Dataset", ":", dset.getName()) )
         info.append( align.format("Is Data", ":", str(dset.getDataVersion().isData()) ) )
@@ -618,7 +620,7 @@ class Process:
 
         # Prepare information for user
         info   = []
-        align  = "{:<26} {:<3} {:<30}"
+        align  = "{:<22} {:<3} {:<30}"
 
         for inname in dset.getFileNames():
             fIN = ROOT.TFile.Open(inname)
@@ -662,8 +664,8 @@ class Process:
 
     def WriteConfigInfo(self, dataset, resFileName):
         fName = dataset.getFileNames()[0]    
-        Print("Writing \"confinginfo\" to %s" % (GetLastNDirs(fName, 3)) )
-
+        self.Verbose("Writing \"confinginfo\" to %s" % (GetLastNDirs(fName, 3)) )
+        
         fIN   = ROOT.TFile.Open(fName)
         cinfo = fIN.Get("configInfo/configinfo")
         tf    = ROOT.TFile.Open(resFileName, "UPDATE")
@@ -677,8 +679,8 @@ class Process:
 
     def WriteDataVersion(self, dataset, resFileName, git):
         fName = dataset.getFileNames()[0]    
-        Print("Writing \"dataVersion\" to %s" % (GetLastNDirs(fName, 3)) )
-
+        self.Verbose("Writing \"dataVersion\" to %s" % (GetLastNDirs(fName, 3)) )
+        
         tf  = ROOT.TFile.Open(resFileName, "UPDATE")
         dv  = ROOT.TNamed("dataVersion", str(dataset.getDataVersion()) )
         dv.Write()
@@ -687,7 +689,7 @@ class Process:
 
     def WriteCodeVersion(self, dataset, resFileName, git):
         fName = dataset.getFileNames()[0]
-        Print("Writing \"codeVersionAnalsysis\" to %s" % (GetLastNDirs(fName, 3)) )
+        self.Verbose("Writing \"codeVersionAnalsysis\" to %s" % (GetLastNDirs(fName, 3)) )
 
         tf  = ROOT.TFile.Open(resFileName, "UPDATE")
         cv  = ROOT.TNamed("codeVersionAnalysis", git.getCommitId() )
@@ -697,7 +699,7 @@ class Process:
 
     def WriteMoreConfigInfo(self, dataset, resFileName, usePUweights, nAllEventsPUWeighted, useTopPtCorrection, NAllEventsTopPt, nanalyzers):
         fName = dataset.getFileNames()[0]
-        Print("Writing more to \"confinginfo\" to %s" % (GetLastNDirs(fName, 3)) )
+        self.Verbose("Writing more to \"confinginfo\" to %s" % (GetLastNDirs(fName, 3)) )
 
         fIN   = ROOT.TFile.Open(fName)
         cinfo = fIN.Get("configInfo/configinfo")
@@ -916,17 +918,20 @@ class Process:
             self.PrintInputList(inputList)
             tselector.SetInputList(inputList)
 
-            readBytesStart = ROOT.TFile.GetFileBytesRead()
-            readCallsStart = ROOT.TFile.GetFileReadCalls()
+            # Keep track of start time and usage stats
             timeStart      = time.time()
             clockStart     = time.clock()
+            readBytesStart = ROOT.TFile.GetFileBytesRead()
+            readCallsStart = ROOT.TFile.GetFileReadCalls()
 
+            # Setup Cache and Process
             if self._maxEvents > 0:
                 tchain.SetCacheEntryRange(0, self._maxEvents)
                 tchain.Process(tselector, "", self._maxEvents)
             else:                
                 tchain.Process(tselector)
 
+            # Keep track of start time and usage stats
             timeStop      = time.time()
             clockStop     = time.clock()
             readCallsStop = ROOT.TFile.GetFileReadCalls()
@@ -940,73 +945,9 @@ class Process:
             self.WriteDataVersion(dset, resFileName, git)
             self.WriteCodeVersion(dset, resFileName, git)
             self.WriteMoreConfigInfo(dset, resFileName, usePUweights, nAllEventsPUWeighted, useTopPtCorrection, NAllEventsTopPt, nanalyzers)
-
             self.WriteSkimCounters(dset, resFileName, anames)
 
-#            tf = ROOT.TFile.Open(resFileName, "UPDATE") # xenios #new
-#
-#            # Sum skim counters counters (from ttree)
-#            hSkimCounterSum = None
-#            fINs = None
-#            for inname in dset.getFileNames():
-#                fIN = ROOT.TFile.Open(inname)
-#                hSkimCounters = fIN.Get("configInfo/SkimCounter")
-#                if hSkimCounterSum == None:
-#                    hSkimCounterSum = hSkimCounters.Clone()
-#                else:
-#                    hSkimCounterSum.Add(hSkimCounters)
-#                if fINs == None:
-#                    fINs = []
-#                fINs.append(fIN)
-#
-#            if hSkimCounterSum != None:
-#                # Find out directories in the output file
-#                dirlist = []
-#                for key in tf.GetListOfKeys():
-#                    matchStatus = False
-#                    for name in anames:
-#                        if key.GetTitle().startswith(name):
-#                            dirlist.append(key.GetTitle())
-#                # Add skim counters to the counter histograms
-#                for d in dirlist:
-#                    hCounter = tf.Get("%s/counters/counter"%d).Clone()
-#                    hCounterWeighted = tf.Get("%s/counters/weighted/counter"%d).Clone()
-#                    # Resize axis
-#                    nCounters = hCounter.GetNbinsX()
-#                    nSkimCounters = hSkimCounterSum.GetNbinsX()
-#                    hCounter.SetBins(nCounters+nSkimCounters, 0., nCounters+nSkimCounters)
-#                    hCounterWeighted.SetBins(nCounters+nSkimCounters, 0., nCounters+nSkimCounters)
-#                    # Move bin data to right
-#                    for i in range(0, nCounters):
-#                        j = nCounters-i
-#                        hCounter.SetBinContent(j+nSkimCounters, hCounter.GetBinContent(j))
-#                        hCounter.SetBinError(j+nSkimCounters, hCounter.GetBinError(j))
-#                        hCounter.GetXaxis().SetBinLabel(j+nSkimCounters, hCounter.GetXaxis().GetBinLabel(j))
-#                        hCounterWeighted.SetBinContent(j+nSkimCounters, hCounterWeighted.GetBinContent(j))
-#                        hCounterWeighted.SetBinError(j+nSkimCounters, hCounterWeighted.GetBinError(j))
-#                        hCounterWeighted.GetXaxis().SetBinLabel(j+nSkimCounters, hCounterWeighted.GetXaxis().GetBinLabel(j))
-#                    # Add skim counters
-#                    for i in range(1, nSkimCounters+1):
-#                        hCounter.SetBinContent(i, hSkimCounterSum.GetBinContent(i))
-#                        hCounter.SetBinError(i, hSkimCounterSum.GetBinError(i))
-#                        hCounter.GetXaxis().SetBinLabel(i, "ttree: %s"%hSkimCounterSum.GetXaxis().GetBinLabel(i))
-#                        hCounterWeighted.SetBinContent(i, hSkimCounterSum.GetBinContent(i))
-#                        hCounterWeighted.SetBinError(i, hSkimCounterSum.GetBinError(i))
-#                        hCounterWeighted.GetXaxis().SetBinLabel(i, "ttree: %s"%hSkimCounterSum.GetXaxis().GetBinLabel(i))
-#                    hCounter.Sumw2(False)
-#                    hCounter.Sumw2()
-#                    hCounterWeighted.Sumw2(False)
-#                    hCounterWeighted.Sumw2()
-#                    tf.cd("%s/counters"%d)
-#                    hCounter.Write("counter", ROOT.TObject.kOverwrite)
-#                    tf.cd("%s/counters/weighted"%d)
-#                    hCounterWeighted.Write("counter", ROOT.TObject.kOverwrite)
-#            if fINs != None:
-#                for f in fINs:
-#                  f.Close()
-#            tf.Close()
-
-
+            # Calculate the CPU usage and print info
             calls = 0
             if _proof is not None:
                 tchain.SetProof(False)
@@ -1017,11 +958,10 @@ class Process:
                 cpuTime    = clockStop-clockStart
                 readMbytes = float(readBytesStop-readBytesStart)/1024/1024
                 calls      = int(readCallsStop-readCallsStart)
-            
-            self.CalculateStatistics(dset.getName(), timeStart, timeStop, cpuTime, readMbytes, calls)
+            self.CalculateStatistics(dset.getName(), timeStart, timeStop, cpuTime, readMbytes, calls, False, False)
         
         self.PrintStatisticsTotal()
-        self.Verbose("Results are in '%s'" % (outputDir) )
+        Print("DONE! Results are under %s/" % (outputDir) )
         return outputDir
 
 
@@ -1030,24 +970,21 @@ class Process:
         Prints a table summarising the CPU usage and time elapsed since job started.
         '''
         realTime = timeStop-timeStart
-
+        
         # Create statistics list
         stats = []
         stats.append("%s"      % (dataset)   )
         stats.append("%.2f"    % (realTime)   )
-        # stats.append("%.2f"    % (cpuTime)    )
         stats.append("%.1f"    % (cpuTime/realTime*100) )
         stats.append("%.2f"    % (readMbytes) )
-        # stats.append("%s"      % (calls)      )
         stats.append("%.2f"    % (readMbytes/realTime)  )
 
         # Save the stats
         self._datasetStats[dataset] = stats
 
         txtAlign = "{:<70} {:<16} {:<16} {:<16} {:<16}"
-        #heading  = txtAlign.format("\t Dataset", "Real Time [s]", "CPU Time [s]", "CPU Time [%]", "Read [MB]", "File Reads [Calls]", "Read Speed [MB/s]")
         heading  = txtAlign.format("\t Dataset", "Real Time [s]", "CPU Time [%]", "Read [MB]", "Read Speed [MB/s]")
-        values   = txtAlign.format("\t " + stats[0], stats[1], stats[2], stats[3], stats[4])#, stats[5], stats[6])
+        values   = txtAlign.format("\t " + stats[0], stats[1], stats[2], stats[3], stats[4])
         hLine    = len(values)*"="
 
         if bPrintStats:
@@ -1074,31 +1011,43 @@ class Process:
         '''
         # Create total statistics list
         stats = []
-        stats.append("TOTAL") 
-        stats.append("%.2f"    % (self._realTimeTotal)   )
-        # stats.append("%.2f"    % (self._cpuTimeTotal)    )
-        stats.append("%.1f"    % (self._cpuTimeTotal/self._realTimeTotal*100) )
-        stats.append("%.2f"    % (self._readMbytesTotal) )
-        # stats.append("%s"      % (self._callsTotal)      )
-        stats.append("%.2f"    % (self._readMbytesTotal/self._realTimeTotal)  )
+        stats.append("Total") 
+        stats.append("%.2f" % ( self._realTimeTotal) )
+        stats.append("%.1f" % ( self._cpuTimeTotal/self._realTimeTotal*100) )
+        stats.append("%.2f" % ( self._readMbytesTotal) )
+        stats.append("%.2f" % ( self._readMbytesTotal/self._realTimeTotal) )
+        txtAlign = "{:<70} {:<16} {:<16} {:<16} {:<16}"
 
-        txtAlign = "{:<70} {:<16} {:<16} {:<16} {:<16}"# {:<16} {:<16}"
-        #heading  = txtAlign.format("\t Dataset", "Real Time [s]", "CPU Time [s]", "CPU Time [%]", "Read [MB]", "File Reads [Calls]", "Read Speed [MB/s]")
-        heading  = txtAlign.format("\t Dataset", "Real Time [s]", "CPU Time [%]", "Read [MB]", "Read Speed [MB/s]")
-        values   = txtAlign.format("\t " + stats[0], stats[1], stats[2], stats[3], stats[4])#, stats[5], stats[6])
-        hLine    = len(values)*"="
+        # Create table layout & heading
+        heading  = txtAlign.format("Dataset", "Real Time [s]", "CPU Time [%]", "Read [MB]", "Read Speed [MB/s]")
+        total    = txtAlign.format(stats[0], stats[1], stats[2], stats[3], stats[4])
+        hLine    = len(total)*"="
+        info     = []
 
-        print "=== main.py:"
         if bPrintTableLayout:
-            print "\t", hLine
-        print heading
-        if bPrintTableLayout:
-            print "\t", hLine
+            info.append(hLine)
+            info.append(heading)
+            info.append(hLine)
+
         for key, value in self._datasetStats.iteritems():
-            dStats = value
-            dVals  = txtAlign.format("\t " + dStats[0], dStats[1], dStats[2], dStats[3], dStats[4])#, dStats[5], dStats[6])
-            print dVals
-        print values
+            dVals  = txtAlign.format(value[0], value[1], value[2], value[3], value[4])
+            info.append(dVals)
+        
+        # Append last horizontal line
+        if bPrintTableLayout:
+            info.append(hLine)
+
+        # Append the "Total" row
+        info.append(total)
+        info.append(hLine)
+            
+        # Print all information
+        for counter, i in enumerate(info):
+            if counter == 0:
+                Print(i, True)
+            else:
+                Print(i, False)
+
         return
 
 
@@ -1223,6 +1172,7 @@ if __name__ == "__main__":
 
             setattr(a, "xyzzy", 50.0)
             self.assertEqual(a.xyzzy, 50.0)
+
 
     class TestAnalyzerWithIncludeExclude(unittest.TestCase):
         def testIncludeExclude(self):
