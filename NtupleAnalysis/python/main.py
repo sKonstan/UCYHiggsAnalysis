@@ -711,23 +711,91 @@ class Process:
         cinfo.SetBins(n+3, 0, n+3)
         cinfo.GetXaxis().SetBinLabel(n+1, "isData")
         cinfo.GetXaxis().SetBinLabel(n+2, "isPileupReweighted")
-        cinfo.GetXaxis().SetBinLabel(n+3, "isTopPtReweighted")
-        
+        cinfo.GetXaxis().SetBinLabel(n+3, "isTopPtReweighted")        
         # Add "isData" column
         if not dataset.getDataVersion().isMC():
             cinfo.SetBinContent(n+1, cinfo.GetBinContent(1))
-            
         # Add "isPileupReweighted" column
         if usePUweights:
             cinfo.SetBinContent(n+2, nAllEventsPUWeighted / nanalyzers)
-
         # Add "isTopPtReweighted" column
         if useTopPtCorrection:
             cinfo.SetBinContent(n+3, NAllEventsTopPt / nanalyzers)
-
-        # Write
+        # Write to file
         cinfo.Write()
         fIN.Close()
+        return
+
+
+    def WriteSkimCounters(self, dataset, resFileName, anames):
+
+        tf = ROOT.TFile.Open(resFileName, "UPDATE")
+
+        # Sum skim counters counters (from ttree)
+        hSkimCounterSum = None
+        fINs = None
+
+        # For-loop: All dataset files
+        for inname in dataset.getFileNames():
+            fIN = ROOT.TFile.Open(inname)
+            hSkimCounters = fIN.Get("configInfo/SkimCounter")
+            if hSkimCounterSum == None:
+                hSkimCounterSum = hSkimCounters.Clone()
+            else:
+                hSkimCounterSum.Add(hSkimCounters)
+            if fINs == None:
+                fINs = []
+            fINs.append(fIN)
+
+        if hSkimCounterSum != None:
+            # Find out directories in the output file
+            dirlist = []
+            for key in tf.GetListOfKeys():
+                matchStatus = False
+                for name in anames:
+                    if key.GetTitle().startswith(name):
+                        dirlist.append(key.GetTitle())
+
+            # Add skim counters to the counter histograms
+            for d in dirlist:
+                hCounter         = tf.Get("%s/counters/counter"%d).Clone()
+                hCounterWeighted = tf.Get("%s/counters/weighted/counter"%d).Clone()
+                # Resize axis
+                nCounters     = hCounter.GetNbinsX()
+                nSkimCounters = hSkimCounterSum.GetNbinsX()
+                hCounter.SetBins(nCounters+nSkimCounters, 0., nCounters+nSkimCounters)
+                hCounterWeighted.SetBins(nCounters+nSkimCounters, 0., nCounters+nSkimCounters)
+                # Move bin data to right
+                for i in range(0, nCounters):
+                    j = nCounters-i
+                    hCounter.SetBinContent(j+nSkimCounters, hCounter.GetBinContent(j))
+                    hCounter.SetBinError(j+nSkimCounters, hCounter.GetBinError(j))
+                    hCounter.GetXaxis().SetBinLabel(j+nSkimCounters, hCounter.GetXaxis().GetBinLabel(j))
+                    hCounterWeighted.SetBinContent(j+nSkimCounters, hCounterWeighted.GetBinContent(j))
+                    hCounterWeighted.SetBinError(j+nSkimCounters, hCounterWeighted.GetBinError(j))
+                    hCounterWeighted.GetXaxis().SetBinLabel(j+nSkimCounters, hCounterWeighted.GetXaxis().GetBinLabel(j))
+                # Add skim counters
+                for i in range(1, nSkimCounters+1):
+                    hCounter.SetBinContent(i, hSkimCounterSum.GetBinContent(i))
+                    hCounter.SetBinError(i, hSkimCounterSum.GetBinError(i))
+                    hCounter.GetXaxis().SetBinLabel(i, "ttree: %s"%hSkimCounterSum.GetXaxis().GetBinLabel(i))
+                    hCounterWeighted.SetBinContent(i, hSkimCounterSum.GetBinContent(i))
+                    hCounterWeighted.SetBinError(i, hSkimCounterSum.GetBinError(i))
+                    hCounterWeighted.GetXaxis().SetBinLabel(i, "ttree: %s"%hSkimCounterSum.GetXaxis().GetBinLabel(i))
+
+                hCounter.Sumw2(False)
+                hCounter.Sumw2()
+                hCounterWeighted.Sumw2(False)
+                hCounterWeighted.Sumw2()
+                tf.cd("%s/counters"%d)
+                hCounter.Write("counter", ROOT.TObject.kOverwrite)
+                tf.cd("%s/counters/weighted"%d)
+                hCounterWeighted.Write("counter", ROOT.TObject.kOverwrite)
+
+        if fINs != None:
+            for f in fINs:
+              f.Close()
+        tf.Close()
         return
 
 
@@ -867,111 +935,77 @@ class Process:
             # Obtain Nall events for top pt corrections
             NAllEventsTopPt = self.GetTopPtWeightedEvents(dset, analyzer, useTopPtCorrection, nAllEventsPUWeighted, nAllEventsUnweighted)
 
-            # Write configInfo
+            # Write various info to output file (resFileName)
             self.WriteConfigInfo(dset, resFileName)
             self.WriteDataVersion(dset, resFileName, git)
             self.WriteCodeVersion(dset, resFileName, git)
             self.WriteMoreConfigInfo(dset, resFileName, usePUweights, nAllEventsPUWeighted, useTopPtCorrection, NAllEventsTopPt, nanalyzers)
 
+            self.WriteSkimCounters(dset, resFileName, anames)
 
-#            fIN   = ROOT.TFile.Open(dset.getFileNames()[0])
-#            cinfo = fIN.Get("configInfo/configinfo")
-#            tf    = ROOT.TFile.Open(resFileName, "UPDATE")
-#            configInfo = tf.Get("configInfo")
-#            if configInfo == None:
-#                configInfo = tf.mkdir("configInfo")
-#            configInfo.cd()
-#            dv = ROOT.TNamed("dataVersion", str(dset.getDataVersion()))
-#            dv.Write()
-#            cv = ROOT.TNamed("codeVersionAnalysis", git.getCommitId())
-#            cv.Write()
-
-
-#            if not cinfo == None:
-#                # Add more information to configInfo
-#                n = cinfo.GetNbinsX()
-#                cinfo.SetBins(n+3, 0, n+3)
-#                cinfo.GetXaxis().SetBinLabel(n+1, "isData")
-#                cinfo.GetXaxis().SetBinLabel(n+2, "isPileupReweighted")
-#                cinfo.GetXaxis().SetBinLabel(n+3, "isTopPtReweighted")
+#            tf = ROOT.TFile.Open(resFileName, "UPDATE") # xenios #new
 #
-#                # Add "isData" column
-#                if not dset.getDataVersion().isMC():
-#                    cinfo.SetBinContent(n+1, cinfo.GetBinContent(1))
+#            # Sum skim counters counters (from ttree)
+#            hSkimCounterSum = None
+#            fINs = None
+#            for inname in dset.getFileNames():
+#                fIN = ROOT.TFile.Open(inname)
+#                hSkimCounters = fIN.Get("configInfo/SkimCounter")
+#                if hSkimCounterSum == None:
+#                    hSkimCounterSum = hSkimCounters.Clone()
+#                else:
+#                    hSkimCounterSum.Add(hSkimCounters)
+#                if fINs == None:
+#                    fINs = []
+#                fINs.append(fIN)
 #
-#                # Add "isPileupReweighted" column
-#                if usePUweights:
-#                    cinfo.SetBinContent(n+2, nAllEventsPUWeighted / nanalyzers)
-#
-#                # Add "isTopPtReweighted" column
-#                if useTopPtCorrection:
-#                    cinfo.SetBinContent(n+3, NAllEventsTopPt / nanalyzers)
-#
-#                # Write
-#                cinfo.Write()
-#                fIN.Close()
+#            if hSkimCounterSum != None:
+#                # Find out directories in the output file
+#                dirlist = []
+#                for key in tf.GetListOfKeys():
+#                    matchStatus = False
+#                    for name in anames:
+#                        if key.GetTitle().startswith(name):
+#                            dirlist.append(key.GetTitle())
+#                # Add skim counters to the counter histograms
+#                for d in dirlist:
+#                    hCounter = tf.Get("%s/counters/counter"%d).Clone()
+#                    hCounterWeighted = tf.Get("%s/counters/weighted/counter"%d).Clone()
+#                    # Resize axis
+#                    nCounters = hCounter.GetNbinsX()
+#                    nSkimCounters = hSkimCounterSum.GetNbinsX()
+#                    hCounter.SetBins(nCounters+nSkimCounters, 0., nCounters+nSkimCounters)
+#                    hCounterWeighted.SetBins(nCounters+nSkimCounters, 0., nCounters+nSkimCounters)
+#                    # Move bin data to right
+#                    for i in range(0, nCounters):
+#                        j = nCounters-i
+#                        hCounter.SetBinContent(j+nSkimCounters, hCounter.GetBinContent(j))
+#                        hCounter.SetBinError(j+nSkimCounters, hCounter.GetBinError(j))
+#                        hCounter.GetXaxis().SetBinLabel(j+nSkimCounters, hCounter.GetXaxis().GetBinLabel(j))
+#                        hCounterWeighted.SetBinContent(j+nSkimCounters, hCounterWeighted.GetBinContent(j))
+#                        hCounterWeighted.SetBinError(j+nSkimCounters, hCounterWeighted.GetBinError(j))
+#                        hCounterWeighted.GetXaxis().SetBinLabel(j+nSkimCounters, hCounterWeighted.GetXaxis().GetBinLabel(j))
+#                    # Add skim counters
+#                    for i in range(1, nSkimCounters+1):
+#                        hCounter.SetBinContent(i, hSkimCounterSum.GetBinContent(i))
+#                        hCounter.SetBinError(i, hSkimCounterSum.GetBinError(i))
+#                        hCounter.GetXaxis().SetBinLabel(i, "ttree: %s"%hSkimCounterSum.GetXaxis().GetBinLabel(i))
+#                        hCounterWeighted.SetBinContent(i, hSkimCounterSum.GetBinContent(i))
+#                        hCounterWeighted.SetBinError(i, hSkimCounterSum.GetBinError(i))
+#                        hCounterWeighted.GetXaxis().SetBinLabel(i, "ttree: %s"%hSkimCounterSum.GetXaxis().GetBinLabel(i))
+#                    hCounter.Sumw2(False)
+#                    hCounter.Sumw2()
+#                    hCounterWeighted.Sumw2(False)
+#                    hCounterWeighted.Sumw2()
+#                    tf.cd("%s/counters"%d)
+#                    hCounter.Write("counter", ROOT.TObject.kOverwrite)
+#                    tf.cd("%s/counters/weighted"%d)
+#                    hCounterWeighted.Write("counter", ROOT.TObject.kOverwrite)
+#            if fINs != None:
+#                for f in fINs:
+#                  f.Close()
+#            tf.Close()
 
-            tf = ROOT.TFile.Open(resFileName, "UPDATE") # xenios #new
-
-            # Sum skim counters counters (from ttree)
-            hSkimCounterSum = None
-            fINs = None
-            for inname in dset.getFileNames():
-                fIN = ROOT.TFile.Open(inname)
-                hSkimCounters = fIN.Get("configInfo/SkimCounter")
-                if hSkimCounterSum == None:
-                    hSkimCounterSum = hSkimCounters.Clone()
-                else:
-                    hSkimCounterSum.Add(hSkimCounters)
-                if fINs == None:
-                    fINs = []
-                fINs.append(fIN)
-            if hSkimCounterSum != None:
-                # Find out directories in the output file
-                dirlist = []
-                for key in tf.GetListOfKeys():
-                    matchStatus = False
-                    for name in anames:
-                        if key.GetTitle().startswith(name):
-                            dirlist.append(key.GetTitle())
-                # Add skim counters to the counter histograms
-                for d in dirlist:
-                    hCounter = tf.Get("%s/counters/counter"%d).Clone()
-                    hCounterWeighted = tf.Get("%s/counters/weighted/counter"%d).Clone()
-                    # Resize axis
-                    nCounters = hCounter.GetNbinsX()
-                    nSkimCounters = hSkimCounterSum.GetNbinsX()
-                    hCounter.SetBins(nCounters+nSkimCounters, 0., nCounters+nSkimCounters)
-                    hCounterWeighted.SetBins(nCounters+nSkimCounters, 0., nCounters+nSkimCounters)
-                    # Move bin data to right
-                    for i in range(0, nCounters):
-                        j = nCounters-i
-                        hCounter.SetBinContent(j+nSkimCounters, hCounter.GetBinContent(j))
-                        hCounter.SetBinError(j+nSkimCounters, hCounter.GetBinError(j))
-                        hCounter.GetXaxis().SetBinLabel(j+nSkimCounters, hCounter.GetXaxis().GetBinLabel(j))
-                        hCounterWeighted.SetBinContent(j+nSkimCounters, hCounterWeighted.GetBinContent(j))
-                        hCounterWeighted.SetBinError(j+nSkimCounters, hCounterWeighted.GetBinError(j))
-                        hCounterWeighted.GetXaxis().SetBinLabel(j+nSkimCounters, hCounterWeighted.GetXaxis().GetBinLabel(j))
-                    # Add skim counters
-                    for i in range(1, nSkimCounters+1):
-                        hCounter.SetBinContent(i, hSkimCounterSum.GetBinContent(i))
-                        hCounter.SetBinError(i, hSkimCounterSum.GetBinError(i))
-                        hCounter.GetXaxis().SetBinLabel(i, "ttree: %s"%hSkimCounterSum.GetXaxis().GetBinLabel(i))
-                        hCounterWeighted.SetBinContent(i, hSkimCounterSum.GetBinContent(i))
-                        hCounterWeighted.SetBinError(i, hSkimCounterSum.GetBinError(i))
-                        hCounterWeighted.GetXaxis().SetBinLabel(i, "ttree: %s"%hSkimCounterSum.GetXaxis().GetBinLabel(i))
-                    hCounter.Sumw2(False)
-                    hCounter.Sumw2()
-                    hCounterWeighted.Sumw2(False)
-                    hCounterWeighted.Sumw2()
-                    tf.cd("%s/counters"%d)
-                    hCounter.Write("counter", ROOT.TObject.kOverwrite)
-                    tf.cd("%s/counters/weighted"%d)
-                    hCounterWeighted.Write("counter", ROOT.TObject.kOverwrite)
-            if fINs != None:
-                for f in fINs:
-                  f.Close()
-            tf.Close()
 
             calls = 0
             if _proof is not None:
