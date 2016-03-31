@@ -871,7 +871,6 @@ class Process:
                     inputList.Add( ROOT.TNamed("isttbar", ttbarStatus) )
 
                     # Pileup reweighting
-                    # flatDataPileup = False
                     if dset.getDataVersion().isMC():
 
                         if aname in hDataPUs.keys():
@@ -880,7 +879,6 @@ class Process:
                             hFlat = self.CreateFlatHisto(50, aname, "PileUpData")
                             inputList.Add(hFlat)
                             hDataPUs[aname] = hFlat
-                            # flatDataPileup  = True
 
                         if aname not in hDataPUs.keys():
                             Print("The key '%s' does not exist in dictionary variable 'hDataPUs'. Continue" % (aname))
@@ -895,13 +893,6 @@ class Process:
 
                         # Parse Pileup weighting
                         nAllEventsPUWeighted, usePUweights = self.GetPileupWeightedEvents(dset, analyzer, aname, hDataPUs, hPUMC)
-
-                        # Only for testing
-                        #if flatDataPileup:
-                        #    nAllEventsPUWeighted = nAllEventsUnweighted
-                        #    usePUweights = False
-                        #else:
-                        #    nAllEventsPUWeighted, usePUweights = self.GetPileupWeightedEvents(dset, analyzer, aname, hDataPUs, hPUMC)
 
                     anames.append(aname)
 
