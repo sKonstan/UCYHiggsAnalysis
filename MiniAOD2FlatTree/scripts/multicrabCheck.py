@@ -600,7 +600,8 @@ def RetrievedFiles(directory, crabResults, dashboardURL, verbose):
     tableRows = []
     dataset   = directory.split("/")[-1]
     hLine     = "="*40
-    header    = "{:^34}".format(dataset)
+    status    = GetTaskStatus(directory).replace("\t", "")
+    header    = "{:^34}".format(dataset + " (" + status +")")
     tableRows.append(hLine)
     tableRows.append(header)
     tableRows.append(hLine)
