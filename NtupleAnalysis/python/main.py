@@ -498,7 +498,7 @@ class Process:
         return useTopPtCorrection, ttbarStatus
 
 
-    def CreateFlatHisto(self, n=50, hName="PileUpData"):
+    def CreateFlatHisto(self, n, aname, hName="PileUpData"):
         Print("WARNING! Using a flat PU spectrum for data (which is missing). The MC PU spectrum is unchanged.")
 
         hFlat = ROOT.TH1F("dummyPU" + aname,"dummyPU" + aname, n, 0, n)
@@ -877,7 +877,7 @@ class Process:
                         if aname in hDataPUs.keys():
                             inputList.Add(hDataPUs[aname])
                         else:
-                            hFlat = self.CreateFlatHisto(50, "PileUpData")
+                            hFlat = self.CreateFlatHisto(50, aname, "PileUpData")
                             inputList.Add(hFlat)
                             hDataPUs[aname] = hFlat
 
