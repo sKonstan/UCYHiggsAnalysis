@@ -1,5 +1,7 @@
 #! /usr/bin/env python
-
+#================================================================================================
+# Imports
+#================================================================================================
 import sys
 import os
 import hashlib
@@ -9,6 +11,28 @@ import stat
 import ROOT
 import OrderedDict
 import UCYHiggsAnalysis.NtupleAnalysis.tools.git as git
+
+
+#================================================================================================
+# Function Definition
+#================================================================================================
+def GetLastNDirs(fullPath, N):
+    lastNDirs = ""
+    for i in range(N+1, 0, -1):
+        lastNDirs += fullPath.split("/")[-i] + "/"
+
+    if lastNDirs.endswith("/"):
+        lastNDirs = lastNDirs[:-1]
+    return lastNDirs
+
+
+def Print(msg, printHeader=True):
+    if printHeader:
+        print "=== aux.py:"
+    if msg !="":
+        print "\t", msg
+    return
+
 
 def cmsswVersion():
     if "CMSSW_VERSION" in os.environ:
@@ -178,11 +202,12 @@ def th2Ymax(th2):
 def th1Integral(th1):
     return th1.Integral(0, th1.GetNbinsX())
 
-## Copy (some) style attributes from one ROOT object to another
-#
-# \param src  Source object (copy attributes from)
-# \param dst  Destination object (copy attributes to)
 def copyStyle(src, dst):
+    '''
+    Copy (some) style attributes from one ROOT object to another
+    \param src  Source object (copy attributes from)
+    \param dst  Destination object (copy attributes to)
+    '''
     properties = []
     if hasattr(src, "GetLineColor") and hasattr(dst, "SetLineColor"):
         properties.extend(["LineColor", "LineStyle", "LineWidth"])
@@ -194,36 +219,39 @@ def copyStyle(src, dst):
     for prop in properties:
         getattr(dst, "Set"+prop)(getattr(src, "Get"+prop)())
 
-## Helper for adding a list to a dictionary
-#
-# \param d     Dictionary
-# \param name  Key to dictionary
-# \param item  Item to add to the list
-#
-# For dictionaries which have lists as items, this function creates
-# the list with the \a item if \a name doesn't exist yet, or appends
-# if already exists.
 def addToDictList(d, name, item):
+    '''
+    Helper for adding a list to a dictionary
+    \param d     Dictionary
+    \param name  Key to dictionary
+    \param item  Item to add to the list
+
+    For dictionaries which have lists as items, this function creates
+    the list with the \a item if \a name doesn't exist yet, or appends
+    if already exists.
+    '''
     if name in d:
         d[name].append(item)
     else:
         d[name] = [item]
 
-## Add ROOT object to TLegend
-#
-# \param legend      TLegend object
-# \param rootObject  ROOT object (TH1, TGraph, etc) to add to the legend
-# \param legendLabel Legend label for this entry
-# \param legendStyle Legend style for this entry
-# \param canModify   True, if this function may modify \a rootObject
-#
-# \return Clone of rootObject, if the line color is changed for legend
-# (see below). This object must be kept in memory until the legend is
-# drawn. Otherwise, None.
-#
-# If legend style is "F", and the line and fill colors are the same,
-# the line color is changed to black only for the legend
 def addToLegend(legend, rootObject, legendLabel, legendStyle, canModify=False):
+    '''
+    Add ROOT object to TLegend
+    
+    \param legend      TLegend object
+    \param rootObject  ROOT object (TH1, TGraph, etc) to add to the legend
+    \param legendLabel Legend label for this entry
+    \param legendStyle Legend style for this entry
+    \param canModify   True, if this function may modify \a rootObject
+     
+    \return Clone of rootObject, if the line color is changed for legend
+    (see below). This object must be kept in memory until the legend is
+    drawn. Otherwise, None.
+     
+    If legend style is "F", and the line and fill colors are the same,
+    the line color is changed to black only for the legend
+    '''
     # Hack to get the black border to the legend, only if the legend style is fill
     h = rootObject
     ret = None
@@ -244,8 +272,13 @@ def addToLegend(legend, rootObject, legendLabel, legendStyle, canModify=False):
 
     return ret
 
-## Class for holding multiple objects in a nice way
+#================================================================================================
+# Class  Definition
+#================================================================================================
 class MultiObject:
+    '''
+    Class for holding multiple objects in a nice way
+    '''
     def __init__(self):
         self._items = OrderedDict.OrderedDict()
 
@@ -267,19 +300,21 @@ class MultiObject:
             return [getattr(item, name)(*args, **kwargs) for item in self._items.itervalues()]
         return _multiplex
 
-## Helper function to update keyword argument dictionary
-#
-# \param kwargs    Dictionary for keyword arguments
-# \param obj       Object
-# \param names     List of attribute names
-#
-# Constructs a new dictionary, where key,value pairs are taken from
-# kwargs for all attribute names, or if some name does not exist in
-# the kwargs, the value is taken from the object.
-#
-# The kwargs may not contain any other keys than the ones in names
-# (typo protection)
 def updateArgs(kwargs, obj, names):
+    '''
+    Helper function to update keyword argument dictionary
+    
+    \param kwargs    Dictionary for keyword arguments
+    \param obj       Object
+    \param names     List of attribute names
+
+    Constructs a new dictionary, where key,value pairs are taken from
+    kwargs for all attribute names, or if some name does not exist in
+    the kwargs, the value is taken from the object.
+
+    The kwargs may not contain any other keys than the ones in names
+    (typo protection)
+    '''
     for k in kwargs.keys():
         if not k in names:
             raise Exception("Unknown keyword argument '%s', known arguments are %s" % ", ".join(names))
@@ -289,12 +324,14 @@ def updateArgs(kwargs, obj, names):
         args[n] = kwargs.get(n, getattr(obj, n))
     return args
 
-## Write content to file, and make the file executable
-#
-# \param filename   Path to file
-# \param content    String to write to the file
-# \param truncate   Truncate (True) or append (False)
 def writeScript(filename, content, truncate=True):
+    '''
+    Write content to file, and make the file executable
+    
+    \param filename   Path to file
+    \param content    String to write to the file
+    \param truncate   Truncate (True) or append (False)
+    '''
     mode = "w"
     if not truncate:
         mode = "a"
@@ -305,30 +342,39 @@ def writeScript(filename, content, truncate=True):
     # make the script executable
     st = os.stat(filename)
     os.chmod(filename, st.st_mode | stat.S_IXUSR)
+    return
 
-## Pick default value if value is None
 def ifNotNoneElse(value, default):
+    '''
+    Pick default value if value is None
+    '''
     if value == None:
         return default
     return value
 
-## Helper class to manage mass-specific configuration values
+#================================================================================================
+# Class  Definition
+#================================================================================================
 class ValuePerMass:
-    ## Constructor
-    #
-    # \param dictionary   Input dictionary/ValuePerMass object/value
-    #
-    # If dictionary is dictionary, it must have a "default" key, and
-    # it may have more than or equal to zero keys for the mass points.
-    # The value of the "default" key is used as the default value for
-    # those mass points for which the specific value is not given.
-    #
-    # If the dictionary is ValuePerMass object, the default and
-    # per-mass values are copied from it.
-    #
-    # If the dictionary is something else, it is used as the default
-    # value for all masses
+    '''
+    Helper class to manage mass-specific configuration values
+    '''
     def __init__(self, dictionary):
+        '''
+        Constructor
+        \param dictionary   Input dictionary/ValuePerMass object/value
+    
+        If dictionary is dictionary, it must have a "default" key, and
+        it may have more than or equal to zero keys for the mass points.
+        The value of the "default" key is used as the default value for
+        those mass points for which the specific value is not given.
+    
+        If the dictionary is ValuePerMass object, the default and
+        per-mass values are copied from it.
+    
+        If the dictionary is something else, it is used as the default
+        value for all masses
+        '''
         self.values = {}
         if isinstance(dictionary, dict):
             self.values.update(dictionary)
@@ -340,38 +386,52 @@ class ValuePerMass:
         else:
             self.default = dictionary
 
-    ## Apply a function for all values
-    #
-    # \param function   Function taking one parameter (the value), the
-    #                   return value is not used
-    #
-    # This allows sanity checks to be performed on the values.
     def forEachValue(self, function):
+        '''
+        Apply a function for all values
+        
+        \param function   Function taking one parameter (the value), the
+        return value is not used
+    
+        This allows sanity checks to be performed on the values.
+        '''
         function(self.default)
         for value in self.values.values():
             function(value)
+        return
 
-    ## Get the value for a given mass point
+
     def getValue(self, mass):
+        '''
+        Get the value for a given mass point
+        '''
         return self.values.get(mass, self.default)
 
-    ## Serialize the object to a dictionary
-    #
-    # Another ValuePerMass can be constructed from the dictionary. The
-    # dictionary can be written to a JSON file, allowing the
-    # ValuePerMass to be constructed from other scripts.
+
     def serialize(self):
+        '''
+        Serialize the object to a dictionary
+    
+        Another ValuePerMass can be constructed from the dictionary. The
+        dictionary can be written to a JSON file, allowing the
+        ValuePerMass to be constructed from other scripts.
+        '''
         ret = {"default": self.default}
         ret.update(self.values)
         return ret
 
 
-# Helper function for getting up and down variance
-# \param diffPlus  float for up variation - nominal
-# \param diffMinus  float for down variation - nominal
-#
-# \return pair of floats (variance for minus, variance for plus)
+#================================================================================================
+# Function Definition
+#================================================================================================
 def getProperAdditivesForVariationUncertainties(diffPlus, diffMinus):
+    '''
+    Helper function for getting up and down variance
+    \param diffPlus  float for up variation - nominal
+    \param diffMinus  float for down variation - nominal
+    
+    \return pair of floats (variance for minus, variance for plus)
+    '''
     if diffPlus > 0 and diffMinus > 0:
         return (max(diffPlus, diffMinus)**2, 0.0)
     elif diffPlus < 0 and diffMinus < 0:
@@ -423,11 +483,16 @@ def includeExcludeTasks(tasks, **kwargs):
             found = False
             for e_re in exclude:
                 if e_re.search(os.path.basename(task)):
+                    Print("Will exclude the following task: %s" % ( GetLastNDirs(task, 2) ), True)
                     found = True
                     break
             if found:
                 continue
             tmp.append(task)
+
+        # Print("Will include the following task(s):", True)
+        # for t in tmp:
+        #     Print(GetLastNDirs(t, 2), False)
         return tmp
 
     if "includeOnlyTasks" in kwargs:
@@ -437,12 +502,16 @@ def includeExcludeTasks(tasks, **kwargs):
             found = False
             for i_re in include:
                 if i_re.search(os.path.basename(task)):
+                    Print("Will only include the following task: %s" % ( GetLastNDirs(task, 2) ), True)
                     found = True
                     break
             if found:
                 tmp.append(task)
         return tmp
 
+    # Print("Will include the following task(s):", True)
+    #for t in tasks:
+    #    Print(GetLastNDirs(t, 2), False)
     return tasks
 
 if __name__ == "__main__":

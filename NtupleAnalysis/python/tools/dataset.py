@@ -105,6 +105,7 @@ def getDatasetsFromMulticrabCfg(**kwargs):
     managerCreator = readFromMulticrabCfg(**kwargs)
     return managerCreator.createDatasetManager(**_args)
 
+
 def readFromMulticrabCfg(**kwargs):
     '''
     Construct DatasetManagerConstructor from a multicrab.cfg.

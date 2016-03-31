@@ -499,7 +499,7 @@ class Process:
 
 
     def CreateFlatHisto(self, n, aname, hName="PileUpData"):
-        Print("WARNING! Using a flat PU spectrum for data (which is missing). The MC PU spectrum is unchanged.")
+        Print("WARNING! Using a flat (%s) PU spectrum for data (which is missing). The MC PU spectrum is unchanged." % (n) )
 
         hFlat = ROOT.TH1F("dummyPU" + aname,"dummyPU" + aname, n, 0, n)
         hFlat.SetName("PileUpData")
@@ -563,7 +563,6 @@ class Process:
         info.append(hLine)
         for i in info:
             Print(i, False)
-
         return nAllEventsPUWeighted, usePUweights
 
 
@@ -872,6 +871,7 @@ class Process:
                     inputList.Add( ROOT.TNamed("isttbar", ttbarStatus) )
 
                     # Pileup reweighting
+                    # flatDataPileup = False
                     if dset.getDataVersion().isMC():
 
                         if aname in hDataPUs.keys():
@@ -880,6 +880,7 @@ class Process:
                             hFlat = self.CreateFlatHisto(50, aname, "PileUpData")
                             inputList.Add(hFlat)
                             hDataPUs[aname] = hFlat
+                            # flatDataPileup  = True
 
                         if aname not in hDataPUs.keys():
                             Print("The key '%s' does not exist in dictionary variable 'hDataPUs'. Continue" % (aname))
@@ -894,6 +895,13 @@ class Process:
 
                         # Parse Pileup weighting
                         nAllEventsPUWeighted, usePUweights = self.GetPileupWeightedEvents(dset, analyzer, aname, hDataPUs, hPUMC)
+
+                        # Only for testing
+                        #if flatDataPileup:
+                        #    nAllEventsPUWeighted = nAllEventsUnweighted
+                        #    usePUweights = False
+                        #else:
+                        #    nAllEventsPUWeighted, usePUweights = self.GetPileupWeightedEvents(dset, analyzer, aname, hDataPUs, hPUMC)
 
                     anames.append(aname)
 

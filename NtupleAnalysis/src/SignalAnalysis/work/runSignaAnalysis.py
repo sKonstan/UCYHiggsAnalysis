@@ -93,7 +93,6 @@ def main():
 
     if (opts.includeOnlyTasks):
         Print("Adding only dataset %s from multiCRAB directory %s" % (opts.includeOnlyTasks, opts.mcrab) )
-        Print("No vertex reweighting will be done!", False)
         process.addDatasetsFromMulticrab(opts.mcrab, includeOnlyTasks=opts.includeOnlyTasks)
     elif (opts.excludeTasks):
         Print("Adding all datasets except %s from multiCRAB directory %s" % (opts.excludeTasks, opts.mcrab) )

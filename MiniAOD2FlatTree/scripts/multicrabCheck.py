@@ -156,7 +156,7 @@ class Report:
         elif status == "UNKNOWN": 
             status = "%s%s%s" % (colors.LIGHTRED, status, colors.WHITE)
         else:
-            print "\tWARNING! Unexpected task status \"%s\"" % (status)
+            Print("WARNING! Unexpected task status \"%s\"" % (status) )
 
         return status
 
@@ -165,13 +165,20 @@ class Report:
 # Function Definitions
 #================================================================================================ 
 def Verbose(msg, printHeader=True):
-        if not opts.verbose:
-            return
-            
-        if printHeader:
-            print "=== multicrabCheck.py:"
-        print "\t", msg
+    if not opts.verbose:
         return
+            
+    if printHeader:
+        print "=== multicrabCheck.py:"
+    print "\t", msg
+    return
+
+
+def Print(msg, printHeader=False):
+    if printHeader:
+        print "=== multicrabCheck.py:"
+    print "\t", msg
+    return
 
 
 def AskUser(msg):
@@ -255,7 +262,7 @@ def GetTaskStatus(datasetPath):
             # Verbose("Removing temporary file \"%s\"" % (grepFile), False)
             os.system("rm -f %s " % (grepFile) )
         else:
-            print "=== multicrabCheck.py:\n\tERROR! File \"grep.tmp\" not found! EXIT"
+            Print ("ERROR! File \"grep.tmp\" not found! EXIT", True)
     else:
         status = "UNDETERMINED"
         Verbose("Could not execute command \"%s\"" % (cmd) )
@@ -314,17 +321,16 @@ def GetTaskReports(datasetPath, status, dashboardURL):
         if retrieved == alljobs and retrieved > 0:
             absolutePath = os.path.join(datasetPath, "crab.log")
             os.system("sed -i -e '$a\DONE! (Written by multicrabCheck.py)' %s" % absolutePath )
-            
+
     # Catch exceptions (Errors detected during execution which may not be "fatal")
     except:
         msg = sys.exc_info()[1]
         reports.append( Report(datasetPath, "?", "?", "?", dashboardURL) )
-        print "\tcrab status failed with message \"%s\". Skipping ..." % ( msg )
+        Print("crab status failed with message \"%s\". Skipping ..." % ( msg ), False)
 
         # Verbose("Re-executing \"crab status\" command, this time with full verbosity")
         # setConsoleLogLevel(1)
         # result = crabCommand('status', dir = datasetPath)
-
     return reports
 
 
@@ -378,7 +384,7 @@ def ResubmitTask(taskPath, failed):
         return
 
     if opts.resubmit:
-        print "\tFound \"Failed\" jobs! Resubmitting ..."
+        Print("Found \"Failed\" jobs! Resubmitting ...")
         dummy = crabCommand('resubmit', dir = taskPath)
     else:
         Verbose("Found \"Failed\" jobs! To resubmit relaunch script with --resubmit option.")
@@ -398,10 +404,10 @@ def KillTask(taskPath):
 
     forbidden  = ["KILLED", "UNKNOWN", "DONE", "COMPLETED", "QUEUED"]
     if taskStatus in forbidden:
-        print "\tCannot kill a task if it is in the \"%s\" state. Skipping ..." % (taskStatus)
+        Print("Cannot kill a task if it is in the \"%s\" state. Skipping ..." % (taskStatus) )
         return
     else:
-        print "\tKilling jobs ..."
+        Print("Killing jobs ...")
     
     if opts.promptUser:
         if AskUser("Kill task \"%s\"?" % (GetLast2Dirs(taskPAth)) ):
@@ -439,7 +445,7 @@ def usage():
     '''
     Informs user of how the script must be used.
     '''
-    print "=== multicrabCheck.py:\n\tUsage: ", os.path.basename(sys.argv[0]), " <multicrab dir>"
+    Print("Usage: ", os.path.basename(sys.argv[0]), " <multicrab dir>", True)
     sys.exit()
     
 
@@ -522,7 +528,7 @@ def main(opts, args):
     # For-loop: All dataset directories (absolute paths)
     for index, d in enumerate(datasets):
         
-        print "=== multicrabCheck.py:\n\t%s (%s/%s)" % ( GetLast2Dirs(d), index+1, len(datasets) )
+        Print("%s (%s/%s)" % ( GetLast2Dirs(d), index+1, len(datasets) ), True)
 
         # Check if task is in "DONE" state
         if GetTaskStatusBool(d):
@@ -562,6 +568,8 @@ def RetrievedFiles(directory, crabResults, dashboardURL, verbose):
     unknown      = 0
     dataset      = directory.split("/")[-1]
     nJobs        = len(crabResults['jobList'])
+    missingOuts  = []
+    missingLogs  = []
 
     # For-loop:All CRAB results
     for index, r in enumerate(crabResults['jobList']):
@@ -575,6 +583,10 @@ def RetrievedFiles(directory, crabResults, dashboardURL, verbose):
                 retrievedLog += 1
             if foundOut:
                 retrievedOut += 1
+            if foundLog and not foundOut:
+                missingOuts.append( r[1] )
+            if foundOut and not foundLog:
+                missingLogs.append( r[1] )
         elif r[0] == 'failed':
             failed += 1
         elif r[0] == 'transferring':
@@ -614,12 +626,22 @@ def RetrievedFiles(directory, crabResults, dashboardURL, verbose):
     tableRows.append( txtAlign.format("%sDone"             % (colors.WHITE ), nFinish  , "/", nTotal ) )
     tableRows.append( txtAlign.format("%sRetrieved Logs"   % (colors.PURPLE), nLogs    , "/", nTotal ) )
     tableRows.append( txtAlign.format("%sRetrieved Outputs"% (colors.BLUE  ), nOut     , "/", nTotal ) ) 
-    tableRows.append( "{:<100}".format("%s%s"              % (colors.WHITE, dashboardURL) ) )
+    tableRows.append( "{:<100}".format("%s%s"              % (colors.WHITE, hLine) ) )
 
     if verbose:
         for r in tableRows:
-            print "\t", r
-        print colors.WHITE
+            Print(r, False)
+        #print colors.WHITE
+        
+    # Sanity check
+    if verbose and status == "COMPLETED":
+        if len(missingLogs) > 0:
+            Print( "Missing log file(s) job ID: %s" % missingLogs)
+        if len(missingOuts) > 0:
+            Print( "Missing output files(s) job ID: %s" % missingOuts)
+
+    # Print the dashboard url 
+    Print(dashboardURL, False)
     return finished, failed, retrievedLog, retrievedOut
 
 
