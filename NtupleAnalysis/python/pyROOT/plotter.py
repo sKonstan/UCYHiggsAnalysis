@@ -912,7 +912,7 @@ class Plotter(object):
                 line = self._GetTLine(value, value, self.THRatio.THisto.GetMinimum(), self.THDumbie.THisto.GetMaximum())
             self._CustomiseTLine(line, ROOT.kBlack, 2, ROOT.kDashed)
             self.TLineListX.append(line)
-            self.ExtendLegend(line, "x = %s" % (value), "L" )
+            self.ExtendLegend(line, "%s %s" % (value, self.THDumbie.xUnits), "L" )
         return
                 
     
@@ -929,7 +929,7 @@ class Plotter(object):
             line = self._GetTLine(self.THDumbie.xMin, self.THDumbie.xMax, value, value)
             self._CustomiseTLine(line, ROOT.kBlack, 2, ROOT.kDashDotted)
             self.TLineListY.append(line)
-            self.ExtendLegend(line, "y = %s" % (value), "L" )
+            self.ExtendLegend(line, "%s %s" % (value, self.THDumbie.yUnits), "L" )
         return
 
 
@@ -971,7 +971,7 @@ class Plotter(object):
         for v in self.THDumbie.xCutBoxes:
             xMin   = v[0]
             xMax   = v[1]
-            yMin   = self.THDumbie.THisto.GetMinimum()
+            yMin   = self.THRatio.THisto.GetMinimum()
             yMax   = self.THDumbie.THisto.GetMaximum()
             colour = v[2]
             cutBox = self._GetTBox(xMin , xMax, yMin, yMax, colour, fillStyle)
@@ -980,7 +980,7 @@ class Plotter(object):
             self.TBoxListX.append(cutBox)
             self.TLineListX.append(cline1)
             self.TLineListY.append(cline2)
-            self.ExtendLegend(cutBox, "x = [%s, %s]" % (xMin, xMax), "F" )
+            self.ExtendLegend(cutBox, "%s - %s %s" % (xMin, xMax, self.THDumbie.xUnits), "F" )
         return
 
 
@@ -1009,7 +1009,7 @@ class Plotter(object):
             self.TBoxListX.append(cutBox)
             self.TLineListX.append(cline1)
             self.TLineListY.append(cline2)
-            self.ExtendLegend(cutBox, "y = [%s, %s]" % (xMin, xMax), "F" )
+            self.ExtendLegend(cutBox, "%s - %s %s" % (xMin, xMax, self.THDumbie.yUnits), "F" )
         return
 
 

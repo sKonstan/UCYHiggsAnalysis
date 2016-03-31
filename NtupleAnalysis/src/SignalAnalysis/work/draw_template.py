@@ -35,7 +35,7 @@ verbose       = False
 batchMode     = True
 folder        = "SignalAnalysis_mH125_Run2015D"
 analysis      = folder
-intLumiInPb   = 2008.515 #-1 #300.0 #1103.813 #350.00 # -1
+intLumiInPb   = -1 #2008.515 #-1 #300.0 #1103.813 #350.00 # -1
 myNorm        = "" #  "", "toOne", "byXSection", "toLuminosity"
 saveFormats   = ["png"]
 savePath      = "/Users/attikis/Desktop/"
@@ -59,21 +59,21 @@ mergeDict["ZZ"] = "Diboson"
 
 
 removeList = []
-removeList.append("MuonEG_Run2015D_05Oct2015_v2_246908_260426_25ns_Silver")      # 888.357
-removeList.append("MuonEG_Run2015C_25ns_05Oct2015_v1_246908_260426_25ns_Silver") # 16.345
-removeList.append("MuonEG_Run2015D_PromptReco_v4_246908_260426_25ns_Silver")     ### 1103.813 
-removeList.append("ST_s_channel_4f_leptonDecays")
-removeList.append("ST_tW_antitop_5f_inclusiveDecays")
-removeList.append("ST_tW_top_5f_inclusiveDecays")
-removeList.append("ST_t_channel_antitop_4f_leptonDecays")
-removeList.append("ST_t_channel_top_4f_leptonDecays")
-removeList.append("DYJetsToLL_M_10to50")
-removeList.append("DYJetsToLL_M_50")
-# removeList.append("TTJets")
-removeList.append("WJetsToLNu")
-removeList.append("WW")
-removeList.append("WZ")
-removeList.append("ZZ")
+# removeList.append("MuonEG_Run2015D_05Oct2015_v2_246908_260426_25ns_Silver")      # 888.357
+# removeList.append("MuonEG_Run2015C_25ns_05Oct2015_v1_246908_260426_25ns_Silver") # 16.345
+# removeList.append("MuonEG_Run2015D_PromptReco_v4_246908_260426_25ns_Silver")     ### 1103.813 
+# removeList.append("ST_s_channel_4f_leptonDecays")
+# removeList.append("ST_tW_antitop_5f_inclusiveDecays")
+# removeList.append("ST_tW_top_5f_inclusiveDecays")
+# removeList.append("ST_t_channel_antitop_4f_leptonDecays")
+# removeList.append("ST_t_channel_top_4f_leptonDecays")
+# removeList.append("DYJetsToLL_M_10to50")
+#removeList.append("DYJetsToLL_M_50")
+# # removeList.append("TTJets")
+# removeList.append("WJetsToLNu")
+# removeList.append("WW")
+# removeList.append("WZ")
+# removeList.append("ZZ")
 removeList.append("ttHJetToNonbb_M125")
 
 
@@ -89,6 +89,7 @@ EtaLines   = [-1.6, -0.8, +0.8, +1.6]
 EtaRange   = [[-etaMax, -1.6, ROOT.kRed+1], [+etaMax, +1.6, ROOT.kRed+1], [-1.6, -0.8, ROOT.kYellow-4], [+0.8, +1.6, ROOT.kYellow-4], [-0.8, +0.8, ROOT.kGreen+1] ]
 PtRange    = [ [40.0, 80.0, ROOT.kRed] ]
 EvtRange   = [ [1E2, 1E4, ROOT.kBlack] ]
+MetRange   = [ [0, 60, ROOT.kBlack] ]
 
 
 #================================================================================================
@@ -128,16 +129,16 @@ NBjets = {
 
 
 MET = {
-    "xLabel": "E_{T}^{miss}" , "xUnits":"GeV", "xMin": 0.0, "xMax": 200.0, "xCutLines": [60], "gridX": True, "gridXRatio": False, "logX": False,
-     "yLabel": "Events / %0.1f", "yMin": 1.0, "yMax": None, "yUnits": "", "yCutLines": [], "gridY": True,  "gridYRatio": True, "logY": True, "yCutBoxes": [], "xCutBoxes": [],
-    #"yLabel": "Events / %0.1f", "yMin": 0.0, "yMax": None, "yUnits": "", "yCutLines": [], "gridY": True,  "gridYRatio": True, "logY": False, "yCutBoxes": [], "xCutBoxes": [],
+    "xLabel": "E_{T}^{miss}"  , "xUnits":"GeV", "xMin": 0.0, "xMax": 200.0, "xCutLines": [], "xCutBoxes": MetRange, "gridX": True, "gridXRatio": False, "logX": False,
+    # "yLabel": "Events / %0.1f", "yUnits": ""  , "yMin": 1.0, "yMax": None , "yCutLines": [10], "yCutBoxes": EvtRange, "gridY": True, "gridYRatio": True , "logY": True ,
+    "yLabel": "Events / %0.1f", "yUnits": ""  , "yMin": 1.0, "yMax": None , "yCutLines": [], "yCutBoxes": [], "gridY": True, "gridYRatio": True , "logY": True ,
     "ratioLabel": "Ratio", "yMinRatio": 0.0, "yMaxRatio": 1.75 , "logYRatio": False, "logXRatio": False,
     "xLegMin": 0.72, "xLegMax": 0.95, "yLegMin": 0.80, "yLegMax": 0.94
 }
 
 
 wCounter = {    
-    "xLabel": ""              , "xMin": 7.0, "xMax": None, "xUnits": "", "xCutLines": [], "xCutBoxes": [], "gridX": True,  "gridXRatio": True, "logX": False, 
+    "xLabel": ""              , "xMin": 8.0, "xMax": None, "xUnits": "", "xCutLines": [], "xCutBoxes": [], "gridX": True,  "gridXRatio": True, "logX": False, 
     "yLabel": "Events / %0.1f", "yMin": 1.0, "yMax": 1e10, "yUnits": "", "yCutLines": [], "yCutBoxes": [], "gridY": True,  "gridYRatio": True, "logY": True,
     # "yLabel": "Events / %0.1f", "yMin": 1.0, "yMax": 2e7, "yUnits": "", "yCutLines": [], "yCutBoxes": [], "gridY": True,  "gridYRatio": True, "logY": False, 
     "ratioLabel": "Data/Pred.", "yMinRatio": 0.0, "yMaxRatio": 1.75 , "logXRatio": False, "logYRatio": False,
@@ -173,8 +174,7 @@ def DoPlots(histo, datasetObjects, savePostfix=""):
     p.AddCmsText("fb", prelim=True)
     p.DatasetAsLegend(True)    
     # p.Draw("HIST,9")
-    # p.Draw("HIST,9", "A,P,stack", "Data")
-    p.Draw("HIST,9")
+    p.Draw("HIST,9", "A,P,stack", "Data")
     # p.SetHistosFillStyle(3001)
 
     # p.Save()
@@ -200,8 +200,8 @@ def DoCounters(histo, datasetObjects, savePostfix=""):
     p.AddCmsText("fb", prelim=True)
     p.DatasetAsLegend(True)    
     # p.AddTF1("1000*cos(x)", 0, 200.0, False, {"lineColour": ROOT.kBlack})
-    # p.Draw("HIST,9", "A,P,stack", "Data")
-    p.Draw("HIST,9")
+    # p.Draw("HIST,9")
+    p.Draw("HIST,9", "A,P,stack", "Data")
     # p.SetHistosFillStyle(3001)
     p.SetHistoLabelsOption("d") #v, u, d
     p.SetHistoLabelsSizeX(0.5)
@@ -227,12 +227,14 @@ def main():
 
     
     ### Setup Datasets
-    datasetManager = dataset.DatasetManager(opts.mcrab, analysis)
+    print "\t1)"
+    datasetManager = dataset.DatasetManager(opts.mcrab, analysis, verbose)
+    print "\t2)"
     datasetManager.LoadLuminosities("lumi.json")
     datasetManager.Remove(removeList)
-    # datasetManager.MergeData()
-    # datasetManager.MergeMany(mergeDict)
-    datasetManager.SetIntLuminosity(intLumiInPb)
+    datasetManager.MergeData()
+    datasetManager.MergeMany(mergeDict)
+    # datasetManager.SetIntLuminosity(intLumiInPb)
     datasetManager.PrintSummary()
     # datasetManager.PrintDatasets()
     
