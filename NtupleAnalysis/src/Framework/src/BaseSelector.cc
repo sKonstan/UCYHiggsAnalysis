@@ -51,7 +51,7 @@ void BaseSelector::processInternal(Long64_t entry) {
   if (fEvent.isMC() && fEvent.vertexInfo().branchesExist()) {
     hNvtxBeforeVtxReweighting->Fill(fEvent.vertexInfo().value());
     fEventWeight.multiplyWeight(fPileupWeight.getWeight(fEvent));
-    //std::cout << "vtx: " << fPileupWeight.getWeight(fEvent) << std::endl;;
+    std::cout << "=== BaseSelector.cc:\n\tvtx: " << fPileupWeight.getWeight(fEvent) << std::endl;;
     hNvtxAfterVtxReweighting->Fill(fEvent.vertexInfo().value());
   }
   cPileupWeighted.increment();
