@@ -913,7 +913,7 @@ class Process:
             for f in dset.getFileNames():
                 self.Verbose("Adding file '%s' to TChain" % (f), True)
                 tchain.Add(f)
-            tchain.SetCacheLearnEntries(100);
+            tchain.SetCacheLearnEntries(100)
             tselector = ROOT.SelectorImpl()
             
             # FIXME: TChain.GetEntries() is needed only to give a time estimate for the analysis. 
