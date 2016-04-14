@@ -1,6 +1,8 @@
 #include "Tools/interface/MCTools.h"
 #include "Framework/interface/Exception.h"
 
+
+
 #include "TFile.h"
 #include "TH1.h"
 
@@ -732,7 +734,7 @@ double MCTools::GetD0Mag(const int genP_Index,
 
   // Calculate the |d0|
   double angle = genP_p4.Angle(mom_p4.Vect());
-  double Lxy   = GetLxy(genP_Index, wrtPV);
+  double Lxy   = GetLxy(genP_Index, wrtPV);   
   double d0Mag = TMath::Sin(angle) * Lxy;
 
 #ifdef DEBUG
@@ -755,4 +757,168 @@ bool MCTools::IsItsMother(const int genP_Index,
   }
 
   return false;
+}
+
+
+
+int MCTools::GetPosOfMotherId62(const unsigned int genP_Index, int momId, const bool bAbsoluteMomId){
+  
+  GenParticle genP     = GetGenP(genP_Index);
+  unsigned short nMoms = genP.mothers().size();
+  if (nMoms == 0) return -1; 
+  int myId;
+  int mom_Index;
+  int passed=-1;
+  // For-loop: All mothers
+  for (unsigned short i = 0; i < nMoms; i++){
+    
+    mom_Index = genP.mothers().at(i);
+    GenParticle mom = GetGenP(mom_Index);
+    int mom_PdgId   = mom.pdgId();
+    GenParticle MomOfMom;
+    int MomOfMom_Status=-1;
+    
+    if (!bAbsoluteMomId) {
+      myId = fabs(mom_PdgId);
+      momId = fabs(momId);
+    }
+    else {
+      myId = mom_PdgId;
+    }
+    
+    int nMoOfMo=mom.mothers().size();
+    for (int k=0; k<nMoOfMo;k++){
+      int iMomOfMom=mom.mothers().at(k);
+      MomOfMom=GetGenP(iMomOfMom);
+      if (MomOfMom.status()==62) MomOfMom_Status=MomOfMom.status();
+    }
+    int mstatus = mom.status();
+    if ( myId == momId && ((mstatus==62)||(MomOfMom_Status==62)) ) {
+      passed= mom_Index;
+    }
+  }   // for (unsigned short i = 0; i < nMoms; i++){
+  if (passed!=-1) {return passed;}
+  else {
+    mom_Index = GetPosOfMotherId62(mom_Index, momId, bAbsoluteMomId);
+    return mom_Index;
+  }
+  
+  return -1;//65535;
+}
+
+int MCTools::LepMotherPosition (int index)
+{
+  int msize=-1;
+  std::vector <int> mother;
+  mother.clear();
+  int moW=GetPosOfMotherId62(index,24,false);
+  int moZ=GetPosOfMotherId62(index,23,false);
+  int moTau=GetPosOfMotherId62(index,15,false);
+  int moT=GetPosOfMotherId62(index,6,false);
+  mother.push_back(moW);
+  mother.push_back(moZ);
+  mother.push_back(moTau);
+  mother.push_back(moT);
+  
+  GenParticle genP = GetGenP(index);
+  int moSize= genP.mothers().size();
+  
+  if (genP.status()==1){
+    int imo=ImmediateMoPosQuark(index);
+    if (imo!=-1){
+      GenParticle Gmo=GetGenP(imo);
+      int idMoOfMo=0;
+      int nMoOfMoSize=Gmo.mothers().size();
+      for (int i=0; i<nMoOfMoSize; i++){
+	int iMoOfMo=Gmo.mothers().at(i);
+	GenParticle GMoOfMo=GetGenP(iMoOfMo);
+	idMoOfMo=abs(GMoOfMo.pdgId());
+	
+	if ((std::abs(Gmo.pdgId())<6) && genP.pt() > 2.5 && idMoOfMo==2212) {
+	  mother.push_back(Gmo.index());
+	}
+      }
+    }
+  }
+  
+  int num=mother.size();
+  for (int k=0; k<num; k++){
+    if (mother.at(k)!=-1) msize=mother.size();
+  }  
+  
+  return  msize;
+}
+
+
+int MCTools::ImmediateMoPosQuark (int index)
+{
+  GenParticle genP = GetGenP(index);
+  int moSize= genP.mothers().size();
+  if (moSize==0) return -1;
+  for (int i=0; i<moSize; i++){
+    int imo=genP.mothers().at(i);
+    GenParticle genMother= GetGenP(imo);
+    if (abs(genMother.pdgId())==abs(genP.pdgId())){ return ImmediateMoPosQuark(imo);}
+    else if (abs(genMother.pdgId())<5) return imo;
+  }
+  return -1;
+}
+
+int MCTools::ImmediateMoPosition(int index){
+  GenParticle genP = GetGenP(index);
+  int moSize= genP.mothers().size();
+  if (moSize==0) return -1;
+  for (int i=0; i<moSize; i++){
+    int imo=genP.mothers().at(i);
+    GenParticle genMother= GetGenP(imo);
+    if (abs(genMother.pdgId())==abs(genP.pdgId())){ return ImmediateMoPosition(imo);}
+    else {return imo;}
+  }
+  return -1;
+}
+//=============================================================================================
+void MCTools::PrintEvent(const int genP_Index, bool bPrintHeaders){
+
+  GenParticle genP    = GetGenP(genP_Index);
+  double genP_Pt      = genP.pt();
+  double genP_Eta     = genP.eta();
+  double genP_Phi     = genP.phi();
+  double genP_Energy  = genP.e();
+  double genP_Status  = genP.status();
+  double genP_PdgId   = genP.pdgId();
+  double genP_Mothers = genP.mothers().size();
+  int genP_Daughters  = genP.daughters().size();
+  int mom_1 = -1;
+  int mom_2 = -1;
+  int dau_1 = -1;
+  int dau_2 = -1;
+
+  if (bPrintHeaders)
+    {
+      //if (bPrintHeaders) cout << "\n" << endl;    
+      if (bPrintHeaders) cout << string(10*10, '=') << endl;
+      cout << setw(6)  << "Index "  << setw(10) << "PdgId"   << setw(12) << "Pt"     << setw(14) << "Eta"  << setw(12) << "Phi"
+	   << setw(12) << "Energy"  << setw(8)  << "Status"  << setw(6) << "Mom1"   << setw(6)  << "Mom2"
+	   << setw(6)  << "Dau1"    << setw(6)  << "Dau2"    << endl;
+      if (bPrintHeaders) cout << string(10*10, '=') << endl;
+    }
+
+  if (genP_Mothers > 0)
+    {
+      mom_1 = genP.mothers().at(0);
+      mom_2 = genP.mothers().at(genP_Mothers-1);
+    }
+  if (genP_Daughters > 0)
+    {
+      dau_1 = genP.daughters().at(0);
+      dau_2 = genP.daughters().at(genP_Daughters-1);
+    }
+  
+
+  cout << std::setprecision(4)     << setw(6)  << genP_Index   << setw(10) << genP_PdgId   << setw(12) << genP_Pt     << setw(14) << genP_Eta  << setw(12) << genP_Phi
+       << setw(12) << genP_Energy  << setw(8)  << genP_Status << setw(6)  << mom_1        << setw(6)  << mom_2
+       << setw(6)  << dau_1        << setw(6)  << dau_2        << endl;  
+  
+  //  << setw(10) << setprecision(3) << genP_Pt
+  return;
 }

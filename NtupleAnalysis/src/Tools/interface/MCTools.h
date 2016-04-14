@@ -84,6 +84,12 @@ public:
   double GetD0Mag(const int genP_Index,
 		  const int mom_Index,
 		  bool wrtPV=true);
+  //--------------------------------------------------------------------
+  int GetPosOfMotherId62(const unsigned int genP_Index, int momId, const bool bAbsoluteMomId);
+  int LepMotherPosition (int index);
+  int ImmediateMoPosQuark (int index);
+  int ImmediateMoPosition (int index);
+  void PrintEvent (const int genP_Index, bool bPrintHeaders);
 
 private:
   Event *fEvent;
