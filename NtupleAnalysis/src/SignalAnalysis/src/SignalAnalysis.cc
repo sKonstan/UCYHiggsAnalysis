@@ -33,8 +33,8 @@ public:
   /// Called for each event
   virtual void process(Long64_t entry) override;
   std::vector <double> DVectorSorting (std::vector <double> myvector);
-  int MLepMode (std::vector <int> vector1,std::vector <int> vector2);
- 
+  double DeltaR(int index1, int index2);
+
 private:
   // Input parameters
 
@@ -61,6 +61,7 @@ private:
   const int PT_BINS    =  100;  //50                                                                           
   const double ETA_MAX =   3.0;
   const int ETA_BINS   =  30;
+  const double pi=acos(-1.);
   int count=0;
    
   // Histograms
@@ -130,6 +131,29 @@ private:
   WrappedTH1* hMVA_EleFake;
   WrappedTH1* hLeadLepPt;
   WrappedTH1* hSubleadLepPt;
+  //  WrappedTH1* hmuIDTight;
+  WrappedTH1* hObsElePt;
+  WrappedTH1* hObsEleEta;
+  WrappedTH1* hObsMuPt;
+  WrappedTH1* hObsMuEta;
+  WrappedTH1* hObsMu5_NMu;
+  WrappedTH1* hObsEle7_NEle;
+  WrappedTH1* hObs_MET;
+  WrappedTH1* hObs_NJets;
+  WrappedTH1* hd0_LepFromBot;
+  WrappedTH1* hd0_LepFromW;
+  WrappedTH1* hMCElecPt;
+  WrappedTH1* hTopPt;
+  WrappedTH1* hCSV_Btags;
+  WrappedTH1* hcMVA_Btags;
+  WrappedTH1* hHTjets;
+  WrappedTH1* hMuCaloIso;
+  WrappedTH1* hMuRelIsoDeltaBeta;
+  WrappedTH1* hElecCaloIso;
+  WrappedTH1* hElecRelIsoDeltaBeta;
+  WrappedTH1* hElecTrackIso;
+
+  //nextWrapped
 };
 
 #include "Framework/interface/SelectorFactory.h"
@@ -176,8 +200,8 @@ void SignalAnalysis::book(TDirectory *dir) {
   hAllMLepJEta_op = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllMLepJEta_op"    , "All Nlep>2 - opposite sign:Jet #eta:N_{jets}"    , ETA_BINS, -ETA_MAX, ETA_MAX);
 
   histo   = fHistoWrapper.makeTH<TH2F>(HistoLevel::kVital, dir, "MuEl" , "MuEl", 4, -2, 2, 4,-2,2);
-  hAllMET     = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllMET" , "AllMET:Jet p_{T}, GeV:N_{jets}", PT_BINS*3, 0, PT_MAX*3);
-  hMLepMET     = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "MLepMET" , "MLepMET:Jet p_{T}, GeV:N_{jets}", PT_BINS*3, 0, PT_MAX*3);
+  hAllMET     = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllMET" , "AllMET:Jet p_{T}, GeV:N_{jets}", PT_BINS*2, 0, PT_MAX*3);
+  hMLepMET     = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "MLepMET" , "MLepMET:Jet p_{T}, GeV:N_{jets}", PT_BINS*2, 0, PT_MAX*3);
 
   hAllMLepPt_same = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllMLepPt_same" , "All NLep>2 - same sign Pt p_{T}, GeVc^{-1}:N_{jets}", PT_BINS, 0, PT_MAX);
   hAllMLepNJets_same = fHistoWrapper.makeTH<TH1I>(HistoLevel::kVital, dir, "AllMLepNJets_same" , "All NLep>2 - same sign Numb of jets", 50, 0, 50);
@@ -239,6 +263,29 @@ void SignalAnalysis::book(TDirectory *dir) {
   hMVA_EleFake=fHistoWrapper.makeTH<TH1D>(HistoLevel::kVital, dir, "MVA_EleFake", "MVA_EleFake", 2,-0.5,1.5);
   hLeadLepPt= fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllMLepLeadLepPt" , "All NLep>2 - leading lep  Pt p_{T}, GeVc^{-1}:N_{jets}", PT_BINS, 0, PT_MAX);
   hSubleadLepPt= fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "AllMLepSubleadLepPt" , "All NLep>2 - subleading lep  Pt p_{T}, GeVc^{-1}:N_{jets}", PT_BINS, 0, PT_MAX);
+
+  // hmuIDTight=fHistoWrapper.makeTH<TH1D>(HistoLevel::kVital, dir, "muIDTight", "muIDTight", 15,0,1.5);
+  hObsMuPt=fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "ObsMuPt" , "Obs Muons p_{T} GeVc^{-1}:N_{jets}", PT_BINS, 0, PT_MAX);
+  hObsMuEta= fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "ObsMuEta"    , "#eta:N_{jets}"    , ETA_BINS, -ETA_MAX, ETA_MAX);
+  hObsElePt=fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "ObsElePt" , "Obs Electrons p_{T} GeVc^{-1}:N_{jets}", PT_BINS, 0, PT_MAX);
+  hObsEleEta= fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "ObsEleEta"    , "#eta:N_{jets}"    , ETA_BINS, -ETA_MAX, ETA_MAX);
+  hObsMu5_NMu=fHistoWrapper.makeTH<TH1I>(HistoLevel::kVital, dir, "ObsMu5_NMu" ,"ObsMu5_NMu", 8, 0, 8);
+  hObsEle7_NEle=fHistoWrapper.makeTH<TH1I>(HistoLevel::kVital, dir, "ObsEle7_NEle" , "ObsEle7_NEle", 8, 0, 8);
+  hObs_MET  = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "Obs_MET" , "ObsMLepMET p_{T}, GeV:N_{jets}", PT_BINS*2, 0, PT_MAX*3); 
+  hObs_NJets= fHistoWrapper.makeTH<TH1I>(HistoLevel::kVital, dir, "Obs_NJets" , "ObsJets", 20, 0, 20);
+  hd0_LepFromBot= fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "d0_LepFromBot", "d0_LepFromBot",50,0,0.2);
+  hd0_LepFromW= fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "d0_LepFromW", "d0_LepFromW",50,0,0.2);
+  hMCElecPt=fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "MCElecPt" , "MCElecPt", PT_BINS, 0, PT_MAX);
+  hTopPt=fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "TopPt" , "TopPt", PT_BINS*3, 0, PT_MAX*3);
+  hCSV_Btags=fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "CSV_Btags", "CSV_Btags", 2,-0.5,1.5);
+  hcMVA_Btags=fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "cMVA_Btags", "cMVA_Btags", 2,-0.5,1.5);
+  hHTjets  = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "HTjets" , "HTjets", PT_BINS*2, 0, PT_MAX*3);
+  hMuCaloIso =fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "MuCaloIso", "MuCaloIso", 60,0,6);
+  hMuRelIsoDeltaBeta =fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "MuRelIsoDeltaBeta", "MuRelIsoDeltaBeta", 60,0,6);
+  hElecCaloIso=fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "ElecCaloIso", "ElecCaloIso", 60,0,6);
+  hElecRelIsoDeltaBeta= fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "ElecRelIsoDeltaBeta", "ElecRelIsoDeltaBeta", 60,0,6);
+  hElecTrackIso =fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "ElecTrackIso", "ElecTrackIso", 60,0,6);
+  //nextHisto
   return;
 }
 
@@ -265,23 +312,15 @@ std::vector <double> SignalAnalysis:: DVectorSorting (std::vector <double> myvec
   return myvector;
 }
 
-//_____________________MLepMode_______________________________                                                 
-int SignalAnalysis:: MLepMode (std::vector <int> vector1,std::vector <int> vector2)
-{
-  bool qcheck=true;
-  int nsize=vector2.size();
-  int res;
-  for (int i=0; i<nsize; i++){
-    if (vector1.at(0)*vector2.at(i)/(std::abs(vector1.at(0)*vector2.at(i))) < 0){
-      qcheck=false;
-      res=vector2.at(i)/std::abs(vector2.at(i));
-      continue;
-    }
-  }
-  if (qcheck) res=vector2.at(0)/std::abs(vector2.at(0));
-  return res;
-}
-
+//_________________DeltaR________________________________________//
+// double SignalAnalysis::DeltaR(int index1, int index2)
+// {
+//   double pi=acos(-1.);
+//   double DEta=(GenP_Eta->at(index1)-GenP_Eta->at(index2));
+//   Double_t DPhi=abs(GenP_Phi->at(index1)-GenP_Phi->at(index2));
+//   if (DPhi>pi) DPhi=2*pi-DPhi;
+//   return sqrt(DEta*DEta+DPhi*DPhi); 
+// }
 
 void SignalAnalysis::process(Long64_t entry) {
   //std::cout<<"=================================="<<std::endl;
@@ -296,21 +335,22 @@ void SignalAnalysis::process(Long64_t entry) {
   TLorentzVector MET;
   particles Electrons;
   particles Muons;
-  particles GJets, Jets;
+  particles GJets, Jets, AllGenElectrons,AllGenMuons, Bottom;
   particles BotToLep;
   particles Leptons;
   //  MET.Clear();
   // Variable declaration
   Size_t nGenParticles = 0;
-  size_t nGenMuons     = 0; 
+  //  size_t nGenMuons     = 0; 
   //size_t nGenElectrons = 0; 
   int nElectrons=0; 
+  int nMuons=0; 
   //int genP_Index=-1;                                                                                                                                                                                                 
   MCTools mcTools(fEvent);
   TLorentzVector Wp4;
   Wp4.Clear();
   for( auto gen : fEvent.genparticles() ){
-
+    
     // genP_Index++; 
     // if (genP_Index == 0) {
     //   mcTools.PrintGenParticle(genP_Index, true);                                           
@@ -337,30 +377,23 @@ void SignalAnalysis::process(Long64_t entry) {
     }
     
     if (std::abs(genP_PdgId)==24 && genP_Status==62) Wp4=mcTools.GetP4(index);
-    // Electrons                                                                                                                                                                                                     
-    
-    if(std::abs(genP_PdgId) == 11 && genP_Status==1){                                                                                                                                                           
+
+    if (abs(genP_PdgId)==6) hTopPt->Fill(genP_Pt);
+    // Electrons    
+    if(std::abs(genP_PdgId) == 11 && genP_Status==1){                                                                                                                                   
+      AllGenElectrons.Energy.push_back(genP_E);
+      AllGenElectrons.Phi.push_back(genP_Phi);
+      AllGenElectrons.Eta.push_back(genP_Eta);
+      AllGenElectrons.Pt.push_back(genP_Pt);
+      AllGenElectrons.Id.push_back(genP_PdgId);
+      AllGenElectrons.Index.push_back(index);
+
+      double d0=mcTools.ImpactParameter(index);
+      hLepImpPar->Fill(d0); 
+                        
       int motherPos=mcTools.LepMotherPosition(index);
       
       if (motherPos!=-1){ 
-
-	int imom;
-	double d0;
-	//	for (int i=0; i<nLeptons; i++){
-	int iLep=index;
-	GenParticle lepton=mcTools.GetGenP(iLep);
-	imom=mcTools.ImmediateMoPosition(iLep);
-	GenParticle mo=mcTools.GetGenP(imom);
-	// Find d0 
-	double VprX=mo.vertexX();
-	double VprY=mo.vertexY();
-	double VsecX=lepton.vertexX();
-	double VsecY=lepton.vertexY();
-	double Lxy=sqrt((VsecX-VprX)*(VsecX-VprX)+(VsecY-VprY)*(VsecY-VprY));
-	double dPhi=lepton.phi()-mo.phi();	
-	d0=Lxy*abs(sin(dPhi));
-	hLepImpPar->Fill(d0);
-	//hLepImpPar->Fill(d0);
 	if (d0<0.1){
 	  nElectrons++;
 	  Electrons.Energy.push_back(genP_E);
@@ -381,34 +414,21 @@ void SignalAnalysis::process(Long64_t entry) {
     }
   
     if(std::abs(genP_PdgId) == 13 && genP_Status==1){
+      AllGenMuons.Energy.push_back(genP_E);
+      AllGenMuons.Phi.push_back(genP_Phi);
+      AllGenMuons.Eta.push_back(genP_Eta);
+      AllGenMuons.Pt.push_back(genP_Pt);
+      AllGenMuons.Id.push_back(genP_PdgId);
+      AllGenMuons.Index.push_back(index);
+      double d0=mcTools.ImpactParameter(index);
+      hLepImpPar->Fill(d0); 
+      
       int motherPos=mcTools.LepMotherPosition(index);
       if (motherPos!=-1){
         //if (motherPos!=4) std::cout<<motherPos<<endl;                                                                                                                                                                 
-        nGenMuons++;
-
-	int imom;
-	double d0;
-	//	for (int i=0; i<nLeptons; i++){
-	int iLep=index;
-	GenParticle lepton=mcTools.GetGenP(iLep);
-	imom=mcTools.ImmediateMoPosition(iLep);
-	GenParticle mo=mcTools.GetGenP(imom);
-	// Find d0 
-	double VprX=mo.vertexX();
-	double VprY=mo.vertexY();
-	
-	double VsecX=lepton.vertexX();
-	double VsecY=lepton.vertexY();
-	
-	double Lxy=sqrt((VsecX-VprX)*(VsecX-VprX)+(VsecY-VprY)*(VsecY-VprY));
-	double dPhi=lepton.phi()-mo.phi();
-	
-	d0=Lxy*abs(sin(dPhi));
-	hLepImpPar->Fill(d0);
-	
-	//hLepImpPar->Fill(d0);
+      	//	if (mcTools.LookForMotherId(index,24,false)) hd0_LepFromW->Fill(d0);
 	if (d0<0.1){
-	  
+	  nMuons++;	  
 	  Muons.Energy.push_back(genP_E);
 	  Muons.Phi.push_back(genP_Phi);
 	  Muons.Eta.push_back(genP_Eta);
@@ -426,38 +446,31 @@ void SignalAnalysis::process(Long64_t entry) {
       }
     }
     
+    if (std::abs(genP_PdgId)==5){
+      Bottom.Energy.push_back(genP_E);
+      Bottom.Phi.push_back(genP_Phi);
+      Bottom.Eta.push_back(genP_Eta);
+      Bottom.Pt.push_back(genP_Pt);
+      Bottom.Id.push_back(genP_PdgId);
+      Bottom.Index.push_back(index);
+    }
+      //Bot->lep / Bot->Charm->lep
     if  (((std::abs(genP_PdgId)==11) || (std::abs(genP_PdgId)==13)) && genP_Status==1) {
-      bool qBotToLep=mcTools.LookForMotherId(index,5,false);       //  bool qBotToLep=mcTools.RecursivelyLookForMotherId(index,5,false);                                                                                
+     
+      bool qBotToLep=mcTools.LookForMotherId(index,5,false);   
       if ((!qBotToLep)&&(mcTools.LookForMotherId(index,4,false))){
-        int iCharm=mcTools.GetPosOfMotherId(index,4,false);
+	int iCharm=mcTools.GetPosOfMotherId(index,4,false);
         if ((iCharm!=-1)&&(mcTools.LookForMotherId(iCharm,5,false))) qBotToLep=true;
       }
-  
+      double d0=mcTools.ImpactParameter(index);
+      //hLepImpPar->Fill(d0); 
+      if (mcTools.GetPosOfMotherId62(index,24,false)!=-1) hd0_LepFromW->Fill(d0);
       if (qBotToLep){
-	int imom;
-	double d0;
-	//	for (int i=0; i<nLeptons; i++){
-	int iLep=index;
-	GenParticle lepton=mcTools.GetGenP(iLep);
-	imom=mcTools.ImmediateMoPosition(iLep);
-	GenParticle mo=mcTools.GetGenP(imom);
-	// Find d0 
-	double VprX=mo.vertexX();
-	double VprY=mo.vertexY();
+
+	hd0_LepFromBot->Fill(d0); 
 	
-	double VsecX=lepton.vertexX();
-	double VsecY=lepton.vertexY();
-	
-	double Lxy=sqrt((VsecX-VprX)*(VsecX-VprX)+(VsecY-VprY)*(VsecY-VprY));
-	double dPhi=lepton.phi()-mo.phi();
-	
-	d0=Lxy*abs(sin(dPhi));
-	hLepImpPar->Fill(d0);
-	
-	//hLepImpPar->Fill(d0);
 	if (d0<0.1){
-	  
-	  
+	  	  
 	  nBotToLep++;
 	  BotToLep.Energy.push_back(genP_E);
 	  BotToLep.Phi.push_back(genP_Phi);
@@ -491,6 +504,7 @@ void SignalAnalysis::process(Long64_t entry) {
       double Jet_Phi=jet.phi();
 
       double DPhiJ=(genJ_Phi-Jet_Phi);
+      if (DPhiJ>pi) DPhiJ=2*pi-DPhiJ;
       double DEtaJ=(genJ_Eta-Jet_Eta);
       double DEneJ=(genJ_E-Jet_E);
       double DRJ=sqrt(DPhiJ*DPhiJ+DEtaJ*DEtaJ);
@@ -710,7 +724,6 @@ void SignalAnalysis::process(Long64_t entry) {
      //.....................................JETS........................................          
      //int iGJets=0;
      for (int k=0; k<nGJets; k++){
-       //if ((GJets.Pt.at(k)>25)&&(std::abs(GJets.Eta.at(k))<2.4)) iGJets++;
        if (!qSameSign){
 	 hAllMLepJpt_op->Fill(GJets.Pt.at(k));
 	 hAllMLepJEta_op->Fill(GJets.Eta.at(k));
@@ -721,13 +734,11 @@ void SignalAnalysis::process(Long64_t entry) {
        }
      }
      if (!qOpSign){
-       //hPassedMLepNGJets_same->Fill(iGJets);
        hAllMLepleadLepPt_same->Fill(tempSameP4.at(nSameSLep-1));
        hAllMLepsubleadLepPt_same->Fill(tempSameP4.at(nSameSLep-2));
        hAllMLepNBotToLep_same->Fill(nBotToLep);
      }
      if (!qSameSign){
-       //hPassedMLepNGJets_op->Fill(iGJets);
        hAllMLepleadLepPt_op->Fill(tempOpP4.at(nLeptons-1));
        hAllMLepsubleadLepPt_op->Fill(tempOpP4.at(nLeptons-2));
        hAllMLepNBotToLep_op->Fill(nBotToLep);
@@ -754,14 +765,15 @@ void SignalAnalysis::process(Long64_t entry) {
 	 hLepMode->Fill(x[3+id1],x[3+id2],1);
        }
      }
+
      
-     for(Electron elec : fEvent.electrons()){
-       double Ele_phi=elec.phi();
+     /*     for(Electron elec : fEvent.electrons()){
+	    double Ele_phi=elec.phi();
        double Ele_eta=elec.eta();
        bool notfound=true;	        
        for (int i=0; i<nElectrons; i++){
-	 double genEle_phi=Electrons.Phi.at(i);
-	 double genEle_eta=Electrons.Eta.at(i);
+       double genEle_phi=Electrons.Phi.at(i);
+       double genEle_eta=Electrons.Eta.at(i);
 	 double genEle_index=Electrons.Index.at(i);
 	 double Dphi=(Ele_phi-genEle_phi);
 	 double Deta=(Ele_eta-genEle_eta);
@@ -782,26 +794,254 @@ void SignalAnalysis::process(Long64_t entry) {
 	 
        }
        if (notfound) hMVA_EleFake->Fill(elec.mvaEleID_PHYS14_PU20bx25_nonTrig_V1_wp90());
+       }*/
+   
+
+   //============================Observed Leptons==================================//
+     vector <double> MuPt, ElecPt, MuCaloIso, MuRelIsoDeltaBeta,ElecCaloIso, ElecRelIsoDeltaBeta, ElecTrackIso;
+     particles Mu, Elec, Lep, Lep_pos, Lep_neg;
+     MuPt.clear();
+     ElecPt.clear();
+     MuCaloIso.clear();
+     MuRelIsoDeltaBeta.clear();
+     ElecCaloIso.clear();
+     ElecRelIsoDeltaBeta.clear();
+     ElecTrackIso.clear();
+
+     int iMu=0;
+     
+     int nGenMuons=AllGenMuons.Pt.size();
+     for(Muon mu : fEvent.muons()){
+       //hmuIDTight->Fill(mu.muIDTight());
+       if (mu.muIDTight()>0){
+	 hObsMuPt->Fill(mu.pt());
+	 hObsMuEta->Fill(mu.eta());
+	 if (mu.pt() > 5 && abs(mu.eta()) < 2.4){
+	   iMu++;
+	   double phi=mu.phi();
+	   double eta=mu.eta();
+	   double dr_bestMatch=100;
+	   int index=-1;	 
+	   int iposition=-1;
+	   for (int i=0; i<nGenMuons; i++){
+	     double gphi=AllGenMuons.Phi.at(i);
+	     double geta=AllGenMuons.Eta.at(i);
+	     int gindex=AllGenMuons.Index.at(i);
+	     double dEta=(eta-geta);
+	     double dPhi=(phi-gphi);
+	     if (dPhi>pi) dPhi=2*pi-dPhi;
+	     double dR=sqrt(dEta*dEta+dPhi*dPhi);
+
+	     if (dR<0.1 && dR<dr_bestMatch) {
+	       dr_bestMatch=dR;
+	       index=gindex;
+	       iposition=i;
+	     }
+	   }
+	   if (index!=-1 && dr_bestMatch<0.1){
+	     double d0=mcTools.ImpactParameter(index);
+	     double d0_z=mcTools.ImpactParameter_Z(index);
+	     if (d0<0.05 && d0_z<0.1){
+	       
+	       MuCaloIso.push_back(mu.caloIso());
+	       MuRelIsoDeltaBeta.push_back(mu.relIsoDeltaBeta());
+	       
+	       MuPt.push_back(mu.pt());
+	       Lep.Id.push_back(AllGenMuons.Id.at(iposition));
+	       Lep.Pt.push_back(mu.pt());
+	       if (AllGenMuons.Id.at(iposition) > 0) {
+		 Lep_neg.Id.push_back(AllGenMuons.Id.at(iposition));
+		 Lep_neg.Pt.push_back(mu.pt());
+	       }
+	       else{
+		 Lep_pos.Id.push_back(AllGenMuons.Id.at(iposition));
+		 Lep_pos.Pt.push_back(mu.pt());
+	       }
+	     }
+	   }
+	 }
+       }
+     }
+     
+     hObsMu5_NMu->Fill(iMu);
+     //   hIdTight1_NMu->Fill(iMu);
+     int iEle=0;
+     int nGenElectrons=AllGenElectrons.Id.size();
+     for(Electron elec : fEvent.electrons()){
+       hMCElecPt->Fill(elec.MCelectron()->pt());
+       if (elec.mvaEleID_PHYS14_PU20bx25_nonTrig_V1_wp90()>0){
+	 hObsElePt->Fill(elec.pt());
+	 hObsEleEta->Fill(elec.eta());
+	 if (elec.pt() > 7 && abs(elec.eta())< 2.5){ 
+	   iEle++;
+	 double phi=elec.phi();
+	 double eta=elec.eta();
+	 double dr_bestMatch=100;
+	 int index=-1;
+	 int iposition=-1;
+	 for (int i=0; i<nGenElectrons; i++){
+	   double gphi=AllGenElectrons.Phi.at(i);
+	   double geta=AllGenElectrons.Eta.at(i);
+	   int gindex=AllGenElectrons.Index.at(i);
+	   double dEta=(eta-geta);
+	   double dPhi=(phi-gphi);
+	   if (dPhi>pi) dPhi=2*pi-dPhi;
+	   double dR=sqrt(dEta*dEta+dPhi*dPhi);
+	   if (dR<0.1 && dR<dr_bestMatch) {
+	     dr_bestMatch=dR;
+	     index=gindex;
+	     iposition=i;
+	   }
+	 }
+	 if (index!=-1 && dr_bestMatch<0.1){
+	   double d0=mcTools.ImpactParameter(index);
+	   double d0_z=mcTools.ImpactParameter_Z(index);
+	   if (d0<0.05 && d0_z<0.1){
+	     Lep.Id.push_back(AllGenElectrons.Id.at(iposition));
+	     Lep.Pt.push_back(elec.pt());
+	     ElecPt.push_back(elec.pt());
+	     
+	     ElecRelIsoDeltaBeta.push_back(elec.relIsoDeltaBeta());
+	     ElecCaloIso.push_back(elec.caloIso());
+	     ElecTrackIso.push_back(elec.trackIso());
+	     
+	     if (AllGenElectrons.Id.at(iposition) > 0) {
+	       Lep_neg.Id.push_back(AllGenElectrons.Id.at(iposition));
+	       Lep_neg.Pt.push_back(elec.pt());
+	     }
+	     else{
+	       Lep_pos.Id.push_back(AllGenElectrons.Id.at(iposition));
+	       Lep_pos.Pt.push_back(elec.pt());
+	     }
+	   }
+	 }
+       }
      }
    }
+     
+     hObsEle7_NEle->Fill(iEle);     
+     
+     int nsize=Lep_pos.Id.size();
+     for (int k=0; k<nsize-1; k++){
+       for (int m=k+1; m<nsize; m++){
+	 if (Lep_pos.Pt.at(k) < Lep_pos.Pt.at(m)){
+	   double tmpPt=Lep_pos.Pt.at(k);
+	   int tmpId=Lep_pos.Id.at(k);
+	   Lep_pos.Pt.at(k)=Lep_pos.Pt.at(m);
+	   Lep_pos.Id.at(k)=Lep_pos.Id.at(m);
+	   Lep_pos.Pt.at(m)=tmpPt;
+	 Lep_pos.Id.at(m)=tmpId;
+	 }
+       }
+     }
+     nsize=Lep_neg.Id.size();
+     for (int k=0; k<nsize-1; k++){
+       for (int m=k+1; m<nsize; m++){
+	 if (Lep_neg.Pt.at(k) < Lep_neg.Pt.at(m)){
+	   double tmpPt=Lep_neg.Pt.at(k);
+	   int tmpId=Lep_neg.Id.at(k);
+	   Lep_neg.Pt.at(k)=Lep_neg.Pt.at(m);
+	   Lep_neg.Id.at(k)=Lep_neg.Id.at(m);
+	   Lep_neg.Pt.at(m)=tmpPt;
+	   Lep_neg.Id.at(m)=tmpId;
+	 }
+       }
+     }
+     double pt_cut_pos[2];
+     pt_cut_pos[0]=10; 
+     pt_cut_pos[1]=10;
+     if (Lep_pos.Id.size() >1){
+       if (abs(Lep_pos.Id.at(0))==11) pt_cut_pos[0]=15;
+     }
+     else {
+       Lep_pos.Pt.push_back(0.);
+       Lep_pos.Pt.push_back(0.);
+   }
+     double pt_cut_neg[2];
+     pt_cut_neg[0]=10; 
+     pt_cut_neg[1]=10;
+     if (Lep_neg.Id.size() >1){
+     if (abs(Lep_neg.Id.at(0))==11) pt_cut_neg[0]=15;
+     }
+     else {
+       Lep_neg.Pt.push_back(0.);
+       Lep_neg.Pt.push_back(0.);
+     }
+     double HT=MET.Et();;
+     TLorentzVector p4;
+     p4.Clear();
+     int njets=0;
+     bool qBJetTag=false;
+     int nBottom=Bottom.Id.size();
+     for(Jet jet : fEvent.jets_pfchs()){
+       double dr_bestMatch=100.;
+       if (jet.pt() > 25 && abs(jet.eta()) < 2.4 ) njets++;
+       for (int i=0; i<nBottom; i++){
+	 double BotPhi=Bottom.Phi.at(i);
+	 double BotEta=Bottom.Eta.at(i);
+	 //int BotIndex=Bottom.Index.at(i);
+	 double dR=sqrt((BotPhi-jet.phi())*(BotPhi-jet.phi())+(BotEta-jet.eta())*(BotEta-jet.eta()));
+	 if (dR<0.1 && dR<dr_bestMatch) {
+	   dr_bestMatch=dR;
+	 }
+       }
+       if (dr_bestMatch<0.1){
+	 qBJetTag=true;
+	 hCSV_Btags->Fill(jet.combinedSecondaryVertexBJetTags());
+	 hcMVA_Btags->Fill(jet.pfCombinedMVABJetTags());
+	 p4.SetPtEtaPhiE(jet.pt(),jet.eta(),jet.phi(),jet.e());
+	 HT+=p4.Et();
+       }
+     }
+     
+     
+     if ((Lep_pos.Pt.at(0)>pt_cut_pos[0] && Lep_pos.Pt.at(1)>pt_cut_pos[1]) || (Lep_neg.Pt.at(0)>pt_cut_neg[0] && Lep_neg.Pt.at(1)>pt_cut_neg[1])){
+       hHTjets->Fill(HT);
+       int nsize=MuCaloIso.size();
+       for (int i=0; i<nsize; i++){
+	 hMuCaloIso->Fill(MuCaloIso.at(i));
+	 hMuRelIsoDeltaBeta->Fill(MuRelIsoDeltaBeta.at(i));
+       }
+       nsize=ElecCaloIso.size();
+       for (int i=0; i<nsize; i++){
+	 hElecCaloIso->Fill(ElecCaloIso.at(i));
+	 hElecRelIsoDeltaBeta->Fill(ElecRelIsoDeltaBeta.at(i));
+	 hElecTrackIso->Fill(ElecTrackIso.at(i));
+       }
+       if (qBJetTag){
+	 hObs_NJets->Fill(njets);
+	 if (njets >4) {
+	   hObs_MET->Fill(MET.Et());
+	   
+	 }
+       }
+     }
+     
    
-   // for(Jet jet : fEvent.jets_pfchs())                                                                                                                                                                                 
+     //MuPt=DVectorSorting(MuPt);
+     //ElecPt=DVectorSorting(ElecPt);
+     
+     //hMVA1_NEle->Fill(iEle);
+     
+   }
+   
+   //=======================PassedGenEvents==============================//
    hPassedEvents->Fill("AllEvts",1);
    if (nLeptons>=2) {
      hPassedEvents->Fill("NLep>2",1);
      if (qGoodLep) {
        hPassedEvents->Fill("LepPtEta_cut",1);
        if (iGJets>6) {
-	 hPassedEvents->Fill("nJets>4",1);
-	 if (MET.Et()>40) hPassedEvents->Fill("MET>40",1);
+	 hPassedEvents->Fill("nJets>6",1);
+	 if (MET.Et()>65) hPassedEvents->Fill("MET>65",1);
        }
      }
    }
 
 
-   
+  
    return;
-} //End
-
+    //End
+}
      
      
